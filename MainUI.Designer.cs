@@ -33,33 +33,37 @@
             // 
             // startBtn1
             // 
+            this.startBtn1.AutoSize = false;
             this.startBtn1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.startBtn1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.startBtn1.Depth = 0;
+            this.startBtn1.Font = new System.Drawing.Font("돋움", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.startBtn1.HighEmphasis = true;
             this.startBtn1.Icon = null;
-            this.startBtn1.Location = new System.Drawing.Point(30, 82);
-            this.startBtn1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.startBtn1.Location = new System.Drawing.Point(5, 70);
+            this.startBtn1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.startBtn1.MouseState = MaterialSkin.MouseState.HOVER;
             this.startBtn1.Name = "startBtn1";
             this.startBtn1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.startBtn1.Size = new System.Drawing.Size(151, 36);
+            this.startBtn1.Size = new System.Drawing.Size(390, 40);
             this.startBtn1.TabIndex = 0;
             this.startBtn1.Text = "Start Operation";
             this.startBtn1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.startBtn1.UseAccentColor = false;
             this.startBtn1.UseVisualStyleBackColor = true;
+            this.startBtn1.Click += new System.EventHandler(this.startBtn1_Click);
             // 
             // MainUI
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 18F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1551, 896);
+            this.ClientSize = new System.Drawing.Size(1086, 597);
             this.Controls.Add(this.startBtn1);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainUI";
+            this.Padding = new System.Windows.Forms.Padding(2, 43, 2, 2);
             this.Text = "GATE BOT";
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
