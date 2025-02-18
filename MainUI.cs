@@ -31,10 +31,51 @@ namespace GateBot
             var chromeDriverService = ChromeDriverService.CreateDefaultService();
             IWebDriver driver = new ChromeDriver(chromeDriverService);
 
-            // 특정 사이트로 이동
-            driver.Navigate().GoToUrl("https://naver.com");
+            // 각 사이트를 변수로 할당
+            string site1 = "https://naver.com";
+            string site2 = "https://google.com";
+            string site3 = "https://example.com";
 
-            // 필요한 추가 작업을 여기에 작성
+            // 확인할 URL 목록
+            string[] targetUrls = { site1, site2, site3 };
+
+            try
+            {
+                // 열려 있는 브라우저 창 확인
+                driver.Navigate().GoToUrl(site1);  // 예시로 site1을 열기
+
+                // 현재 URL 확인
+                string currentUrl = driver.Url;
+
+                // 대상 URL 중 하나와 일치하는지 확인
+                bool isTargetUrl = false;
+                foreach (string url in targetUrls)
+                {
+                    if (currentUrl.Contains(url))
+                    {
+                        isTargetUrl = true;
+                        break;
+                    }
+                }
+
+                if (isTargetUrl)
+                {
+                    Console.WriteLine("열려 있는 URL이 대상 목록에 있습니다!");
+                }
+                else
+                {
+                    Console.WriteLine("열려 있는 URL이 대상 목록에 없습니다.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"오류 발생: {ex.Message}");
+            }
+            finally
+            {
+                // 드라이버 종료
+                driver.Quit();
+            }
         }
     }
 }
