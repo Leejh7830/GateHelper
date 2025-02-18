@@ -1,10 +1,9 @@
-﻿using System;
+﻿using OpenQA.Selenium;
+using OpenQA.Selenium.Chrome;
+using System;
 using System.Drawing;
 using MaterialSkin;
 using MaterialSkin.Controls;
-using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-using System.Configuration;
 
 namespace GateBot
 {
