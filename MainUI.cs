@@ -4,6 +4,8 @@ using System;
 using System.Drawing;
 using MaterialSkin;
 using MaterialSkin.Controls;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace GateBot
 {
@@ -25,56 +27,38 @@ namespace GateBot
             this.Size = new Size(400, 600);
         }
 
-        private void startBtn1_Click(object sender, EventArgs e)
+        private async void StartBtn1_Click(object sender, EventArgs e)
         {
-            // ChromeDriver 경로 지정
-            var chromeDriverService = ChromeDriverService.CreateDefaultService();
-            IWebDriver driver = new ChromeDriver(chromeDriverService);
-
-            // 각 사이트를 변수로 할당
-            string site1 = "https://naver.com";
-            string site2 = "https://google.com";
-            string site3 = "https://example.com";
-
-            // 확인할 URL 목록
-            string[] targetUrls = { site1, site2, site3 };
+            IWebDriver driver = null;
 
             try
             {
-                // 열려 있는 브라우저 창 확인
-                driver.Navigate().GoToUrl(site1);  // 예시로 site1을 열기
+                // 비동기로 드라이버 초기화
+                driver = await Task.Run(() => Util.InitializeDriver());
 
-                // 현재 URL 확인
-                string currentUrl = driver.Url;
+                // 각 사이트를 변수로 할당
+                string site1 = "https://naver.com";
+                string site2 = "https://google.com";
+                string site3 = "https://example.com";
 
-                // 대상 URL 중 하나와 일치하는지 확인
-                bool isTargetUrl = false;
-                foreach (string url in targetUrls)
-                {
-                    if (currentUrl.Contains(url))
-                    {
-                        isTargetUrl = true;
-                        break;
-                    }
-                }
+                // 확인할 URL 목록
+                string[] targetUrls = { site1, site2, site3 };
 
-                if (isTargetUrl)
-                {
-                    Console.WriteLine("열려 있는 URL이 대상 목록에 있습니다!");
-                }
-                else
-                {
-                    Console.WriteLine("열려 있는 URL이 대상 목록에 없습니다.");
-                }
+                // 열려 있는 탭에서 URL 확인
+                await Task.Run(() => Util.CheckOpenUrls(driver, targetUrls));
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"오류 발생: {ex.Message}");
+                // 예외가 발생하면 사용자에게 메시지 표시
+                MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
                 // 드라이버 종료
-                driver.Quit();
+                if (driver != null)
+                {
+                    Util.CloseDriver(driver);
+                }
             }
         }
     }

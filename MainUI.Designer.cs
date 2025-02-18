@@ -51,7 +51,7 @@
             this.startBtn1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.startBtn1.UseAccentColor = false;
             this.startBtn1.UseVisualStyleBackColor = true;
-            this.startBtn1.Click += new System.EventHandler(this.startBtn1_Click);
+            this.startBtn1.Click += new System.EventHandler(this.StartBtn1_Click);
             // 
             // MainUI
             // 
