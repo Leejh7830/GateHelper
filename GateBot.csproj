@@ -115,6 +115,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChromeDriverManager.cs" />
+    <Compile Include="Config.cs" />
     <Compile Include="MainUI.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -123,6 +124,7 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Unused.cs" />
     <Compile Include="Util.cs" />
     <EmbeddedResource Include="MainUI.resx">
       <DependentUpon>MainUI.cs</DependentUpon>
