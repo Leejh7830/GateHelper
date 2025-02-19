@@ -13,6 +13,9 @@ namespace GateBot
     {
         private readonly MaterialSkinManager materialSkinManager;
 
+        public static IWebDriver driver = null;
+
+
         public MainUI()
         {
             InitializeComponent();
@@ -29,23 +32,13 @@ namespace GateBot
 
         private async void StartBtn1_Click(object sender, EventArgs e)
         {
-            IWebDriver driver = null;
-
             try
             {
                 // 비동기로 드라이버 초기화
                 driver = await Task.Run(() => Util.InitializeDriver());
 
-                // 각 사이트를 변수로 할당
-                string site1 = "https://naver.com";
-                string site2 = "https://google.com";
-                string site3 = "https://example.com";
-
-                // 확인할 URL 목록
-                string[] targetUrls = { site1, site2, site3 };
-
                 // 열려 있는 탭에서 URL 확인
-                await Task.Run(() => Util.CheckOpenUrls(driver, targetUrls));
+                await Task.Run(() => Util.CheckOpenUrls(driver));
             }
             catch (Exception ex)
             {
