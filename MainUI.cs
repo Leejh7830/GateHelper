@@ -5,6 +5,7 @@ using MaterialSkin.Controls;
 using MaterialSkin;
 using System.Drawing;
 using System.Windows.Forms;
+using System.Threading;
 
 namespace GateBot
 {
@@ -67,7 +68,13 @@ namespace GateBot
                 // PW 입력
                 //Util.SendKeysToElement(_driver, "//*[@id='PASSWORD']", _config.GatePW);
 
-                Util.FindElementWithWait(_driver, "//*[@id='main_logo_preview_off']");
+                // Util.FindElementAndShowMessage(_driver, "/html/body/div/div[2]/button[3]");
+
+                // Util.ShowAllElementXpaths(_driver);
+                Util.ClickElementByXPath(_driver, "/html/body/div/div[2]/button[3]"); // 고급
+                Util.ClickElementByXPath(_driver, "/html/body/div/div[3]/p[2]/a"); // 안전하지않음으로이동
+
+
 
             }
             catch (Exception ex)
