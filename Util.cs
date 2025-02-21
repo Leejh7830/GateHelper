@@ -1,45 +1,62 @@
 ﻿using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
+using OpenQA.Selenium.Support.UI;
 using System;
 using System.IO;
-using System.Net;
 using System.Windows.Forms;
-using System.IO.Compression;
-using System.Diagnostics;
 using Newtonsoft.Json;
+using SeleniumExtras.WaitHelpers;
 
 namespace GateBot
 {
     public static class Util
     {
         // ChromeDriver 초기화 메소드
-        public static IWebDriver InitializeDriver()
+        public static IWebDriver InitializeDriver(Config config)
         {
             try
             {
-                // ChromeDriver 경로 지정 (실행 파일과 같은 위치의 ChromeDriver 폴더)
+                // ChromeDriver 경로 설정
                 string driverDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ChromeDriver");
                 string driverPath = Path.Combine(driverDirectory, "chromedriver.exe");
 
-                // 드라이버 존재 여부 확인
                 if (!File.Exists(driverPath))
                 {
-                    throw new Exception($"ChromeDriver가 경로에 존재하지 않습니다: {driverPath}");
+                    throw new Exception($"ChromeDriver가 존재하지 않습니다: {driverPath}");
+                }
+
+                // Chrome 실행 경로 확인 (기본 경로 -> 사용자 지정 경로 순으로 확인)
+                string chromePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe"; // 기본 경로 (64비트)
+                if (!File.Exists(chromePath))
+                {
+                    chromePath = @"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"; // 32비트 경로
+                }
+                if (!File.Exists(chromePath))
+                {
+                    chromePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                                              @"Google\Chrome\Application\chrome.exe"); // 사용자 폴더 경로
+                }
+
+                // 그래도 없으면 사용자가 입력한 경로 사용
+                if (!File.Exists(chromePath))
+                {
+                    chromePath = config.ChromePath;
+                }
+
+                // 최종적으로 Chrome 실행 파일을 찾지 못했다면 예외 발생
+                if (!File.Exists(chromePath))
+                {
+                    throw new Exception($"Chrome 실행 파일을 찾을 수 없습니다.\n경로: {chromePath}\n설정 파일에서 지정한 경로를 확인해 주세요.");
                 }
 
                 // Chrome 옵션 설정
                 var options = new ChromeOptions();
+                options.BinaryLocation = chromePath;
                 options.AddArgument("--start-maximized");
                 options.AddArgument("--disable-notifications");
-                options.AddArgument("--no-sandbox");             // 샌드박스 비활성화 (리눅스 및 일부 환경에서 충돌 방지)
-                options.AddArgument("--disable-dev-shm-usage");  // 메모리 부족 이슈 해결 (특히 Docker나 VM 환경에서 유용)
-                options.AddArgument("--remote-debugging-port=9222"); // DevToolsActivePort 대체 포트
-                options.AddArgument("--disable-extensions");     // 확장 프로그램 비활성화
-                options.AddArgument("--disable-gpu");            // GPU 가속 비활성화 (일부 환경에서 충돌 방지)
 
-                // ChromeDriver 초기화
+                // ChromeDriver 실행
                 var service = ChromeDriverService.CreateDefaultService(driverDirectory);
-                MessageBox.Show("정상실행");
                 return new ChromeDriver(service, options);
             }
             catch (Exception ex)
@@ -50,56 +67,63 @@ namespace GateBot
         }
 
 
+
         // 설정 파일을 불러오고 없으면 생성하는 메소드
         public static Config LoadConfig()
         {
             string configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
 
-            // 설정 파일이 존재하지 않으면 기본값을 사용하여 생성
             if (!File.Exists(configFilePath))
             {
                 var defaultConfig = new Config
                 {
-                    URL = "https://www.exampleAAA.com",
-                    UserID = "your_id",
-                    Password = "your_password"
+                    URL = "",
+                    GateID = "",
+                    GatePW = "",
+                    ChromePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe"
                 };
 
                 try
                 {
-                    // 기본값을 JSON 파일로 저장
                     File.WriteAllText(configFilePath, JsonConvert.SerializeObject(defaultConfig, Formatting.Indented));
-
-                    // 설정 파일 생성 후 안내 메시지 출력
-                    MessageBox.Show($"설정 파일이 생성되었습니다. 정보 입력 후 재실행 해주세요.\n파일 경로: {configFilePath}",
+                    MessageBox.Show($"설정 파일이 생성되었습니다. 정보를 입력하고 프로그램을 재실행 해주세요.\n파일 경로: {configFilePath}",
                                     "설정 파일 생성", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    Application.Exit();  // 프로그램 종료
+                    Application.Exit();
+                    return null;
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show($"설정 파일 생성 중 오류 발생: {ex.Message}\n파일 경로: {configFilePath}",
                                     "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    throw;
+                    return null;
                 }
             }
 
-            // 설정 파일이 존재하면 읽어오기
             try
             {
                 var json = File.ReadAllText(configFilePath);
-
-                // 사용자 입력 데이터를 Config 객체로 역직렬화
                 var config = JsonConvert.DeserializeObject<Config>(json);
 
-                // 데이터가 없을 경우 기본값으로 설정
                 if (config == null)
                 {
-                    throw new Exception("설정 파일의 데이터가 올바르지 않습니다.");
+                    MessageBox.Show("설정 파일의 형식이 잘못되었습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return null;
                 }
 
-                // 정상적으로 로드된 경우
-                MessageBox.Show($"설정 파일이 정상적으로 불러와졌습니다.\n파일 경로: {configFilePath}",
-                                "설정 파일 로드", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // 필수 항목 검증
+                var missingFields = new System.Text.StringBuilder();
+
+                if (!json.Contains("\"URL\"")) missingFields.AppendLine("URL");
+                if (!json.Contains("\"GateID\"")) missingFields.AppendLine("GateID");
+                if (!json.Contains("\"GatePW\"")) missingFields.AppendLine("GatePW");
+                if (!json.Contains("\"ChromePath\"")) missingFields.AppendLine("ChromePath");
+
+                if (missingFields.Length > 0)
+                {
+                    MessageBox.Show($"설정 파일에 다음 항목이 누락되었습니다:\n{missingFields}",
+                                    "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return null;
+                }
 
                 return config;
             }
@@ -107,11 +131,66 @@ namespace GateBot
             {
                 MessageBox.Show($"설정 파일 로딩 오류: {ex.Message}\n파일 경로: {configFilePath}",
                                 "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw;
+                return null;
             }
         }
 
 
+        // 요소에 값을 입력하는 메서드
+        public static void SendKeysToElement(IWebDriver driver, string xpath, string value)
+        {
+            try
+            {
+                // WebDriverWait을 사용하여 요소가 나타날 때까지 대기
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+
+                // 요소가 준비될 때까지 기다림
+                var element = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath(xpath)));
+
+                if (element != null)
+                {
+                    element.SendKeys(value);  // 값을 입력
+                }
+                else
+                {
+                    throw new NoSuchElementException($"{xpath} 요소를 찾을 수 없습니다.");
+                }
+            }
+            catch (NoSuchElementException ex)
+            {
+                throw new Exception($"요소를 찾을 수 없습니다: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"오류 발생: {ex.Message}");
+            }
+        }
+
+
+        public static void FindElementWithWait(IWebDriver driver, string xpath)
+        {
+            try
+            {
+                // WebDriverWait을 사용하여 요소가 나타날 때까지 대기
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
+                var element = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath(xpath)));
+
+                // 요소가 나타났다면 그 요소에 대해 처리
+                if (element != null)
+                {
+                    Console.WriteLine("요소를 찾았습니다!");
+                    element.SendKeys("test");
+                }
+            }
+            catch (NoSuchElementException ex)
+            {
+                Console.WriteLine($"요소를 찾을 수 없습니다: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"기타 오류: {ex.Message}");
+            }
+        }
 
 
 
@@ -152,6 +231,6 @@ namespace GateBot
             }
         }
 
-        
+
     }
 }

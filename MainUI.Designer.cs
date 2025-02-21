@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             this.startBtn1 = new MaterialSkin.Controls.MaterialButton();
+            this.gateBtn1 = new MaterialSkin.Controls.MaterialButton();
             this.SuspendLayout();
             // 
             // startBtn1
@@ -53,11 +54,33 @@
             this.startBtn1.UseVisualStyleBackColor = true;
             this.startBtn1.Click += new System.EventHandler(this.StartBtn1_Click);
             // 
+            // gateBtn1
+            // 
+            this.gateBtn1.AutoSize = false;
+            this.gateBtn1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.gateBtn1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.gateBtn1.Depth = 0;
+            this.gateBtn1.HighEmphasis = true;
+            this.gateBtn1.Icon = null;
+            this.gateBtn1.Location = new System.Drawing.Point(6, 120);
+            this.gateBtn1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.gateBtn1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.gateBtn1.Name = "gateBtn1";
+            this.gateBtn1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.gateBtn1.Size = new System.Drawing.Size(75, 36);
+            this.gateBtn1.TabIndex = 1;
+            this.gateBtn1.Text = "ID/PW";
+            this.gateBtn1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.gateBtn1.UseAccentColor = false;
+            this.gateBtn1.UseVisualStyleBackColor = true;
+            this.gateBtn1.Click += new System.EventHandler(this.gateBtn1_Click);
+            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1086, 597);
+            this.Controls.Add(this.gateBtn1);
             this.Controls.Add(this.startBtn1);
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainUI";
@@ -70,6 +93,7 @@
         #endregion
 
         private MaterialSkin.Controls.MaterialButton startBtn1;
+        private MaterialSkin.Controls.MaterialButton gateBtn1;
     }
 }
 
