@@ -52,7 +52,7 @@ namespace GateBot
             }
         }
 
-        private void gateBtn1_Click(object sender, EventArgs e)
+        private void LoginBtn1_Click(object sender, EventArgs e)
         {
             try
             {

@@ -28,60 +28,99 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.startBtn1 = new MaterialSkin.Controls.MaterialButton();
-            this.gateBtn1 = new MaterialSkin.Controls.MaterialButton();
+            this.StartBtn1 = new MaterialSkin.Controls.MaterialButton();
+            this.LoginBtn1 = new MaterialSkin.Controls.MaterialButton();
+            this.GateIDBox1 = new MaterialSkin.Controls.MaterialTextBox();
+            this.GatePWBox1 = new MaterialSkin.Controls.MaterialTextBox();
             this.SuspendLayout();
             // 
-            // startBtn1
+            // StartBtn1
             // 
-            this.startBtn1.AutoSize = false;
-            this.startBtn1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.startBtn1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.startBtn1.Depth = 0;
-            this.startBtn1.Font = new System.Drawing.Font("돋움", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.startBtn1.HighEmphasis = true;
-            this.startBtn1.Icon = null;
-            this.startBtn1.Location = new System.Drawing.Point(5, 70);
-            this.startBtn1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.startBtn1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.startBtn1.Name = "startBtn1";
-            this.startBtn1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.startBtn1.Size = new System.Drawing.Size(390, 40);
-            this.startBtn1.TabIndex = 0;
-            this.startBtn1.Text = "Start Operation";
-            this.startBtn1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.startBtn1.UseAccentColor = false;
-            this.startBtn1.UseVisualStyleBackColor = true;
-            this.startBtn1.Click += new System.EventHandler(this.StartBtn1_Click);
+            this.StartBtn1.AutoSize = false;
+            this.StartBtn1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.StartBtn1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.StartBtn1.Depth = 0;
+            this.StartBtn1.Font = new System.Drawing.Font("돋움", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.StartBtn1.HighEmphasis = true;
+            this.StartBtn1.Icon = null;
+            this.StartBtn1.Location = new System.Drawing.Point(5, 70);
+            this.StartBtn1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.StartBtn1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.StartBtn1.Name = "StartBtn1";
+            this.StartBtn1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.StartBtn1.Size = new System.Drawing.Size(390, 40);
+            this.StartBtn1.TabIndex = 0;
+            this.StartBtn1.Text = "Start Operation";
+            this.StartBtn1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.StartBtn1.UseAccentColor = false;
+            this.StartBtn1.UseVisualStyleBackColor = true;
+            this.StartBtn1.Click += new System.EventHandler(this.StartBtn1_Click);
             // 
-            // gateBtn1
+            // LoginBtn1
             // 
-            this.gateBtn1.AutoSize = false;
-            this.gateBtn1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.gateBtn1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.gateBtn1.Depth = 0;
-            this.gateBtn1.HighEmphasis = true;
-            this.gateBtn1.Icon = null;
-            this.gateBtn1.Location = new System.Drawing.Point(6, 120);
-            this.gateBtn1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.gateBtn1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.gateBtn1.Name = "gateBtn1";
-            this.gateBtn1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.gateBtn1.Size = new System.Drawing.Size(75, 36);
-            this.gateBtn1.TabIndex = 1;
-            this.gateBtn1.Text = "ID/PW";
-            this.gateBtn1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.gateBtn1.UseAccentColor = false;
-            this.gateBtn1.UseVisualStyleBackColor = true;
-            this.gateBtn1.Click += new System.EventHandler(this.gateBtn1_Click);
+            this.LoginBtn1.AutoSize = false;
+            this.LoginBtn1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.LoginBtn1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.LoginBtn1.Depth = 0;
+            this.LoginBtn1.HighEmphasis = true;
+            this.LoginBtn1.Icon = null;
+            this.LoginBtn1.Location = new System.Drawing.Point(284, 117);
+            this.LoginBtn1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.LoginBtn1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.LoginBtn1.Name = "LoginBtn1";
+            this.LoginBtn1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.LoginBtn1.Size = new System.Drawing.Size(111, 106);
+            this.LoginBtn1.TabIndex = 1;
+            this.LoginBtn1.Text = "LOGIN";
+            this.LoginBtn1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.LoginBtn1.UseAccentColor = false;
+            this.LoginBtn1.UseVisualStyleBackColor = true;
+            this.LoginBtn1.Click += new System.EventHandler(this.LoginBtn1_Click);
+            // 
+            // GateIDBox1
+            // 
+            this.GateIDBox1.AnimateReadOnly = false;
+            this.GateIDBox1.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.GateIDBox1.Depth = 0;
+            this.GateIDBox1.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.GateIDBox1.LeadingIcon = null;
+            this.GateIDBox1.Location = new System.Drawing.Point(5, 117);
+            this.GateIDBox1.MaxLength = 30;
+            this.GateIDBox1.MouseState = MaterialSkin.MouseState.OUT;
+            this.GateIDBox1.Multiline = false;
+            this.GateIDBox1.Name = "GateIDBox1";
+            this.GateIDBox1.Size = new System.Drawing.Size(272, 50);
+            this.GateIDBox1.TabIndex = 2;
+            this.GateIDBox1.Text = "";
+            this.GateIDBox1.TrailingIcon = null;
+            // 
+            // GatePWBox1
+            // 
+            this.GatePWBox1.AnimateReadOnly = false;
+            this.GatePWBox1.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.GatePWBox1.Depth = 0;
+            this.GatePWBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.GatePWBox1.LeadingIcon = null;
+            this.GatePWBox1.Location = new System.Drawing.Point(5, 173);
+            this.GatePWBox1.MaxLength = 30;
+            this.GatePWBox1.MouseState = MaterialSkin.MouseState.OUT;
+            this.GatePWBox1.Multiline = false;
+            this.GatePWBox1.Name = "GatePWBox1";
+            this.GatePWBox1.Password = true;
+            this.GatePWBox1.Size = new System.Drawing.Size(272, 50);
+            this.GatePWBox1.TabIndex = 3;
+            this.GatePWBox1.Text = "";
+            this.GatePWBox1.TrailingIcon = null;
             // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1086, 597);
-            this.Controls.Add(this.gateBtn1);
-            this.Controls.Add(this.startBtn1);
+            this.Controls.Add(this.GatePWBox1);
+            this.Controls.Add(this.GateIDBox1);
+            this.Controls.Add(this.LoginBtn1);
+            this.Controls.Add(this.StartBtn1);
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainUI";
             this.Padding = new System.Windows.Forms.Padding(2, 43, 2, 2);
@@ -92,8 +131,10 @@
 
         #endregion
 
-        private MaterialSkin.Controls.MaterialButton startBtn1;
-        private MaterialSkin.Controls.MaterialButton gateBtn1;
+        private MaterialSkin.Controls.MaterialButton StartBtn1;
+        private MaterialSkin.Controls.MaterialButton LoginBtn1;
+        private MaterialSkin.Controls.MaterialTextBox GateIDBox1;
+        private MaterialSkin.Controls.MaterialTextBox GatePWBox1;
     }
 }
 
