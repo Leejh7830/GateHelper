@@ -52,7 +52,7 @@ namespace GateBot
             }
         }
 
-        private void LoginBtn1_Click(object sender, EventArgs e)
+        private void ConnectBtn1_Click(object sender, EventArgs e)
         {
             try
             {
@@ -73,6 +73,10 @@ namespace GateBot
                 // Util.ShowAllElementXpaths(_driver);
                 Util.ClickElementByXPath(_driver, "/html/body/div/div[2]/button[3]"); // 고급
                 Util.ClickElementByXPath(_driver, "/html/body/div/div[3]/p[2]/a"); // 안전하지않음으로이동
+                Thread.Sleep(1000);
+                this.TopMost = true;
+                this.Activate();
+                this.TopMost = false;
 
 
 
@@ -103,6 +107,9 @@ namespace GateBot
             Environment.Exit(0);
         }
 
-
+        private void LoginBtn1_Click(object sender, EventArgs e)
+         {
+                Util.InputKeys("{Tab},SPACE,{Tab},SPACE");
+        }
     }
 }

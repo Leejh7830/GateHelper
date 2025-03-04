@@ -29,9 +29,10 @@
         private void InitializeComponent()
         {
             this.StartBtn1 = new MaterialSkin.Controls.MaterialButton();
-            this.LoginBtn1 = new MaterialSkin.Controls.MaterialButton();
+            this.ConnectBtn1 = new MaterialSkin.Controls.MaterialButton();
             this.GateIDBox1 = new MaterialSkin.Controls.MaterialTextBox();
             this.GatePWBox1 = new MaterialSkin.Controls.MaterialTextBox();
+            this.LoginBtn1 = new MaterialSkin.Controls.MaterialButton();
             this.SuspendLayout();
             // 
             // StartBtn1
@@ -56,26 +57,26 @@
             this.StartBtn1.UseVisualStyleBackColor = true;
             this.StartBtn1.Click += new System.EventHandler(this.StartBtn1_Click);
             // 
-            // LoginBtn1
+            // ConnectBtn1
             // 
-            this.LoginBtn1.AutoSize = false;
-            this.LoginBtn1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.LoginBtn1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.LoginBtn1.Depth = 0;
-            this.LoginBtn1.HighEmphasis = true;
-            this.LoginBtn1.Icon = null;
-            this.LoginBtn1.Location = new System.Drawing.Point(284, 117);
-            this.LoginBtn1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.LoginBtn1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.LoginBtn1.Name = "LoginBtn1";
-            this.LoginBtn1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.LoginBtn1.Size = new System.Drawing.Size(111, 106);
-            this.LoginBtn1.TabIndex = 1;
-            this.LoginBtn1.Text = "LOGIN";
-            this.LoginBtn1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.LoginBtn1.UseAccentColor = false;
-            this.LoginBtn1.UseVisualStyleBackColor = true;
-            this.LoginBtn1.Click += new System.EventHandler(this.LoginBtn1_Click);
+            this.ConnectBtn1.AutoSize = false;
+            this.ConnectBtn1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.ConnectBtn1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.ConnectBtn1.Depth = 0;
+            this.ConnectBtn1.HighEmphasis = true;
+            this.ConnectBtn1.Icon = null;
+            this.ConnectBtn1.Location = new System.Drawing.Point(5, 117);
+            this.ConnectBtn1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.ConnectBtn1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.ConnectBtn1.Name = "ConnectBtn1";
+            this.ConnectBtn1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.ConnectBtn1.Size = new System.Drawing.Size(390, 39);
+            this.ConnectBtn1.TabIndex = 1;
+            this.ConnectBtn1.Text = "Connect";
+            this.ConnectBtn1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.ConnectBtn1.UseAccentColor = false;
+            this.ConnectBtn1.UseVisualStyleBackColor = true;
+            this.ConnectBtn1.Click += new System.EventHandler(this.ConnectBtn1_Click);
             // 
             // GateIDBox1
             // 
@@ -84,7 +85,7 @@
             this.GateIDBox1.Depth = 0;
             this.GateIDBox1.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
             this.GateIDBox1.LeadingIcon = null;
-            this.GateIDBox1.Location = new System.Drawing.Point(5, 117);
+            this.GateIDBox1.Location = new System.Drawing.Point(5, 165);
             this.GateIDBox1.MaxLength = 30;
             this.GateIDBox1.MouseState = MaterialSkin.MouseState.OUT;
             this.GateIDBox1.Multiline = false;
@@ -99,9 +100,9 @@
             this.GatePWBox1.AnimateReadOnly = false;
             this.GatePWBox1.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.GatePWBox1.Depth = 0;
-            this.GatePWBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.GatePWBox1.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
             this.GatePWBox1.LeadingIcon = null;
-            this.GatePWBox1.Location = new System.Drawing.Point(5, 173);
+            this.GatePWBox1.Location = new System.Drawing.Point(5, 221);
             this.GatePWBox1.MaxLength = 30;
             this.GatePWBox1.MouseState = MaterialSkin.MouseState.OUT;
             this.GatePWBox1.Multiline = false;
@@ -112,14 +113,36 @@
             this.GatePWBox1.Text = "";
             this.GatePWBox1.TrailingIcon = null;
             // 
+            // LoginBtn1
+            // 
+            this.LoginBtn1.AutoSize = false;
+            this.LoginBtn1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.LoginBtn1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.LoginBtn1.Depth = 0;
+            this.LoginBtn1.HighEmphasis = true;
+            this.LoginBtn1.Icon = null;
+            this.LoginBtn1.Location = new System.Drawing.Point(284, 165);
+            this.LoginBtn1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.LoginBtn1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.LoginBtn1.Name = "LoginBtn1";
+            this.LoginBtn1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.LoginBtn1.Size = new System.Drawing.Size(111, 106);
+            this.LoginBtn1.TabIndex = 4;
+            this.LoginBtn1.Text = "LOGIN";
+            this.LoginBtn1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.LoginBtn1.UseAccentColor = false;
+            this.LoginBtn1.UseVisualStyleBackColor = true;
+            this.LoginBtn1.Click += new System.EventHandler(this.LoginBtn1_Click);
+            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1086, 597);
+            this.Controls.Add(this.LoginBtn1);
             this.Controls.Add(this.GatePWBox1);
             this.Controls.Add(this.GateIDBox1);
-            this.Controls.Add(this.LoginBtn1);
+            this.Controls.Add(this.ConnectBtn1);
             this.Controls.Add(this.StartBtn1);
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainUI";
@@ -132,9 +155,10 @@
         #endregion
 
         private MaterialSkin.Controls.MaterialButton StartBtn1;
-        private MaterialSkin.Controls.MaterialButton LoginBtn1;
+        private MaterialSkin.Controls.MaterialButton ConnectBtn1;
         private MaterialSkin.Controls.MaterialTextBox GateIDBox1;
         private MaterialSkin.Controls.MaterialTextBox GatePWBox1;
+        private MaterialSkin.Controls.MaterialButton LoginBtn1;
     }
 }
 
