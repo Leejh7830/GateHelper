@@ -8,11 +8,17 @@ using Newtonsoft.Json;
 using SeleniumExtras.WaitHelpers;
 using System.Text;
 using System.Threading;
+using System.Runtime.InteropServices;
 
 namespace GateBot
 {
     public static class Util
     {
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetForegroundWindow(IntPtr hWnd);
+
+
         // ChromeDriver 초기화 메소드
         public static IWebDriver InitializeDriver(Config config)
         {
@@ -144,7 +150,7 @@ namespace GateBot
             try
             {
                 // WebDriverWait을 사용하여 요소가 나타날 때까지 대기
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
 
                 // 요소가 준비될 때까지 기다림
                 var element = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath(xpath)));
@@ -230,9 +236,35 @@ namespace GateBot
             }
         }
 
+        public static void MoveToTop(Form form)
+        {
+            Thread.Sleep(500);
+            form.TopMost = true;
+            form.Activate();
+            form.TopMost = false;
+        }
 
-
-
+        public static void FocusMainWindow(IntPtr chromeHandle)
+        {
+            try
+            {
+                if (chromeHandle != IntPtr.Zero)
+                {
+                    if (!SetForegroundWindow(chromeHandle))
+                    {
+                        MessageBox.Show("크롬 창으로 포커스 이동 실패.");
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("크롬 창 핸들을 찾을 수 없습니다.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"크롬 창 포커스 이동 중 오류 발생: {ex.Message}");
+            }
+        }
 
 
 
