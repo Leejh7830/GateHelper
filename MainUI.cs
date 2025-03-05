@@ -17,7 +17,8 @@ namespace GateBot
         public static IWebDriver _driver = null;
         private Config _config;
 
-        private IntPtr mainChromeHandle; // 크롬 창 핸들 저장
+        // private IntPtr mainChromeHandle; // 크롬 창 핸들 저장
+        private string MainHandle;
 
         public MainUI()
         {
@@ -50,13 +51,7 @@ namespace GateBot
                 // 사용자가 입력한 사이트로 이동
                 _driver.Navigate().GoToUrl(_config.URL);
 
-                // 크롬 프로세스 찾기, 메인페이지 핸들 저장
-                Process[] processes = Process.GetProcessesByName("chrome");
-                if (processes.Length > 0)
-                {
-                    mainChromeHandle = processes[0].MainWindowHandle;
-                }
-                MessageBox.Show(mainChromeHandle.ToString());
+                MainHandle = Util.FindWindowHandleByUrl(_driver, _config.URL);
 
                 Util.MoveToTop(this);
             }
@@ -76,17 +71,6 @@ namespace GateBot
                     return;
                 }
 
-                Util.FocusMainWindow(mainChromeHandle);
-
-                // ID 입력
-                //Util.SendKeysToElement(_driver, "//*[@id='USERID']", _config.GateID);
-
-                // PW 입력
-                //Util.SendKeysToElement(_driver, "//*[@id='PASSWORD']", _config.GatePW);
-
-                // Util.FindElementAndShowMessage(_driver, "/html/body/div/div[2]/button[3]");
-
-                // Util.ShowAllElementXpaths(_driver);
                 Util.ClickElementByXPath(_driver, "/html/body/div/div[2]/button[3]"); // 고급
                 Util.ClickElementByXPath(_driver, "/html/body/div/div[3]/p[2]/a"); // 안전하지않음으로이동
 
@@ -128,10 +112,18 @@ namespace GateBot
             string gateID = GateIDBox1.Text; // ID텍스트 박스 값 가져오기
             string gatePW = GatePWBox1.Text; // PW텍스트 박스 값 가져오기
 
+            // Util.FocusMainWindow(MainHandle);
+
+            // iframe으로 이동
             Util.SendKeysToElement(_driver, "//*[@id='USERID']", gateID);
             Util.SendKeysToElement(_driver, "//*[@id='PASSWD']", gatePW);
 
             Util.ClickElementByXPath(_driver, "//*[@id='login_submit']");
+        }
+
+        private void TestBtn1_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

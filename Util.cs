@@ -9,6 +9,8 @@ using SeleniumExtras.WaitHelpers;
 using System.Text;
 using System.Threading;
 using System.Runtime.InteropServices;
+using System.Collections.ObjectModel;
+using System.Collections.Generic;
 
 namespace GateBot
 {
@@ -244,15 +246,41 @@ namespace GateBot
             form.TopMost = false;
         }
 
-        public static void FocusMainWindow(IntPtr chromeHandle)
+
+        public static string FindWindowHandleByUrl(IWebDriver _driver, string url)
+        {
+            ReadOnlyCollection<string> windowHandles = _driver.WindowHandles;
+
+            foreach (string handle in windowHandles)
+            {
+                _driver.SwitchTo().Window(handle);
+                if (_driver.Url == url)
+                {
+                    return handle;
+                }
+            }
+
+            return null;
+        }
+
+        public static void FocusMainWindow(string chromeHandleString)
         {
             try
             {
-                if (chromeHandle != IntPtr.Zero)
+                if (!string.IsNullOrEmpty(chromeHandleString))
                 {
-                    if (!SetForegroundWindow(chromeHandle))
+                    IntPtr chromeHandle = new IntPtr(long.Parse(chromeHandleString)); // string을 IntPtr로 변환
+
+                    if (chromeHandle != IntPtr.Zero)
                     {
-                        MessageBox.Show("크롬 창으로 포커스 이동 실패.");
+                        if (!SetForegroundWindow(chromeHandle))
+                        {
+                            MessageBox.Show("크롬 창으로 포커스 이동 실패.");
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("크롬 창 핸들을 찾을 수 없습니다.");
                     }
                 }
                 else
@@ -267,7 +295,54 @@ namespace GateBot
         }
 
 
+        public static void FindIframesOnCurrentPage(IWebDriver driver)
+        {
+            try
+            {
+                // 현재 페이지의 모든 iframe 요소 찾기
+                IReadOnlyCollection<IWebElement> iframes = driver.FindElements(By.TagName("iframe"));
 
+                if (iframes.Count > 0)
+                {
+                    List<string> iframeIdentifiers = new List<string>();
+
+                    foreach (IWebElement iframe in iframes)
+                    {
+                        // iframe의 이름 또는 ID 가져오기
+                        string name = iframe.GetAttribute("name");
+                        string id = iframe.GetAttribute("id");
+
+                        // 이름 또는 ID가 있는 경우 목록에 추가
+                        if (!string.IsNullOrEmpty(name))
+                        {
+                            iframeIdentifiers.Add($"이름: {name}");
+                        }
+                        if (!string.IsNullOrEmpty(id))
+                        {
+                            iframeIdentifiers.Add($"ID: {id}");
+                        }
+                    }
+
+                    if (iframeIdentifiers.Count > 0)
+                    {
+                        // 메시지 박스에 iframe 정보 표시
+                        MessageBox.Show(string.Join("\n", iframeIdentifiers), "iframe 찾기 결과");
+                    }
+                    else
+                    {
+                        MessageBox.Show("현재 페이지에 이름 또는 ID가 있는 iframe이 없습니다.", "iframe 찾기 결과");
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("현재 페이지에 iframe이 없습니다.", "iframe 찾기 결과");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"iframe 찾기 중 오류 발생: {ex.Message}", "오류");
+            }
+        }
 
 
 

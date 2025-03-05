@@ -33,6 +33,7 @@
             this.GateIDBox1 = new MaterialSkin.Controls.MaterialTextBox();
             this.GatePWBox1 = new MaterialSkin.Controls.MaterialTextBox();
             this.LoginBtn1 = new MaterialSkin.Controls.MaterialButton();
+            this.TestBtn1 = new MaterialSkin.Controls.MaterialButton();
             this.SuspendLayout();
             // 
             // StartBtn1
@@ -134,11 +135,32 @@
             this.LoginBtn1.UseVisualStyleBackColor = true;
             this.LoginBtn1.Click += new System.EventHandler(this.LoginBtn1_Click);
             // 
+            // TestBtn1
+            // 
+            this.TestBtn1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.TestBtn1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.TestBtn1.Depth = 0;
+            this.TestBtn1.HighEmphasis = true;
+            this.TestBtn1.Icon = null;
+            this.TestBtn1.Location = new System.Drawing.Point(6, 280);
+            this.TestBtn1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.TestBtn1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.TestBtn1.Name = "TestBtn1";
+            this.TestBtn1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.TestBtn1.Size = new System.Drawing.Size(158, 36);
+            this.TestBtn1.TabIndex = 5;
+            this.TestBtn1.Text = "FuncTest";
+            this.TestBtn1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.TestBtn1.UseAccentColor = false;
+            this.TestBtn1.UseVisualStyleBackColor = true;
+            this.TestBtn1.Click += new System.EventHandler(this.TestBtn1_Click);
+            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1086, 597);
+            this.Controls.Add(this.TestBtn1);
             this.Controls.Add(this.LoginBtn1);
             this.Controls.Add(this.GatePWBox1);
             this.Controls.Add(this.GateIDBox1);
@@ -149,6 +171,7 @@
             this.Padding = new System.Windows.Forms.Padding(2, 43, 2, 2);
             this.Text = "GATE BOT";
             this.ResumeLayout(false);
+            this.PerformLayout();
 
         }
 
@@ -159,6 +182,7 @@
         private MaterialSkin.Controls.MaterialTextBox GateIDBox1;
         private MaterialSkin.Controls.MaterialTextBox GatePWBox1;
         private MaterialSkin.Controls.MaterialButton LoginBtn1;
+        private MaterialSkin.Controls.MaterialButton TestBtn1;
     }
 }
 
