@@ -114,8 +114,8 @@ namespace GateBot
 
         private void LoginBtn1_Click(object sender, EventArgs e)
         {
-            string gateID = GateIDTxt1.Text; // ID텍스트 박스 값 가져오기
-            string gatePW = GatePWTxt1.Text; // PW텍스트 박스 값 가져오기
+            string gateID = GateIDTxt1.Text; // ID 값 가져오기
+            string gatePW = GatePWTxt1.Text; // PW 값 가져오기
 
             // Util.FocusMainWindow(MainHandle);
 
@@ -138,7 +138,7 @@ namespace GateBot
 
             if (!string.IsNullOrEmpty(serverIP))
             {
-                // IP 주소인 경우 A XPath에 입력
+                // IP 주소인 경우
                 try
                 {
                     Util.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", serverIP);
@@ -151,7 +151,7 @@ namespace GateBot
             }
             else if (!string.IsNullOrEmpty(serverName))
             {
-                // 서버 이름인 경우 B XPath에 입력
+                // 서버 이름인 경우
                 try
                 {
                     Util.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", serverName);
