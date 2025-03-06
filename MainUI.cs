@@ -123,7 +123,8 @@ namespace GateBot
 
         private void TestBtn1_Click(object sender, EventArgs e)
         {
-
+            Util.FocusMainWindow(MainHandle);
+            Util.InvestigateIframesAndCollectClickableElements(_driver);
         }
     }
 }

@@ -295,56 +295,73 @@ namespace GateBot
         }
 
 
-        public static void FindIframesOnCurrentPage(IWebDriver driver)
+        public static void InvestigateIframesAndCollectClickableElements(IWebDriver driver)
         {
             try
             {
-                // 현재 페이지의 모든 iframe 요소 찾기
+                StringBuilder elementInfo = new StringBuilder();
+
+                // 기본 문서의 클릭 가능한 요소 조사
+                CollectClickableElements(driver, elementInfo, "기본 문서");
+
+                // 모든 iframe 찾기
                 IReadOnlyCollection<IWebElement> iframes = driver.FindElements(By.TagName("iframe"));
 
                 if (iframes.Count > 0)
                 {
-                    List<string> iframeIdentifiers = new List<string>();
-
                     foreach (IWebElement iframe in iframes)
                     {
-                        // iframe의 이름 또는 ID 가져오기
-                        string name = iframe.GetAttribute("name");
-                        string id = iframe.GetAttribute("id");
+                        // iframe으로 전환
+                        driver.SwitchTo().Frame(iframe);
 
-                        // 이름 또는 ID가 있는 경우 목록에 추가
-                        if (!string.IsNullOrEmpty(name))
-                        {
-                            iframeIdentifiers.Add($"이름: {name}");
-                        }
-                        if (!string.IsNullOrEmpty(id))
-                        {
-                            iframeIdentifiers.Add($"ID: {id}");
-                        }
-                    }
+                        // iframe 내부의 클릭 가능한 요소 조사
+                        CollectClickableElements(driver, elementInfo, $"iframe (이름: {iframe.GetAttribute("name")}, ID: {iframe.GetAttribute("id")})");
 
-                    if (iframeIdentifiers.Count > 0)
-                    {
-                        // 메시지 박스에 iframe 정보 표시
-                        MessageBox.Show(string.Join("\n", iframeIdentifiers), "iframe 찾기 결과");
-                    }
-                    else
-                    {
-                        MessageBox.Show("현재 페이지에 이름 또는 ID가 있는 iframe이 없습니다.", "iframe 찾기 결과");
+                        // 기본 문서로 전환
+                        driver.SwitchTo().DefaultContent();
                     }
                 }
-                else
-                {
-                    MessageBox.Show("현재 페이지에 iframe이 없습니다.", "iframe 찾기 결과");
-                }
+
+                // 메시지 박스에 요소 정보 표시
+                MessageBox.Show(elementInfo.ToString(), "클릭 가능한 요소 정보");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"iframe 찾기 중 오류 발생: {ex.Message}", "오류");
+                MessageBox.Show($"iframe 조사 및 요소 수집 중 오류 발생: {ex.Message}", "오류");
             }
         }
 
+        private static void CollectClickableElements(IWebDriver driver, StringBuilder elementInfo, string location)
+        {
+            // 클릭 가능한 요소 찾기 (button, a, input[type=button], input[type=submit])
+            IReadOnlyCollection<IWebElement> clickableElements = driver.FindElements(By.XPath("//button | //a | //input[@type='button'] | //input[@type='submit']"));
 
+            if (clickableElements.Count > 0)
+            {
+                elementInfo.AppendLine($"\n{location}의 클릭 가능한 요소:");
+                foreach (IWebElement element in clickableElements)
+                {
+                    elementInfo.AppendLine($"XPath: {GetXPath(driver ,element)}");
+                }
+            }
+            else
+            {
+                elementInfo.AppendLine($"\n{location}에 클릭 가능한 요소가 없습니다.");
+            }
+        }
+        private static string GetXPath(IWebDriver driver, IWebElement element)
+        {
+            try
+            {
+                return (string)((IJavaScriptExecutor)driver).ExecuteScript(
+                    "gPt=function(c){if(c.id!==''){return'id(\"'+c.id+'\")'}if(c===document.body){return'html/'+c.tagName}var a=0;var e=c.parentNode.childNodes;for(var b=0;b<e.length;b++){var d=e[b];if(d===c){return gPt(c.parentNode)+'/'+c.tagName+'['+(a+1)+']'}if(d.nodeType===1&&d.tagName===c.tagName){a++}}};return gPt(arguments[0]).toLowerCase();",
+                    element);
+            }
+            catch (Exception)
+            {
+                return "XPath를 가져올 수 없습니다.";
+            }
+        }
 
         // ChromeDriver 종료 메소드
         public static void CloseDriver(IWebDriver driver)
