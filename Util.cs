@@ -11,6 +11,7 @@ using System.Threading;
 using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace GateBot
 {
@@ -159,7 +160,8 @@ namespace GateBot
 
                 if (element != null)
                 {
-                    element.SendKeys(value);  // 값을 입력
+                    element.Clear(); // 빈 값을 입력하여 초기화
+                    element.SendKeys(value); // 값을 입력
                 }
                 else
                 {
@@ -177,7 +179,7 @@ namespace GateBot
         }
 
 
-        
+
 
         public static void ClickElementByXPath(IWebDriver driver, string xpath)
         {
@@ -362,6 +364,32 @@ namespace GateBot
                 return "XPath를 가져올 수 없습니다.";
             }
         }
+
+        public static void ValidateServerInfo(string inputText, out string serverName, out string serverIP)
+        {
+            serverName = null;
+            serverIP = null;
+
+            if (string.IsNullOrEmpty(inputText))
+            {
+                MessageBox.Show("검색어를 입력하세요.", "알림");
+                return;
+            }
+
+            // IP 주소 형식 검사 (정규식 사용, 부분 입력 허용)
+            string ipPattern = @"^([0-9]{1,3}\.){0,3}[0-9]{1,3}$";
+            if (Regex.IsMatch(inputText, ipPattern))
+            {
+                // IP 주소 형식인 경우 (부분 입력 허용)
+                serverIP = inputText;
+            }
+            else
+            {
+                // IP 주소 형식이 아닌 경우 (서버 이름으로 간주)
+                serverName = inputText;
+            }
+        }
+
 
         // ChromeDriver 종료 메소드
         public static void CloseDriver(IWebDriver driver)

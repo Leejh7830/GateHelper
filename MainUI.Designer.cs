@@ -30,10 +30,14 @@
         {
             this.StartBtn1 = new MaterialSkin.Controls.MaterialButton();
             this.ConnectBtn1 = new MaterialSkin.Controls.MaterialButton();
-            this.GateIDBox1 = new MaterialSkin.Controls.MaterialTextBox();
-            this.GatePWBox1 = new MaterialSkin.Controls.MaterialTextBox();
+            this.GateIDTxt1 = new MaterialSkin.Controls.MaterialTextBox();
+            this.GatePWTxt1 = new MaterialSkin.Controls.MaterialTextBox();
             this.LoginBtn1 = new MaterialSkin.Controls.MaterialButton();
             this.TestBtn1 = new MaterialSkin.Controls.MaterialButton();
+            this.SearchBox1 = new System.Windows.Forms.GroupBox();
+            this.SearchTxt1 = new MaterialSkin.Controls.MaterialTextBox();
+            this.SearchBtn1 = new MaterialSkin.Controls.MaterialButton();
+            this.SearchBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // StartBtn1
@@ -79,40 +83,40 @@
             this.ConnectBtn1.UseVisualStyleBackColor = true;
             this.ConnectBtn1.Click += new System.EventHandler(this.ConnectBtn1_Click);
             // 
-            // GateIDBox1
+            // GateIDTxt1
             // 
-            this.GateIDBox1.AnimateReadOnly = false;
-            this.GateIDBox1.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.GateIDBox1.Depth = 0;
-            this.GateIDBox1.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.GateIDBox1.LeadingIcon = null;
-            this.GateIDBox1.Location = new System.Drawing.Point(5, 165);
-            this.GateIDBox1.MaxLength = 30;
-            this.GateIDBox1.MouseState = MaterialSkin.MouseState.OUT;
-            this.GateIDBox1.Multiline = false;
-            this.GateIDBox1.Name = "GateIDBox1";
-            this.GateIDBox1.Size = new System.Drawing.Size(272, 50);
-            this.GateIDBox1.TabIndex = 2;
-            this.GateIDBox1.Text = "";
-            this.GateIDBox1.TrailingIcon = null;
+            this.GateIDTxt1.AnimateReadOnly = false;
+            this.GateIDTxt1.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.GateIDTxt1.Depth = 0;
+            this.GateIDTxt1.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.GateIDTxt1.LeadingIcon = null;
+            this.GateIDTxt1.Location = new System.Drawing.Point(5, 165);
+            this.GateIDTxt1.MaxLength = 30;
+            this.GateIDTxt1.MouseState = MaterialSkin.MouseState.OUT;
+            this.GateIDTxt1.Multiline = false;
+            this.GateIDTxt1.Name = "GateIDTxt1";
+            this.GateIDTxt1.Size = new System.Drawing.Size(272, 50);
+            this.GateIDTxt1.TabIndex = 2;
+            this.GateIDTxt1.Text = "";
+            this.GateIDTxt1.TrailingIcon = null;
             // 
-            // GatePWBox1
+            // GatePWTxt1
             // 
-            this.GatePWBox1.AnimateReadOnly = false;
-            this.GatePWBox1.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.GatePWBox1.Depth = 0;
-            this.GatePWBox1.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.GatePWBox1.LeadingIcon = null;
-            this.GatePWBox1.Location = new System.Drawing.Point(5, 221);
-            this.GatePWBox1.MaxLength = 30;
-            this.GatePWBox1.MouseState = MaterialSkin.MouseState.OUT;
-            this.GatePWBox1.Multiline = false;
-            this.GatePWBox1.Name = "GatePWBox1";
-            this.GatePWBox1.Password = true;
-            this.GatePWBox1.Size = new System.Drawing.Size(272, 50);
-            this.GatePWBox1.TabIndex = 3;
-            this.GatePWBox1.Text = "";
-            this.GatePWBox1.TrailingIcon = null;
+            this.GatePWTxt1.AnimateReadOnly = false;
+            this.GatePWTxt1.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.GatePWTxt1.Depth = 0;
+            this.GatePWTxt1.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.GatePWTxt1.LeadingIcon = null;
+            this.GatePWTxt1.Location = new System.Drawing.Point(5, 221);
+            this.GatePWTxt1.MaxLength = 30;
+            this.GatePWTxt1.MouseState = MaterialSkin.MouseState.OUT;
+            this.GatePWTxt1.Multiline = false;
+            this.GatePWTxt1.Name = "GatePWTxt1";
+            this.GatePWTxt1.Password = true;
+            this.GatePWTxt1.Size = new System.Drawing.Size(272, 50);
+            this.GatePWTxt1.TabIndex = 3;
+            this.GatePWTxt1.Text = "";
+            this.GatePWTxt1.TrailingIcon = null;
             // 
             // LoginBtn1
             // 
@@ -142,12 +146,12 @@
             this.TestBtn1.Depth = 0;
             this.TestBtn1.HighEmphasis = true;
             this.TestBtn1.Icon = null;
-            this.TestBtn1.Location = new System.Drawing.Point(6, 280);
+            this.TestBtn1.Location = new System.Drawing.Point(402, 70);
             this.TestBtn1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.TestBtn1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TestBtn1.Name = "TestBtn1";
             this.TestBtn1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.TestBtn1.Size = new System.Drawing.Size(158, 36);
+            this.TestBtn1.Size = new System.Drawing.Size(94, 36);
             this.TestBtn1.TabIndex = 5;
             this.TestBtn1.Text = "FuncTest";
             this.TestBtn1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -155,21 +159,72 @@
             this.TestBtn1.UseVisualStyleBackColor = true;
             this.TestBtn1.Click += new System.EventHandler(this.TestBtn1_Click);
             // 
+            // SearchBox1
+            // 
+            this.SearchBox1.Controls.Add(this.SearchBtn1);
+            this.SearchBox1.Controls.Add(this.SearchTxt1);
+            this.SearchBox1.Location = new System.Drawing.Point(5, 277);
+            this.SearchBox1.Name = "SearchBox1";
+            this.SearchBox1.Size = new System.Drawing.Size(390, 76);
+            this.SearchBox1.TabIndex = 6;
+            this.SearchBox1.TabStop = false;
+            this.SearchBox1.Text = "Search";
+            // 
+            // SearchTxt1
+            // 
+            this.SearchTxt1.AnimateReadOnly = false;
+            this.SearchTxt1.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.SearchTxt1.Depth = 0;
+            this.SearchTxt1.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.SearchTxt1.LeadingIcon = null;
+            this.SearchTxt1.Location = new System.Drawing.Point(6, 20);
+            this.SearchTxt1.MaxLength = 50;
+            this.SearchTxt1.MouseState = MaterialSkin.MouseState.OUT;
+            this.SearchTxt1.Multiline = false;
+            this.SearchTxt1.Name = "SearchTxt1";
+            this.SearchTxt1.Size = new System.Drawing.Size(266, 50);
+            this.SearchTxt1.TabIndex = 7;
+            this.SearchTxt1.Text = "";
+            this.SearchTxt1.TrailingIcon = null;
+            // 
+            // SearchBtn1
+            // 
+            this.SearchBtn1.AutoSize = false;
+            this.SearchBtn1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.SearchBtn1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.SearchBtn1.Depth = 0;
+            this.SearchBtn1.HighEmphasis = true;
+            this.SearchBtn1.Icon = null;
+            this.SearchBtn1.Location = new System.Drawing.Point(279, 20);
+            this.SearchBtn1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.SearchBtn1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.SearchBtn1.Name = "SearchBtn1";
+            this.SearchBtn1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.SearchBtn1.Size = new System.Drawing.Size(111, 47);
+            this.SearchBtn1.TabIndex = 7;
+            this.SearchBtn1.Text = "Search";
+            this.SearchBtn1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.SearchBtn1.UseAccentColor = false;
+            this.SearchBtn1.UseVisualStyleBackColor = true;
+            this.SearchBtn1.Click += new System.EventHandler(this.SearchBtn1_Click);
+            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1086, 597);
+            this.Controls.Add(this.SearchBox1);
             this.Controls.Add(this.TestBtn1);
             this.Controls.Add(this.LoginBtn1);
-            this.Controls.Add(this.GatePWBox1);
-            this.Controls.Add(this.GateIDBox1);
+            this.Controls.Add(this.GatePWTxt1);
+            this.Controls.Add(this.GateIDTxt1);
             this.Controls.Add(this.ConnectBtn1);
             this.Controls.Add(this.StartBtn1);
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainUI";
             this.Padding = new System.Windows.Forms.Padding(2, 43, 2, 2);
             this.Text = "GATE BOT";
+            this.SearchBox1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -179,10 +234,13 @@
 
         private MaterialSkin.Controls.MaterialButton StartBtn1;
         private MaterialSkin.Controls.MaterialButton ConnectBtn1;
-        private MaterialSkin.Controls.MaterialTextBox GateIDBox1;
-        private MaterialSkin.Controls.MaterialTextBox GatePWBox1;
+        private MaterialSkin.Controls.MaterialTextBox GateIDTxt1;
+        private MaterialSkin.Controls.MaterialTextBox GatePWTxt1;
         private MaterialSkin.Controls.MaterialButton LoginBtn1;
         private MaterialSkin.Controls.MaterialButton TestBtn1;
+        private System.Windows.Forms.GroupBox SearchBox1;
+        private MaterialSkin.Controls.MaterialButton SearchBtn1;
+        private MaterialSkin.Controls.MaterialTextBox SearchTxt1;
     }
 }
 

@@ -17,6 +17,9 @@ namespace GateBot
         public static IWebDriver _driver = null;
         private Config _config;
 
+        private string serverName;
+        private string serverIP;
+
         // private IntPtr mainChromeHandle; // 크롬 창 핸들 저장
         private string MainHandle;
 
@@ -32,7 +35,9 @@ namespace GateBot
             materialSkinManager.AddFormToManage(this);
             materialSkinManager.Theme = MaterialSkinManager.Themes.LIGHT;
             materialSkinManager.ColorScheme = new ColorScheme(Primary.Blue800, Primary.Blue900, Primary.Blue700, Accent.LightBlue200, TextShade.WHITE);
-            this.Size = new Size(400, 600);
+            
+            // this.Size = new Size(400, 600);
+            this.Size = new Size(600, 600);
 
         }
 
@@ -109,8 +114,8 @@ namespace GateBot
 
         private void LoginBtn1_Click(object sender, EventArgs e)
         {
-            string gateID = GateIDBox1.Text; // ID텍스트 박스 값 가져오기
-            string gatePW = GatePWBox1.Text; // PW텍스트 박스 값 가져오기
+            string gateID = GateIDTxt1.Text; // ID텍스트 박스 값 가져오기
+            string gatePW = GatePWTxt1.Text; // PW텍스트 박스 값 가져오기
 
             // Util.FocusMainWindow(MainHandle);
 
@@ -125,6 +130,39 @@ namespace GateBot
         {
             Util.FocusMainWindow(MainHandle);
             Util.InvestigateIframesAndCollectClickableElements(_driver);
+        }
+
+        private void SearchBtn1_Click(object sender, EventArgs e)
+        {
+            Util.ValidateServerInfo(SearchTxt1.Text, out serverName, out serverIP);
+
+            if (!string.IsNullOrEmpty(serverIP))
+            {
+                // IP 주소인 경우 A XPath에 입력
+                try
+                {
+                    Util.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", serverIP);
+                    Util.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", "");
+                }
+                catch (NoSuchElementException ex)
+                {
+                    MessageBox.Show($"A XPath에 해당하는 요소를 찾을 수 없습니다: {ex.Message}");
+                }
+            }
+            else if (!string.IsNullOrEmpty(serverName))
+            {
+                // 서버 이름인 경우 B XPath에 입력
+                try
+                {
+                    Util.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", serverName);
+                    Util.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", "");
+                }
+                catch (NoSuchElementException ex)
+                {
+                    MessageBox.Show($"B XPath에 해당하는 요소를 찾을 수 없습니다: {ex.Message}");
+                }
+            }
+            Util.ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
         }
     }
 }
