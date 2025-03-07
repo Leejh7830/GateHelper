@@ -5,23 +5,27 @@ using MaterialSkin.Controls;
 using MaterialSkin;
 using System.Drawing;
 using System.Windows.Forms;
-using System.Threading;
+
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using OpenQA.Selenium.Chrome;
 
 namespace GateBot
 {
     public partial class MainUI : MaterialForm
     {
+        
+
         private readonly MaterialSkinManager materialSkinManager;
         public static IWebDriver _driver = null;
+
         private Config _config;
 
         private string serverName;
         private string serverIP;
 
-        // private IntPtr mainChromeHandle; // 크롬 창 핸들 저장
-        private string MainHandle;
+        private string mainHandle;
+        private readonly Timer timer1;
 
         /// Option
         private bool disablePopup = true;
@@ -29,6 +33,7 @@ namespace GateBot
         public MainUI()
         {
             InitializeComponent();
+            
 
             // 폼 닫기 이벤트 연결
             this.FormClosing += MainUI_FormClosing;
@@ -41,33 +46,53 @@ namespace GateBot
 
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Size = new Size(600, 700);
+            this.Size = new Size(500, 700);
 
             Util_Control.MoveControl(TabSelector1, 150, 30);
 
 
             DisablePopupCheckBox1.Checked = true;
 
+            timer1 = new Timer();
+            timer1.Interval = 5000; // 5초마다 팝업 탐색
+
+            timer1.Tick += Timer1_Tick; // 이벤트 핸들러 연결
+            timer1.Start();
+
+        }
+        private async void Timer1_Tick(object sender, EventArgs e)
+        {
+            if (_driver != null && !string.IsNullOrEmpty(mainHandle) && disablePopup)
+            {
+                try
+                {
+                    int closedPopupCount = await Util_Option.ControlPopupTimerTick(_driver, mainHandle);
+                    Util_Control.UpdateCheckBoxText(closedPopupCount, DisablePopupCheckBox1);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
+        
 
 
         private async void StartBtn1_Click(object sender, EventArgs e)
         {
             try
             {
-                // Config 파일 로드
-                _config = Util.LoadConfig();
+                _config = Util.LoadConfig(); // Config 파일 로드
 
-                // 비동기로 드라이버 초기화
-                _driver = await Task.Run(() => Util.InitializeDriver(_config));
+                _driver = await Task.Run(() => Util.InitializeDriver(_config)); // 비동기로 드라이버 초기화
 
-                // 사용자가 입력한 사이트로 이동
-                _driver.Navigate().GoToUrl(_config.URL);
 
-                MainHandle = Util.FindWindowHandleByUrl(_driver, _config.URL);
+                _driver.Navigate().GoToUrl(_config.Url); // 사용자가 입력한 사이트로 이동
 
-                Util.MoveToTop(this);
+                mainHandle = Util.FindWindowHandleByUrl(_driver, _config.Url);
+
+                Util_Control.MoveFormToTop(this);
             }
             catch (Exception ex)
             {
@@ -90,7 +115,7 @@ namespace GateBot
 
                 Util.InputKeys("{Tab},SPACE,{Tab},SPACE"); // MPO Helper
 
-                Util.MoveToTop(this);
+                Util_Control.MoveFormToTop(this);
 
 
 
@@ -137,7 +162,7 @@ namespace GateBot
 
         private void TestBtn1_Click(object sender, EventArgs e)
         {
-            Util.FocusMainWindow(MainHandle);
+            Util.FocusMainWindow(mainHandle);
             Util.InvestigateIframesAndCollectClickableElements(_driver);
         }
 

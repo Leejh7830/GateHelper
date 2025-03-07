@@ -13,6 +13,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Diagnostics;
+using System.Threading.Tasks;
 
 namespace GateBot
 {
@@ -89,7 +90,7 @@ namespace GateBot
             {
                 var defaultConfig = new Config
                 {
-                    URL = "",
+                    Url = "",
                     GateID = "",
                     GatePW = "",
                     ChromePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe"
@@ -241,13 +242,7 @@ namespace GateBot
             }
         }
 
-        public static void MoveToTop(Form form)
-        {
-            Thread.Sleep(500);
-            form.TopMost = true;
-            form.Activate();
-            form.TopMost = false;
-        }
+
 
 
         public static string FindWindowHandleByUrl(IWebDriver _driver, string url)
@@ -298,6 +293,7 @@ namespace GateBot
         }
 
 
+        // iframe순회, 클릭가능한 Element 조사
         public static void InvestigateIframesAndCollectClickableElements(IWebDriver driver)
         {
             try
@@ -391,7 +387,6 @@ namespace GateBot
             }
         }
 
-        
 
         // ChromeDriver 종료 메소드
         public static void CloseDriver(IWebDriver driver)
