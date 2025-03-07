@@ -66,7 +66,7 @@ namespace GateBot
             {
                 try
                 {
-                    int closedPopupCount = await Util_Option.ControlPopupTimerTick(_driver, mainHandle);
+                    int closedPopupCount = await Util_Option.ControlPopupTimerTick(_driver, mainHandle, _config);
                     Util_Control.UpdateCheckBoxText(closedPopupCount, DisablePopupCheckBox1);
                 }
                 catch (Exception ex)
