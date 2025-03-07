@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using System.Diagnostics;
 
 namespace GateBot
 {
@@ -390,6 +391,7 @@ namespace GateBot
             }
         }
 
+        
 
         // ChromeDriver 종료 메소드
         public static void CloseDriver(IWebDriver driver)

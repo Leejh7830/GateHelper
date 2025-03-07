@@ -23,6 +23,9 @@ namespace GateBot
         // private IntPtr mainChromeHandle; // 크롬 창 핸들 저장
         private string MainHandle;
 
+        /// Option
+        private bool disablePopup = true;
+
         public MainUI()
         {
             InitializeComponent();
@@ -35,9 +38,15 @@ namespace GateBot
             materialSkinManager.AddFormToManage(this);
             materialSkinManager.Theme = MaterialSkinManager.Themes.LIGHT;
             materialSkinManager.ColorScheme = new ColorScheme(Primary.Blue800, Primary.Blue900, Primary.Blue700, Accent.LightBlue200, TextShade.WHITE);
-            
-            // this.Size = new Size(400, 600);
-            this.Size = new Size(600, 600);
+
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
+            this.Size = new Size(600, 700);
+
+            Util_Control.MoveControl(TabSelector1, 150, 30);
+
+
+            DisablePopupCheckBox1.Checked = true;
 
         }
 
@@ -146,7 +155,7 @@ namespace GateBot
                 }
                 catch (NoSuchElementException ex)
                 {
-                    MessageBox.Show($"A XPath에 해당하는 요소를 찾을 수 없습니다: {ex.Message}");
+                    MessageBox.Show($"SERVER IP XPath에 해당하는 요소를 찾을 수 없습니다: {ex.Message}");
                 }
             }
             else if (!string.IsNullOrEmpty(serverName))
@@ -159,10 +168,15 @@ namespace GateBot
                 }
                 catch (NoSuchElementException ex)
                 {
-                    MessageBox.Show($"B XPath에 해당하는 요소를 찾을 수 없습니다: {ex.Message}");
+                    MessageBox.Show($"SERVER NAME XPath에 해당하는 요소를 찾을 수 없습니다: {ex.Message}");
                 }
             }
             Util.ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
+        }
+
+        private void DisablePopupCheckBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            disablePopup = DisablePopupCheckBox1.Checked;
         }
     }
 }
