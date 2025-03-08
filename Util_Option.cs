@@ -17,7 +17,7 @@ namespace GateBot
             return await CloseOtherWindowsAfterDelay(driver, mainHandle, config);
         }
 
-        private static async Task<int> CloseOtherWindowsAfterDelay(IWebDriver _driver, string mainHandle, Config config) // Config 추가
+        private static async Task<int> CloseOtherWindowsAfterDelay(IWebDriver _driver, string mainHandle, Config config)
         {
             List<string> windowHandles = new List<string>(_driver.WindowHandles);
 
@@ -60,7 +60,7 @@ namespace GateBot
             }
         }
 
-        private static async Task EnterModalPassword(IWebDriver _driver, Config config) // Config 추가
+        private static async Task EnterModalPassword(IWebDriver _driver, Config config)
         {
             try
             {

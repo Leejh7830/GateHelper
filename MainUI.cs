@@ -28,7 +28,7 @@ namespace GateBot
         private readonly Timer timer1;
 
         /// Option
-        private bool disablePopup = true;
+        private bool disablePopup;
 
         public MainUI()
         {
@@ -51,12 +51,12 @@ namespace GateBot
             Util_Control.MoveControl(TabSelector1, 150, 30);
 
 
-            DisablePopupCheckBox1.Checked = true;
+            // DisablePopupCheckBox1.Checked = true;
 
             timer1 = new Timer();
             timer1.Interval = 5000; // 5초마다 팝업 탐색
 
-            timer1.Tick += Timer1_Tick; // 이벤트 핸들러 연결
+            timer1.Tick += Timer1_Tick;
             timer1.Start();
 
         }
