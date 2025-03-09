@@ -23,10 +23,5 @@ namespace GateBot
         {
             control.Location = new Point(x, y);
         }
-
-        public static void UpdateCheckBoxText(int popUpCount, CheckBox disablePopupCheckBox1)
-        {
-            disablePopupCheckBox1.Text = $"DISABLE POP-UP ({popUpCount})";
-        }
     }
 }

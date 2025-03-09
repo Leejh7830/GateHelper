@@ -116,6 +116,7 @@
   <ItemGroup>
     <Compile Include="ChromeDriverManager.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="LogManager.cs" />
     <Compile Include="MainUI.cs">
       <SubType>Form</SubType>
     </Compile>

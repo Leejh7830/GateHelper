@@ -12,8 +12,7 @@ using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using System.Diagnostics;
-using System.Threading.Tasks;
+using LogLevel = GateBot.LogManager.Level;
 
 namespace GateBot
 {
@@ -74,7 +73,8 @@ namespace GateBot
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"드라이버 초기화 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // MessageBox.Show($"드라이버 초기화 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LogManager.LogException(ex, LogLevel.Error);
                 throw;
             }
         }
@@ -106,8 +106,8 @@ namespace GateBot
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"설정 파일 생성 중 오류 발생: {ex.Message}\n파일 경로: {configFilePath}",
-                                    "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    // MessageBox.Show($"설정 파일 생성 중 오류 발생: {ex.Message}\n파일 경로: {configFilePath}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    LogManager.LogException(ex, LogLevel.Error);
                     return null;
                 }
             }
@@ -142,8 +142,8 @@ namespace GateBot
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"설정 파일 로딩 오류: {ex.Message}\n파일 경로: {configFilePath}",
-                                "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // MessageBox.Show($"설정 파일 로딩 오류: {ex.Message}\n파일 경로: {configFilePath}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LogManager.LogException(ex, LogLevel.Error);
                 return null;
             }
         }
@@ -194,17 +194,20 @@ namespace GateBot
                 // 클릭 가능하면 클릭
                 element.Click();
             }
-            catch (NoSuchElementException)
+            catch (NoSuchElementException ex)
             {
-                MessageBox.Show("XPath에 해당하는 요소를 찾을 수 없습니다.", "실패", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"XPath에 해당하는 요소를 찾을 수 없습니다.: {ex.Message}", "실패", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw;
             }
-            catch (WebDriverTimeoutException)
+            catch (WebDriverTimeoutException ex)
             {
-                MessageBox.Show("요소가 클릭 가능한 상태가 되지 않았습니다.", "실패", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show($"요소가 클릭 가능한 상태가 되지 않았습니다.: {ex.Message}", "실패", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                throw;
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw;
             }
         }
 
@@ -239,6 +242,7 @@ namespace GateBot
             catch (Exception ex)
             {
                 MessageBox.Show($"키 입력 오류: {ex.Message}");
+                LogManager.LogException(ex, LogLevel.Error);
             }
         }
 
@@ -257,7 +261,6 @@ namespace GateBot
                     return handle;
                 }
             }
-
             return null;
         }
 
@@ -289,6 +292,7 @@ namespace GateBot
             catch (Exception ex)
             {
                 MessageBox.Show($"크롬 창 포커스 이동 중 오류 발생: {ex.Message}");
+                LogManager.LogException(ex, LogLevel.Error);
             }
         }
 
@@ -327,6 +331,7 @@ namespace GateBot
             catch (Exception ex)
             {
                 MessageBox.Show($"iframe 조사 및 요소 수집 중 오류 발생: {ex.Message}", "오류");
+                LogManager.LogException(ex, LogLevel.Error);
             }
         }
 
@@ -348,6 +353,7 @@ namespace GateBot
                 elementInfo.AppendLine($"\n{location}에 클릭 가능한 요소가 없습니다.");
             }
         }
+
         private static string GetXPath(IWebDriver driver, IWebElement element)
         {
             try
@@ -369,8 +375,7 @@ namespace GateBot
 
             if (string.IsNullOrEmpty(inputText))
             {
-                MessageBox.Show("검색어를 입력하세요.", "알림");
-                return;
+                throw new ArgumentException("검색어 입력 값 없음.");
             }
 
             // IP 주소 형식 검사 (정규식 사용, 부분 입력 허용)
@@ -394,13 +399,15 @@ namespace GateBot
             try
             {
                 driver.Quit();
-                // 종료 메시지 박스
-                MessageBox.Show("ChromeDriver가 종료되었습니다.", "정보", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             catch (Exception ex)
             {
-                // 종료 오류 발생 시 메시지 박스 출력
                 MessageBox.Show($"드라이버 종료 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LogManager.LogException(ex, LogLevel.Error);
+            }
+            finally
+            {
+                LogManager.LogMessage("ChromeDriver 종료", LogLevel.Info);
             }
         }
 

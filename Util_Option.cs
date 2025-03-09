@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using LogLevel = GateBot.LogManager.Level;
 
 namespace GateBot
 {
@@ -10,41 +11,70 @@ namespace GateBot
     {
 
         /////////////////////////////////////////////////////////////////////////////////////////
-        private static int popupCount = 0;
 
-        public static async Task<int> ControlPopupTimerTick(IWebDriver driver, string mainHandle, Config config)
+        public static async Task<bool> HandleWindows(IWebDriver driver, string mainHandle, Config config)
         {
-            return await CloseOtherWindowsAfterDelay(driver, mainHandle, config);
-        }
-
-        private static async Task<int> CloseOtherWindowsAfterDelay(IWebDriver _driver, string mainHandle, Config config)
-        {
-            List<string> windowHandles = new List<string>(_driver.WindowHandles);
-
+            // 팝업 창 처리
+            List<string> windowHandles = new List<string>(driver.WindowHandles);
             foreach (string handle in windowHandles)
             {
                 if (handle != mainHandle)
                 {
                     try
                     {
-                        _driver.SwitchTo().Window(handle);
+                        LogManager.LogMessage("Popup Detected", LogLevel.Info);
+                        driver.SwitchTo().Window(handle);
                         await Task.Delay(3000); // 3초 대기 후 닫기
-                        _driver.Close();
-                        popupCount++;
+                        driver.Close();
+                        LogManager.LogMessage("Closed Popup", LogLevel.Info);
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"팝업 창 닫기 오류: {ex.Message}");
+                        LogManager.LogException(ex, LogLevel.Error);
                     }
                 }
             }
 
-            if (IsModalPresent(_driver)) // 모달 창 존재 여부 확인
+            // 모달 창 처리
+            if (IsModalPresent(driver))
             {
-                await EnterModalPassword(_driver, config);
-                popupCount++;
+                try
+                {
+                    await EnterModalPassword(driver, config);
+                    LogManager.LogMessage("Closed Modal", LogLevel.Info);
+                }
+                catch (NoSuchElementException ex)
+                {
+                    LogManager.LogException(ex, LogLevel.Error);
+                }
+                catch (ArgumentException ex)
+                {
+                    LogManager.LogException(ex, LogLevel.Error);
+                }
+                catch (Exception ex)
+                {
+                    LogManager.LogException(ex, LogLevel.Error);
+                }
             }
-            return popupCount;
+
+            // 경고창 처리
+            try
+            {
+                IAlert alert = driver.SwitchTo().Alert();
+                alert.Accept(); // 또는 alert.Dismiss();
+                LogManager.LogMessage("Closed Alert", LogLevel.Info);
+                return true; // 경고창 처리 성공
+            }
+            catch (NoAlertPresentException)
+            {
+                // 경고창이 없는 경우
+                return false; // 경고창 처리 실패 또는 없음
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogException(ex, LogLevel.Error);
+                return false; // 경고창 처리 실패 또는 없음
+            }
         }
 
         private static bool IsModalPresent(IWebDriver driver)
@@ -52,6 +82,7 @@ namespace GateBot
             try
             {
                 driver.FindElement(By.XPath("//*[@id='lock_passwd']")); // 해당Xpath가 존재하면 모달창 확인
+                LogManager.LogMessage("Modal Detected", LogLevel.Info);
                 return true;
             }
             catch (NoSuchElementException)
@@ -60,21 +91,26 @@ namespace GateBot
             }
         }
 
-        private static async Task EnterModalPassword(IWebDriver _driver, Config config)
+        private static async Task EnterModalPassword(IWebDriver driver, Config config)
         {
+            if (config == null || string.IsNullOrEmpty(config.GatePW))
+            {
+                throw new ArgumentException("Config 객체 또는 GatePW 속성이 유효하지 않습니다.");
+            }
+
             try
             {
-                Util.SendKeysToElement(_driver, "//*[@id='lock_passwd']", config.GatePW);
-                await Task.Delay(1000); // 1초 대기 (필요에 따라 조정)
-                Util.ClickElementByXPath(_driver, "//*[@id='pop_container']/div[2]/a[1]");
+                Util.SendKeysToElement(driver, "//*[@id='lock_passwd']", config.GatePW);
+                await Task.Delay(1000);
+                Util.ClickElementByXPath(driver, "//*[@id='pop_container']/div[2]/a[1]");
             }
-            catch (NoSuchElementException)
+            catch (NoSuchElementException ex)
             {
-                Console.WriteLine("비밀번호 입력 요소를 찾을 수 없습니다.");
+                throw new NoSuchElementException("비밀번호 입력 요소를 찾을 수 없습니다. XPath: //*[@id='lock_passwd']", ex);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"모달 창 비밀번호 입력 오류: {ex.Message}");
+                throw new Exception($"모달 창 비밀번호 입력 오류. XPath: //*[@id='lock_passwd'], 오류: {ex.Message}", ex);
             }
         }
 

@@ -5,10 +5,7 @@ using MaterialSkin.Controls;
 using MaterialSkin;
 using System.Drawing;
 using System.Windows.Forms;
-
-using System.Diagnostics;
-using System.Runtime.InteropServices;
-using OpenQA.Selenium.Chrome;
+using LogLevel = GateBot.LogManager.Level;
 
 namespace GateBot
 {
@@ -32,8 +29,9 @@ namespace GateBot
 
         public MainUI()
         {
+            LogManager.InitializeLogFile();
+            LogManager.LogMessage("프로그램 초기화 시작", LogLevel.Info);
             InitializeComponent();
-            
 
             // 폼 닫기 이벤트 연결
             this.FormClosing += MainUI_FormClosing;
@@ -46,10 +44,9 @@ namespace GateBot
 
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Size = new Size(500, 700);
+            this.Size = new Size(700, 700);
 
-            Util_Control.MoveControl(TabSelector1, 150, 30);
-
+            // Util_Control.MoveControl(TabSelector1, 150, 30);
 
             // DisablePopupCheckBox1.Checked = true;
 
@@ -59,28 +56,52 @@ namespace GateBot
             timer1.Tick += Timer1_Tick;
             timer1.Start();
 
+            LogManager.LogMessage("프로그램 초기화 완료", LogLevel.Info);
         }
+
         private async void Timer1_Tick(object sender, EventArgs e)
         {
-            if (_driver != null && !string.IsNullOrEmpty(mainHandle) && disablePopup)
+            if (_driver != null && !string.IsNullOrEmpty(mainHandle) && _driver.WindowHandles.Contains(mainHandle) && disablePopup)
             {
                 try
                 {
-                    int closedPopupCount = await Util_Option.ControlPopupTimerTick(_driver, mainHandle, _config);
-                    Util_Control.UpdateCheckBoxText(closedPopupCount, DisablePopupCheckBox1);
+                    bool alertHandled = await Util_Option.HandleWindows(_driver, mainHandle, _config);
+                    if (alertHandled)
+                    {
+                        Console.WriteLine("경고창 처리 성공");
+                        // 경고창 처리 성공 시 추가 작업 수행
+                    }
+                    else
+                    {
+                        Console.WriteLine("경고창 처리 실패 또는 없음");
+                        // 경고창 처리 실패 시 추가 작업 수행
+                    }
+                }
+                catch (NoSuchElementException ex)
+                {
+                    LogManager.LogException(ex, LogLevel.Error);
+                }
+                catch (NoSuchWindowException ex)
+                {
+                    LogManager.LogException(ex, LogLevel.Error);
+                }
+                catch (NoAlertPresentException ex)
+                {
+                    LogManager.LogException(ex, LogLevel.Error);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    LogManager.LogException(ex, LogLevel.Error);
                 }
             }
         }
 
-        
+
 
 
         private async void StartBtn1_Click(object sender, EventArgs e)
         {
+            LogManager.LogMessage("StartBtn Click", LogLevel.Info);
             try
             {
                 _config = Util.LoadConfig(); // Config 파일 로드
@@ -96,7 +117,8 @@ namespace GateBot
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LogManager.LogException(ex, LogLevel.Error);
             }
         }
 
@@ -117,37 +139,21 @@ namespace GateBot
 
                 Util_Control.MoveFormToTop(this);
 
-
-
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LogManager.LogException(ex, LogLevel.Error);
             }
         }
 
 
-         
 
-
-
-
-
-        private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            // 드라이버 종료
-            if (_driver != null)
-            {
-                Util.CloseDriver(_driver);
-                _driver = null;  // 드라이버 객체 해제
-            }
-
-            // 프로그램 완전 종료
-            Environment.Exit(0);
-        }
+        
 
         private void LoginBtn1_Click(object sender, EventArgs e)
         {
+            LogManager.LogMessage("LoginBtn Click", LogLevel.Info);
             string gateID = GateIDTxt1.Text; // ID 값 가져오기
             string gatePW = GatePWTxt1.Text; // PW 값 가져오기
 
@@ -162,46 +168,67 @@ namespace GateBot
 
         private void TestBtn1_Click(object sender, EventArgs e)
         {
+            LogManager.LogMessage("TestBtn Click", LogLevel.Info);
             Util.FocusMainWindow(mainHandle);
             Util.InvestigateIframesAndCollectClickableElements(_driver);
         }
 
         private void SearchBtn1_Click(object sender, EventArgs e)
         {
-            Util.ValidateServerInfo(SearchTxt1.Text, out serverName, out serverIP);
-
-            if (!string.IsNullOrEmpty(serverIP))
+            try
             {
-                // IP 주소인 경우
-                try
+                LogManager.LogMessage("SearchBtn Click", LogLevel.Info);
+                Util.ValidateServerInfo(SearchTxt1.Text, out serverName, out serverIP);
+
+                if (!string.IsNullOrEmpty(serverIP))
                 {
+                    // IP 주소인 경우
                     Util.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", serverIP);
                     Util.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", "");
                 }
-                catch (NoSuchElementException ex)
+                else if (!string.IsNullOrEmpty(serverName))
                 {
-                    MessageBox.Show($"SERVER IP XPath에 해당하는 요소를 찾을 수 없습니다: {ex.Message}");
-                }
-            }
-            else if (!string.IsNullOrEmpty(serverName))
-            {
-                // 서버 이름인 경우
-                try
-                {
+                    // 서버 이름인 경우
                     Util.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", serverName);
                     Util.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", "");
                 }
-                catch (NoSuchElementException ex)
-                {
-                    MessageBox.Show($"SERVER NAME XPath에 해당하는 요소를 찾을 수 없습니다: {ex.Message}");
-                }
+
+                Util.ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
             }
-            Util.ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
+            catch (ArgumentException ex)
+            {
+                LogManager.LogException(ex, LogLevel.Error);
+                MessageBox.Show(ex.Message, "알림");
+            }
+            catch (NoSuchElementException ex)
+            {
+                LogManager.LogException(ex, LogLevel.Error);
+                MessageBox.Show("요소를 찾을 수 없습니다.", "오류");
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogException(ex, LogLevel.Critical);
+                MessageBox.Show("예상치 못한 오류가 발생했습니다.", "오류");
+            }
         }
 
         private void DisablePopupCheckBox1_CheckedChanged(object sender, EventArgs e)
         {
+            LogManager.LogMessage("DisablePopupCheckBox CheckedChanged", LogLevel.Info);
             disablePopup = DisablePopupCheckBox1.Checked;
+        }
+
+        private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            // 드라이버 종료
+            if (_driver != null)
+            {
+                Util.CloseDriver(_driver);
+                _driver = null;  // 드라이버 객체 해제
+            }
+            // 프로그램 완전 종료
+            LogManager.LogMessage("프로그램 종료", LogLevel.Info);
+            Environment.Exit(0);
         }
     }
 }
