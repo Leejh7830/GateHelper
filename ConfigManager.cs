@@ -21,7 +21,7 @@ namespace GateBot
             {
                 CreateConfigDirectory();
                 CreateConfigFiles();
-                // LoadConfig();
+                LoadConfig();
             }
             catch (Exception ex)
             {
