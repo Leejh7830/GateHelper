@@ -140,53 +140,5 @@ namespace GateBot
 
 
         /// //////////////////////////////////////////////////////////////////////////////////////////////////
-
-        public static void AlertIframeExistence(IWebDriver driver)
-        {
-            try
-            {
-                var windowHandles = driver.WindowHandles;
-                bool isIframeFound = false;
-
-                foreach (var handle in windowHandles)
-                {
-                    driver.SwitchTo().Window(handle);
-
-                    if (IsIframe(driver))
-                    {
-                        isIframeFound = true;
-                        break; // iframe을 찾았으면 루프 종료
-                    }
-                }
-
-                if (isIframeFound)
-                {
-                    MessageBox.Show("열려있는 창 중에 iframe이 있습니다.");
-                }
-                else
-                {
-                    MessageBox.Show("열려있는 창 중에 iframe이 없습니다.");
-                }
-            }
-            catch (Exception)
-            {
-                MessageBox.Show("iframe 확인 중 오류가 발생했습니다.");
-            }
-        }
-
-        private static bool IsIframe(IWebDriver driver)
-        {
-            try
-            {
-                driver.FindElement(By.TagName("iframe"));
-                return true;
-            }
-            catch (NoSuchElementException)
-            {
-                return false;
-            }
-        }
-
-        /// //////////////////////////////////////////////////////////////////////////////////////////////////
     }
 }

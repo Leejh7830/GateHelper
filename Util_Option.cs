@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using LogLevel = GateBot.LogManager.Level;
+using Level = GateBot.LogManager.Level;
 
 namespace GateBot
 {
@@ -22,15 +22,15 @@ namespace GateBot
                 {
                     try
                     {
-                        LogManager.LogMessage("Popup Detected", LogLevel.Info);
+                        LogManager.LogMessage("Popup Detected", Level.Info);
                         driver.SwitchTo().Window(handle);
                         await Task.Delay(3000); // 3초 대기 후 닫기
                         driver.Close();
-                        LogManager.LogMessage("Closed Popup", LogLevel.Info);
+                        LogManager.LogMessage("Closed Popup", Level.Info);
                     }
                     catch (Exception ex)
                     {
-                        LogManager.LogException(ex, LogLevel.Error);
+                        LogManager.LogException(ex, Level.Error);
                     }
                 }
             }
@@ -41,19 +41,19 @@ namespace GateBot
                 try
                 {
                     await EnterModalPassword(driver, config);
-                    LogManager.LogMessage("Closed Modal", LogLevel.Info);
+                    LogManager.LogMessage("Closed Modal", Level.Info);
                 }
                 catch (NoSuchElementException ex)
                 {
-                    LogManager.LogException(ex, LogLevel.Error);
+                    LogManager.LogException(ex, Level.Error);
                 }
                 catch (ArgumentException ex)
                 {
-                    LogManager.LogException(ex, LogLevel.Error);
+                    LogManager.LogException(ex, Level.Error);
                 }
                 catch (Exception ex)
                 {
-                    LogManager.LogException(ex, LogLevel.Error);
+                    LogManager.LogException(ex, Level.Error);
                 }
             }
 
@@ -62,7 +62,7 @@ namespace GateBot
             {
                 IAlert alert = driver.SwitchTo().Alert();
                 alert.Accept(); // 또는 alert.Dismiss();
-                LogManager.LogMessage("Closed Alert", LogLevel.Info);
+                LogManager.LogMessage("Closed Alert", Level.Info);
                 return true; // 경고창 처리 성공
             }
             catch (NoAlertPresentException)
@@ -72,7 +72,7 @@ namespace GateBot
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, LogLevel.Error);
+                LogManager.LogException(ex, Level.Error);
                 return false; // 경고창 처리 실패 또는 없음
             }
         }
@@ -82,7 +82,7 @@ namespace GateBot
             try
             {
                 driver.FindElement(By.XPath("//*[@id='lock_passwd']")); // 해당Xpath가 존재하면 모달창 확인
-                LogManager.LogMessage("Modal Detected", LogLevel.Info);
+                LogManager.LogMessage("Modal Detected", Level.Info);
                 return true;
             }
             catch (NoSuchElementException)
@@ -100,9 +100,9 @@ namespace GateBot
 
             try
             {
-                Util.SendKeysToElement(driver, "//*[@id='lock_passwd']", config.GatePW);
+                Util_Control.SendKeysToElement(driver, "//*[@id='lock_passwd']", config.GatePW);
                 await Task.Delay(1000);
-                Util.ClickElementByXPath(driver, "//*[@id='pop_container']/div[2]/a[1]");
+                Util_Control.ClickElementByXPath(driver, "//*[@id='pop_container']/div[2]/a[1]");
             }
             catch (NoSuchElementException ex)
             {

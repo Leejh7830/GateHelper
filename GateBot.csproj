@@ -39,6 +39,9 @@
     <StartupObject />
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="HtmlAgilityPack, Version=1.11.74.0, Culture=neutral, PublicKeyToken=bd319b19eaf3b43a, processorArchitecture=MSIL">
+      <HintPath>packages\HtmlAgilityPack.1.11.74\lib\Net45\HtmlAgilityPack.dll</HintPath>
+    </Reference>
     <Reference Include="MaterialSkin, Version=2.3.1.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>packages\MaterialSkin.2.2.3.1\lib\net461\MaterialSkin.dll</HintPath>
     </Reference>
@@ -60,6 +63,7 @@
     <Reference Include="System.Buffers, Version=4.0.2.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>packages\System.Buffers.4.6.0\lib\netstandard2.0\System.Buffers.dll</HintPath>
     </Reference>
+    <Reference Include="System.Configuration" />
     <Reference Include="System.Core" />
     <Reference Include="System.Design" />
     <Reference Include="System.IO.Compression.FileSystem" />
@@ -116,6 +120,7 @@
   <ItemGroup>
     <Compile Include="ChromeDriverManager.cs" />
     <Compile Include="Config.cs" />
+    <Compile Include="ConfigManager.cs" />
     <Compile Include="LogManager.cs" />
     <Compile Include="MainUI.cs">
       <SubType>Form</SubType>
@@ -130,6 +135,7 @@
     <Compile Include="Util_Control.cs" />
     <Compile Include="Util_Element.cs" />
     <Compile Include="Util_Option.cs" />
+    <Compile Include="Util_ServerList.cs" />
     <EmbeddedResource Include="MainUI.resx">
       <DependentUpon>MainUI.cs</DependentUpon>
     </EmbeddedResource>

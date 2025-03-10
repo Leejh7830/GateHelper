@@ -5,7 +5,7 @@ using MaterialSkin.Controls;
 using MaterialSkin;
 using System.Drawing;
 using System.Windows.Forms;
-using LogLevel = GateBot.LogManager.Level;
+using Level = GateBot.LogManager.Level;
 
 namespace GateBot
 {
@@ -16,7 +16,7 @@ namespace GateBot
         private readonly MaterialSkinManager materialSkinManager;
         public static IWebDriver _driver = null;
 
-        private Config _config;
+        private readonly Config _config;
 
         private string serverName;
         private string serverIP;
@@ -30,8 +30,11 @@ namespace GateBot
         public MainUI()
         {
             LogManager.InitializeLogFile();
-            LogManager.LogMessage("프로그램 초기화 시작", LogLevel.Info);
+            LogManager.LogMessage("프로그램 초기화 시작", Level.Info);
             InitializeComponent();
+
+            ConfigManager configManager = new ConfigManager();
+            _config = configManager.LoadedConfig;
 
             // 폼 닫기 이벤트 연결
             this.FormClosing += MainUI_FormClosing;
@@ -56,7 +59,7 @@ namespace GateBot
             timer1.Tick += Timer1_Tick;
             timer1.Start();
 
-            LogManager.LogMessage("프로그램 초기화 완료", LogLevel.Info);
+            LogManager.LogMessage("프로그램 초기화 완료", Level.Info);
         }
 
         private async void Timer1_Tick(object sender, EventArgs e)
@@ -79,19 +82,19 @@ namespace GateBot
                 }
                 catch (NoSuchElementException ex)
                 {
-                    LogManager.LogException(ex, LogLevel.Error);
+                    LogManager.LogException(ex, Level.Error);
                 }
                 catch (NoSuchWindowException ex)
                 {
-                    LogManager.LogException(ex, LogLevel.Error);
+                    LogManager.LogException(ex, Level.Error);
                 }
-                catch (NoAlertPresentException ex)
+                catch (NoAlertPresentException)
                 {
-                    LogManager.LogException(ex, LogLevel.Error);
+                    //
                 }
                 catch (Exception ex)
                 {
-                    LogManager.LogException(ex, LogLevel.Error);
+                    LogManager.LogException(ex, Level.Error);
                 }
             }
         }
@@ -101,10 +104,10 @@ namespace GateBot
 
         private async void StartBtn1_Click(object sender, EventArgs e)
         {
-            LogManager.LogMessage("StartBtn Click", LogLevel.Info);
+            LogManager.LogMessage("StartBtn Click", Level.Info);
             try
             {
-                _config = Util.LoadConfig(); // Config 파일 로드
+                // _config = ConfigManager.LoadConfig(); // Config 파일 로드
 
                 _driver = await Task.Run(() => Util.InitializeDriver(_config)); // 비동기로 드라이버 초기화
 
@@ -118,7 +121,7 @@ namespace GateBot
             catch (Exception ex)
             {
                 // MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                LogManager.LogException(ex, LogLevel.Error);
+                LogManager.LogException(ex, Level.Error);
             }
         }
 
@@ -132,8 +135,8 @@ namespace GateBot
                     return;
                 }
 
-                Util.ClickElementByXPath(_driver, "/html/body/div/div[2]/button[3]"); // 고급
-                Util.ClickElementByXPath(_driver, "/html/body/div/div[3]/p[2]/a"); // 안전하지않음으로이동
+                Util_Control.ClickElementByXPath(_driver, "/html/body/div/div[2]/button[3]"); // 고급
+                Util_Control.ClickElementByXPath(_driver, "/html/body/div/div[3]/p[2]/a"); // 안전하지않음으로이동
 
                 Util.InputKeys("{Tab},SPACE,{Tab},SPACE"); // MPO Helper
 
@@ -143,7 +146,7 @@ namespace GateBot
             catch (Exception ex)
             {
                 // MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                LogManager.LogException(ex, LogLevel.Error);
+                LogManager.LogException(ex, Level.Error);
             }
         }
 
@@ -153,22 +156,22 @@ namespace GateBot
 
         private void LoginBtn1_Click(object sender, EventArgs e)
         {
-            LogManager.LogMessage("LoginBtn Click", LogLevel.Info);
+            LogManager.LogMessage("LoginBtn Click", Level.Info);
             string gateID = GateIDTxt1.Text; // ID 값 가져오기
             string gatePW = GatePWTxt1.Text; // PW 값 가져오기
 
             // Util.FocusMainWindow(MainHandle);
 
             // iframe으로 이동
-            Util.SendKeysToElement(_driver, "//*[@id='USERID']", gateID);
-            Util.SendKeysToElement(_driver, "//*[@id='PASSWD']", gatePW);
+            Util_Control.SendKeysToElement(_driver, "//*[@id='USERID']", gateID);
+            Util_Control.SendKeysToElement(_driver, "//*[@id='PASSWD']", gatePW);
 
-            Util.ClickElementByXPath(_driver, "//*[@id='login_submit']");
+            Util_Control.ClickElementByXPath(_driver, "//*[@id='login_submit']");
         }
 
         private void TestBtn1_Click(object sender, EventArgs e)
         {
-            LogManager.LogMessage("TestBtn Click", LogLevel.Info);
+            LogManager.LogMessage("TestBtn Click", Level.Info);
             Util.FocusMainWindow(mainHandle);
             Util.InvestigateIframesAndCollectClickableElements(_driver);
         }
@@ -177,46 +180,69 @@ namespace GateBot
         {
             try
             {
-                LogManager.LogMessage("SearchBtn Click", LogLevel.Info);
+                LogManager.LogMessage("SearchBtn Click", Level.Info);
                 Util.ValidateServerInfo(SearchTxt1.Text, out serverName, out serverIP);
 
                 if (!string.IsNullOrEmpty(serverIP))
                 {
                     // IP 주소인 경우
-                    Util.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", serverIP);
-                    Util.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", "");
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", serverIP);
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", "");
                 }
                 else if (!string.IsNullOrEmpty(serverName))
                 {
                     // 서버 이름인 경우
-                    Util.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", serverName);
-                    Util.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", "");
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", serverName);
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", "");
                 }
 
-                Util.ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
+                Util_Control.ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
             }
             catch (ArgumentException ex)
             {
-                LogManager.LogException(ex, LogLevel.Error);
+                LogManager.LogException(ex, Level.Error);
                 MessageBox.Show(ex.Message, "알림");
             }
             catch (NoSuchElementException ex)
             {
-                LogManager.LogException(ex, LogLevel.Error);
+                LogManager.LogException(ex, Level.Error);
                 MessageBox.Show("요소를 찾을 수 없습니다.", "오류");
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, LogLevel.Critical);
+                LogManager.LogException(ex, Level.Critical);
                 MessageBox.Show("예상치 못한 오류가 발생했습니다.", "오류");
             }
         }
 
         private void DisablePopupCheckBox1_CheckedChanged(object sender, EventArgs e)
         {
-            LogManager.LogMessage("DisablePopupCheckBox CheckedChanged", LogLevel.Info);
+            LogManager.LogMessage("DisablePopupCheckBox CheckedChanged", Level.Info);
             disablePopup = DisablePopupCheckBox1.Checked;
         }
+
+        
+
+        private void btnLoadServers1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string htmlUrl = "https://10.94.25.179/main/main.php"; // 웹 페이지 HTML 가져오기
+                string html = Util_ServerList.GetHtmlFromWeb(htmlUrl);
+                var serverNames = Util_ServerList.ParseServerNamesFromHtml(html); // HTML 파싱 및 서버 이름 추출
+                Util_ServerList.AddServersToComboBox(ComboBoxServerList1, serverNames); // 콤보박스에 서버 이름 추가
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+            }
+        }
+
+
+
+
+
+
 
         private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -227,7 +253,7 @@ namespace GateBot
                 _driver = null;  // 드라이버 객체 해제
             }
             // 프로그램 완전 종료
-            LogManager.LogMessage("프로그램 종료", LogLevel.Info);
+            LogManager.LogMessage("프로그램 종료", Level.Info);
             Environment.Exit(0);
         }
     }

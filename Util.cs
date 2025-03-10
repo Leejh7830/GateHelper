@@ -12,7 +12,7 @@ using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using LogLevel = GateBot.LogManager.Level;
+using Level = GateBot.LogManager.Level;
 
 namespace GateBot
 {
@@ -74,142 +74,22 @@ namespace GateBot
             catch (Exception ex)
             {
                 // MessageBox.Show($"드라이버 초기화 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                LogManager.LogException(ex, LogLevel.Error);
+                LogManager.LogException(ex, Level.Error);
                 throw;
             }
         }
 
 
 
-        // 설정 파일을 불러오고 없으면 생성하는 메소드
-        public static Config LoadConfig()
-        {
-            string configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "appsettings.json");
-
-            if (!File.Exists(configFilePath))
-            {
-                var defaultConfig = new Config
-                {
-                    Url = "",
-                    GateID = "",
-                    GatePW = "",
-                    ChromePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe"
-                };
-
-                try
-                {
-                    File.WriteAllText(configFilePath, JsonConvert.SerializeObject(defaultConfig, Formatting.Indented));
-                    MessageBox.Show($"설정 파일이 생성되었습니다. 정보를 입력하고 프로그램을 재실행 해주세요.\n파일 경로: {configFilePath}",
-                                    "설정 파일 생성", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    Application.Exit();
-                    return null;
-                }
-                catch (Exception ex)
-                {
-                    // MessageBox.Show($"설정 파일 생성 중 오류 발생: {ex.Message}\n파일 경로: {configFilePath}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    LogManager.LogException(ex, LogLevel.Error);
-                    return null;
-                }
-            }
-
-            try
-            {
-                var json = File.ReadAllText(configFilePath);
-                var config = JsonConvert.DeserializeObject<Config>(json);
-
-                if (config == null)
-                {
-                    MessageBox.Show("설정 파일의 형식이 잘못되었습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return null;
-                }
-
-                // 필수 항목 검증
-                var missingFields = new System.Text.StringBuilder();
-
-                if (!json.Contains("\"URL\"")) missingFields.AppendLine("URL");
-                if (!json.Contains("\"GateID\"")) missingFields.AppendLine("GateID");
-                if (!json.Contains("\"GatePW\"")) missingFields.AppendLine("GatePW");
-                if (!json.Contains("\"ChromePath\"")) missingFields.AppendLine("ChromePath");
-
-                if (missingFields.Length > 0)
-                {
-                    MessageBox.Show($"설정 파일에 다음 항목이 누락되었습니다:\n{missingFields}",
-                                    "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return null;
-                }
-
-                return config;
-            }
-            catch (Exception ex)
-            {
-                // MessageBox.Show($"설정 파일 로딩 오류: {ex.Message}\n파일 경로: {configFilePath}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                LogManager.LogException(ex, LogLevel.Error);
-                return null;
-            }
-        }
+        
 
 
-        // 요소에 값을 입력하는 메서드
-        public static void SendKeysToElement(IWebDriver driver, string xpath, string value)
-        {
-            try
-            {
-                // WebDriverWait을 사용하여 요소가 나타날 때까지 대기
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
-
-                // 요소가 준비될 때까지 기다림
-                var element = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath(xpath)));
-
-                if (element != null)
-                {
-                    element.Clear(); // 빈 값을 입력하여 초기화
-                    element.SendKeys(value); // 값을 입력
-                }
-                else
-                {
-                    throw new NoSuchElementException($"{xpath} 요소를 찾을 수 없습니다.");
-                }
-            }
-            catch (NoSuchElementException ex)
-            {
-                throw new Exception($"요소를 찾을 수 없습니다: {ex.Message}");
-            }
-            catch (Exception ex)
-            {
-                throw new Exception($"오류 발생: {ex.Message}");
-            }
-        }
+        
 
 
 
 
-        public static void ClickElementByXPath(IWebDriver driver, string xpath)
-        {
-            try
-            {
-                // WebDriverWait을 사용하여 요소가 클릭 가능한 상태로 나타날 때까지 기다리기
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
-                IWebElement element = wait.Until(ExpectedConditions.ElementToBeClickable(By.XPath(xpath)));
-
-                // 클릭 가능하면 클릭
-                element.Click();
-            }
-            catch (NoSuchElementException ex)
-            {
-                MessageBox.Show($"XPath에 해당하는 요소를 찾을 수 없습니다.: {ex.Message}", "실패", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw;
-            }
-            catch (WebDriverTimeoutException ex)
-            {
-                MessageBox.Show($"요소가 클릭 가능한 상태가 되지 않았습니다.: {ex.Message}", "실패", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                throw;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw;
-            }
-        }
+        
 
 
         public static void InputKeys(string keys, int intervalMilliseconds = 1000) // 메서드 이름 변경
@@ -242,7 +122,7 @@ namespace GateBot
             catch (Exception ex)
             {
                 MessageBox.Show($"키 입력 오류: {ex.Message}");
-                LogManager.LogException(ex, LogLevel.Error);
+                LogManager.LogException(ex, Level.Error);
             }
         }
 
@@ -292,7 +172,7 @@ namespace GateBot
             catch (Exception ex)
             {
                 MessageBox.Show($"크롬 창 포커스 이동 중 오류 발생: {ex.Message}");
-                LogManager.LogException(ex, LogLevel.Error);
+                LogManager.LogException(ex, Level.Error);
             }
         }
 
@@ -331,7 +211,7 @@ namespace GateBot
             catch (Exception ex)
             {
                 MessageBox.Show($"iframe 조사 및 요소 수집 중 오류 발생: {ex.Message}", "오류");
-                LogManager.LogException(ex, LogLevel.Error);
+                LogManager.LogException(ex, Level.Error);
             }
         }
 
@@ -403,11 +283,11 @@ namespace GateBot
             catch (Exception ex)
             {
                 MessageBox.Show($"드라이버 종료 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                LogManager.LogException(ex, LogLevel.Error);
+                LogManager.LogException(ex, Level.Error);
             }
             finally
             {
-                LogManager.LogMessage("ChromeDriver 종료", LogLevel.Info);
+                LogManager.LogMessage("ChromeDriver 종료", Level.Info);
             }
         }
 
