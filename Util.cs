@@ -73,7 +73,6 @@ namespace GateBot
             }
             catch (Exception ex)
             {
-                // MessageBox.Show($"드라이버 초기화 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 LogManager.LogException(ex, Level.Error);
                 throw;
             }

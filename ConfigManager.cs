@@ -10,39 +10,19 @@ namespace GateBot
 {
     internal class ConfigManager
     {
-        private readonly string _configDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Config");
-        private readonly string _appSettingsFilePath;
+        private readonly string _appSettingsFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.config");
         public Config LoadedConfig { get; private set; }
 
         public ConfigManager()
         {
-            _appSettingsFilePath = Path.Combine(_configDirectory, "appsettings.config");
             try
             {
-                CreateConfigDirectory();
                 CreateConfigFiles();
                 LoadConfig();
             }
             catch (Exception ex)
             {
                 LogManager.LogException(ex, Level.Error);
-            }
-        }
-
-        private void CreateConfigDirectory()
-        {
-            if (!Directory.Exists(_configDirectory))
-            {
-                try
-                {
-                    Directory.CreateDirectory(_configDirectory);
-                    LogManager.LogMessage($"Create Config Directory: {_configDirectory}", Level.Info);
-                }
-                catch (Exception ex)
-                {
-                    LogManager.LogException(ex, Level.Error, "Create Config Directory Fail");
-                    throw;
-                }
             }
         }
 
@@ -101,18 +81,21 @@ namespace GateBot
             }
         }
 
-        // Config 파일 로드
         private void LoadConfig()
         {
             try
             {
-                string configFilePath = _appSettingsFilePath;
+                // appsettings.config 파일을 명시적으로 열기
+                ExeConfigurationFileMap configFileMap = new ExeConfigurationFileMap();
+                configFileMap.ExeConfigFilename = _appSettingsFilePath;
+                Configuration config = ConfigurationManager.OpenMappedExeConfiguration(configFileMap, ConfigurationUserLevel.None);
+
                 LoadedConfig = new Config
                 {
-                    Url = ConfigurationManager.AppSettings["Url"],
-                    GateID = ConfigurationManager.AppSettings["GateID"],
-                    GatePW = ConfigurationManager.AppSettings["GatePW"],
-                    ChromePath = ConfigurationManager.AppSettings["ChromePath"]
+                    Url = config.AppSettings.Settings["Url"].Value,
+                    GateID = config.AppSettings.Settings["GateID"].Value,
+                    GatePW = config.AppSettings.Settings["GatePW"].Value,
+                    ChromePath = config.AppSettings.Settings["ChromePath"].Value
                 };
 
                 // 필수 항목 검증

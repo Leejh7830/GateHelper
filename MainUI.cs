@@ -6,6 +6,12 @@ using MaterialSkin;
 using System.Drawing;
 using System.Windows.Forms;
 using Level = GateBot.LogManager.Level;
+using System.Net.Security;
+using System.Net;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Linq;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace GateBot
 {
@@ -107,8 +113,6 @@ namespace GateBot
             LogManager.LogMessage("StartBtn Click", Level.Info);
             try
             {
-                // _config = ConfigManager.LoadConfig(); // Config 파일 로드
-
                 _driver = await Task.Run(() => Util.InitializeDriver(_config)); // 비동기로 드라이버 초기화
 
 
@@ -120,7 +124,6 @@ namespace GateBot
             }
             catch (Exception ex)
             {
-                // MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 LogManager.LogException(ex, Level.Error);
             }
         }
@@ -221,32 +224,107 @@ namespace GateBot
             disablePopup = DisablePopupCheckBox1.Checked;
         }
 
-        
+
 
         private void btnLoadServers1_Click(object sender, EventArgs e)
         {
+            LogManager.LogMessage("btnLoadServers Click", Level.Info);
             try
             {
-                string htmlUrl = "https://10.94.25.179/main/main.php"; // 웹 페이지 HTML 가져오기
-                string html = Util_ServerList.GetHtmlFromWeb(htmlUrl);
-                var serverNames = Util_ServerList.ParseServerNamesFromHtml(html); // HTML 파싱 및 서버 이름 추출
-                Util_ServerList.AddServersToComboBox(ComboBoxServerList1, serverNames); // 콤보박스에 서버 이름 추가
+                List<string> serverNames = new List<string>();
+                int tbodyIndex = 1;
+
+                while (true)
+                {
+                    string xpath = $"//*[@id=\'seltable\']/tbody[{tbodyIndex}]/tr/td[4]";
+                    IReadOnlyCollection<IWebElement> serverNameElements = _driver.FindElements(By.XPath(xpath));
+
+                    if (serverNameElements == null || serverNameElements.Count == 0) // 더 이상 요소가 없으면 루프 종료
+                    {
+                        break;
+                    }
+
+                    foreach (IWebElement element in serverNameElements)
+                    {
+                        serverNames.Add(element.Text);
+                    }
+
+                    tbodyIndex++; // tbody 증가 (다음 테이블 이동)
+                }
+
+                LogManager.LogMessage($"서버 이름 리스트:\n{string.Join("\n", serverNames)}", Level.Info);
+
+                // 서버 이름 리스트와 드롭다운 박스 매칭 및 값 표시
+                ComboBoxServerList1.Items.Clear();
+                foreach (string serverName in serverNames)
+                {
+                    ComboBoxServerList1.Items.Add(serverName);
+                }
+
+                LogManager.LogMessage($"콤보박스 Items 속성:\n{string.Join("\n", ComboBoxServerList1.Items.OfType<string>())}", Level.Info);
             }
             catch (Exception ex)
             {
                 LogManager.LogException(ex, Level.Error);
+                MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
 
+        private void BtnConnect1_Click(object sender, EventArgs e)
+        {
+            private void BtnConnect1_Click(object sender, EventArgs e)
+        {
+            LogManager.LogMessage("BtnConnect1 Click", Level.Info);
+            try
+            {
+                if (ComboBoxServerList1.SelectedItem == null)
+                {
+                    MessageBox.Show("서버를 선택해주세요.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
 
+                string selectedServer = ComboBoxServerList1.SelectedItem.ToString();
+
+                // 선택된 서버에 해당하는 테이블의 A xpath 클릭
+                // 예시: 테이블의 A 링크를 클릭하는 XPath (실제 XPath로 변경해야 함)
+                string xpath = $"//table//tr/td[text()='{selectedServer}']/../td/a"; // 예시 XPath, 수정 필요
+
+                // XPath를 사용하여 요소 찾기
+                IWebElement linkElement = _driver.FindElement(By.XPath(xpath));
+
+                // 링크 클릭
+                linkElement.Click();
+
+                // 경고창 처리 (확인 또는 스페이스바)
+                Thread.Sleep(1000); // 경고창 뜨는 시간 대기 (필요에 따라 조정)
+
+                try
+                {
+                    // 경고창 확인 버튼 클릭 시도
+                    IAlert alert = _driver.SwitchTo().Alert();
+                    alert.Accept(); // 확인 버튼 클릭
+                }
+                catch (NoAlertPresentException)
+                {
+                    // 경고창이 없는 경우 (또는 확인 버튼을 찾을 수 없는 경우)
+                    // 스페이스바 입력
+                    SendKeys.SendWait(" ");
+                }
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        }
 
 
 
 
         private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
         {
-            // 드라이버 종료
             if (_driver != null)
             {
                 Util.CloseDriver(_driver);
@@ -256,5 +334,7 @@ namespace GateBot
             LogManager.LogMessage("프로그램 종료", Level.Info);
             Environment.Exit(0);
         }
+
+
     }
 }
