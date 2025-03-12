@@ -13,6 +13,8 @@ using System.Linq;
 using System.Collections.Generic;
 using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
+using System.Configuration;
+using System.IO;
 
 namespace GateBot
 {
@@ -23,7 +25,8 @@ namespace GateBot
         private readonly MaterialSkinManager materialSkinManager;
         public static IWebDriver _driver = null;
 
-        private readonly Config _config;
+        private Config _config;
+        readonly ConfigManager configManager = new ConfigManager();
 
         private string serverName;
         private string serverIP;
@@ -40,7 +43,6 @@ namespace GateBot
             LogManager.LogMessage("프로그램 초기화 시작", Level.Info);
             InitializeComponent();
 
-            ConfigManager configManager = new ConfigManager();
             _config = configManager.LoadedConfig;
 
             // 폼 닫기 이벤트 연결
@@ -109,9 +111,9 @@ namespace GateBot
 
 
 
-        private async void StartBtn1_Click(object sender, EventArgs e)
+        private async void BtnStart1_Click(object sender, EventArgs e)
         {
-            LogManager.LogMessage("StartBtn Click", Level.Info);
+            LogManager.LogMessage("BtnStart1 Click", Level.Info);
             try
             {
                 _driver = await Task.Run(() => Util.InitializeDriver(_config)); // 비동기로 드라이버 초기화
@@ -129,8 +131,9 @@ namespace GateBot
             }
         }
 
-        private void ConnectBtn1_Click(object sender, EventArgs e)
+        private void BtnStart2_Click(object sender, EventArgs e)
         {
+            LogManager.LogMessage("BtnStart2 Click", Level.Info);
             try
             {
                 if (_driver == null)
@@ -182,9 +185,9 @@ namespace GateBot
 
         private void SearchBtn1_Click(object sender, EventArgs e)
         {
+            LogManager.LogMessage("SearchBtn Click", Level.Info);
             try
             {
-                LogManager.LogMessage("SearchBtn Click", Level.Info);
                 Util.ValidateServerInfo(SearchTxt1.Text, out serverName, out serverIP);
 
                 if (!string.IsNullOrEmpty(serverIP))
@@ -227,10 +230,10 @@ namespace GateBot
 
 
 
-        private void btnLoadServers1_Click(object sender, EventArgs e)
+        private void BtnLoadServers1_Click(object sender, EventArgs e)
         {
-            LogManager.LogMessage("btnLoadServers Click", Level.Info);
-            Util.FocusMainWindow(mainHandle);
+            LogManager.LogMessage("BtnLoadServers Click", Level.Info);
+
             try
             {
                 List<string> serverNames = new List<string>();
@@ -262,8 +265,6 @@ namespace GateBot
                 {
                     ComboBoxServerList1.Items.Add(serverName);
                 }
-
-                LogManager.LogMessage($"콤보박스 Items 속성:\n{string.Join("\n", ComboBoxServerList1.Items.OfType<string>())}", Level.Info);
             }
             catch (Exception ex)
             {
@@ -277,7 +278,9 @@ namespace GateBot
         private void BtnConnect1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("BtnConnect1 Click", Level.Info);
-            Util.FocusMainWindow(mainHandle);
+
+            mainHandle = _driver.CurrentWindowHandle;
+
             try
             {
                 // 선택된 드롭다운 항목 확인
@@ -329,6 +332,9 @@ namespace GateBot
                                 SendKeys.SendWait(" ");
                             }
                             EnterCredentials(_config.GateID, _config.GatePW);
+
+                            Util.FocusMainWindow(mainHandle);
+
                             return; // 서버를 찾았으므로 메서드 종료
                         }
                     }
@@ -344,6 +350,7 @@ namespace GateBot
                 MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
         private void EnterCredentials(string gataID, string gatePW)
         {
             try
@@ -416,6 +423,165 @@ namespace GateBot
             // 프로그램 완전 종료
             LogManager.LogMessage("프로그램 종료", Level.Info);
             Environment.Exit(0);
+        }
+
+        private void BtnClient1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                LogManager.LogMessage("BtnClient1 Click", Level.Info);
+                Util.ValidateServerInfo(_config.Favorite1, out serverName, out serverIP);
+
+                if (!string.IsNullOrEmpty(serverIP))
+                {
+                    // IP 주소인 경우
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", serverIP);
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", "");
+                }
+                else if (!string.IsNullOrEmpty(serverName))
+                {
+                    // 서버 이름인 경우
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", serverName);
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", "");
+                }
+
+                Util_Control.ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
+            }
+            catch (ArgumentException ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show(ex.Message, "알림");
+            }
+            catch (NoSuchElementException ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show("요소를 찾을 수 없습니다.", "오류");
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogException(ex, Level.Critical);
+                MessageBox.Show("예상치 못한 오류가 발생했습니다.", "오류");
+            }
+        }
+
+        private void BtnAP1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                LogManager.LogMessage("BtnAP1 Click", Level.Info);
+                Util.ValidateServerInfo("MIL CIM AP - CNVC", out serverName, out serverIP);
+
+                if (!string.IsNullOrEmpty(serverIP))
+                {
+                    // IP 주소인 경우
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", serverIP);
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", "");
+                }
+                else if (!string.IsNullOrEmpty(serverName))
+                {
+                    // 서버 이름인 경우
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", serverName);
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", "");
+                }
+
+                Util_Control.ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
+            }
+            catch (ArgumentException ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show(ex.Message, "알림");
+            }
+            catch (NoSuchElementException ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show("요소를 찾을 수 없습니다.", "오류");
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogException(ex, Level.Critical);
+                MessageBox.Show("예상치 못한 오류가 발생했습니다.", "오류");
+            }
+        }
+
+        private void BtnTMP1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                LogManager.LogMessage("BtnTMP1 Click", Level.Info);
+                Util.ValidateServerInfo("MIL TMP", out serverName, out serverIP);
+
+                if (!string.IsNullOrEmpty(serverIP))
+                {
+                    // IP 주소인 경우
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", serverIP);
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", "");
+                }
+                else if (!string.IsNullOrEmpty(serverName))
+                {
+                    // 서버 이름인 경우
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", serverName);
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", "");
+                }
+
+                Util_Control.ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
+            }
+            catch (ArgumentException ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show(ex.Message, "알림");
+            }
+            catch (NoSuchElementException ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show("요소를 찾을 수 없습니다.", "오류");
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogException(ex, Level.Critical);
+                MessageBox.Show("예상치 못한 오류가 발생했습니다.", "오류");
+            }
+        }
+
+        void BtnConfig1_Click(object sender, EventArgs e)
+        {
+            LogManager.LogMessage("BtnConfig1 Click", Level.Info);
+            try
+            {
+                _config = configManager.LoadedConfig;
+
+                if (_config != null)
+                {
+                    LogManager.LogMessage("Config Load", Level.Info);
+
+                    // 즐겨찾기 버튼 텍스트 설정 (null 또는 빈 문자열 처리)
+                    BtnFav1.Text = string.IsNullOrEmpty(_config.Favorite1) ? "즐겨찾기 1" : _config.Favorite1;
+                    BtnFav2.Text = string.IsNullOrEmpty(_config.Favorite2) ? "즐겨찾기 2" : _config.Favorite2;
+                    BtnFav3.Text = string.IsNullOrEmpty(_config.Favorite3) ? "즐겨찾기 3" : _config.Favorite3;
+
+                    // UI 업데이트 (예시)
+                    // textBoxUrl.Text = _config.Url;
+                    // ...
+                }
+                else
+                {
+                    LogManager.LogMessage("Fail Config Load", Level.Info);
+                }
+            }
+            catch (ConfigurationErrorsException ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show($"설정 파일 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (FileNotFoundException ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show($"설정 파일을 찾을 수 없습니다: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show($"설정 로드 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 }

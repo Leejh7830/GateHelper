@@ -35,9 +35,12 @@ namespace GateBot
                     string defaultAppSettings = $@"<?xml version=""1.0"" encoding=""utf-8"" ?>
 <configuration>
   <appSettings>
-    <add key=""Url"" value="""" />
-    <add key=""GateID"" value="""" />
-    <add key=""GatePW"" value="""" />
+    <add key=""Url"" value=""URL"" />
+    <add key=""GateID"" value=""ID"" />
+    <add key=""GatePW"" value=""PW"" />
+    <add key=""Favorite1"" value=""Fav1"" />
+    <add key=""Favorite1"" value=""Fav2"" />
+    <add key=""Favorite1"" value=""Fav3"" />
     <add key=""ChromePath"" value=""C:\Program Files\Google\Chrome\Application\chrome.exe"" />
   </appSettings>
 </configuration>";
@@ -96,6 +99,7 @@ namespace GateBot
                     GateID = config.AppSettings.Settings["GateID"].Value,
                     GatePW = config.AppSettings.Settings["GatePW"].Value,
                     ChromePath = config.AppSettings.Settings["ChromePath"].Value
+
                 };
 
                 // 필수 항목 검증

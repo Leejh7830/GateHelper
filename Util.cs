@@ -150,7 +150,7 @@ namespace GateBot
                 if (!string.IsNullOrEmpty(chromeHandleString))
                 {
                     ulong chromeHandleULong = Convert.ToUInt64(chromeHandleString, 16);
-                    IntPtr chromeHandle = new IntPtr((long)chromeHandleULong); // string을 IntPtr로 변환
+                    IntPtr chromeHandle = new IntPtr((long)chromeHandleULong);
 
                     if (chromeHandle != IntPtr.Zero)
                     {
@@ -169,10 +169,20 @@ namespace GateBot
                     MessageBox.Show("크롬 창 핸들을 찾을 수 없습니다.");
                 }
             }
+            catch (FormatException ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show($"잘못된 핸들 문자열 형식: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (OverflowException ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show($"핸들 문자열 값이 범위를 벗어남: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
             catch (Exception ex)
             {
-                MessageBox.Show($"크롬 창 포커스 이동 중 오류 발생: {ex.Message}");
                 LogManager.LogException(ex, Level.Error);
+                MessageBox.Show($"크롬 창 포커스 이동 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
