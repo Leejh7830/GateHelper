@@ -11,7 +11,8 @@ using System.Net;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 using System.Linq;
 using System.Collections.Generic;
-using System.Threading;
+using OpenQA.Selenium.Support.UI;
+using SeleniumExtras.WaitHelpers;
 
 namespace GateBot
 {
@@ -53,7 +54,7 @@ namespace GateBot
 
             this.MaximizeBox = false;
             this.MinimizeBox = false;
-            this.Size = new Size(700, 700);
+            this.Size = new Size(400, 700);
 
             // Util_Control.MoveControl(TabSelector1, 150, 30);
 
@@ -118,7 +119,7 @@ namespace GateBot
 
                 _driver.Navigate().GoToUrl(_config.Url); // 사용자가 입력한 사이트로 이동
 
-                mainHandle = Util.FindWindowHandleByUrl(_driver, _config.Url);
+                mainHandle = Util.FindWindowHandleByUrl(_driver, _config.Url); // MainHandle 저장
 
                 Util_Control.MoveFormToTop(this);
             }
@@ -229,6 +230,7 @@ namespace GateBot
         private void btnLoadServers1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("btnLoadServers Click", Level.Info);
+            Util.FocusMainWindow(mainHandle);
             try
             {
                 List<string> serverNames = new List<string>();
@@ -271,46 +273,70 @@ namespace GateBot
         }
 
 
+
         private void BtnConnect1_Click(object sender, EventArgs e)
         {
-            private void BtnConnect1_Click(object sender, EventArgs e)
-        {
             LogManager.LogMessage("BtnConnect1 Click", Level.Info);
+            Util.FocusMainWindow(mainHandle);
             try
             {
+                // 선택된 드롭다운 항목 확인
                 if (ComboBoxServerList1.SelectedItem == null)
                 {
                     MessageBox.Show("서버를 선택해주세요.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
+                // 선택된 서버 이름 가져오기
                 string selectedServer = ComboBoxServerList1.SelectedItem.ToString();
+                LogManager.LogMessage("접속 서버 명 :" + selectedServer, Level.Info);
 
-                // 선택된 서버에 해당하는 테이블의 A xpath 클릭
-                // 예시: 테이블의 A 링크를 클릭하는 XPath (실제 XPath로 변경해야 함)
-                string xpath = $"//table//tr/td[text()='{selectedServer}']/../td/a"; // 예시 XPath, 수정 필요
+                // 선택된 서버에 해당하는 "rdp" 문자열을 포함하는 span 태그 클릭
+                int tbodyIndex = 1;
 
-                // XPath를 사용하여 요소 찾기
-                IWebElement linkElement = _driver.FindElement(By.XPath(xpath));
-
-                // 링크 클릭
-                linkElement.Click();
-
-                // 경고창 처리 (확인 또는 스페이스바)
-                Thread.Sleep(1000); // 경고창 뜨는 시간 대기 (필요에 따라 조정)
-
-                try
+                while (true)
                 {
-                    // 경고창 확인 버튼 클릭 시도
-                    IAlert alert = _driver.SwitchTo().Alert();
-                    alert.Accept(); // 확인 버튼 클릭
+                    string serverNameXpath = $"//*[@id=\'seltable\']/tbody[{tbodyIndex}]/tr/td[4]";
+                    IReadOnlyCollection<IWebElement> serverNameElements = _driver.FindElements(By.XPath(serverNameXpath));
+
+                    if (serverNameElements == null || serverNameElements.Count == 0)
+                    {
+                        break; // 더 이상 요소가 없으면 루프 종료
+                    }
+
+                    foreach (IWebElement element in serverNameElements)
+                    {
+                        if (element.Text == selectedServer)
+                        {
+                            // 해당 서버를 찾았으므로 "rdp" 문자열을 포함하는 span 태그 클릭
+                            string spanXpath = $"//*[@id=\'seltable\']/tbody[{tbodyIndex}]/tr/td[5]/span[contains(@id, 'rdp')]";
+                            IWebElement spanElement = _driver.FindElement(By.XPath(spanXpath));
+                            IWebElement aElement = spanElement.FindElement(By.TagName("a")); // span 태그 안의 a 태그 찾기
+                            aElement.Click();
+
+                            System.Threading.Thread.Sleep(1000);
+
+                            try
+                            {
+                                // 경고창 확인 버튼 클릭 시도
+                                IAlert alert = _driver.SwitchTo().Alert();
+                                alert.Accept(); // 확인 버튼 클릭
+                            }
+                            catch (NoAlertPresentException)
+                            {
+                                // 경고창이 없는 경우 (또는 확인 버튼을 찾을 수 없는 경우)
+                                // 스페이스바 입력
+                                SendKeys.SendWait(" ");
+                            }
+                            EnterCredentials(_config.GateID, _config.GatePW);
+                            return; // 서버를 찾았으므로 메서드 종료
+                        }
+                    }
+
+                    tbodyIndex++; // 다음 tbody로 이동
                 }
-                catch (NoAlertPresentException)
-                {
-                    // 경고창이 없는 경우 (또는 확인 버튼을 찾을 수 없는 경우)
-                    // 스페이스바 입력
-                    SendKeys.SendWait(" ");
-                }
+
+                MessageBox.Show($"서버 '{selectedServer}'를 찾을 수 없습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
             catch (Exception ex)
             {
@@ -318,10 +344,67 @@ namespace GateBot
                 MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+        private void EnterCredentials(string gataID, string gatePW)
+        {
+            try
+            {
+                // 새 팝업창으로 전환
+                SwitchToPopup();
+
+                WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10)); // 최대 10초 대기
+
+                // ID 입력
+                IWebElement idInput = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='userid']")));
+                idInput.SendKeys(gataID);
+
+                // 비밀번호 입력
+                IWebElement pwInput = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='passwd']")));
+                pwInput.SendKeys(gatePW);
+
+                // 접속하기 버튼 클릭
+                IWebElement loginButton = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='pop_container']/div[2]/a")));
+                loginButton.Click();
+            }
+            catch (WebDriverTimeoutException)
+            {
+                MessageBox.Show("ID/PW 입력 필드 또는 접속하기 버튼을 찾을 수 없습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show($"ID/PW 입력 및 접속 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
+        private void SwitchToPopup()
+        {
+            try
+            {
+                WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10)); // 최대 10초 대기
+                wait.Until(driver => driver.WindowHandles.Count > 1); // 창 핸들 수가 2개 이상이 될 때까지 대기
 
-
+                string originalWindow = _driver.CurrentWindowHandle; // 원래 창 핸들 저장
+                foreach (string windowHandle in _driver.WindowHandles)
+                {
+                    if (windowHandle != originalWindow)
+                    {
+                        _driver.SwitchTo().Window(windowHandle); // 새 창으로 전환
+                        break;
+                    }
+                }
+            }
+            catch (WebDriverTimeoutException)
+            {
+                MessageBox.Show("팝업창이 열리지 않았습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // 필요한 경우 원래 창으로 전환
+                // _driver.SwitchTo().Window(originalWindow);
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show($"팝업창 전환 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
 
         private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -334,7 +417,5 @@ namespace GateBot
             LogManager.LogMessage("프로그램 종료", Level.Info);
             Environment.Exit(0);
         }
-
-
     }
 }

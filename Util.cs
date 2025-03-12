@@ -149,7 +149,8 @@ namespace GateBot
             {
                 if (!string.IsNullOrEmpty(chromeHandleString))
                 {
-                    IntPtr chromeHandle = new IntPtr(long.Parse(chromeHandleString)); // string을 IntPtr로 변환
+                    ulong chromeHandleULong = Convert.ToUInt64(chromeHandleString, 16);
+                    IntPtr chromeHandle = new IntPtr((long)chromeHandleULong); // string을 IntPtr로 변환
 
                     if (chromeHandle != IntPtr.Zero)
                     {

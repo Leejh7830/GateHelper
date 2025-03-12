@@ -36,7 +36,9 @@
             this.SearchGroup1 = new System.Windows.Forms.GroupBox();
             this.SearchTxt1 = new MaterialSkin.Controls.MaterialTextBox2();
             this.LoginGroup1 = new System.Windows.Forms.GroupBox();
+            this.btnLoadServers1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnConnect1 = new MaterialSkin.Controls.MaterialButton();
+            this.ComboBoxServerList1 = new MaterialSkin.Controls.MaterialComboBox();
             this.GatePWTxt1 = new MaterialSkin.Controls.MaterialTextBox2();
             this.GateIDTxt1 = new MaterialSkin.Controls.MaterialTextBox2();
             this.materialTabControl1 = new MaterialSkin.Controls.MaterialTabControl();
@@ -48,8 +50,6 @@
             this.columnHeader2 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.columnHeader3 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.DisablePopupCheckBox1 = new MaterialSkin.Controls.MaterialCheckbox();
-            this.ComboBoxServerList1 = new MaterialSkin.Controls.MaterialComboBox();
-            this.btnLoadServers1 = new MaterialSkin.Controls.MaterialButton();
             this.LoginGroup1.SuspendLayout();
             this.materialTabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -65,12 +65,12 @@
             this.BtnStart1.Font = new System.Drawing.Font("돋움", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BtnStart1.HighEmphasis = true;
             this.BtnStart1.Icon = null;
-            this.BtnStart1.Location = new System.Drawing.Point(19, 110);
-            this.BtnStart1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnStart1.Location = new System.Drawing.Point(13, 73);
+            this.BtnStart1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.BtnStart1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnStart1.Name = "BtnStart1";
             this.BtnStart1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnStart1.Size = new System.Drawing.Size(300, 60);
+            this.BtnStart1.Size = new System.Drawing.Size(210, 40);
             this.BtnStart1.TabIndex = 0;
             this.BtnStart1.Text = "Start Operation";
             this.BtnStart1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -87,12 +87,12 @@
             this.BtnStart2.Enabled = false;
             this.BtnStart2.HighEmphasis = true;
             this.BtnStart2.Icon = null;
-            this.BtnStart2.Location = new System.Drawing.Point(329, 110);
-            this.BtnStart2.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnStart2.Location = new System.Drawing.Point(230, 73);
+            this.BtnStart2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnStart2.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnStart2.Name = "BtnStart2";
             this.BtnStart2.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnStart2.Size = new System.Drawing.Size(300, 60);
+            this.BtnStart2.Size = new System.Drawing.Size(210, 40);
             this.BtnStart2.TabIndex = 1;
             this.BtnStart2.Text = "Start2";
             this.BtnStart2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -108,12 +108,12 @@
             this.BtnLogin1.Depth = 0;
             this.BtnLogin1.HighEmphasis = true;
             this.BtnLogin1.Icon = null;
-            this.BtnLogin1.Location = new System.Drawing.Point(847, 153);
-            this.BtnLogin1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnLogin1.Location = new System.Drawing.Point(593, 102);
+            this.BtnLogin1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnLogin1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnLogin1.Name = "BtnLogin1";
             this.BtnLogin1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnLogin1.Size = new System.Drawing.Size(167, 159);
+            this.BtnLogin1.Size = new System.Drawing.Size(117, 106);
             this.BtnLogin1.TabIndex = 4;
             this.BtnLogin1.Text = "GATEONE LOGIN";
             this.BtnLogin1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -128,8 +128,8 @@
             this.TestBtn1.Depth = 0;
             this.TestBtn1.HighEmphasis = true;
             this.TestBtn1.Icon = null;
-            this.TestBtn1.Location = new System.Drawing.Point(1233, 105);
-            this.TestBtn1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.TestBtn1.Location = new System.Drawing.Point(863, 70);
+            this.TestBtn1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.TestBtn1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TestBtn1.Name = "TestBtn1";
             this.TestBtn1.NoAccentTextColor = System.Drawing.Color.Empty;
@@ -149,12 +149,12 @@
             this.BtnSearch1.Depth = 0;
             this.BtnSearch1.HighEmphasis = true;
             this.BtnSearch1.Icon = null;
-            this.BtnSearch1.Location = new System.Drawing.Point(362, 31);
-            this.BtnSearch1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnSearch1.Location = new System.Drawing.Point(253, 21);
+            this.BtnSearch1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnSearch1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnSearch1.Name = "BtnSearch1";
             this.BtnSearch1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnSearch1.Size = new System.Drawing.Size(139, 60);
+            this.BtnSearch1.Size = new System.Drawing.Size(97, 40);
             this.BtnSearch1.TabIndex = 7;
             this.BtnSearch1.Text = "Search";
             this.BtnSearch1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -164,11 +164,9 @@
             // 
             // SearchGroup1
             // 
-            this.SearchGroup1.Location = new System.Drawing.Point(4, 4);
-            this.SearchGroup1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.SearchGroup1.Location = new System.Drawing.Point(3, 3);
             this.SearchGroup1.Name = "SearchGroup1";
-            this.SearchGroup1.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.SearchGroup1.Size = new System.Drawing.Size(522, 207);
+            this.SearchGroup1.Size = new System.Drawing.Size(365, 138);
             this.SearchGroup1.TabIndex = 6;
             this.SearchGroup1.TabStop = false;
             this.SearchGroup1.Text = "Search";
@@ -183,7 +181,8 @@
             this.SearchTxt1.HideSelection = true;
             this.SearchTxt1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.SearchTxt1.LeadingIcon = null;
-            this.SearchTxt1.Location = new System.Drawing.Point(7, 28);
+            this.SearchTxt1.Location = new System.Drawing.Point(5, 19);
+            this.SearchTxt1.Margin = new System.Windows.Forms.Padding(2);
             this.SearchTxt1.MaxLength = 32767;
             this.SearchTxt1.MouseState = MaterialSkin.MouseState.OUT;
             this.SearchTxt1.Name = "SearchTxt1";
@@ -195,7 +194,7 @@
             this.SearchTxt1.SelectionLength = 0;
             this.SearchTxt1.SelectionStart = 0;
             this.SearchTxt1.ShortcutsEnabled = true;
-            this.SearchTxt1.Size = new System.Drawing.Size(350, 48);
+            this.SearchTxt1.Size = new System.Drawing.Size(245, 48);
             this.SearchTxt1.TabIndex = 13;
             this.SearchTxt1.TabStop = false;
             this.SearchTxt1.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
@@ -209,14 +208,33 @@
             this.LoginGroup1.Controls.Add(this.ComboBoxServerList1);
             this.LoginGroup1.Controls.Add(this.BtnSearch1);
             this.LoginGroup1.Controls.Add(this.SearchTxt1);
-            this.LoginGroup1.Location = new System.Drawing.Point(7, 8);
-            this.LoginGroup1.Margin = new System.Windows.Forms.Padding(4, 4, 4, 4);
+            this.LoginGroup1.Location = new System.Drawing.Point(5, 5);
             this.LoginGroup1.Name = "LoginGroup1";
-            this.LoginGroup1.Padding = new System.Windows.Forms.Padding(4, 4, 4, 4);
-            this.LoginGroup1.Size = new System.Drawing.Size(511, 489);
+            this.LoginGroup1.Size = new System.Drawing.Size(358, 326);
             this.LoginGroup1.TabIndex = 7;
             this.LoginGroup1.TabStop = false;
             this.LoginGroup1.Text = "Login Info";
+            // 
+            // btnLoadServers1
+            // 
+            this.btnLoadServers1.AutoSize = false;
+            this.btnLoadServers1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnLoadServers1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnLoadServers1.Depth = 0;
+            this.btnLoadServers1.HighEmphasis = true;
+            this.btnLoadServers1.Icon = null;
+            this.btnLoadServers1.Location = new System.Drawing.Point(7, 79);
+            this.btnLoadServers1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnLoadServers1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnLoadServers1.Name = "btnLoadServers1";
+            this.btnLoadServers1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnLoadServers1.Size = new System.Drawing.Size(97, 40);
+            this.btnLoadServers1.TabIndex = 12;
+            this.btnLoadServers1.Text = "SERVER LIST";
+            this.btnLoadServers1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnLoadServers1.UseAccentColor = false;
+            this.btnLoadServers1.UseVisualStyleBackColor = true;
+            this.btnLoadServers1.Click += new System.EventHandler(this.btnLoadServers1_Click);
             // 
             // BtnConnect1
             // 
@@ -226,18 +244,41 @@
             this.BtnConnect1.Depth = 0;
             this.BtnConnect1.HighEmphasis = true;
             this.BtnConnect1.Icon = null;
-            this.BtnConnect1.Location = new System.Drawing.Point(10, 193);
-            this.BtnConnect1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnConnect1.Location = new System.Drawing.Point(7, 129);
+            this.BtnConnect1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnConnect1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnConnect1.Name = "BtnConnect1";
             this.BtnConnect1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnConnect1.Size = new System.Drawing.Size(491, 61);
+            this.BtnConnect1.Size = new System.Drawing.Size(344, 41);
             this.BtnConnect1.TabIndex = 12;
             this.BtnConnect1.Text = "Connect";
             this.BtnConnect1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.BtnConnect1.UseAccentColor = false;
             this.BtnConnect1.UseVisualStyleBackColor = true;
             this.BtnConnect1.Click += new System.EventHandler(this.BtnConnect1_Click);
+            // 
+            // ComboBoxServerList1
+            // 
+            this.ComboBoxServerList1.AutoResize = false;
+            this.ComboBoxServerList1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.ComboBoxServerList1.Depth = 0;
+            this.ComboBoxServerList1.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawVariable;
+            this.ComboBoxServerList1.DropDownHeight = 174;
+            this.ComboBoxServerList1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.ComboBoxServerList1.DropDownWidth = 121;
+            this.ComboBoxServerList1.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Pixel);
+            this.ComboBoxServerList1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.ComboBoxServerList1.FormattingEnabled = true;
+            this.ComboBoxServerList1.IntegralHeight = false;
+            this.ComboBoxServerList1.ItemHeight = 43;
+            this.ComboBoxServerList1.Location = new System.Drawing.Point(108, 76);
+            this.ComboBoxServerList1.Margin = new System.Windows.Forms.Padding(2);
+            this.ComboBoxServerList1.MaxDropDownItems = 4;
+            this.ComboBoxServerList1.MouseState = MaterialSkin.MouseState.OUT;
+            this.ComboBoxServerList1.Name = "ComboBoxServerList1";
+            this.ComboBoxServerList1.Size = new System.Drawing.Size(246, 49);
+            this.ComboBoxServerList1.StartIndex = 0;
+            this.ComboBoxServerList1.TabIndex = 13;
             // 
             // GatePWTxt1
             // 
@@ -249,7 +290,8 @@
             this.GatePWTxt1.HideSelection = true;
             this.GatePWTxt1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.GatePWTxt1.LeadingIcon = null;
-            this.GatePWTxt1.Location = new System.Drawing.Point(586, 534);
+            this.GatePWTxt1.Location = new System.Drawing.Point(410, 356);
+            this.GatePWTxt1.Margin = new System.Windows.Forms.Padding(2);
             this.GatePWTxt1.MaxLength = 32767;
             this.GatePWTxt1.MouseState = MaterialSkin.MouseState.OUT;
             this.GatePWTxt1.Name = "GatePWTxt1";
@@ -261,7 +303,7 @@
             this.GatePWTxt1.SelectionLength = 0;
             this.GatePWTxt1.SelectionStart = 0;
             this.GatePWTxt1.ShortcutsEnabled = true;
-            this.GatePWTxt1.Size = new System.Drawing.Size(350, 48);
+            this.GatePWTxt1.Size = new System.Drawing.Size(245, 48);
             this.GatePWTxt1.TabIndex = 13;
             this.GatePWTxt1.TabStop = false;
             this.GatePWTxt1.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
@@ -278,7 +320,8 @@
             this.GateIDTxt1.HideSelection = true;
             this.GateIDTxt1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.GateIDTxt1.LeadingIcon = null;
-            this.GateIDTxt1.Location = new System.Drawing.Point(586, 480);
+            this.GateIDTxt1.Location = new System.Drawing.Point(410, 320);
+            this.GateIDTxt1.Margin = new System.Windows.Forms.Padding(2);
             this.GateIDTxt1.MaxLength = 32767;
             this.GateIDTxt1.MouseState = MaterialSkin.MouseState.OUT;
             this.GateIDTxt1.Name = "GateIDTxt1";
@@ -290,7 +333,7 @@
             this.GateIDTxt1.SelectionLength = 0;
             this.GateIDTxt1.SelectionStart = 0;
             this.GateIDTxt1.ShortcutsEnabled = true;
-            this.GateIDTxt1.Size = new System.Drawing.Size(350, 48);
+            this.GateIDTxt1.Size = new System.Drawing.Size(245, 48);
             this.GateIDTxt1.TabIndex = 12;
             this.GateIDTxt1.TabStop = false;
             this.GateIDTxt1.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
@@ -302,21 +345,23 @@
             this.materialTabControl1.Controls.Add(this.tabPage1);
             this.materialTabControl1.Controls.Add(this.tabPage2);
             this.materialTabControl1.Depth = 0;
-            this.materialTabControl1.Location = new System.Drawing.Point(26, 292);
+            this.materialTabControl1.Location = new System.Drawing.Point(18, 195);
+            this.materialTabControl1.Margin = new System.Windows.Forms.Padding(2);
             this.materialTabControl1.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialTabControl1.Multiline = true;
             this.materialTabControl1.Name = "materialTabControl1";
             this.materialTabControl1.SelectedIndex = 0;
-            this.materialTabControl1.Size = new System.Drawing.Size(534, 536);
+            this.materialTabControl1.Size = new System.Drawing.Size(374, 357);
             this.materialTabControl1.TabIndex = 8;
             // 
             // tabPage1
             // 
             this.tabPage1.Controls.Add(this.LoginGroup1);
-            this.tabPage1.Location = new System.Drawing.Point(4, 28);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
-            this.tabPage1.Size = new System.Drawing.Size(526, 504);
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPage1.Size = new System.Drawing.Size(366, 331);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "LOGIN";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -324,10 +369,11 @@
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.SearchGroup1);
-            this.tabPage2.Location = new System.Drawing.Point(4, 28);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
-            this.tabPage2.Size = new System.Drawing.Size(526, 222);
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPage2.Size = new System.Drawing.Size(366, 331);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "SEARCH";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -339,10 +385,11 @@
             this.TabSelector1.Depth = 0;
             this.TabSelector1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
             this.TabSelector1.ForeColor = System.Drawing.SystemColors.Control;
-            this.TabSelector1.Location = new System.Drawing.Point(11, 230);
+            this.TabSelector1.Location = new System.Drawing.Point(8, 153);
+            this.TabSelector1.Margin = new System.Windows.Forms.Padding(2);
             this.TabSelector1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TabSelector1.Name = "TabSelector1";
-            this.TabSelector1.Size = new System.Drawing.Size(521, 48);
+            this.TabSelector1.Size = new System.Drawing.Size(365, 32);
             this.TabSelector1.TabIndex = 5;
             this.TabSelector1.TabIndicatorHeight = 3;
             this.TabSelector1.Text = "materialTabSelector1";
@@ -359,13 +406,14 @@
             this.materialListView1.Depth = 0;
             this.materialListView1.FullRowSelect = true;
             this.materialListView1.HideSelection = false;
-            this.materialListView1.Location = new System.Drawing.Point(586, 748);
-            this.materialListView1.MinimumSize = new System.Drawing.Size(200, 100);
+            this.materialListView1.Location = new System.Drawing.Point(410, 499);
+            this.materialListView1.Margin = new System.Windows.Forms.Padding(2);
+            this.materialListView1.MinimumSize = new System.Drawing.Size(140, 67);
             this.materialListView1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.materialListView1.MouseState = MaterialSkin.MouseState.OUT;
             this.materialListView1.Name = "materialListView1";
             this.materialListView1.OwnerDraw = true;
-            this.materialListView1.Size = new System.Drawing.Size(549, 294);
+            this.materialListView1.Size = new System.Drawing.Size(384, 196);
             this.materialListView1.TabIndex = 10;
             this.materialListView1.UseCompatibleStateImageBehavior = false;
             this.materialListView1.View = System.Windows.Forms.View.Details;
@@ -386,7 +434,7 @@
             // 
             this.DisablePopupCheckBox1.AutoSize = true;
             this.DisablePopupCheckBox1.Depth = 0;
-            this.DisablePopupCheckBox1.Location = new System.Drawing.Point(19, 990);
+            this.DisablePopupCheckBox1.Location = new System.Drawing.Point(13, 660);
             this.DisablePopupCheckBox1.Margin = new System.Windows.Forms.Padding(0);
             this.DisablePopupCheckBox1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.DisablePopupCheckBox1.MouseState = MaterialSkin.MouseState.HOVER;
@@ -399,54 +447,12 @@
             this.DisablePopupCheckBox1.UseVisualStyleBackColor = true;
             this.DisablePopupCheckBox1.CheckedChanged += new System.EventHandler(this.DisablePopupCheckBox1_CheckedChanged);
             // 
-            // ComboBoxServerList1
-            // 
-            this.ComboBoxServerList1.AutoResize = false;
-            this.ComboBoxServerList1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            this.ComboBoxServerList1.Depth = 0;
-            this.ComboBoxServerList1.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawVariable;
-            this.ComboBoxServerList1.DropDownHeight = 174;
-            this.ComboBoxServerList1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.ComboBoxServerList1.DropDownWidth = 121;
-            this.ComboBoxServerList1.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Pixel);
-            this.ComboBoxServerList1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            this.ComboBoxServerList1.FormattingEnabled = true;
-            this.ComboBoxServerList1.IntegralHeight = false;
-            this.ComboBoxServerList1.ItemHeight = 43;
-            this.ComboBoxServerList1.Location = new System.Drawing.Point(154, 114);
-            this.ComboBoxServerList1.MaxDropDownItems = 4;
-            this.ComboBoxServerList1.MouseState = MaterialSkin.MouseState.OUT;
-            this.ComboBoxServerList1.Name = "ComboBoxServerList1";
-            this.ComboBoxServerList1.Size = new System.Drawing.Size(350, 49);
-            this.ComboBoxServerList1.StartIndex = 0;
-            this.ComboBoxServerList1.TabIndex = 13;
-            // 
-            // btnLoadServers1
-            // 
-            this.btnLoadServers1.AutoSize = false;
-            this.btnLoadServers1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.btnLoadServers1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.btnLoadServers1.Depth = 0;
-            this.btnLoadServers1.HighEmphasis = true;
-            this.btnLoadServers1.Icon = null;
-            this.btnLoadServers1.Location = new System.Drawing.Point(10, 118);
-            this.btnLoadServers1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
-            this.btnLoadServers1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.btnLoadServers1.Name = "btnLoadServers1";
-            this.btnLoadServers1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.btnLoadServers1.Size = new System.Drawing.Size(139, 60);
-            this.btnLoadServers1.TabIndex = 12;
-            this.btnLoadServers1.Text = "SERVER LIST";
-            this.btnLoadServers1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.btnLoadServers1.UseAccentColor = false;
-            this.btnLoadServers1.UseVisualStyleBackColor = true;
-            // 
             // MainUI
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 18F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(1140, 1048);
+            this.ClientSize = new System.Drawing.Size(798, 699);
             this.Controls.Add(this.DisablePopupCheckBox1);
             this.Controls.Add(this.materialListView1);
             this.Controls.Add(this.GatePWTxt1);
@@ -457,7 +463,9 @@
             this.Controls.Add(this.TestBtn1);
             this.Controls.Add(this.BtnStart2);
             this.Controls.Add(this.BtnStart1);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainUI";
+            this.Padding = new System.Windows.Forms.Padding(2, 43, 2, 2);
             this.Sizable = false;
             this.Text = "GATE HELPER";
             this.LoginGroup1.ResumeLayout(false);
