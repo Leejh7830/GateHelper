@@ -3,7 +3,6 @@ using System.IO;
 using System.Configuration;
 using System.Xml;
 using System.Windows.Forms;
-using OpenQA.Selenium;
 using Level = GateBot.LogManager.Level;
 
 namespace GateBot
@@ -17,8 +16,8 @@ namespace GateBot
         {
             try
             {
-                CreateConfigFiles();
-                LoadConfig();
+                CreateConfigFiles(); // Create
+                LoadConfig(); // Load
             }
             catch (Exception ex)
             {
@@ -35,13 +34,14 @@ namespace GateBot
                     string defaultAppSettings = $@"<?xml version=""1.0"" encoding=""utf-8"" ?>
 <configuration>
   <appSettings>
-    <add key=""Url"" value=""URL"" />
-    <add key=""GateID"" value=""ID"" />
-    <add key=""GatePW"" value=""PW"" />
-    <add key=""Favorite1"" value=""Fav1"" />
-    <add key=""Favorite1"" value=""Fav2"" />
-    <add key=""Favorite1"" value=""Fav3"" />
+    <add key=""Url"" value="""" />
+    <add key=""GateID"" value="""" />
+    <add key=""GatePW"" value="""" />
     <add key=""ChromePath"" value=""C:\Program Files\Google\Chrome\Application\chrome.exe"" />
+    <add key=""Favorite1"" value=""Fav1"" />
+    <add key=""Favorite2"" value=""Fav2"" />
+    <add key=""Favorite3"" value=""Fav3"" />
+    <!-- Favorite 으로 검색 -->
   </appSettings>
 </configuration>";
 
@@ -67,56 +67,70 @@ namespace GateBot
                         "Configuration file creation", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                     LogManager.LogMessage($"Configuration file created successfully: {_appSettingsFilePath}", Level.Info);
-
-                    LogManager.LogMessage("프로그램 종료", Level.Info);
-                    Environment.Exit(0);
+                    LoadedConfig = null;
                 }
             }
             catch (XmlException ex)
             {
                 LogManager.LogException(ex, Level.Error, "Invalid XML format in default app settings.");
-                throw;
+                MessageBox.Show($"Invalid XML format in default app settings.\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LoadedConfig = null;
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, Level.Error, "Failed to create or load configuration files.");
-                throw;
+                LogManager.LogException(ex, Level.Error, $"Failed to create or load configuration files: {_appSettingsFilePath}");
+                MessageBox.Show($"Failed to create or load configuration files.\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LoadedConfig = null;
             }
         }
 
-        private void LoadConfig()
+        public void LoadConfig()
         {
             try
             {
-                // appsettings.config 파일을 명시적으로 열기
                 ExeConfigurationFileMap configFileMap = new ExeConfigurationFileMap();
                 configFileMap.ExeConfigFilename = _appSettingsFilePath;
                 Configuration config = ConfigurationManager.OpenMappedExeConfiguration(configFileMap, ConfigurationUserLevel.None);
+
+                var missingFields = new System.Text.StringBuilder(); // 필수 항목 검증
+
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["Url"].Value)) missingFields.AppendLine("URL");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["GateID"].Value)) missingFields.AppendLine("GateID");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["GatePW"].Value)) missingFields.AppendLine("GatePW");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["ChromePath"].Value)) missingFields.AppendLine("ChromePath");
+
+                if (missingFields.Length > 0)
+                {
+                    string errorMessage = $"The following required items are missing from the configuration file:\n{missingFields}\n\nDo you want to open the configuration file to edit?";
+                    LogManager.LogMessage(errorMessage, Level.Error);
+                    if (MessageBox.Show(errorMessage, "Error", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
+                    {
+                        // 2025.03.12 추가
+                        // 설정 파일 열기 & 초기화
+                        try
+                        {
+                            System.Diagnostics.Process.Start(_appSettingsFilePath);
+                        }
+                        catch (Exception ex)
+                        {
+                            LogManager.LogException(ex, Level.Error, $"Failed to open configuration file: {_appSettingsFilePath}");
+                            MessageBox.Show($"Failed to open configuration file.\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
+                    }
+                    LoadedConfig = null;
+                    return;
+                }
 
                 LoadedConfig = new Config
                 {
                     Url = config.AppSettings.Settings["Url"].Value,
                     GateID = config.AppSettings.Settings["GateID"].Value,
                     GatePW = config.AppSettings.Settings["GatePW"].Value,
-                    ChromePath = config.AppSettings.Settings["ChromePath"].Value
-
+                    ChromePath = config.AppSettings.Settings["ChromePath"].Value,
+                    Fav1 = config.AppSettings.Settings["Favorite1"]?.Value,
+                    Fav2 = config.AppSettings.Settings["Favorite2"]?.Value,
+                    Fav3 = config.AppSettings.Settings["Favorite3"]?.Value
                 };
-
-                // 필수 항목 검증
-                var missingFields = new System.Text.StringBuilder();
-
-                if (string.IsNullOrEmpty(LoadedConfig.Url)) missingFields.AppendLine("URL");
-                if (string.IsNullOrEmpty(LoadedConfig.GateID)) missingFields.AppendLine("GateID");
-                if (string.IsNullOrEmpty(LoadedConfig.GatePW)) missingFields.AppendLine("GatePW");
-                if (string.IsNullOrEmpty(LoadedConfig.ChromePath)) missingFields.AppendLine("ChromePath");
-
-                if (missingFields.Length > 0)
-                {
-                    MessageBox.Show($"The following items are missing from the configuration file:\n{missingFields}",
-                        "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    LoadedConfig = null;
-                    return;
-                }
 
                 LogManager.LogMessage($"Configuration file loaded successfully: {_appSettingsFilePath}", Level.Info);
             }
@@ -124,13 +138,13 @@ namespace GateBot
             {
                 LogManager.LogException(ex, Level.Error, $"Configuration file load error: {_appSettingsFilePath}");
                 MessageBox.Show($"Configuration file load error. Check the configuration file. \n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                LoadedConfig = null;
+                Environment.Exit(1);
             }
             catch (Exception ex)
             {
                 LogManager.LogException(ex, Level.Error, $"An unexpected error occurred while loading the configuration file: {_appSettingsFilePath}");
                 MessageBox.Show($"An unexpected error occurred while loading the configuration file. \n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                LoadedConfig = null;
+                Environment.Exit(1);
             }
         }
     }

@@ -121,7 +121,9 @@ namespace GateBot
 
                 _driver.Navigate().GoToUrl(_config.Url); // 사용자가 입력한 사이트로 이동
 
-                mainHandle = Util.FindWindowHandleByUrl(_driver, _config.Url); // MainHandle 저장
+                // mainHandle = Util.FindWindowHandleByUrl(_driver, _config.Url); // MainHandle 저장
+                mainHandle = _driver.CurrentWindowHandle;
+                LogManager.LogMessage("Start MainHandle: " + mainHandle, Level.Info);
 
                 Util_Control.MoveFormToTop(this);
             }
@@ -179,13 +181,14 @@ namespace GateBot
         private void TestBtn1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("TestBtn Click", Level.Info);
-            Util.FocusMainWindow(mainHandle);
+            // Util.FocusMainWindow(mainHandle);
             Util.InvestigateIframesAndCollectClickableElements(_driver);
         }
 
         private void SearchBtn1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("SearchBtn Click", Level.Info);
+            Util.SwitchToMainHandle(_driver, mainHandle);
             try
             {
                 Util.ValidateServerInfo(SearchTxt1.Text, out serverName, out serverIP);
@@ -233,6 +236,7 @@ namespace GateBot
         private void BtnLoadServers1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("BtnLoadServers Click", Level.Info);
+            Util.SwitchToMainHandle(_driver, mainHandle);
 
             try
             {
@@ -279,7 +283,8 @@ namespace GateBot
         {
             LogManager.LogMessage("BtnConnect1 Click", Level.Info);
 
-            mainHandle = _driver.CurrentWindowHandle;
+            // mainHandle = _driver.CurrentWindowHandle;
+            LogManager.LogMessage("Connect MainHandle: " + mainHandle, Level.Info);
 
             try
             {
@@ -333,7 +338,9 @@ namespace GateBot
                             }
                             EnterCredentials(_config.GateID, _config.GatePW);
 
-                            Util.FocusMainWindow(mainHandle);
+                            // Util.FocusMainWindow(mainHandle);
+                            Util.SwitchToMainHandle(_driver, mainHandle);
+                            LogManager.LogMessage("접속후 MainHandle: " + mainHandle, Level.Info);
 
                             return; // 서버를 찾았으므로 메서드 종료
                         }
@@ -430,7 +437,7 @@ namespace GateBot
             try
             {
                 LogManager.LogMessage("BtnClient1 Click", Level.Info);
-                Util.ValidateServerInfo(_config.Favorite1, out serverName, out serverIP);
+                Util.ValidateServerInfo(_config.Fav1, out serverName, out serverIP);
 
                 if (!string.IsNullOrEmpty(serverIP))
                 {
@@ -547,16 +554,17 @@ namespace GateBot
             LogManager.LogMessage("BtnConfig1 Click", Level.Info);
             try
             {
+                configManager.LoadConfig();
                 _config = configManager.LoadedConfig;
 
                 if (_config != null)
                 {
                     LogManager.LogMessage("Config Load", Level.Info);
 
-                    // 즐겨찾기 버튼 텍스트 설정 (null 또는 빈 문자열 처리)
-                    BtnFav1.Text = string.IsNullOrEmpty(_config.Favorite1) ? "즐겨찾기 1" : _config.Favorite1;
-                    BtnFav2.Text = string.IsNullOrEmpty(_config.Favorite2) ? "즐겨찾기 2" : _config.Favorite2;
-                    BtnFav3.Text = string.IsNullOrEmpty(_config.Favorite3) ? "즐겨찾기 3" : _config.Favorite3;
+                    // 즐겨찾기 버튼 텍스트 설정
+                    BtnFav1.Text = string.IsNullOrEmpty(_config.Fav1) ? "즐겨찾기 1" : _config.Fav1;
+                    BtnFav2.Text = string.IsNullOrEmpty(_config.Fav2) ? "즐겨찾기 2" : _config.Fav2;
+                    BtnFav3.Text = string.IsNullOrEmpty(_config.Fav3) ? "즐겨찾기 3" : _config.Fav3;
 
                     // UI 업데이트 (예시)
                     // textBoxUrl.Text = _config.Url;

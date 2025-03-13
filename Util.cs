@@ -186,32 +186,36 @@ namespace GateBot
             }
         }
 
+        public static void SwitchToMainHandle(IWebDriver _driver, string mainHandle)
+        {
+            _driver.SwitchTo().Window(mainHandle);
+        }
 
         // iframe순회, 클릭가능한 Element 조사
-        public static void InvestigateIframesAndCollectClickableElements(IWebDriver driver)
+        public static void InvestigateIframesAndCollectClickableElements(IWebDriver _driver)
         {
             try
             {
                 StringBuilder elementInfo = new StringBuilder();
 
                 // 기본 문서의 클릭 가능한 요소 조사
-                CollectClickableElements(driver, elementInfo, "기본 문서");
+                CollectClickableElements(_driver, elementInfo, "기본 문서");
 
                 // 모든 iframe 찾기
-                IReadOnlyCollection<IWebElement> iframes = driver.FindElements(By.TagName("iframe"));
+                IReadOnlyCollection<IWebElement> iframes = _driver.FindElements(By.TagName("iframe"));
 
                 if (iframes.Count > 0)
                 {
                     foreach (IWebElement iframe in iframes)
                     {
                         // iframe으로 전환
-                        driver.SwitchTo().Frame(iframe);
+                        _driver.SwitchTo().Frame(iframe);
 
                         // iframe 내부의 클릭 가능한 요소 조사
-                        CollectClickableElements(driver, elementInfo, $"iframe (이름: {iframe.GetAttribute("name")}, ID: {iframe.GetAttribute("id")})");
+                        CollectClickableElements(_driver, elementInfo, $"iframe (이름: {iframe.GetAttribute("name")}, ID: {iframe.GetAttribute("id")})");
 
                         // 기본 문서로 전환
-                        driver.SwitchTo().DefaultContent();
+                        _driver.SwitchTo().DefaultContent();
                     }
                 }
 
