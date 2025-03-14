@@ -12,9 +12,9 @@ using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Level = GateBot.LogManager.Level;
+using Level = GateHelper.LogManager.Level;
 
-namespace GateBot
+namespace GateHelper
 {
     public static class Util
     {

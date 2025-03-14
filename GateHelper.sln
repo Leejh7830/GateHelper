@@ -1,9 +1,9 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.12.35527.113 d17.12
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.35130.168
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GateBot", "GateBot.csproj", "{D00ABCF1-303B-4CAC-B05A-FD67A7C9B01B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GateHelper", "GateHelper.csproj", "{D00ABCF1-303B-4CAC-B05A-FD67A7C9B01B}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,5 +18,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {920B03A2-C8DD-4555-A86A-CA996BE0907C}
 	EndGlobalSection
 EndGlobal

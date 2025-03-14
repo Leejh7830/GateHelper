@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Level = GateBot.LogManager.Level;
+using Level = GateHelper.LogManager.Level;
 
-namespace GateBot
+namespace GateHelper
 {
     class Util_Option
     {

@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Runtime.CompilerServices;
 
-namespace GateBot
+namespace GateHelper
 {
     internal class LogManager
     {

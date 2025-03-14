@@ -1,6 +1,6 @@
 ﻿
 
-namespace GateBot
+namespace GateHelper
 {
     public class Config
     {

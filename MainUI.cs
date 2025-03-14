@@ -5,7 +5,7 @@ using MaterialSkin.Controls;
 using MaterialSkin;
 using System.Drawing;
 using System.Windows.Forms;
-using Level = GateBot.LogManager.Level;
+using Level = GateHelper.LogManager.Level;
 using System.Net.Security;
 using System.Net;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
@@ -16,7 +16,7 @@ using SeleniumExtras.WaitHelpers;
 using System.Configuration;
 using System.IO;
 
-namespace GateBot
+namespace GateHelper
 {
     public partial class MainUI : MaterialForm
     {

@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using SeleniumExtras.WaitHelpers;
 using System.Text;
 
-namespace GateBot
+namespace GateHelper
 {
     class Util_Element
     {

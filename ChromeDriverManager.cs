@@ -6,7 +6,7 @@ using System.Net;
 using System.Windows.Forms;
 using System.Diagnostics;
 
-namespace GateBot
+namespace GateHelper
 {
     class ChromeDriverManager
     {

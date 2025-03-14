@@ -1,4 +1,4 @@
-﻿namespace GateBot
+﻿namespace GateHelper
 {
     partial class MainUI
     {
@@ -390,7 +390,7 @@
             this.TabSelector1.BaseTabControl = this.materialTabControl1;
             this.TabSelector1.CharacterCasing = MaterialSkin.Controls.MaterialTabSelector.CustomCharacterCasing.Normal;
             this.TabSelector1.Depth = 0;
-            this.TabSelector1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.TabSelector1.Font = new System.Drawing.Font("RoHelpero", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
             this.TabSelector1.ForeColor = System.Drawing.SystemColors.Control;
             this.TabSelector1.Location = new System.Drawing.Point(13, 153);
             this.TabSelector1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);

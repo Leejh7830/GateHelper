@@ -2,10 +2,9 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Windows.Forms;
-using static GateBot.LogManager;
-using HtmlDocument = HtmlAgilityPack.HtmlDocument;
+using static GateHelper.LogManager;
 
-namespace GateBot
+namespace GateHelper
 {
     internal class Util_ServerList
     {

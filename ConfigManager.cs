@@ -3,9 +3,9 @@ using System.IO;
 using System.Configuration;
 using System.Xml;
 using System.Windows.Forms;
-using Level = GateBot.LogManager.Level;
+using Level = GateHelper.LogManager.Level;
 
-namespace GateBot
+namespace GateHelper
 {
     internal class ConfigManager
     {
@@ -41,7 +41,7 @@ namespace GateBot
     <add key=""Favorite1"" value=""Fav1"" />
     <add key=""Favorite2"" value=""Fav2"" />
     <add key=""Favorite3"" value=""Fav3"" />
-    <!-- Favorite 으로 검색 -->
+    <!-- Favorite 으로 검색합니다. -->
   </appSettings>
 </configuration>";
 
