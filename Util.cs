@@ -28,16 +28,16 @@ namespace GateHelper
         {
             try
             {
-                // ChromeDriver 경로 설정
-                string driverDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "ChromeDriver");
+                string driverDirectory = AppDomain.CurrentDomain.BaseDirectory;
                 string driverPath = Path.Combine(driverDirectory, "chromedriver.exe");
 
                 if (!File.Exists(driverPath))
                 {
+                    MessageBox.Show("ChromeDriver가 존재하지 않습니다");
                     throw new Exception($"ChromeDriver가 존재하지 않습니다: {driverPath}");
                 }
 
-                // Chrome 실행 경로 확인 (기본 경로 -> 사용자 지정 경로 순으로 확인)
+                // Chrome 실행 경로 확인
                 string chromePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe"; // 기본 경로 (64비트)
                 if (!File.Exists(chromePath))
                 {
@@ -46,7 +46,7 @@ namespace GateHelper
                 if (!File.Exists(chromePath))
                 {
                     chromePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
-                                              @"Google\Chrome\Application\chrome.exe"); // 사용자 폴더 경로
+                                                    @"Google\Chrome\Application\chrome.exe"); // 사용자 폴더 경로
                 }
 
                 // 그래도 없으면 사용자가 입력한 경로 사용
@@ -55,7 +55,6 @@ namespace GateHelper
                     chromePath = config.ChromePath;
                 }
 
-                // 최종적으로 Chrome 실행 파일을 찾지 못했다면 예외 발생
                 if (!File.Exists(chromePath))
                 {
                     throw new Exception($"Chrome 실행 파일을 찾을 수 없습니다.\n경로: {chromePath}\n설정 파일에서 지정한 경로를 확인해 주세요.");
@@ -80,15 +79,84 @@ namespace GateHelper
 
 
 
+        public static void ClickFavBtn(IWebDriver _driver, Config config, int favIndex, Action serverListLoadAction)
+        {
+            try
+            {
+                string favKey = $"Fav{favIndex}";
+                LogManager.LogMessage($"BtnFav{favIndex} Click", Level.Info);
+                string serverName, serverIP;
+                ValidateServerInfo(config.GetType().GetProperty(favKey).GetValue(config).ToString(), out serverName, out serverIP);
+
+                if (!string.IsNullOrEmpty(serverIP))
+                {
+                    // IP 주소인 경우
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", serverIP);
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", "");
+                }
+                else if (!string.IsNullOrEmpty(serverName))
+                {
+                    // 서버 이름인 경우
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", serverName);
+                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", "");
+                }
+
+                Util_Control.ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
+
+                WaitForElementLoadByXPath(_driver, "//*[@id=\'seltable\']/tbody[1]/tr/td[4]", 10);
+
+                serverListLoadAction?.Invoke(); // 서버리스트 로드
+            }
+            catch (ArgumentException ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show(ex.Message, "알림");
+            }
+            catch (NoSuchElementException ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show("요소를 찾을 수 없습니다.", "오류");
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogException(ex, Level.Critical);
+                MessageBox.Show("예상치 못한 오류가 발생했습니다.", "오류");
+            }
+        }
+
+
+        public static void WaitForElementLoadByXPath(IWebDriver driver, string xpath, int timeoutSeconds = 30)
+        {
+            try
+            {
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(timeoutSeconds));
+                wait.Until(ExpectedConditions.ElementIsVisible(By.XPath(xpath)));
+            }
+            catch (WebDriverTimeoutException ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show($"XPath 요소 로딩 시간 초과 (제한 시간: {timeoutSeconds}초)", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw; // 예외 다시 던지기
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show($"XPath 요소 로딩 중 오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw; // 예외 다시 던지기
+            }
+        }
+
         
 
 
-        
 
 
 
 
-        
+
+
+
+
 
 
         public static void InputKeys(string keys, int intervalMilliseconds = 1000) // 메서드 이름 변경

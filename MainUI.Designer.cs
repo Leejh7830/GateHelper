@@ -28,15 +28,22 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.ListViewItem listViewItem1 = new System.Windows.Forms.ListViewItem("");
+            System.Windows.Forms.ListViewGroup listViewGroup5 = new System.Windows.Forms.ListViewGroup("ListViewGroup", System.Windows.Forms.HorizontalAlignment.Left);
+            System.Windows.Forms.ListViewGroup listViewGroup6 = new System.Windows.Forms.ListViewGroup("ListViewGroup", System.Windows.Forms.HorizontalAlignment.Left);
+            System.Windows.Forms.ListViewItem listViewItem5 = new System.Windows.Forms.ListViewItem("111111");
+            System.Windows.Forms.ListViewItem listViewItem6 = new System.Windows.Forms.ListViewItem("22222");
             this.BtnStart1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnConfig1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnLogin1 = new MaterialSkin.Controls.MaterialButton();
             this.TestBtn1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnSearch1 = new MaterialSkin.Controls.MaterialButton();
-            this.SearchGroup1 = new System.Windows.Forms.GroupBox();
+            this.GroupTemp1 = new System.Windows.Forms.GroupBox();
+            this.materialListView1 = new MaterialSkin.Controls.MaterialListView();
+            this.Group = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.서버이름 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.IP = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SearchTxt1 = new MaterialSkin.Controls.MaterialTextBox2();
-            this.LoginGroup1 = new System.Windows.Forms.GroupBox();
+            this.GroupConnect1 = new System.Windows.Forms.GroupBox();
             this.BtnLoadServers1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnConnect1 = new MaterialSkin.Controls.MaterialButton();
             this.ComboBoxServerList1 = new MaterialSkin.Controls.MaterialComboBox();
@@ -46,21 +53,19 @@
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.TabSelector1 = new MaterialSkin.Controls.MaterialTabSelector();
-            this.materialListView1 = new MaterialSkin.Controls.MaterialListView();
-            this.Group = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.서버이름 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.IP = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.CBoxDisablePopup1 = new MaterialSkin.Controls.MaterialCheckbox();
             this.BtnFav1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnFav2 = new MaterialSkin.Controls.MaterialButton();
             this.BtnFav3 = new MaterialSkin.Controls.MaterialButton();
             this.BtnStart2 = new MaterialSkin.Controls.MaterialButton();
             this.CBoxOneClickConnect1 = new MaterialSkin.Controls.MaterialCheckbox();
-            this.SearchGroup1.SuspendLayout();
-            this.LoginGroup1.SuspendLayout();
+            this.GroupFav1 = new System.Windows.Forms.GroupBox();
+            this.GroupTemp1.SuspendLayout();
+            this.GroupConnect1.SuspendLayout();
             this.materialTabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage2.SuspendLayout();
+            this.GroupFav1.SuspendLayout();
             this.SuspendLayout();
             // 
             // BtnStart1
@@ -168,15 +173,61 @@
             this.BtnSearch1.UseVisualStyleBackColor = true;
             this.BtnSearch1.Click += new System.EventHandler(this.SearchBtn1_Click);
             // 
-            // SearchGroup1
+            // GroupTemp1
             // 
-            this.SearchGroup1.Controls.Add(this.materialListView1);
-            this.SearchGroup1.Location = new System.Drawing.Point(3, 3);
-            this.SearchGroup1.Name = "SearchGroup1";
-            this.SearchGroup1.Size = new System.Drawing.Size(365, 138);
-            this.SearchGroup1.TabIndex = 6;
-            this.SearchGroup1.TabStop = false;
-            this.SearchGroup1.Text = "Search";
+            this.GroupTemp1.Controls.Add(this.materialListView1);
+            this.GroupTemp1.Location = new System.Drawing.Point(3, 3);
+            this.GroupTemp1.Name = "GroupTemp1";
+            this.GroupTemp1.Size = new System.Drawing.Size(365, 138);
+            this.GroupTemp1.TabIndex = 6;
+            this.GroupTemp1.TabStop = false;
+            this.GroupTemp1.Text = "Search";
+            // 
+            // materialListView1
+            // 
+            this.materialListView1.AutoSizeTable = false;
+            this.materialListView1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.materialListView1.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.materialListView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.Group,
+            this.서버이름,
+            this.IP});
+            this.materialListView1.Depth = 0;
+            this.materialListView1.FullRowSelect = true;
+            listViewGroup5.Header = "ListViewGroup";
+            listViewGroup5.Name = "Group1";
+            listViewGroup6.Header = "ListViewGroup";
+            listViewGroup6.Name = "Group2";
+            this.materialListView1.Groups.AddRange(new System.Windows.Forms.ListViewGroup[] {
+            listViewGroup5,
+            listViewGroup6});
+            this.materialListView1.HideSelection = false;
+            this.materialListView1.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
+            listViewItem5,
+            listViewItem6});
+            this.materialListView1.Location = new System.Drawing.Point(5, 19);
+            this.materialListView1.Margin = new System.Windows.Forms.Padding(2);
+            this.materialListView1.MinimumSize = new System.Drawing.Size(140, 67);
+            this.materialListView1.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.materialListView1.MouseState = MaterialSkin.MouseState.OUT;
+            this.materialListView1.Name = "materialListView1";
+            this.materialListView1.OwnerDraw = true;
+            this.materialListView1.Size = new System.Drawing.Size(347, 165);
+            this.materialListView1.TabIndex = 10;
+            this.materialListView1.UseCompatibleStateImageBehavior = false;
+            this.materialListView1.View = System.Windows.Forms.View.Details;
+            // 
+            // Group
+            // 
+            this.Group.Width = 91;
+            // 
+            // 서버이름
+            // 
+            this.서버이름.Width = 131;
+            // 
+            // IP
+            // 
+            this.IP.Width = 126;
             // 
             // SearchTxt1
             // 
@@ -189,7 +240,7 @@
             this.SearchTxt1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.SearchTxt1.LeadingIcon = null;
             this.SearchTxt1.Location = new System.Drawing.Point(5, 19);
-            this.SearchTxt1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.SearchTxt1.Margin = new System.Windows.Forms.Padding(2);
             this.SearchTxt1.MaxLength = 32767;
             this.SearchTxt1.MouseState = MaterialSkin.MouseState.OUT;
             this.SearchTxt1.Name = "SearchTxt1";
@@ -208,19 +259,19 @@
             this.SearchTxt1.TrailingIcon = null;
             this.SearchTxt1.UseSystemPasswordChar = false;
             // 
-            // LoginGroup1
+            // GroupConnect1
             // 
-            this.LoginGroup1.Controls.Add(this.BtnLoadServers1);
-            this.LoginGroup1.Controls.Add(this.BtnConnect1);
-            this.LoginGroup1.Controls.Add(this.ComboBoxServerList1);
-            this.LoginGroup1.Controls.Add(this.BtnSearch1);
-            this.LoginGroup1.Controls.Add(this.SearchTxt1);
-            this.LoginGroup1.Location = new System.Drawing.Point(5, 5);
-            this.LoginGroup1.Name = "LoginGroup1";
-            this.LoginGroup1.Size = new System.Drawing.Size(358, 182);
-            this.LoginGroup1.TabIndex = 7;
-            this.LoginGroup1.TabStop = false;
-            this.LoginGroup1.Text = "Server Info";
+            this.GroupConnect1.Controls.Add(this.BtnLoadServers1);
+            this.GroupConnect1.Controls.Add(this.BtnConnect1);
+            this.GroupConnect1.Controls.Add(this.ComboBoxServerList1);
+            this.GroupConnect1.Controls.Add(this.BtnSearch1);
+            this.GroupConnect1.Controls.Add(this.SearchTxt1);
+            this.GroupConnect1.Location = new System.Drawing.Point(5, 5);
+            this.GroupConnect1.Name = "GroupConnect1";
+            this.GroupConnect1.Size = new System.Drawing.Size(358, 182);
+            this.GroupConnect1.TabIndex = 7;
+            this.GroupConnect1.TabStop = false;
+            this.GroupConnect1.Text = "Server Info";
             // 
             // BtnLoadServers1
             // 
@@ -279,7 +330,7 @@
             this.ComboBoxServerList1.IntegralHeight = false;
             this.ComboBoxServerList1.ItemHeight = 43;
             this.ComboBoxServerList1.Location = new System.Drawing.Point(108, 76);
-            this.ComboBoxServerList1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.ComboBoxServerList1.Margin = new System.Windows.Forms.Padding(2);
             this.ComboBoxServerList1.MaxDropDownItems = 4;
             this.ComboBoxServerList1.MouseState = MaterialSkin.MouseState.OUT;
             this.ComboBoxServerList1.Name = "ComboBoxServerList1";
@@ -298,7 +349,7 @@
             this.GatePWTxt1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.GatePWTxt1.LeadingIcon = null;
             this.GatePWTxt1.Location = new System.Drawing.Point(465, 332);
-            this.GatePWTxt1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.GatePWTxt1.Margin = new System.Windows.Forms.Padding(2);
             this.GatePWTxt1.MaxLength = 32767;
             this.GatePWTxt1.MouseState = MaterialSkin.MouseState.OUT;
             this.GatePWTxt1.Name = "GatePWTxt1";
@@ -328,7 +379,7 @@
             this.GateIDTxt1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.GateIDTxt1.LeadingIcon = null;
             this.GateIDTxt1.Location = new System.Drawing.Point(465, 260);
-            this.GateIDTxt1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.GateIDTxt1.Margin = new System.Windows.Forms.Padding(2);
             this.GateIDTxt1.MaxLength = 32767;
             this.GateIDTxt1.MouseState = MaterialSkin.MouseState.OUT;
             this.GateIDTxt1.Name = "GateIDTxt1";
@@ -353,7 +404,7 @@
             this.materialTabControl1.Controls.Add(this.tabPage2);
             this.materialTabControl1.Depth = 0;
             this.materialTabControl1.Location = new System.Drawing.Point(18, 195);
-            this.materialTabControl1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.materialTabControl1.Margin = new System.Windows.Forms.Padding(2);
             this.materialTabControl1.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialTabControl1.Multiline = true;
             this.materialTabControl1.Name = "materialTabControl1";
@@ -363,11 +414,11 @@
             // 
             // tabPage1
             // 
-            this.tabPage1.Controls.Add(this.LoginGroup1);
+            this.tabPage1.Controls.Add(this.GroupConnect1);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
-            this.tabPage1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage1.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(2);
             this.tabPage1.Size = new System.Drawing.Size(366, 194);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "SERVER";
@@ -375,11 +426,11 @@
             // 
             // tabPage2
             // 
-            this.tabPage2.Controls.Add(this.SearchGroup1);
+            this.tabPage2.Controls.Add(this.GroupTemp1);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
-            this.tabPage2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage2.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(2);
             this.tabPage2.Size = new System.Drawing.Size(366, 194);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "TEMP";
@@ -390,10 +441,10 @@
             this.TabSelector1.BaseTabControl = this.materialTabControl1;
             this.TabSelector1.CharacterCasing = MaterialSkin.Controls.MaterialTabSelector.CustomCharacterCasing.Normal;
             this.TabSelector1.Depth = 0;
-            this.TabSelector1.Font = new System.Drawing.Font("RoHelpero", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.TabSelector1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
             this.TabSelector1.ForeColor = System.Drawing.SystemColors.Control;
             this.TabSelector1.Location = new System.Drawing.Point(13, 153);
-            this.TabSelector1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.TabSelector1.Margin = new System.Windows.Forms.Padding(2);
             this.TabSelector1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TabSelector1.Name = "TabSelector1";
             this.TabSelector1.Size = new System.Drawing.Size(365, 32);
@@ -401,50 +452,12 @@
             this.TabSelector1.TabIndicatorHeight = 3;
             this.TabSelector1.Text = "materialTabSelector1";
             // 
-            // materialListView1
-            // 
-            this.materialListView1.AutoSizeTable = false;
-            this.materialListView1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            this.materialListView1.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.materialListView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.Group,
-            this.서버이름,
-            this.IP});
-            this.materialListView1.Depth = 0;
-            this.materialListView1.FullRowSelect = true;
-            this.materialListView1.HideSelection = false;
-            this.materialListView1.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
-            listViewItem1});
-            this.materialListView1.Location = new System.Drawing.Point(5, 19);
-            this.materialListView1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
-            this.materialListView1.MinimumSize = new System.Drawing.Size(140, 67);
-            this.materialListView1.MouseLocation = new System.Drawing.Point(-1, -1);
-            this.materialListView1.MouseState = MaterialSkin.MouseState.OUT;
-            this.materialListView1.Name = "materialListView1";
-            this.materialListView1.OwnerDraw = true;
-            this.materialListView1.Size = new System.Drawing.Size(347, 165);
-            this.materialListView1.TabIndex = 10;
-            this.materialListView1.UseCompatibleStateImageBehavior = false;
-            this.materialListView1.View = System.Windows.Forms.View.Details;
-            // 
-            // Group
-            // 
-            this.Group.Width = 91;
-            // 
-            // 서버이름
-            // 
-            this.서버이름.Width = 131;
-            // 
-            // IP
-            // 
-            this.IP.Width = 126;
-            // 
             // CBoxDisablePopup1
             // 
             this.CBoxDisablePopup1.AutoSize = true;
             this.CBoxDisablePopup1.Depth = 0;
             this.CBoxDisablePopup1.Enabled = false;
-            this.CBoxDisablePopup1.Location = new System.Drawing.Point(13, 568);
+            this.CBoxDisablePopup1.Location = new System.Drawing.Point(18, 528);
             this.CBoxDisablePopup1.Margin = new System.Windows.Forms.Padding(0);
             this.CBoxDisablePopup1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBoxDisablePopup1.MouseState = MaterialSkin.MouseState.HOVER;
@@ -465,12 +478,12 @@
             this.BtnFav1.Depth = 0;
             this.BtnFav1.HighEmphasis = true;
             this.BtnFav1.Icon = null;
-            this.BtnFav1.Location = new System.Drawing.Point(27, 419);
+            this.BtnFav1.Location = new System.Drawing.Point(7, 23);
             this.BtnFav1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnFav1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnFav1.Name = "BtnFav1";
             this.BtnFav1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnFav1.Size = new System.Drawing.Size(114, 40);
+            this.BtnFav1.Size = new System.Drawing.Size(100, 40);
             this.BtnFav1.TabIndex = 14;
             this.BtnFav1.Text = "Favorite1";
             this.BtnFav1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -486,12 +499,12 @@
             this.BtnFav2.Depth = 0;
             this.BtnFav2.HighEmphasis = true;
             this.BtnFav2.Icon = null;
-            this.BtnFav2.Location = new System.Drawing.Point(149, 419);
+            this.BtnFav2.Location = new System.Drawing.Point(115, 23);
             this.BtnFav2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnFav2.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnFav2.Name = "BtnFav2";
             this.BtnFav2.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnFav2.Size = new System.Drawing.Size(114, 40);
+            this.BtnFav2.Size = new System.Drawing.Size(100, 40);
             this.BtnFav2.TabIndex = 15;
             this.BtnFav2.Text = "Favorite2";
             this.BtnFav2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -507,12 +520,12 @@
             this.BtnFav3.Depth = 0;
             this.BtnFav3.HighEmphasis = true;
             this.BtnFav3.Icon = null;
-            this.BtnFav3.Location = new System.Drawing.Point(271, 419);
+            this.BtnFav3.Location = new System.Drawing.Point(223, 23);
             this.BtnFav3.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnFav3.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnFav3.Name = "BtnFav3";
             this.BtnFav3.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnFav3.Size = new System.Drawing.Size(114, 40);
+            this.BtnFav3.Size = new System.Drawing.Size(100, 40);
             this.BtnFav3.TabIndex = 16;
             this.BtnFav3.Text = "Favorite3";
             this.BtnFav3.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -547,7 +560,7 @@
             this.CBoxOneClickConnect1.AutoSize = true;
             this.CBoxOneClickConnect1.Depth = 0;
             this.CBoxOneClickConnect1.Enabled = false;
-            this.CBoxOneClickConnect1.Location = new System.Drawing.Point(13, 605);
+            this.CBoxOneClickConnect1.Location = new System.Drawing.Point(18, 565);
             this.CBoxOneClickConnect1.Margin = new System.Windows.Forms.Padding(0);
             this.CBoxOneClickConnect1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBoxOneClickConnect1.MouseState = MaterialSkin.MouseState.HOVER;
@@ -559,17 +572,27 @@
             this.CBoxOneClickConnect1.Text = "One-Click Connect";
             this.CBoxOneClickConnect1.UseVisualStyleBackColor = true;
             // 
+            // GroupFav1
+            // 
+            this.GroupFav1.Controls.Add(this.BtnFav1);
+            this.GroupFav1.Controls.Add(this.BtnFav2);
+            this.GroupFav1.Controls.Add(this.BtnFav3);
+            this.GroupFav1.Location = new System.Drawing.Point(22, 420);
+            this.GroupFav1.Name = "GroupFav1";
+            this.GroupFav1.Size = new System.Drawing.Size(366, 105);
+            this.GroupFav1.TabIndex = 19;
+            this.GroupFav1.TabStop = false;
+            this.GroupFav1.Text = "Fav";
+            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(798, 699);
+            this.Controls.Add(this.GroupFav1);
             this.Controls.Add(this.CBoxOneClickConnect1);
             this.Controls.Add(this.BtnStart2);
-            this.Controls.Add(this.BtnFav3);
-            this.Controls.Add(this.BtnFav2);
-            this.Controls.Add(this.BtnFav1);
             this.Controls.Add(this.CBoxDisablePopup1);
             this.Controls.Add(this.GatePWTxt1);
             this.Controls.Add(this.TabSelector1);
@@ -579,16 +602,17 @@
             this.Controls.Add(this.TestBtn1);
             this.Controls.Add(this.BtnConfig1);
             this.Controls.Add(this.BtnStart1);
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainUI";
             this.Padding = new System.Windows.Forms.Padding(2, 43, 2, 2);
             this.Sizable = false;
             this.Text = "GATE HELPER";
-            this.SearchGroup1.ResumeLayout(false);
-            this.LoginGroup1.ResumeLayout(false);
+            this.GroupTemp1.ResumeLayout(false);
+            this.GroupConnect1.ResumeLayout(false);
             this.materialTabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
+            this.GroupFav1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -601,8 +625,8 @@
         private MaterialSkin.Controls.MaterialButton BtnLogin1;
         private MaterialSkin.Controls.MaterialButton TestBtn1;
         private MaterialSkin.Controls.MaterialButton BtnSearch1;
-        private System.Windows.Forms.GroupBox SearchGroup1;
-        private System.Windows.Forms.GroupBox LoginGroup1;
+        private System.Windows.Forms.GroupBox GroupTemp1;
+        private System.Windows.Forms.GroupBox GroupConnect1;
         private MaterialSkin.Controls.MaterialTabControl materialTabControl1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
@@ -623,6 +647,7 @@
         private MaterialSkin.Controls.MaterialButton BtnFav3;
         private MaterialSkin.Controls.MaterialButton BtnStart2;
         private MaterialSkin.Controls.MaterialCheckbox CBoxOneClickConnect1;
+        private System.Windows.Forms.GroupBox GroupFav1;
     }
 }
 

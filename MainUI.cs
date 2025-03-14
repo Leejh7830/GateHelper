@@ -15,6 +15,7 @@ using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
 using System.Configuration;
 using System.IO;
+using System.Threading;
 
 namespace GateHelper
 {
@@ -32,7 +33,7 @@ namespace GateHelper
         private string serverIP;
 
         private string mainHandle;
-        private readonly Timer timer1;
+        private readonly System.Windows.Forms.Timer timer1;
 
         /// Option
         private bool disablePopup;
@@ -40,7 +41,7 @@ namespace GateHelper
         public MainUI()
         {
             LogManager.InitializeLogFile();
-            LogManager.LogMessage("프로그램 초기화 시작", Level.Info);
+            LogManager.LogMessage("@@@@@@@@@@@@@@@@@@@@ Initialize @@@@@@@@@@@@@@@@@@@@", Level.Info);
             InitializeComponent();
 
             _config = configManager.LoadedConfig;
@@ -62,7 +63,7 @@ namespace GateHelper
 
             // DisablePopupCheckBox1.Checked = true;
 
-            timer1 = new Timer();
+            timer1 = new System.Windows.Forms.Timer();
             timer1.Interval = 5000; // 5초마다 팝업 탐색
 
             timer1.Tick += Timer1_Tick;
@@ -126,6 +127,7 @@ namespace GateHelper
                 LogManager.LogMessage("Start MainHandle: " + mainHandle, Level.Info);
 
                 Util_Control.MoveFormToTop(this);
+                BtnConfig1_Click(sender, e); // 접속완료 후 Config ReLoad
             }
             catch (Exception ex)
             {
@@ -236,7 +238,7 @@ namespace GateHelper
         private void BtnLoadServers1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("BtnLoadServers Click", Level.Info);
-            Util.SwitchToMainHandle(_driver, mainHandle);
+            // Util.SwitchToMainHandle(_driver, mainHandle);
 
             try
             {
@@ -263,9 +265,8 @@ namespace GateHelper
 
                 LogManager.LogMessage($"서버 이름 리스트:\n{string.Join("\n", serverNames)}", Level.Info);
 
-                // 서버 이름 리스트와 드롭다운 박스 매칭 및 값 표시
                 ComboBoxServerList1.Items.Clear();
-                foreach (string serverName in serverNames)
+                foreach (string serverName in serverNames) // 서버 이름 드롭다운 박스 매칭
                 {
                     ComboBoxServerList1.Items.Add(serverName);
                 }
@@ -284,7 +285,7 @@ namespace GateHelper
             LogManager.LogMessage("BtnConnect1 Click", Level.Info);
 
             // mainHandle = _driver.CurrentWindowHandle;
-            LogManager.LogMessage("Connect MainHandle: " + mainHandle, Level.Info);
+            LogManager.LogMessage("Connect MainHandle : " + mainHandle, Level.Info);
 
             try
             {
@@ -326,9 +327,8 @@ namespace GateHelper
 
                             try
                             {
-                                // 경고창 확인 버튼 클릭 시도
-                                IAlert alert = _driver.SwitchTo().Alert();
-                                alert.Accept(); // 확인 버튼 클릭
+                                IAlert alert = _driver.SwitchTo().Alert(); // 경고창 확인 버튼 클릭
+                                alert.Accept();
                             }
                             catch (NoAlertPresentException)
                             {
@@ -342,10 +342,9 @@ namespace GateHelper
                             Util.SwitchToMainHandle(_driver, mainHandle);
                             LogManager.LogMessage("접속후 MainHandle: " + mainHandle, Level.Info);
 
-                            return; // 서버를 찾았으므로 메서드 종료
+                            return;
                         }
                     }
-
                     tbodyIndex++; // 다음 tbody로 이동
                 }
 
@@ -434,120 +433,20 @@ namespace GateHelper
 
         private void BtnFav1_Click(object sender, EventArgs e)
         {
-            try
-            {
-                LogManager.LogMessage("BtnFav1 Click", Level.Info);
-                Util.ValidateServerInfo(_config.Fav1, out serverName, out serverIP);
-
-                if (!string.IsNullOrEmpty(serverIP))
-                {
-                    // IP 주소인 경우
-                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", serverIP);
-                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", "");
-                }
-                else if (!string.IsNullOrEmpty(serverName))
-                {
-                    // 서버 이름인 경우
-                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", serverName);
-                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", "");
-                }
-
-                Util_Control.ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
-            }
-            catch (ArgumentException ex)
-            {
-                LogManager.LogException(ex, Level.Error);
-                MessageBox.Show(ex.Message, "알림");
-            }
-            catch (NoSuchElementException ex)
-            {
-                LogManager.LogException(ex, Level.Error);
-                MessageBox.Show("요소를 찾을 수 없습니다.", "오류");
-            }
-            catch (Exception ex)
-            {
-                LogManager.LogException(ex, Level.Critical);
-                MessageBox.Show("예상치 못한 오류가 발생했습니다.", "오류");
-            }
+            Util.ClickFavBtn(_driver, _config, 1, () => BtnLoadServers1_Click(null, EventArgs.Empty));
         }
 
         private void BtnFav2_Click(object sender, EventArgs e)
         {
-            try
-            {
-                LogManager.LogMessage("BtnFav2 Click", Level.Info);
-                Util.ValidateServerInfo(_config.Fav2, out serverName, out serverIP);
-
-                if (!string.IsNullOrEmpty(serverIP))
-                {
-                    // IP 주소인 경우
-                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", serverIP);
-                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", "");
-                }
-                else if (!string.IsNullOrEmpty(serverName))
-                {
-                    // 서버 이름인 경우
-                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", serverName);
-                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", "");
-                }
-
-                Util_Control.ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
-            }
-            catch (ArgumentException ex)
-            {
-                LogManager.LogException(ex, Level.Error);
-                MessageBox.Show(ex.Message, "알림");
-            }
-            catch (NoSuchElementException ex)
-            {
-                LogManager.LogException(ex, Level.Error);
-                MessageBox.Show("요소를 찾을 수 없습니다.", "오류");
-            }
-            catch (Exception ex)
-            {
-                LogManager.LogException(ex, Level.Critical);
-                MessageBox.Show("예상치 못한 오류가 발생했습니다.", "오류");
-            }
+            Util.ClickFavBtn(_driver, _config, 2, () => BtnLoadServers1_Click(null, EventArgs.Empty));
         }
 
         private void BtnTFav3_Click(object sender, EventArgs e)
         {
-            try
-            {
-                LogManager.LogMessage("BtnFav3 Click", Level.Info);
-                Util.ValidateServerInfo(_config.Fav3, out serverName, out serverIP);
-
-                if (!string.IsNullOrEmpty(serverIP))
-                {
-                    // IP 주소인 경우
-                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", serverIP);
-                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", "");
-                }
-                else if (!string.IsNullOrEmpty(serverName))
-                {
-                    // 서버 이름인 경우
-                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", serverName);
-                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", "");
-                }
-
-                Util_Control.ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
-            }
-            catch (ArgumentException ex)
-            {
-                LogManager.LogException(ex, Level.Error);
-                MessageBox.Show(ex.Message, "알림");
-            }
-            catch (NoSuchElementException ex)
-            {
-                LogManager.LogException(ex, Level.Error);
-                MessageBox.Show("요소를 찾을 수 없습니다.", "오류");
-            }
-            catch (Exception ex)
-            {
-                LogManager.LogException(ex, Level.Critical);
-                MessageBox.Show("예상치 못한 오류가 발생했습니다.", "오류");
-            }
+            Util.ClickFavBtn(_driver, _config, 3, () => BtnLoadServers1_Click(null, EventArgs.Empty));
         }
+
+
 
         void BtnConfig1_Click(object sender, EventArgs e)
         {
@@ -591,5 +490,6 @@ namespace GateHelper
                 MessageBox.Show($"설정 로드 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
     }
 }
