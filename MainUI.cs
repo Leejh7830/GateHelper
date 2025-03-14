@@ -228,7 +228,7 @@ namespace GateBot
         private void DisablePopupCheckBox1_CheckedChanged(object sender, EventArgs e)
         {
             LogManager.LogMessage("DisablePopupCheckBox CheckedChanged", Level.Info);
-            disablePopup = DisablePopupCheckBox1.Checked;
+            disablePopup = CBoxDisablePopup1.Checked;
         }
 
 
@@ -432,11 +432,11 @@ namespace GateBot
             Environment.Exit(0);
         }
 
-        private void BtnClient1_Click(object sender, EventArgs e)
+        private void BtnFav1_Click(object sender, EventArgs e)
         {
             try
             {
-                LogManager.LogMessage("BtnClient1 Click", Level.Info);
+                LogManager.LogMessage("BtnFav1 Click", Level.Info);
                 Util.ValidateServerInfo(_config.Fav1, out serverName, out serverIP);
 
                 if (!string.IsNullOrEmpty(serverIP))
@@ -471,12 +471,12 @@ namespace GateBot
             }
         }
 
-        private void BtnAP1_Click(object sender, EventArgs e)
+        private void BtnFav2_Click(object sender, EventArgs e)
         {
             try
             {
-                LogManager.LogMessage("BtnAP1 Click", Level.Info);
-                Util.ValidateServerInfo("MIL CIM AP - CNVC", out serverName, out serverIP);
+                LogManager.LogMessage("BtnFav2 Click", Level.Info);
+                Util.ValidateServerInfo(_config.Fav2, out serverName, out serverIP);
 
                 if (!string.IsNullOrEmpty(serverIP))
                 {
@@ -510,12 +510,12 @@ namespace GateBot
             }
         }
 
-        private void BtnTMP1_Click(object sender, EventArgs e)
+        private void BtnTFav3_Click(object sender, EventArgs e)
         {
             try
             {
-                LogManager.LogMessage("BtnTMP1 Click", Level.Info);
-                Util.ValidateServerInfo("MIL TMP", out serverName, out serverIP);
+                LogManager.LogMessage("BtnFav3 Click", Level.Info);
+                Util.ValidateServerInfo(_config.Fav3, out serverName, out serverIP);
 
                 if (!string.IsNullOrEmpty(serverIP))
                 {
@@ -559,7 +559,7 @@ namespace GateBot
 
                 if (_config != null)
                 {
-                    LogManager.LogMessage("Config Load", Level.Info);
+                    LogManager.LogMessage("Config Re-Load", Level.Info);
 
                     // 즐겨찾기 버튼 텍스트 설정
                     BtnFav1.Text = string.IsNullOrEmpty(_config.Fav1) ? "즐겨찾기 1" : _config.Fav1;
@@ -572,7 +572,7 @@ namespace GateBot
                 }
                 else
                 {
-                    LogManager.LogMessage("Fail Config Load", Level.Info);
+                    LogManager.LogMessage("Fail Config Re-Load", Level.Info);
                 }
             }
             catch (ConfigurationErrorsException ex)
