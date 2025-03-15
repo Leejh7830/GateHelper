@@ -17,7 +17,6 @@ namespace GateHelper
             try
             {
                 CreateConfigFiles(); // Create
-                LoadConfig(); // Load
             }
             catch (Exception ex)
             {
@@ -83,8 +82,12 @@ namespace GateHelper
                 LoadedConfig = null;
             }
         }
+        public void ReloadConfig()
+        {
+            LoadConfig(); // 설정 파일 로드
+        }
 
-        public void LoadConfig()
+        private void LoadConfig()
         {
             try
             {

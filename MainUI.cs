@@ -27,7 +27,7 @@ namespace GateHelper
         public static IWebDriver _driver = null;
 
         private Config _config;
-        readonly ConfigManager configManager = new ConfigManager();
+        private ConfigManager configManager = new ConfigManager();
 
         private string serverName;
         private string serverIP;
@@ -41,10 +41,9 @@ namespace GateHelper
         public MainUI()
         {
             LogManager.InitializeLogFile();
-            LogManager.LogMessage("@@@@@@@@@@@@@@@@@@@@ Initialize @@@@@@@@@@@@@@@@@@@@", Level.Info);
+            LogManager.LogMessage("========== Initialize ==========", Level.Info);
             InitializeComponent();
-
-            _config = configManager.LoadedConfig;
+            configManager.ReloadConfig();
 
             // 폼 닫기 이벤트 연결
             this.FormClosing += MainUI_FormClosing;
@@ -117,6 +116,8 @@ namespace GateHelper
             LogManager.LogMessage("BtnStart1 Click", Level.Info);
             try
             {
+                configManager.ReloadConfig();
+                _config = configManager.LoadedConfig;
                 _driver = await Task.Run(() => Util.InitializeDriver(_config)); // 비동기로 드라이버 초기화
 
 
@@ -453,7 +454,7 @@ namespace GateHelper
             LogManager.LogMessage("BtnConfig1 Click", Level.Info);
             try
             {
-                configManager.LoadConfig();
+
                 _config = configManager.LoadedConfig;
 
                 if (_config != null)
