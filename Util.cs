@@ -13,8 +13,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using Level = GateHelper.LogManager.Level;
-using WebDriverManager;
-using WebDriverManager.DriverConfigs.Impl;
+using System.Diagnostics;
 
 namespace GateHelper
 {
@@ -70,6 +69,7 @@ namespace GateHelper
 
                 // ChromeDriver 실행
                 var service = ChromeDriverService.CreateDefaultService(driverDirectory);
+
                 return new ChromeDriver(service, options);
             }
             catch (Exception ex)
