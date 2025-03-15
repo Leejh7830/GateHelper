@@ -30,23 +30,51 @@ namespace GateHelper
         {
             try
             {
-                // WebDriverManager를 사용하여 ChromeDriver 자동 설치 및 관리
-                new DriverManager().SetUpDriver(new ChromeConfig());
+                string driverDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                string driverPath = Path.Combine(driverDirectory, "chromedriver.exe");
+
+                if (!File.Exists(driverPath))
+                {
+                    MessageBox.Show("ChromeDriver가 존재하지 않습니다");
+                    throw new Exception($"ChromeDriver가 존재하지 않습니다: {driverPath}");
+                }
+
+                // Chrome 실행 경로 확인
+                string chromePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe"; // 기본 경로 (64비트)
+                if (!File.Exists(chromePath))
+                {
+                    chromePath = @"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"; // 32비트 경로
+                }
+                if (!File.Exists(chromePath))
+                {
+                    chromePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                                                    @"Google\Chrome\Application\chrome.exe"); // 사용자 폴더 경로
+                }
+
+                // 그래도 없으면 사용자가 입력한 경로 사용
+                if (!File.Exists(chromePath))
+                {
+                    chromePath = config.ChromePath;
+                }
+
+                if (!File.Exists(chromePath))
+                {
+                    throw new Exception($"Chrome 실행 파일을 찾을 수 없습니다.\n경로: {chromePath}\n설정 파일에서 지정한 경로를 확인해 주세요.");
+                }
 
                 // Chrome 옵션 설정
                 var options = new ChromeOptions();
-                if (!string.IsNullOrEmpty(config.ChromePath))
-                {
-                    options.BinaryLocation = config.ChromePath;
-                }
+                options.BinaryLocation = chromePath;
                 options.AddArgument("--start-maximized");
                 options.AddArgument("--disable-notifications");
 
-                return new ChromeDriver(options); // ChromeDriver 실행
+                // ChromeDriver 실행
+                var service = ChromeDriverService.CreateDefaultService(driverDirectory);
+                return new ChromeDriver(service, options);
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, Level.Error, ex.ToString());
+                LogManager.LogException(ex, Level.Error);
                 throw;
             }
         }
