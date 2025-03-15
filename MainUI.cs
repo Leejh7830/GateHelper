@@ -116,19 +116,15 @@ namespace GateHelper
             LogManager.LogMessage("BtnStart1 Click", Level.Info);
             try
             {
-                configManager.ReloadConfig();
-                _config = configManager.LoadedConfig;
+                BtnReConfig1_Click(sender, e);
                 _driver = await Task.Run(() => Util.InitializeDriver(_config)); // 비동기로 드라이버 초기화
 
 
-                _driver.Navigate().GoToUrl(_config.Url); // 사용자가 입력한 사이트로 이동
-
-                // mainHandle = Util.FindWindowHandleByUrl(_driver, _config.Url); // MainHandle 저장
-                mainHandle = _driver.CurrentWindowHandle;
+                _driver.Navigate().GoToUrl(_config.Url); // 입력한 사이트로 이동
+                mainHandle = _driver.CurrentWindowHandle; // MainHandle 저장
                 LogManager.LogMessage("Start MainHandle: " + mainHandle, Level.Info);
 
                 Util_Control.MoveFormToTop(this);
-                BtnConfig1_Click(sender, e); // 접속완료 후 Config ReLoad
             }
             catch (Exception ex)
             {
@@ -297,11 +293,9 @@ namespace GateHelper
                     return;
                 }
 
-                // 선택된 서버 이름 가져오기
-                string selectedServer = ComboBoxServerList1.SelectedItem.ToString();
+                string selectedServer = ComboBoxServerList1.SelectedItem.ToString(); // 선택된 서버 이름 가져오기
                 LogManager.LogMessage("접속 서버 명 :" + selectedServer, Level.Info);
-
-                // 선택된 서버에 해당하는 "rdp" 문자열을 포함하는 span 태그 클릭
+               
                 int tbodyIndex = 1;
 
                 while (true)
@@ -449,18 +443,16 @@ namespace GateHelper
 
 
 
-        void BtnConfig1_Click(object sender, EventArgs e)
+        void BtnReConfig1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("BtnConfig1 Click", Level.Info);
             try
             {
-
+                configManager.ReloadConfig();
                 _config = configManager.LoadedConfig;
 
                 if (_config != null)
                 {
-                    LogManager.LogMessage("Config Re-Load", Level.Info);
-
                     // 즐겨찾기 버튼 텍스트 설정
                     BtnFav1.Text = string.IsNullOrEmpty(_config.Fav1) ? "즐겨찾기 1" : _config.Fav1;
                     BtnFav2.Text = string.IsNullOrEmpty(_config.Fav2) ? "즐겨찾기 2" : _config.Fav2;
@@ -492,5 +484,10 @@ namespace GateHelper
             }
         }
 
+        private void BtnOpenConfig1_Click(object sender, EventArgs e)
+        {
+            LogManager.LogMessage("BtnOpenConfig1 Click", Level.Info);
+            configManager.OpenSettingsFile();
+        }
     }
 }
