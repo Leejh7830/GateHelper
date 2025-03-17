@@ -32,6 +32,7 @@ namespace GateHelper
                 string driverDirectory = AppDomain.CurrentDomain.BaseDirectory;
                 string driverPath = Path.Combine(driverDirectory, "chromedriver.exe");
 
+                // ChromeDriver 존재 확인
                 if (!File.Exists(driverPath))
                 {
                     MessageBox.Show("ChromeDriver가 존재하지 않습니다");
@@ -39,23 +40,22 @@ namespace GateHelper
                 }
 
                 // Chrome 실행 경로 확인
-                string chromePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe"; // 기본 경로 (64비트)
-                if (!File.Exists(chromePath))
+                string chromePath = config.ChromePath; // 설정 파일 경로 사용
+                if (string.IsNullOrEmpty(chromePath) || !File.Exists(chromePath))
                 {
-                    chromePath = @"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"; // 32비트 경로
-                }
-                if (!File.Exists(chromePath))
-                {
-                    chromePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    chromePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe"; // 기본 경로 (64비트)
+                    if (!File.Exists(chromePath))
+                    {
+                        chromePath = @"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"; // 32비트 경로
+                    }
+                    if (!File.Exists(chromePath))
+                    {
+                        chromePath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                                                     @"Google\Chrome\Application\chrome.exe"); // 사용자 폴더 경로
+                    }
                 }
 
-                // 그래도 없으면 사용자가 입력한 경로 사용
-                if (!File.Exists(chromePath))
-                {
-                    chromePath = config.ChromePath;
-                }
-
+                // Chrome 실행 파일 존재 확인
                 if (!File.Exists(chromePath))
                 {
                     throw new Exception($"Chrome 실행 파일을 찾을 수 없습니다.\n경로: {chromePath}\n설정 파일에서 지정한 경로를 확인해 주세요.");
@@ -67,8 +67,9 @@ namespace GateHelper
                 options.AddArgument("--start-maximized");
                 options.AddArgument("--disable-notifications");
 
-                // ChromeDriver 실행
+                // ChromeDriver 실행 (cmd 창 숨김)
                 var service = ChromeDriverService.CreateDefaultService(driverDirectory);
+                service.HideCommandPromptWindow = true; // cmd 창 숨김
 
                 return new ChromeDriver(service, options);
             }
@@ -356,6 +357,31 @@ namespace GateHelper
             }
         }
 
+        public static bool CreateFolder_Resource()
+        {
+            string folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource");
+            try
+            {
+                // 폴더가 없으면 생성
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                    LogManager.LogMessage($"{Path.GetFileName(folderPath)} 폴더 생성", Level.Info);
+                    return true;
+                }
+                else
+                {
+                    // 이미 존재함
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"폴더 생성 오류: {ex.Message}");
+                LogManager.LogException(ex, Level.Error);
+                return false; // 실패
+            }
+        }
 
         // ChromeDriver 종료 메소드
         public static void CloseDriver(IWebDriver driver)

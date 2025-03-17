@@ -33,26 +33,25 @@ namespace GateHelper
         private string serverIP;
 
         private string mainHandle;
-        private readonly System.Windows.Forms.Timer timer1;
-
-        /// Option
+        
+        /// Option 전용
         private bool disablePopup;
+        private readonly System.Windows.Forms.Timer timer1;
 
         public MainUI()
         {
             LogManager.InitializeLogFile();
             LogManager.LogMessage("========== Initialize ==========", Level.Info);
             InitializeComponent();
-            configManager.ReloadConfig();
+            configManager.ReloadConfig(); // 설정 파일 로드
+            Util.CreateFolder_Resource(); // 리소스 폴더 생성
+            this.FormClosing += MainUI_FormClosing; // 폼 닫기 이벤트 연결
 
-            // 폼 닫기 이벤트 연결
-            this.FormClosing += MainUI_FormClosing;
-
-            // Material SKIN
+            // Material Skin 적용
             materialSkinManager = MaterialSkinManager.Instance;
             materialSkinManager.AddFormToManage(this);
-            materialSkinManager.Theme = MaterialSkinManager.Themes.LIGHT;
-            materialSkinManager.ColorScheme = new ColorScheme(Primary.Blue800, Primary.Blue900, Primary.Blue700, Accent.LightBlue200, TextShade.WHITE);
+            materialSkinManager.Theme = MaterialSkinManager.Themes.DARK;
+            materialSkinManager.ColorScheme = new ColorScheme(Primary.Blue800, Primary.Blue900, Primary.Blue300, Accent.LightBlue200, TextShade.WHITE);
 
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -158,10 +157,6 @@ namespace GateHelper
             }
         }
 
-
-
-        
-
         private void LoginBtn1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("LoginBtn Click", Level.Info);
@@ -175,13 +170,6 @@ namespace GateHelper
             Util_Control.SendKeysToElement(_driver, "//*[@id='PASSWD']", gatePW);
 
             Util_Control.ClickElementByXPath(_driver, "//*[@id='login_submit']");
-        }
-
-        private void TestBtn1_Click(object sender, EventArgs e)
-        {
-            LogManager.LogMessage("TestBtn Click", Level.Info);
-            // Util.FocusMainWindow(mainHandle);
-            Util.InvestigateIframesAndCollectClickableElements(_driver);
         }
 
         private void SearchBtn1_Click(object sender, EventArgs e)
@@ -223,14 +211,6 @@ namespace GateHelper
                 MessageBox.Show("예상치 못한 오류가 발생했습니다.", "오류");
             }
         }
-
-        private void DisablePopupCheckBox1_CheckedChanged(object sender, EventArgs e)
-        {
-            LogManager.LogMessage("DisablePopupCheckBox CheckedChanged", Level.Info);
-            disablePopup = CBoxDisablePopup1.Checked;
-        }
-
-
 
         private void BtnLoadServers1_Click(object sender, EventArgs e)
         {
@@ -274,8 +254,6 @@ namespace GateHelper
                 MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-
 
         private void BtnConnect1_Click(object sender, EventArgs e)
         {
@@ -384,48 +362,6 @@ namespace GateHelper
             }
         }
 
-        private void SwitchToPopup()
-        {
-            try
-            {
-                WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10)); // 최대 10초 대기
-                wait.Until(driver => driver.WindowHandles.Count > 1); // 창 핸들 수가 2개 이상이 될 때까지 대기
-
-                string originalWindow = _driver.CurrentWindowHandle; // 원래 창 핸들 저장
-                foreach (string windowHandle in _driver.WindowHandles)
-                {
-                    if (windowHandle != originalWindow)
-                    {
-                        _driver.SwitchTo().Window(windowHandle); // 새 창으로 전환
-                        break;
-                    }
-                }
-            }
-            catch (WebDriverTimeoutException)
-            {
-                MessageBox.Show("팝업창이 열리지 않았습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                // 필요한 경우 원래 창으로 전환
-                // _driver.SwitchTo().Window(originalWindow);
-            }
-            catch (Exception ex)
-            {
-                LogManager.LogException(ex, Level.Error);
-                MessageBox.Show($"팝업창 전환 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            if (_driver != null)
-            {
-                Util.CloseDriver(_driver);
-                _driver = null;  // 드라이버 객체 해제
-            }
-            // 프로그램 완전 종료
-            LogManager.LogMessage("프로그램 종료", Level.Info);
-            Environment.Exit(0);
-        }
-
         private void BtnFav1_Click(object sender, EventArgs e)
         {
             Util.ClickFavBtn(_driver, _config, 1, () => BtnLoadServers1_Click(null, EventArgs.Empty));
@@ -489,5 +425,55 @@ namespace GateHelper
             LogManager.LogMessage("BtnOpenConfig1 Click", Level.Info);
             configManager.OpenSettingsFile();
         }
+
+        private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (_driver != null)
+            {
+                Util.CloseDriver(_driver);
+                _driver = null;  // 드라이버 객체 해제
+            }
+            // 프로그램 완전 종료
+            LogManager.LogMessage("프로그램 종료", Level.Info);
+            Environment.Exit(0);
+        }
+
+        //////////////////////////////////////////////////////////////////////////////// 옵션 전용
+        private void DisablePopupCheckBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            LogManager.LogMessage("DisablePopupCheckBox CheckedChanged", Level.Info);
+            disablePopup = CBoxDisablePopup1.Checked;
+        }
+
+        private void SwitchToPopup()
+        {
+            try
+            {
+                WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10)); // 최대 10초 대기
+                wait.Until(driver => driver.WindowHandles.Count > 1); // 창 핸들 수가 2개 이상이 될 때까지 대기
+
+                string originalWindow = _driver.CurrentWindowHandle; // 원래 창 핸들 저장
+                foreach (string windowHandle in _driver.WindowHandles)
+                {
+                    if (windowHandle != originalWindow)
+                    {
+                        _driver.SwitchTo().Window(windowHandle); // 새 창으로 전환
+                        break;
+                    }
+                }
+            }
+            catch (WebDriverTimeoutException)
+            {
+                MessageBox.Show("팝업창이 열리지 않았습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // 필요한 경우 원래 창으로 전환
+                // _driver.SwitchTo().Window(originalWindow);
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogException(ex, Level.Error);
+                MessageBox.Show($"팝업창 전환 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
     }
 }

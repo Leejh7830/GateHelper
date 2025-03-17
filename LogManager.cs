@@ -63,7 +63,7 @@ namespace GateHelper
             }
             catch (Exception logEx)
             {
-                Console.WriteLine($"로그 기록 오류: {logEx.Message}");
+                LogMessage($"로그 기록 오류: {logEx.Message}", Level.Critical);
             }
         }
 
@@ -91,11 +91,11 @@ namespace GateHelper
                 try
                 {
                     Directory.CreateDirectory(LogDirectory);
-                    Console.WriteLine($"로그 디렉토리 생성: {LogDirectory}");
+                    LogMessage("Create Log Directory", Level.Info);
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"로그 디렉토리 생성 오류: {ex.Message}");
+                    LogMessage($"로그 디렉토리 생성 오류: {ex.Message}", Level.Critical);
                 }
             }
         }

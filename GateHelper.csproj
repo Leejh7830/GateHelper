@@ -142,6 +142,12 @@
     <Compile Include="ChromeDriverManager.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="ConfigManager.cs" />
+    <Compile Include="Form_Image.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Form_Image.Designer.cs">
+      <DependentUpon>Form_Image.cs</DependentUpon>
+    </Compile>
     <Compile Include="LogManager.cs" />
     <Compile Include="MainUI.cs">
       <SubType>Form</SubType>
@@ -157,6 +163,9 @@
     <Compile Include="Util_Element.cs" />
     <Compile Include="Util_Option.cs" />
     <Compile Include="Util_ServerList.cs" />
+    <EmbeddedResource Include="Form_Image.resx">
+      <DependentUpon>Form_Image.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainUI.resx">
       <DependentUpon>MainUI.cs</DependentUpon>
     </EmbeddedResource>

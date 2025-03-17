@@ -85,5 +85,7 @@ namespace GateHelper
                 throw new Exception($"오류 발생: {ex.Message}");
             }
         }
+
+
     }
 }
