@@ -51,7 +51,7 @@ namespace GateHelper
             materialSkinManager = MaterialSkinManager.Instance;
             materialSkinManager.AddFormToManage(this);
             materialSkinManager.Theme = MaterialSkinManager.Themes.DARK;
-            materialSkinManager.ColorScheme = new ColorScheme(Primary.Blue800, Primary.Blue900, Primary.Blue300, Accent.LightBlue200, TextShade.WHITE);
+            // materialSkinManager.ColorScheme = new ColorScheme(Primary.Blue100, Primary.Blue900, Primary.Blue300, Accent.LightBlue200, TextShade.WHITE);
 
             this.MaximizeBox = false;
             this.MinimizeBox = false;
@@ -110,7 +110,7 @@ namespace GateHelper
 
 
 
-        private async void BtnStart1_Click(object sender, EventArgs e)
+        protected async void BtnStart1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("BtnStart1 Click", Level.Info);
             try
@@ -379,7 +379,7 @@ namespace GateHelper
 
 
 
-        void BtnReConfig1_Click(object sender, EventArgs e)
+        private void BtnReConfig1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("BtnConfig1 Click", Level.Info);
             try
@@ -442,7 +442,7 @@ namespace GateHelper
         private void DisablePopupCheckBox1_CheckedChanged(object sender, EventArgs e)
         {
             LogManager.LogMessage("DisablePopupCheckBox CheckedChanged", Level.Info);
-            disablePopup = CBoxDisablePopup1.Checked;
+            disablePopup = CBox_DisablePopup1.Checked;
         }
 
         private void SwitchToPopup()
@@ -474,6 +474,5 @@ namespace GateHelper
                 MessageBox.Show($"팝업창 전환 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
     }
 }

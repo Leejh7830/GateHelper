@@ -67,7 +67,7 @@ namespace GateHelper
                 options.AddArgument("--start-maximized");
                 options.AddArgument("--disable-notifications");
 
-                // ChromeDriver 실행 (cmd 창 숨김)
+                // ChromeDriver 실행
                 var service = ChromeDriverService.CreateDefaultService(driverDirectory);
                 service.HideCommandPromptWindow = true; // cmd 창 숨김
 
