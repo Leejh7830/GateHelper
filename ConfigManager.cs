@@ -9,7 +9,7 @@ namespace GateHelper
 {
     internal class ConfigManager
     {
-        private readonly string _settingsFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.config");
+        private readonly string _configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.config");
         public Config LoadedConfig { get; private set; }
 
         public ConfigManager()
@@ -28,7 +28,7 @@ namespace GateHelper
         {
             try
             {
-                if (!File.Exists(_settingsFilePath))
+                if (!File.Exists(_configFilePath))
                 {
                     string defaultAppSettings = $@"<?xml version=""1.0"" encoding=""utf-8"" ?>
 <configuration>
@@ -57,15 +57,15 @@ namespace GateHelper
                     };
 
                     // XmlWriter를 사용하여 파일에 쓰기
-                    using (XmlWriter writer = XmlWriter.Create(_settingsFilePath, settings))
+                    using (XmlWriter writer = XmlWriter.Create(_configFilePath, settings))
                     {
                         xmlDoc.Save(writer);
                     }
 
-                    MessageBox.Show($"Configuration file created. Please enter the information and restart the program.\nFile path: {_settingsFilePath}",
+                    MessageBox.Show($"Configuration file created. Please enter the information and restart the program.\nFile path: {_configFilePath}",
                         "Configuration file creation", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
-                    LogManager.LogMessage($"Configuration file created successfully: {_settingsFilePath}", Level.Info);
+                    LogManager.LogMessage($"Configuration file created successfully: {_configFilePath}", Level.Info);
                     LoadedConfig = null;
                 }
             }
@@ -77,7 +77,7 @@ namespace GateHelper
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, Level.Error, $"Failed to create or load configuration files: {_settingsFilePath}");
+                LogManager.LogException(ex, Level.Error, $"Failed to create or load configuration files: {_configFilePath}");
                 MessageBox.Show($"Failed to create or load configuration files.\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 LoadedConfig = null;
             }
@@ -92,7 +92,7 @@ namespace GateHelper
             try
             {
                 ExeConfigurationFileMap configFileMap = new ExeConfigurationFileMap();
-                configFileMap.ExeConfigFilename = _settingsFilePath;
+                configFileMap.ExeConfigFilename = _configFilePath;
                 Configuration config = ConfigurationManager.OpenMappedExeConfiguration(configFileMap, ConfigurationUserLevel.None);
 
                 var missingFields = new System.Text.StringBuilder(); // 25.03.12 필수 항목 검증
@@ -108,7 +108,7 @@ namespace GateHelper
                     LogManager.LogMessage(errorMessage, Level.Error);
                     if (MessageBox.Show(errorMessage, "Error", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
                     {
-                        OpenSettingsFile(); // 25.03.12 설정 파일 열기
+                        OpenConfigFile(); // 25.03.12 설정 파일 열기
                     }
                     LoadedConfig = null;
                     return;
@@ -125,31 +125,31 @@ namespace GateHelper
                     Fav3 = config.AppSettings.Settings["Favorite3"]?.Value
                 };
 
-                LogManager.LogMessage($"Configuration file loaded successfully: {_settingsFilePath}", Level.Info);
+                LogManager.LogMessage($"Configuration file loaded successfully: {_configFilePath}", Level.Info);
             }
             catch (ConfigurationErrorsException ex)
             {
-                LogManager.LogException(ex, Level.Error, $"Configuration file load error: {_settingsFilePath}");
+                LogManager.LogException(ex, Level.Error, $"Configuration file load error: {_configFilePath}");
                 MessageBox.Show($"Configuration file load error. Check the configuration file. \n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Environment.Exit(1);
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, Level.Error, $"An unexpected error occurred while loading the configuration file: {_settingsFilePath}");
+                LogManager.LogException(ex, Level.Error, $"An unexpected error occurred while loading the configuration file: {_configFilePath}");
                 MessageBox.Show($"An unexpected error occurred while loading the configuration file. \n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Environment.Exit(1);
             }
         }
 
-        public void OpenSettingsFile()
+        public void OpenConfigFile()
         {
             try
             {
-                System.Diagnostics.Process.Start(_settingsFilePath);
+                System.Diagnostics.Process.Start(_configFilePath);
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, Level.Error, $"Failed to open configuration file: {_settingsFilePath}");
+                LogManager.LogException(ex, Level.Error, $"Failed to open configuration file: {_configFilePath}");
                 MessageBox.Show($"Failed to open configuration file.\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }

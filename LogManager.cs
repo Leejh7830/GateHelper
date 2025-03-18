@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Runtime.CompilerServices;
+using System.Windows.Forms;
 
 namespace GateHelper
 {
@@ -128,17 +129,20 @@ namespace GateHelper
             }
         }
 
+        public static void OpenLogFile()
+        {
+            try
+            {
+                System.Diagnostics.Process.Start(_currentLogFilePath);
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogException(ex, Level.Error, $"Failed to open log file: {_currentLogFilePath}");
+                MessageBox.Show($"Failed to open log file.\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         internal static void LogException(OpenQA.Selenium.NoSuchElementException ex, object error)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal static void LogException(OpenQA.Selenium.NoAlertPresentException ex, OpenQA.Selenium.LogLevel warning)
-        {
-            throw new NotImplementedException();
-        }
-
-        internal static void LogException(OpenQA.Selenium.NoSuchWindowException ex, OpenQA.Selenium.LogLevel warning)
         {
             throw new NotImplementedException();
         }

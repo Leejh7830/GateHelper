@@ -6,10 +6,6 @@ using MaterialSkin;
 using System.Drawing;
 using System.Windows.Forms;
 using Level = GateHelper.LogManager.Level;
-using System.Net.Security;
-using System.Net;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement;
-using System.Linq;
 using System.Collections.Generic;
 using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
@@ -377,8 +373,6 @@ namespace GateHelper
             Util.ClickFavBtn(_driver, _config, 3, () => BtnLoadServers1_Click(null, EventArgs.Empty));
         }
 
-
-
         private void BtnReConfig1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("BtnConfig1 Click", Level.Info);
@@ -423,8 +417,15 @@ namespace GateHelper
         private void BtnOpenConfig1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("BtnOpenConfig1 Click", Level.Info);
-            configManager.OpenSettingsFile();
+            configManager.OpenConfigFile();
         }
+        // 2025.03.17 추가
+        private void BtnOpenLog1_Click(object sender, EventArgs e)
+        {
+            LogManager.LogMessage("BtnOpenLog1 Click", Level.Info);
+            LogManager.OpenLogFile();
+        }
+
 
         private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -437,8 +438,11 @@ namespace GateHelper
             LogManager.LogMessage("프로그램 종료", Level.Info);
             Environment.Exit(0);
         }
+        
 
-        //////////////////////////////////////////////////////////////////////////////// 옵션 전용
+
+
+        //////////////////////////////////////////////////////////////////////////////// 옵션 전용 시작
         private void DisablePopupCheckBox1_CheckedChanged(object sender, EventArgs e)
         {
             LogManager.LogMessage("DisablePopupCheckBox CheckedChanged", Level.Info);
@@ -474,5 +478,14 @@ namespace GateHelper
                 MessageBox.Show($"팝업창 전환 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+        //////////////////////////////////////////////////////////////////////////////// 옵션 전용 끝
+
+        private void PicBox_Setting_Click(object sender, EventArgs e)
+        {
+            Form Form_setting = new Form();
+            Form_setting.Show(); // 폼 표시 (모달)
+        }
+
+        
     }
 }

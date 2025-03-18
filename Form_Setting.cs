@@ -10,12 +10,11 @@ using System.Windows.Forms;
 
 namespace GateHelper
 {
-    public partial class Form_Image : Form
+    public partial class Form_Setting : Form
     {
-        public Form_Image()
+        public Form_Setting()
         {
             InitializeComponent();
         }
-
     }
 }
