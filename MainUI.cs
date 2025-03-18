@@ -66,42 +66,7 @@ namespace GateHelper
             LogManager.LogMessage("프로그램 초기화 완료", Level.Info);
         }
 
-        private async void Timer1_Tick(object sender, EventArgs e)
-        {
-            if (_driver != null && !string.IsNullOrEmpty(mainHandle) && _driver.WindowHandles.Contains(mainHandle) && disablePopup)
-            {
-                try
-                {
-                    bool alertHandled = await Util_Option.HandleWindows(_driver, mainHandle, _config);
-                    if (alertHandled)
-                    {
-                        Console.WriteLine("경고창 처리 성공");
-                        // 경고창 처리 성공 시 추가 작업 수행
-                    }
-                    else
-                    {
-                        Console.WriteLine("경고창 처리 실패 또는 없음");
-                        // 경고창 처리 실패 시 추가 작업 수행
-                    }
-                }
-                catch (NoSuchElementException ex)
-                {
-                    LogManager.LogException(ex, Level.Error);
-                }
-                catch (NoSuchWindowException ex)
-                {
-                    LogManager.LogException(ex, Level.Error);
-                }
-                catch (NoAlertPresentException)
-                {
-                    //
-                }
-                catch (Exception ex)
-                {
-                    LogManager.LogException(ex, Level.Error);
-                }
-            }
-        }
+        
 
 
 
@@ -438,11 +403,48 @@ namespace GateHelper
             LogManager.LogMessage("프로그램 종료", Level.Info);
             Environment.Exit(0);
         }
-        
+
 
 
 
         //////////////////////////////////////////////////////////////////////////////// 옵션 전용 시작
+        private async void Timer1_Tick(object sender, EventArgs e)
+        {
+            if (_driver != null && !string.IsNullOrEmpty(mainHandle) && _driver.WindowHandles.Contains(mainHandle) && disablePopup)
+            {
+                try
+                {
+                    bool alertHandled = await Util_Option.HandleWindows(_driver, mainHandle, _config);
+                    if (alertHandled)
+                    {
+                        Console.WriteLine("경고창 처리 성공");
+                        // 경고창 처리 성공 시 추가 작업 수행
+                    }
+                    else
+                    {
+                        Console.WriteLine("경고창 처리 실패 또는 없음");
+                        // 경고창 처리 실패 시 추가 작업 수행
+                    }
+                }
+                catch (NoSuchElementException ex)
+                {
+                    LogManager.LogException(ex, Level.Error);
+                }
+                catch (NoSuchWindowException ex)
+                {
+                    LogManager.LogException(ex, Level.Error);
+                }
+                catch (NoAlertPresentException)
+                {
+                    //
+                }
+                catch (Exception ex)
+                {
+                    LogManager.LogException(ex, Level.Error);
+                }
+            }
+        }
+
         private void DisablePopupCheckBox1_CheckedChanged(object sender, EventArgs e)
         {
             LogManager.LogMessage("DisablePopupCheckBox CheckedChanged", Level.Info);
@@ -480,12 +482,27 @@ namespace GateHelper
         }
         //////////////////////////////////////////////////////////////////////////////// 옵션 전용 끝
 
+        private bool changeSkinColor = true;
+
         private void PicBox_Setting_Click(object sender, EventArgs e)
         {
-            Form Form_setting = new Form();
-            Form_setting.Show(); // 폼 표시 (모달)
+            if (changeSkinColor)
+            {
+                materialSkinManager.Theme = MaterialSkinManager.Themes.LIGHT;
+                PicBox_Setting.Image = Properties.Resources.png_setting;
+                PicBox_Question.Image = Properties.Resources.png_question3;
+                changeSkinColor = false;
+            }
+            else
+            {
+                materialSkinManager.Theme = MaterialSkinManager.Themes.DARK;
+                PicBox_Setting.Image = Properties.Resources.icons8_설정_50;
+                PicBox_Question.Image = Properties.Resources.icons8_물음표_32;
+                changeSkinColor = true;
+            }
         }
 
-        
+
+
     }
 }
