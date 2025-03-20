@@ -86,6 +86,36 @@ namespace GateHelper
             }
         }
 
+        public static void MovePictureBoxIcons(Form form, PictureBox pictureBoxA, PictureBox pictureBoxB, PictureBox pictureBoxC, Size formOriginalSize, bool isExpanded)
+        {
+            int iconSpacing = 10;
+            int xPos = 0;
+
+            if (isExpanded)
+            {
+                // 확장된 폼 크기에 맞춰 PictureBox 아이콘 A, B, C 위치 변경
+                xPos = 550 - pictureBoxC.Width - iconSpacing;
+                pictureBoxC.Location = new Point(xPos, 700 - pictureBoxC.Height - 10);
+
+                xPos -= pictureBoxB.Width + iconSpacing;
+                pictureBoxB.Location = new Point(xPos, 700 - pictureBoxB.Height - 10);
+
+                xPos -= pictureBoxA.Width + iconSpacing;
+                pictureBoxA.Location = new Point(xPos, 700 - pictureBoxA.Height - 10);
+            }
+            else
+            {
+                // 초기 폼 크기에 맞춰 PictureBox 아이콘 A, B, C 위치 복원
+                xPos = formOriginalSize.Width - pictureBoxC.Width - iconSpacing;
+                pictureBoxC.Location = new Point(xPos, formOriginalSize.Height - pictureBoxC.Height - 10);
+
+                xPos -= pictureBoxB.Width + iconSpacing;
+                pictureBoxB.Location = new Point(xPos, formOriginalSize.Height - pictureBoxB.Height - 10);
+
+                xPos -= pictureBoxA.Width + iconSpacing;
+                pictureBoxA.Location = new Point(xPos, formOriginalSize.Height - pictureBoxA.Height - 10);
+            }
+        }
 
     }
 }

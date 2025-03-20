@@ -17,8 +17,6 @@ namespace GateHelper
 {
     public partial class MainUI : MaterialForm
     {
-        
-
         private readonly MaterialSkinManager materialSkinManager;
         public static IWebDriver _driver = null;
 
@@ -33,6 +31,11 @@ namespace GateHelper
         /// Option 전용
         private bool disablePopup;
         private readonly System.Windows.Forms.Timer timer1;
+
+        private Size formOriginalSize;
+        private Size groupRef1OriginalSize;
+        private Size tabSelector1OriginalSize;
+        private Size tabControlOriginalSize;
 
         public MainUI()
         {
@@ -118,20 +121,6 @@ namespace GateHelper
             }
         }
 
-        private void LoginBtn1_Click(object sender, EventArgs e)
-        {
-            LogManager.LogMessage("LoginBtn Click", Level.Info);
-            string gateID = GateIDTxt1.Text; // ID 값 가져오기
-            string gatePW = GatePWTxt1.Text; // PW 값 가져오기
-
-            // Util.FocusMainWindow(MainHandle);
-
-            // iframe으로 이동
-            Util_Control.SendKeysToElement(_driver, "//*[@id='USERID']", gateID);
-            Util_Control.SendKeysToElement(_driver, "//*[@id='PASSWD']", gatePW);
-
-            Util_Control.ClickElementByXPath(_driver, "//*[@id='login_submit']");
-        }
 
         private void SearchBtn1_Click(object sender, EventArgs e)
         {
@@ -483,26 +472,65 @@ namespace GateHelper
         //////////////////////////////////////////////////////////////////////////////// 옵션 전용 끝
 
         private bool changeSkinColor = true;
+        private bool changeArrow = true;
 
         private void PicBox_Setting_Click(object sender, EventArgs e)
         {
             if (changeSkinColor)
             {
                 materialSkinManager.Theme = MaterialSkinManager.Themes.LIGHT;
-                PicBox_Setting.Image = Properties.Resources.png_setting;
-                PicBox_Question.Image = Properties.Resources.png_question3;
+                PicBox_Setting.Image = Properties.Resources.moon;
                 changeSkinColor = false;
             }
             else
             {
                 materialSkinManager.Theme = MaterialSkinManager.Themes.DARK;
-                PicBox_Setting.Image = Properties.Resources.icons8_설정_50;
-                PicBox_Question.Image = Properties.Resources.icons8_물음표_32;
+                PicBox_Setting.Image = Properties.Resources.sun;
                 changeSkinColor = true;
             }
         }
 
+        private void PictureBox1_Click(object sender, EventArgs e)
+        {
+            if (changeArrow)
+            {
+                PicBox_Arrow.Image = Properties.Resources.arrow_left;
+                this.Size = new Size(550, 700);
 
+                // 탭 컨트롤 크기를 기준으로 그룹 박스 및 PictureBox 크기 계산
+                TabSelector1.Size = new Size(520, 30);
+                GroupRef1.Size = new Size(TabControl1.Width - 10, TabControl1.Height - 10);
+                PicBox_Ref1.Size = new Size(GroupRef1.Width - 10, GroupRef1.Height - 20);
 
+                PicBox_Ref1.SizeMode = PictureBoxSizeMode.StretchImage;
+                changeArrow = false;
+
+                // PictureBox 아이콘 A, B, C 위치 변경
+                Util_Control.MovePictureBoxIcons(this, PicBox_Arrow, PicBox_Setting, PicBox_Question, formOriginalSize, true);
+            }
+            else
+            {
+                PicBox_Arrow.Image = Properties.Resources.arrow_right;
+                this.Size = formOriginalSize;
+                TabSelector1.Size = tabSelector1OriginalSize;
+
+                GroupRef1.Size = groupRef1OriginalSize;
+                PicBox_Ref1.Size = new Size(GroupRef1.Width - 10, GroupRef1.Height - 20);
+
+                changeArrow = true;
+
+                // PictureBox 아이콘 A, B, C 위치 복원
+                Util_Control.MovePictureBoxIcons(this, PicBox_Arrow, PicBox_Setting, PicBox_Question, formOriginalSize, false);
+            }
+        }
+
+        private void MainUI_Load(object sender, EventArgs e)
+        {
+            formOriginalSize = this.Size;
+            groupRef1OriginalSize = GroupRef1.Size;
+            PicBox_Ref1.Size = new Size(GroupRef1.Width - 10, GroupRef1.Height - 20);
+            tabSelector1OriginalSize = TabSelector1.Size;
+            tabControlOriginalSize = TabControl1.Size;
+        }
     }
 }
