@@ -142,5 +142,20 @@ namespace GateHelper
                 throw;
             }
         }
+
+
+
+        public static ChromeOptions ChromeDriverOptionSet(string chromePath)
+        {
+            // Chrome 옵션 설정
+            var options = new ChromeOptions();
+            options.BinaryLocation = chromePath;
+            options.AddArgument("--start-maximized");
+            options.AddArgument("--disable-notifications");
+            return options;
+        }
+
+
+
     }
 }

@@ -284,10 +284,9 @@ namespace GateHelper
         {
             try
             {
-                // 새 팝업창으로 전환
-                SwitchToPopup();
+                SwitchToPopup(); // 새 팝업창으로 전환
 
-                WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10)); // 최대 10초 대기
+                WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10)); // 10초 대기
 
                 // ID 입력
                 IWebElement idInput = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='userid']")));
@@ -341,10 +340,6 @@ namespace GateHelper
                     BtnFav1.Text = string.IsNullOrEmpty(_config.Fav1) ? "즐겨찾기 1" : _config.Fav1;
                     BtnFav2.Text = string.IsNullOrEmpty(_config.Fav2) ? "즐겨찾기 2" : _config.Fav2;
                     BtnFav3.Text = string.IsNullOrEmpty(_config.Fav3) ? "즐겨찾기 3" : _config.Fav3;
-
-                    // UI 업데이트 (예시)
-                    // textBoxUrl.Text = _config.Url;
-                    // ...
                 }
                 else
                 {

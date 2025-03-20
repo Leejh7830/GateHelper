@@ -23,7 +23,6 @@ namespace GateHelper
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetForegroundWindow(IntPtr hWnd);
 
-
         // ChromeDriver 초기화 메소드
         public static IWebDriver InitializeDriver(Config config)
         {
@@ -62,10 +61,7 @@ namespace GateHelper
                 }
 
                 // Chrome 옵션 설정
-                var options = new ChromeOptions();
-                options.BinaryLocation = chromePath;
-                options.AddArgument("--start-maximized");
-                options.AddArgument("--disable-notifications");
+                ChromeOptions options = ChromeDriverManager.ChromeDriverOptionSet(chromePath);
 
                 // ChromeDriver 실행
                 var service = ChromeDriverService.CreateDefaultService(driverDirectory);
@@ -148,18 +144,6 @@ namespace GateHelper
                 throw; // 예외 다시 던지기
             }
         }
-
-        
-
-
-
-
-
-
-
-
-
-
 
 
         public static void InputKeys(string keys, int intervalMilliseconds = 1000) // 메서드 이름 변경
