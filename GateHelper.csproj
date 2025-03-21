@@ -168,6 +168,7 @@
     <Compile Include="Util_Element.cs" />
     <Compile Include="Util_Option.cs" />
     <Compile Include="Util_ServerList.cs" />
+    <Compile Include="Util_Test.cs" />
     <EmbeddedResource Include="MainUI.resx">
       <DependentUpon>MainUI.cs</DependentUpon>
     </EmbeddedResource>

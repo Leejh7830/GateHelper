@@ -1,4 +1,6 @@
-﻿namespace GateHelper
+﻿using System.Drawing;
+
+namespace GateHelper
 {
     partial class MainUI
     {
@@ -30,19 +32,16 @@
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainUI));
-            System.Windows.Forms.ListViewGroup listViewGroup25 = new System.Windows.Forms.ListViewGroup("ListViewGroup", System.Windows.Forms.HorizontalAlignment.Left);
-            System.Windows.Forms.ListViewGroup listViewGroup26 = new System.Windows.Forms.ListViewGroup("ListViewGroup", System.Windows.Forms.HorizontalAlignment.Left);
-            System.Windows.Forms.ListViewItem listViewItem25 = new System.Windows.Forms.ListViewItem("111111");
-            System.Windows.Forms.ListViewItem listViewItem26 = new System.Windows.Forms.ListViewItem("22222");
             this.BtnLogin1 = new MaterialSkin.Controls.MaterialButton();
             this.TestBtn1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnSearch1 = new MaterialSkin.Controls.MaterialButton();
             this.GroupRef1 = new System.Windows.Forms.GroupBox();
             this.PicBox_Ref1 = new System.Windows.Forms.PictureBox();
-            this.materialListView1 = new MaterialSkin.Controls.MaterialListView();
-            this.Group = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.서버이름 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.IP = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.ListViewServer1 = new MaterialSkin.Controls.MaterialListView();
+            this.No = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.SVName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.LastConnected = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.Memo = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SearchTxt1 = new MaterialSkin.Controls.MaterialTextBox2();
             this.GroupConnect1 = new System.Windows.Forms.GroupBox();
             this.BtnLoadServers1 = new MaterialSkin.Controls.MaterialButton();
@@ -71,6 +70,12 @@
             this.BtnOpenLog1 = new MaterialSkin.Controls.MaterialButton();
             this.PicBox_Arrow = new System.Windows.Forms.PictureBox();
             this.PicBox_Setting = new System.Windows.Forms.PictureBox();
+            this.CBox_TestMode1 = new MaterialSkin.Controls.MaterialCheckbox();
+            this.ListViewServer2 = new System.Windows.Forms.ListView();
+            this.No1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.SVName1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.LastConnected1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.Memo1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.GroupRef1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Ref1)).BeginInit();
             this.GroupConnect1.SuspendLayout();
@@ -168,50 +173,50 @@
             this.PicBox_Ref1.TabIndex = 21;
             this.PicBox_Ref1.TabStop = false;
             // 
-            // materialListView1
+            // ListViewServer1
             // 
-            this.materialListView1.AutoSizeTable = false;
-            this.materialListView1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            this.materialListView1.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.materialListView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.Group,
-            this.서버이름,
-            this.IP});
-            this.materialListView1.Depth = 0;
-            this.materialListView1.FullRowSelect = true;
-            listViewGroup25.Header = "ListViewGroup";
-            listViewGroup25.Name = "Group1";
-            listViewGroup26.Header = "ListViewGroup";
-            listViewGroup26.Name = "Group2";
-            this.materialListView1.Groups.AddRange(new System.Windows.Forms.ListViewGroup[] {
-            listViewGroup25,
-            listViewGroup26});
-            this.materialListView1.HideSelection = false;
-            this.materialListView1.Items.AddRange(new System.Windows.Forms.ListViewItem[] {
-            listViewItem25,
-            listViewItem26});
-            this.materialListView1.Location = new System.Drawing.Point(6, 6);
-            this.materialListView1.MinimumSize = new System.Drawing.Size(200, 100);
-            this.materialListView1.MouseLocation = new System.Drawing.Point(-1, -1);
-            this.materialListView1.MouseState = MaterialSkin.MouseState.OUT;
-            this.materialListView1.Name = "materialListView1";
-            this.materialListView1.OwnerDraw = true;
-            this.materialListView1.Size = new System.Drawing.Size(750, 522);
-            this.materialListView1.TabIndex = 10;
-            this.materialListView1.UseCompatibleStateImageBehavior = false;
-            this.materialListView1.View = System.Windows.Forms.View.Details;
+            this.ListViewServer1.AutoSizeTable = false;
+            this.ListViewServer1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.ListViewServer1.BackgroundImageTiled = true;
+            this.ListViewServer1.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.ListViewServer1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.No,
+            this.SVName,
+            this.LastConnected,
+            this.Memo});
+            this.ListViewServer1.Depth = 0;
+            this.ListViewServer1.FullRowSelect = true;
+            this.ListViewServer1.HideSelection = false;
+            this.ListViewServer1.Location = new System.Drawing.Point(787, 285);
+            this.ListViewServer1.MinimumSize = new System.Drawing.Size(200, 100);
+            this.ListViewServer1.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.ListViewServer1.MouseState = MaterialSkin.MouseState.OUT;
+            this.ListViewServer1.Name = "ListViewServer1";
+            this.ListViewServer1.OwnerDraw = true;
+            this.ListViewServer1.Size = new System.Drawing.Size(762, 522);
+            this.ListViewServer1.TabIndex = 10;
+            this.ListViewServer1.UseCompatibleStateImageBehavior = false;
+            this.ListViewServer1.View = System.Windows.Forms.View.Details;
             // 
-            // Group
+            // No
             // 
-            this.Group.Width = 91;
+            this.No.Text = "No";
+            this.No.Width = 50;
             // 
-            // 서버이름
+            // SVName
             // 
-            this.서버이름.Width = 131;
+            this.SVName.Text = "Name";
+            this.SVName.Width = 170;
             // 
-            // IP
+            // LastConnected
             // 
-            this.IP.Width = 126;
+            this.LastConnected.Text = "Last Connected";
+            this.LastConnected.Width = 180;
+            // 
+            // Memo
+            // 
+            this.Memo.Text = "Memo";
+            this.Memo.Width = 220;
             // 
             // SearchTxt1
             // 
@@ -438,11 +443,11 @@
             // 
             // tabPage3
             // 
-            this.tabPage3.Controls.Add(this.materialListView1);
+            this.tabPage3.Controls.Add(this.ListViewServer2);
             this.tabPage3.Location = new System.Drawing.Point(4, 28);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(893, 534);
+            this.tabPage3.Size = new System.Drawing.Size(768, 534);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "HISTORY";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -467,7 +472,7 @@
             this.CBox_DisablePopup1.AutoSize = true;
             this.CBox_DisablePopup1.Depth = 0;
             this.CBox_DisablePopup1.Enabled = false;
-            this.CBox_DisablePopup1.Location = new System.Drawing.Point(26, 903);
+            this.CBox_DisablePopup1.Location = new System.Drawing.Point(26, 899);
             this.CBox_DisablePopup1.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_DisablePopup1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_DisablePopup1.MouseState = MaterialSkin.MouseState.HOVER;
@@ -544,7 +549,7 @@
             // groupShortCut1
             // 
             this.groupShortCut1.Controls.Add(this.BtnShortCut1);
-            this.groupShortCut1.Location = new System.Drawing.Point(1057, 554);
+            this.groupShortCut1.Location = new System.Drawing.Point(820, 872);
             this.groupShortCut1.Margin = new System.Windows.Forms.Padding(4);
             this.groupShortCut1.Name = "groupShortCut1";
             this.groupShortCut1.Padding = new System.Windows.Forms.Padding(4);
@@ -584,7 +589,7 @@
             this.PicBox_Question.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.PicBox_Question.TabIndex = 21;
             this.PicBox_Question.TabStop = false;
-            this.toolTip_Question1.SetToolTip(this.PicBox_Question, "C# Windows Forms based Selenium");
+            this.toolTip_Question1.SetToolTip(this.PicBox_Question, "C# Windows Forms based Selenium\r\nMade by LeeJH");
             // 
             // BtnStart1
             // 
@@ -660,7 +665,7 @@
             this.PicBox_Arrow.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.PicBox_Arrow.TabIndex = 26;
             this.PicBox_Arrow.TabStop = false;
-            this.PicBox_Arrow.Click += new System.EventHandler(this.PictureBox1_Click);
+            this.PicBox_Arrow.Click += new System.EventHandler(this.PicBox_Arrow_Click);
             // 
             // PicBox_Setting
             // 
@@ -674,12 +679,73 @@
             this.PicBox_Setting.TabStop = false;
             this.PicBox_Setting.Click += new System.EventHandler(this.PicBox_Setting_Click);
             // 
+            // CBox_TestMode1
+            // 
+            this.CBox_TestMode1.AutoSize = true;
+            this.CBox_TestMode1.Depth = 0;
+            this.CBox_TestMode1.Location = new System.Drawing.Point(27, 950);
+            this.CBox_TestMode1.Margin = new System.Windows.Forms.Padding(0);
+            this.CBox_TestMode1.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.CBox_TestMode1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.CBox_TestMode1.Name = "CBox_TestMode1";
+            this.CBox_TestMode1.ReadOnly = false;
+            this.CBox_TestMode1.Ripple = true;
+            this.CBox_TestMode1.Size = new System.Drawing.Size(123, 37);
+            this.CBox_TestMode1.TabIndex = 27;
+            this.CBox_TestMode1.Text = "TEST MODE";
+            this.CBox_TestMode1.UseVisualStyleBackColor = true;
+            this.CBox_TestMode1.CheckedChanged += new System.EventHandler(this.CBox_TestMode1_CheckedChanged);
+            // 
+            // ListViewServer2
+            // 
+            this.ListViewServer2.BackColor = System.Drawing.SystemColors.Info;
+            this.ListViewServer2.CheckBoxes = true;
+            this.ListViewServer2.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.No1,
+            this.SVName1,
+            this.LastConnected1,
+            this.Memo1});
+            this.ListViewServer2.Font = new System.Drawing.Font("휴먼옛체", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.ListViewServer2.FullRowSelect = true;
+            this.ListViewServer2.GridLines = true;
+            this.ListViewServer2.HideSelection = false;
+            this.ListViewServer2.HoverSelection = true;
+            this.ListViewServer2.Location = new System.Drawing.Point(3, 3);
+            this.ListViewServer2.MinimumSize = new System.Drawing.Size(200, 100);
+            this.ListViewServer2.Name = "ListViewServer2";
+            this.ListViewServer2.Size = new System.Drawing.Size(762, 522);
+            this.ListViewServer2.TabIndex = 28;
+            this.ListViewServer2.UseCompatibleStateImageBehavior = false;
+            this.ListViewServer2.View = System.Windows.Forms.View.Details;
+            // 
+            // No1
+            // 
+            this.No1.Text = "No";
+            this.No1.Width = 50;
+            // 
+            // SVName1
+            // 
+            this.SVName1.Text = "Name";
+            this.SVName1.Width = 170;
+            // 
+            // LastConnected1
+            // 
+            this.LastConnected1.Text = "Last Connected";
+            this.LastConnected1.Width = 180;
+            // 
+            // Memo1
+            // 
+            this.Memo1.Text = "Memo";
+            this.Memo1.Width = 220;
+            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1584, 1100);
+            this.Controls.Add(this.ListViewServer1);
+            this.Controls.Add(this.CBox_TestMode1);
             this.Controls.Add(this.PicBox_Arrow);
             this.Controls.Add(this.PicBox_Setting);
             this.Controls.Add(this.BtnOpenLog1);
@@ -727,10 +793,10 @@
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
         private MaterialSkin.Controls.MaterialTabSelector TabSelector1;
-        private MaterialSkin.Controls.MaterialListView materialListView1;
-        private System.Windows.Forms.ColumnHeader Group;
-        private System.Windows.Forms.ColumnHeader 서버이름;
-        private System.Windows.Forms.ColumnHeader IP;
+        private MaterialSkin.Controls.MaterialListView ListViewServer1;
+        private System.Windows.Forms.ColumnHeader No;
+        private System.Windows.Forms.ColumnHeader SVName;
+        private System.Windows.Forms.ColumnHeader LastConnected;
         private MaterialSkin.Controls.MaterialCheckbox CBox_DisablePopup1;
         private MaterialSkin.Controls.MaterialButton BtnConnect1;
         private MaterialSkin.Controls.MaterialTextBox2 SearchTxt1;
@@ -755,6 +821,13 @@
         private System.Windows.Forms.PictureBox PicBox_Arrow;
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.PictureBox PicBox_Ref1;
+        private System.Windows.Forms.ColumnHeader Memo;
+        private MaterialSkin.Controls.MaterialCheckbox CBox_TestMode1;
+        private System.Windows.Forms.ColumnHeader No1;
+        private System.Windows.Forms.ColumnHeader SVName1;
+        private System.Windows.Forms.ColumnHeader LastConnected1;
+        private System.Windows.Forms.ColumnHeader Memo1;
+        private System.Windows.Forms.ListView ListViewServer2;
     }
 }
 

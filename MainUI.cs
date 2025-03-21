@@ -12,6 +12,7 @@ using SeleniumExtras.WaitHelpers;
 using System.Configuration;
 using System.IO;
 using System.Threading;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement;
 
 namespace GateHelper
 {
@@ -37,11 +38,14 @@ namespace GateHelper
         private Size tabSelector1OriginalSize;
         private Size tabControlOriginalSize;
 
+        private bool testMode = false;
+
         public MainUI()
         {
             LogManager.InitializeLogFile();
             LogManager.LogMessage("========== Initialize ==========", Level.Info);
             InitializeComponent();
+
             configManager.ReloadConfig(); // 설정 파일 로드
             Util.CreateFolder_Resource(); // 리소스 폴더 생성
             this.FormClosing += MainUI_FormClosing; // 폼 닫기 이벤트 연결
@@ -53,18 +57,16 @@ namespace GateHelper
             // materialSkinManager.ColorScheme = new ColorScheme(Primary.Blue100, Primary.Blue900, Primary.Blue300, Accent.LightBlue200, TextShade.WHITE);
 
             this.MaximizeBox = false;
-            this.MinimizeBox = false;
+            // this.MinimizeBox = false;
             this.Size = new Size(400, 700);
 
             // Util_Control.MoveControl(TabSelector1, 150, 30);
 
-            // DisablePopupCheckBox1.Checked = true;
-
             timer1 = new System.Windows.Forms.Timer();
             timer1.Interval = 5000; // 5초마다 팝업 탐색
-
-            timer1.Tick += Timer1_Tick;
+            // timer1.Tick += Timer1_Tick;
             timer1.Start();
+
 
             LogManager.LogMessage("프로그램 초기화 완료", Level.Info);
         }
@@ -165,35 +167,34 @@ namespace GateHelper
         private void BtnLoadServers1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("BtnLoadServers Click", Level.Info);
-            // Util.SwitchToMainHandle(_driver, mainHandle);
 
             try
             {
-                List<string> serverNames = new List<string>();
+                List<string> serverList = new List<string>();
                 int tbodyIndex = 1;
 
                 while (true)
                 {
                     string xpath = $"//*[@id=\'seltable\']/tbody[{tbodyIndex}]/tr/td[4]";
-                    IReadOnlyCollection<IWebElement> serverNameElements = _driver.FindElements(By.XPath(xpath));
+                    IReadOnlyCollection<IWebElement> serverListElements = _driver.FindElements(By.XPath(xpath));
 
-                    if (serverNameElements == null || serverNameElements.Count == 0) // 더 이상 요소가 없으면 루프 종료
+                    if (serverListElements == null || serverListElements.Count == 0) // 더 이상 요소가 없으면 루프 종료
                     {
                         break;
                     }
 
-                    foreach (IWebElement element in serverNameElements)
+                    foreach (IWebElement element in serverListElements)
                     {
-                        serverNames.Add(element.Text);
+                        serverList.Add(element.Text);
                     }
 
                     tbodyIndex++; // tbody 증가 (다음 테이블 이동)
                 }
 
-                LogManager.LogMessage($"서버 이름 리스트:\n{string.Join("\n", serverNames)}", Level.Info);
+                LogManager.LogMessage($"서버 이름 리스트:\n{string.Join("\n", serverList)}", Level.Info);
 
                 ComboBoxServerList1.Items.Clear();
-                foreach (string serverName in serverNames) // 서버 이름 드롭다운 박스 매칭
+                foreach (string serverName in serverList) // 서버 이름 드롭다운 박스 매칭
                 {
                     ComboBoxServerList1.Items.Add(serverName);
                 }
@@ -208,12 +209,18 @@ namespace GateHelper
         private void BtnConnect1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("BtnConnect1 Click", Level.Info);
-
-            // mainHandle = _driver.CurrentWindowHandle;
             LogManager.LogMessage("Connect MainHandle : " + mainHandle, Level.Info);
 
             try
             {
+                if (testMode) // 테스트 모드일 때만 동작
+                {
+                    // Util_Test.SimulateServerConnect(this, ListViewServer1, ComboBoxServerList1, ref testMode);
+                    Util_Test.SimulateServerConnect(this, ListViewServer2, ComboBoxServerList1, ref testMode);
+                    Util_ServerList.SaveServerDataToFile(ListViewServer2);
+                    return;
+                }
+
                 // 선택된 드롭다운 항목 확인
                 if (ComboBoxServerList1.SelectedItem == null)
                 {
@@ -261,10 +268,13 @@ namespace GateHelper
                             }
                             EnterCredentials(_config.GateID, _config.GatePW);
 
-                            // Util.FocusMainWindow(mainHandle);
                             Util.SwitchToMainHandle(_driver, mainHandle);
                             LogManager.LogMessage("접속후 MainHandle: " + mainHandle, Level.Info);
 
+                            string currentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+                            Util_ServerList.AddServerToListView(ListViewServer2, selectedServer, currentTime);
+
+                            Util_ServerList.SaveServerDataToFile(ListViewServer2);
                             return;
                         }
                     }
@@ -485,7 +495,7 @@ namespace GateHelper
             }
         }
 
-        private void PictureBox1_Click(object sender, EventArgs e)
+        private void PicBox_Arrow_Click(object sender, EventArgs e)
         {
             if (changeArrow)
             {
@@ -526,6 +536,32 @@ namespace GateHelper
             PicBox_Ref1.Size = new Size(GroupRef1.Width - 10, GroupRef1.Height - 20);
             tabSelector1OriginalSize = TabSelector1.Size;
             tabControlOriginalSize = TabControl1.Size;
+
+            Util_ServerList.LoadServerDataFromFile(ListViewServer2);
         }
+
+        private void CBox_TestMode1_CheckedChanged(object sender, EventArgs e)
+        {
+            if (CBox_TestMode1.Checked)
+            {
+                Util_Test.EnterTestMode(this, ref testMode);
+
+                if (testMode)
+                {
+                    Util_Test.LoadTestServers(ComboBoxServerList1);
+                } else
+                {
+                    CBox_TestMode1.Checked = false;
+                }
+            }
+            else
+            {
+                this.Size = formOriginalSize;
+                ComboBoxServerList1.Items.Clear();
+            }
+        }
+
+
+
     }
 }
