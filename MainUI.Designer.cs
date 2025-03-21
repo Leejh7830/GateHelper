@@ -55,6 +55,11 @@ namespace GateHelper
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.ListViewServer2 = new System.Windows.Forms.ListView();
+            this.No1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.SVName1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.LastConnected1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.Memo1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.TabSelector1 = new MaterialSkin.Controls.MaterialTabSelector();
             this.CBox_DisablePopup1 = new MaterialSkin.Controls.MaterialCheckbox();
             this.BtnStart2 = new MaterialSkin.Controls.MaterialButton();
@@ -71,11 +76,6 @@ namespace GateHelper
             this.PicBox_Arrow = new System.Windows.Forms.PictureBox();
             this.PicBox_Setting = new System.Windows.Forms.PictureBox();
             this.CBox_TestMode1 = new MaterialSkin.Controls.MaterialCheckbox();
-            this.ListViewServer2 = new System.Windows.Forms.ListView();
-            this.No1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.SVName1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.LastConnected1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.Memo1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.GroupRef1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Ref1)).BeginInit();
             this.GroupConnect1.SuspendLayout();
@@ -98,12 +98,12 @@ namespace GateHelper
             this.BtnLogin1.Depth = 0;
             this.BtnLogin1.HighEmphasis = true;
             this.BtnLogin1.Icon = null;
-            this.BtnLogin1.Location = new System.Drawing.Point(1033, 104);
-            this.BtnLogin1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnLogin1.Location = new System.Drawing.Point(723, 69);
+            this.BtnLogin1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnLogin1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnLogin1.Name = "BtnLogin1";
             this.BtnLogin1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnLogin1.Size = new System.Drawing.Size(167, 159);
+            this.BtnLogin1.Size = new System.Drawing.Size(117, 106);
             this.BtnLogin1.TabIndex = 4;
             this.BtnLogin1.Text = "GATEONE LOGIN";
             this.BtnLogin1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -117,8 +117,8 @@ namespace GateHelper
             this.TestBtn1.Depth = 0;
             this.TestBtn1.HighEmphasis = true;
             this.TestBtn1.Icon = null;
-            this.TestBtn1.Location = new System.Drawing.Point(1233, 105);
-            this.TestBtn1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.TestBtn1.Location = new System.Drawing.Point(863, 70);
+            this.TestBtn1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.TestBtn1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TestBtn1.Name = "TestBtn1";
             this.TestBtn1.NoAccentTextColor = System.Drawing.Color.Empty;
@@ -137,27 +137,25 @@ namespace GateHelper
             this.BtnSearch1.Depth = 0;
             this.BtnSearch1.HighEmphasis = true;
             this.BtnSearch1.Icon = null;
-            this.BtnSearch1.Location = new System.Drawing.Point(381, 34);
-            this.BtnSearch1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnSearch1.Location = new System.Drawing.Point(267, 23);
+            this.BtnSearch1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnSearch1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnSearch1.Name = "BtnSearch1";
             this.BtnSearch1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnSearch1.Size = new System.Drawing.Size(149, 60);
+            this.BtnSearch1.Size = new System.Drawing.Size(104, 40);
             this.BtnSearch1.TabIndex = 7;
             this.BtnSearch1.Text = "Search";
             this.BtnSearch1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.BtnSearch1.UseAccentColor = false;
             this.BtnSearch1.UseVisualStyleBackColor = true;
-            this.BtnSearch1.Click += new System.EventHandler(this.SearchBtn1_Click);
+            this.BtnSearch1.Click += new System.EventHandler(this.BtnSearch1_Click);
             // 
             // GroupRef1
             // 
             this.GroupRef1.Controls.Add(this.PicBox_Ref1);
-            this.GroupRef1.Location = new System.Drawing.Point(4, 4);
-            this.GroupRef1.Margin = new System.Windows.Forms.Padding(4);
+            this.GroupRef1.Location = new System.Drawing.Point(3, 3);
             this.GroupRef1.Name = "GroupRef1";
-            this.GroupRef1.Padding = new System.Windows.Forms.Padding(4);
-            this.GroupRef1.Size = new System.Drawing.Size(554, 454);
+            this.GroupRef1.Size = new System.Drawing.Size(388, 303);
             this.GroupRef1.TabIndex = 6;
             this.GroupRef1.TabStop = false;
             this.GroupRef1.Text = "Reference";
@@ -165,10 +163,9 @@ namespace GateHelper
             // PicBox_Ref1
             // 
             this.PicBox_Ref1.Image = ((System.Drawing.Image)(resources.GetObject("PicBox_Ref1.Image")));
-            this.PicBox_Ref1.Location = new System.Drawing.Point(4, 25);
-            this.PicBox_Ref1.Margin = new System.Windows.Forms.Padding(4);
+            this.PicBox_Ref1.Location = new System.Drawing.Point(3, 17);
             this.PicBox_Ref1.Name = "PicBox_Ref1";
-            this.PicBox_Ref1.Size = new System.Drawing.Size(546, 425);
+            this.PicBox_Ref1.Size = new System.Drawing.Size(382, 283);
             this.PicBox_Ref1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.PicBox_Ref1.TabIndex = 21;
             this.PicBox_Ref1.TabStop = false;
@@ -187,13 +184,14 @@ namespace GateHelper
             this.ListViewServer1.Depth = 0;
             this.ListViewServer1.FullRowSelect = true;
             this.ListViewServer1.HideSelection = false;
-            this.ListViewServer1.Location = new System.Drawing.Point(787, 285);
-            this.ListViewServer1.MinimumSize = new System.Drawing.Size(200, 100);
+            this.ListViewServer1.Location = new System.Drawing.Point(551, 190);
+            this.ListViewServer1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.ListViewServer1.MinimumSize = new System.Drawing.Size(140, 67);
             this.ListViewServer1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.ListViewServer1.MouseState = MaterialSkin.MouseState.OUT;
             this.ListViewServer1.Name = "ListViewServer1";
             this.ListViewServer1.OwnerDraw = true;
-            this.ListViewServer1.Size = new System.Drawing.Size(762, 522);
+            this.ListViewServer1.Size = new System.Drawing.Size(533, 348);
             this.ListViewServer1.TabIndex = 10;
             this.ListViewServer1.UseCompatibleStateImageBehavior = false;
             this.ListViewServer1.View = System.Windows.Forms.View.Details;
@@ -228,7 +226,8 @@ namespace GateHelper
             this.SearchTxt1.HideSelection = true;
             this.SearchTxt1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.SearchTxt1.LeadingIcon = null;
-            this.SearchTxt1.Location = new System.Drawing.Point(7, 28);
+            this.SearchTxt1.Location = new System.Drawing.Point(5, 19);
+            this.SearchTxt1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.SearchTxt1.MaxLength = 32767;
             this.SearchTxt1.MouseState = MaterialSkin.MouseState.OUT;
             this.SearchTxt1.Name = "SearchTxt1";
@@ -240,12 +239,13 @@ namespace GateHelper
             this.SearchTxt1.SelectionLength = 0;
             this.SearchTxt1.SelectionStart = 0;
             this.SearchTxt1.ShortcutsEnabled = true;
-            this.SearchTxt1.Size = new System.Drawing.Size(350, 48);
+            this.SearchTxt1.Size = new System.Drawing.Size(245, 48);
             this.SearchTxt1.TabIndex = 13;
             this.SearchTxt1.TabStop = false;
             this.SearchTxt1.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.SearchTxt1.TrailingIcon = null;
             this.SearchTxt1.UseSystemPasswordChar = false;
+            this.SearchTxt1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.SearchTxt1_KeyDown);
             // 
             // GroupConnect1
             // 
@@ -255,11 +255,9 @@ namespace GateHelper
             this.GroupConnect1.Controls.Add(this.GroupFav1);
             this.GroupConnect1.Controls.Add(this.BtnSearch1);
             this.GroupConnect1.Controls.Add(this.SearchTxt1);
-            this.GroupConnect1.Location = new System.Drawing.Point(4, 4);
-            this.GroupConnect1.Margin = new System.Windows.Forms.Padding(4);
+            this.GroupConnect1.Location = new System.Drawing.Point(3, 3);
             this.GroupConnect1.Name = "GroupConnect1";
-            this.GroupConnect1.Padding = new System.Windows.Forms.Padding(4);
-            this.GroupConnect1.Size = new System.Drawing.Size(554, 454);
+            this.GroupConnect1.Size = new System.Drawing.Size(388, 303);
             this.GroupConnect1.TabIndex = 7;
             this.GroupConnect1.TabStop = false;
             this.GroupConnect1.Text = "Server Info";
@@ -272,12 +270,12 @@ namespace GateHelper
             this.BtnLoadServers1.Depth = 0;
             this.BtnLoadServers1.HighEmphasis = true;
             this.BtnLoadServers1.Icon = null;
-            this.BtnLoadServers1.Location = new System.Drawing.Point(19, 118);
-            this.BtnLoadServers1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnLoadServers1.Location = new System.Drawing.Point(13, 79);
+            this.BtnLoadServers1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnLoadServers1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnLoadServers1.Name = "BtnLoadServers1";
             this.BtnLoadServers1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnLoadServers1.Size = new System.Drawing.Size(139, 60);
+            this.BtnLoadServers1.Size = new System.Drawing.Size(97, 40);
             this.BtnLoadServers1.TabIndex = 12;
             this.BtnLoadServers1.Text = "SERVER LIST";
             this.BtnLoadServers1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -293,12 +291,12 @@ namespace GateHelper
             this.BtnConnect1.Depth = 0;
             this.BtnConnect1.HighEmphasis = true;
             this.BtnConnect1.Icon = null;
-            this.BtnConnect1.Location = new System.Drawing.Point(19, 198);
-            this.BtnConnect1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnConnect1.Location = new System.Drawing.Point(13, 132);
+            this.BtnConnect1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnConnect1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnConnect1.Name = "BtnConnect1";
             this.BtnConnect1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnConnect1.Size = new System.Drawing.Size(510, 62);
+            this.BtnConnect1.Size = new System.Drawing.Size(357, 41);
             this.BtnConnect1.TabIndex = 12;
             this.BtnConnect1.Text = "Connect";
             this.BtnConnect1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -320,11 +318,12 @@ namespace GateHelper
             this.ComboBoxServerList1.FormattingEnabled = true;
             this.ComboBoxServerList1.IntegralHeight = false;
             this.ComboBoxServerList1.ItemHeight = 43;
-            this.ComboBoxServerList1.Location = new System.Drawing.Point(179, 116);
+            this.ComboBoxServerList1.Location = new System.Drawing.Point(125, 77);
+            this.ComboBoxServerList1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.ComboBoxServerList1.MaxDropDownItems = 4;
             this.ComboBoxServerList1.MouseState = MaterialSkin.MouseState.OUT;
             this.ComboBoxServerList1.Name = "ComboBoxServerList1";
-            this.ComboBoxServerList1.Size = new System.Drawing.Size(350, 49);
+            this.ComboBoxServerList1.Size = new System.Drawing.Size(246, 49);
             this.ComboBoxServerList1.StartIndex = 0;
             this.ComboBoxServerList1.TabIndex = 13;
             // 
@@ -333,11 +332,9 @@ namespace GateHelper
             this.GroupFav1.Controls.Add(this.BtnFav1);
             this.GroupFav1.Controls.Add(this.BtnFav2);
             this.GroupFav1.Controls.Add(this.BtnFav3);
-            this.GroupFav1.Location = new System.Drawing.Point(19, 268);
-            this.GroupFav1.Margin = new System.Windows.Forms.Padding(4);
+            this.GroupFav1.Location = new System.Drawing.Point(13, 179);
             this.GroupFav1.Name = "GroupFav1";
-            this.GroupFav1.Padding = new System.Windows.Forms.Padding(4);
-            this.GroupFav1.Size = new System.Drawing.Size(510, 120);
+            this.GroupFav1.Size = new System.Drawing.Size(357, 80);
             this.GroupFav1.TabIndex = 19;
             this.GroupFav1.TabStop = false;
             this.GroupFav1.Text = "Fav";
@@ -350,12 +347,12 @@ namespace GateHelper
             this.BtnFav1.Depth = 0;
             this.BtnFav1.HighEmphasis = true;
             this.BtnFav1.Icon = null;
-            this.BtnFav1.Location = new System.Drawing.Point(10, 34);
-            this.BtnFav1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnFav1.Location = new System.Drawing.Point(7, 23);
+            this.BtnFav1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnFav1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnFav1.Name = "BtnFav1";
             this.BtnFav1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnFav1.Size = new System.Drawing.Size(143, 60);
+            this.BtnFav1.Size = new System.Drawing.Size(100, 40);
             this.BtnFav1.TabIndex = 14;
             this.BtnFav1.Text = "Favorite1";
             this.BtnFav1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -371,12 +368,12 @@ namespace GateHelper
             this.BtnFav2.Depth = 0;
             this.BtnFav2.HighEmphasis = true;
             this.BtnFav2.Icon = null;
-            this.BtnFav2.Location = new System.Drawing.Point(164, 34);
-            this.BtnFav2.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnFav2.Location = new System.Drawing.Point(115, 23);
+            this.BtnFav2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnFav2.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnFav2.Name = "BtnFav2";
             this.BtnFav2.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnFav2.Size = new System.Drawing.Size(143, 60);
+            this.BtnFav2.Size = new System.Drawing.Size(100, 40);
             this.BtnFav2.TabIndex = 15;
             this.BtnFav2.Text = "Favorite2";
             this.BtnFav2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -392,12 +389,12 @@ namespace GateHelper
             this.BtnFav3.Depth = 0;
             this.BtnFav3.HighEmphasis = true;
             this.BtnFav3.Icon = null;
-            this.BtnFav3.Location = new System.Drawing.Point(319, 34);
-            this.BtnFav3.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnFav3.Location = new System.Drawing.Point(223, 23);
+            this.BtnFav3.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnFav3.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnFav3.Name = "BtnFav3";
             this.BtnFav3.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnFav3.Size = new System.Drawing.Size(143, 60);
+            this.BtnFav3.Size = new System.Drawing.Size(100, 40);
             this.BtnFav3.TabIndex = 16;
             this.BtnFav3.Text = "Favorite3";
             this.BtnFav3.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -411,21 +408,23 @@ namespace GateHelper
             this.TabControl1.Controls.Add(this.tabPage2);
             this.TabControl1.Controls.Add(this.tabPage3);
             this.TabControl1.Depth = 0;
-            this.TabControl1.Location = new System.Drawing.Point(9, 254);
+            this.TabControl1.Location = new System.Drawing.Point(6, 169);
+            this.TabControl1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.TabControl1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TabControl1.Multiline = true;
             this.TabControl1.Name = "TabControl1";
             this.TabControl1.SelectedIndex = 0;
-            this.TabControl1.Size = new System.Drawing.Size(776, 566);
+            this.TabControl1.Size = new System.Drawing.Size(543, 377);
             this.TabControl1.TabIndex = 8;
             // 
             // tabPage1
             // 
             this.tabPage1.Controls.Add(this.GroupConnect1);
-            this.tabPage1.Location = new System.Drawing.Point(4, 28);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(768, 534);
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage1.Size = new System.Drawing.Size(535, 351);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "SERVER";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -433,10 +432,11 @@ namespace GateHelper
             // tabPage2
             // 
             this.tabPage2.Controls.Add(this.GroupRef1);
-            this.tabPage2.Location = new System.Drawing.Point(4, 28);
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(768, 534);
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage2.Size = new System.Drawing.Size(535, 351);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "REFERENCE";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -444,257 +444,14 @@ namespace GateHelper
             // tabPage3
             // 
             this.tabPage3.Controls.Add(this.ListViewServer2);
-            this.tabPage3.Location = new System.Drawing.Point(4, 28);
+            this.tabPage3.Location = new System.Drawing.Point(4, 22);
+            this.tabPage3.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(768, 534);
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage3.Size = new System.Drawing.Size(535, 351);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "HISTORY";
             this.tabPage3.UseVisualStyleBackColor = true;
-            // 
-            // TabSelector1
-            // 
-            this.TabSelector1.BaseTabControl = this.TabControl1;
-            this.TabSelector1.CharacterCasing = MaterialSkin.Controls.MaterialTabSelector.CustomCharacterCasing.Normal;
-            this.TabSelector1.Depth = 0;
-            this.TabSelector1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.TabSelector1.ForeColor = System.Drawing.SystemColors.Control;
-            this.TabSelector1.Location = new System.Drawing.Point(27, 202);
-            this.TabSelector1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.TabSelector1.Name = "TabSelector1";
-            this.TabSelector1.Size = new System.Drawing.Size(521, 48);
-            this.TabSelector1.TabIndex = 5;
-            this.TabSelector1.TabIndicatorHeight = 3;
-            this.TabSelector1.Text = "TabSelector1";
-            // 
-            // CBox_DisablePopup1
-            // 
-            this.CBox_DisablePopup1.AutoSize = true;
-            this.CBox_DisablePopup1.Depth = 0;
-            this.CBox_DisablePopup1.Enabled = false;
-            this.CBox_DisablePopup1.Location = new System.Drawing.Point(26, 899);
-            this.CBox_DisablePopup1.Margin = new System.Windows.Forms.Padding(0);
-            this.CBox_DisablePopup1.MouseLocation = new System.Drawing.Point(-1, -1);
-            this.CBox_DisablePopup1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.CBox_DisablePopup1.Name = "CBox_DisablePopup1";
-            this.CBox_DisablePopup1.ReadOnly = false;
-            this.CBox_DisablePopup1.Ripple = true;
-            this.CBox_DisablePopup1.Size = new System.Drawing.Size(201, 37);
-            this.CBox_DisablePopup1.TabIndex = 11;
-            this.CBox_DisablePopup1.Text = "DISABLE POP-UP (Non)";
-            this.CBox_DisablePopup1.UseVisualStyleBackColor = true;
-            this.CBox_DisablePopup1.CheckedChanged += new System.EventHandler(this.DisablePopupCheckBox1_CheckedChanged);
-            // 
-            // BtnStart2
-            // 
-            this.BtnStart2.AutoSize = false;
-            this.BtnStart2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnStart2.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnStart2.Depth = 0;
-            this.BtnStart2.Enabled = false;
-            this.BtnStart2.HighEmphasis = true;
-            this.BtnStart2.Icon = null;
-            this.BtnStart2.Location = new System.Drawing.Point(1233, 159);
-            this.BtnStart2.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
-            this.BtnStart2.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnStart2.Name = "BtnStart2";
-            this.BtnStart2.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnStart2.Size = new System.Drawing.Size(210, 60);
-            this.BtnStart2.TabIndex = 17;
-            this.BtnStart2.Text = "Start2";
-            this.BtnStart2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnStart2.UseAccentColor = false;
-            this.BtnStart2.UseVisualStyleBackColor = true;
-            this.BtnStart2.Click += new System.EventHandler(this.BtnStart2_Click);
-            // 
-            // CBox_FavOneClickConnect1
-            // 
-            this.CBox_FavOneClickConnect1.AutoSize = true;
-            this.CBox_FavOneClickConnect1.Depth = 0;
-            this.CBox_FavOneClickConnect1.Enabled = false;
-            this.CBox_FavOneClickConnect1.Location = new System.Drawing.Point(26, 848);
-            this.CBox_FavOneClickConnect1.Margin = new System.Windows.Forms.Padding(0);
-            this.CBox_FavOneClickConnect1.MouseLocation = new System.Drawing.Point(-1, -1);
-            this.CBox_FavOneClickConnect1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.CBox_FavOneClickConnect1.Name = "CBox_FavOneClickConnect1";
-            this.CBox_FavOneClickConnect1.ReadOnly = false;
-            this.CBox_FavOneClickConnect1.Ripple = true;
-            this.CBox_FavOneClickConnect1.Size = new System.Drawing.Size(193, 37);
-            this.CBox_FavOneClickConnect1.TabIndex = 18;
-            this.CBox_FavOneClickConnect1.Text = "Fav One-Click Connect";
-            this.toolTip_FavOneClickConnect1.SetToolTip(this.CBox_FavOneClickConnect1, "설정 : 검색후 접속까지\r\n해제 : 검색만\r\n");
-            this.CBox_FavOneClickConnect1.UseVisualStyleBackColor = true;
-            // 
-            // BtnOpenConfig1
-            // 
-            this.BtnOpenConfig1.AutoSize = false;
-            this.BtnOpenConfig1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnOpenConfig1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnOpenConfig1.Depth = 0;
-            this.BtnOpenConfig1.HighEmphasis = true;
-            this.BtnOpenConfig1.Icon = null;
-            this.BtnOpenConfig1.Location = new System.Drawing.Point(337, 110);
-            this.BtnOpenConfig1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
-            this.BtnOpenConfig1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnOpenConfig1.Name = "BtnOpenConfig1";
-            this.BtnOpenConfig1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnOpenConfig1.Size = new System.Drawing.Size(96, 60);
-            this.BtnOpenConfig1.TabIndex = 20;
-            this.BtnOpenConfig1.Text = "Open Config";
-            this.BtnOpenConfig1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnOpenConfig1.UseAccentColor = false;
-            this.BtnOpenConfig1.UseVisualStyleBackColor = true;
-            this.BtnOpenConfig1.Click += new System.EventHandler(this.BtnOpenConfig1_Click);
-            // 
-            // groupShortCut1
-            // 
-            this.groupShortCut1.Controls.Add(this.BtnShortCut1);
-            this.groupShortCut1.Location = new System.Drawing.Point(820, 872);
-            this.groupShortCut1.Margin = new System.Windows.Forms.Padding(4);
-            this.groupShortCut1.Name = "groupShortCut1";
-            this.groupShortCut1.Padding = new System.Windows.Forms.Padding(4);
-            this.groupShortCut1.Size = new System.Drawing.Size(511, 412);
-            this.groupShortCut1.TabIndex = 7;
-            this.groupShortCut1.TabStop = false;
-            this.groupShortCut1.Text = "ShortCut";
-            // 
-            // BtnShortCut1
-            // 
-            this.BtnShortCut1.AutoSize = false;
-            this.BtnShortCut1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnShortCut1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnShortCut1.Depth = 0;
-            this.BtnShortCut1.Enabled = false;
-            this.BtnShortCut1.HighEmphasis = true;
-            this.BtnShortCut1.Icon = null;
-            this.BtnShortCut1.Location = new System.Drawing.Point(10, 34);
-            this.BtnShortCut1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
-            this.BtnShortCut1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnShortCut1.Name = "BtnShortCut1";
-            this.BtnShortCut1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnShortCut1.Size = new System.Drawing.Size(100, 50);
-            this.BtnShortCut1.TabIndex = 18;
-            this.BtnShortCut1.Text = "ShortCut1";
-            this.BtnShortCut1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnShortCut1.UseAccentColor = false;
-            this.BtnShortCut1.UseVisualStyleBackColor = true;
-            // 
-            // PicBox_Question
-            // 
-            this.PicBox_Question.Image = global::GateHelper.Properties.Resources.question;
-            this.PicBox_Question.Location = new System.Drawing.Point(501, 964);
-            this.PicBox_Question.Margin = new System.Windows.Forms.Padding(4);
-            this.PicBox_Question.Name = "PicBox_Question";
-            this.PicBox_Question.Size = new System.Drawing.Size(50, 50);
-            this.PicBox_Question.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.PicBox_Question.TabIndex = 21;
-            this.PicBox_Question.TabStop = false;
-            this.toolTip_Question1.SetToolTip(this.PicBox_Question, "C# Windows Forms based Selenium\r\nMade by LeeJH");
-            // 
-            // BtnStart1
-            // 
-            this.BtnStart1.AutoSize = false;
-            this.BtnStart1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnStart1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnStart1.Depth = 0;
-            this.BtnStart1.Font = new System.Drawing.Font("돋움", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BtnStart1.HighEmphasis = true;
-            this.BtnStart1.Icon = null;
-            this.BtnStart1.Location = new System.Drawing.Point(24, 110);
-            this.BtnStart1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.BtnStart1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnStart1.Name = "BtnStart1";
-            this.BtnStart1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnStart1.Size = new System.Drawing.Size(194, 60);
-            this.BtnStart1.TabIndex = 22;
-            this.BtnStart1.Text = "Start Operation";
-            this.BtnStart1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnStart1.UseAccentColor = false;
-            this.BtnStart1.UseVisualStyleBackColor = true;
-            this.BtnStart1.Click += new System.EventHandler(this.BtnStart1_Click);
-            // 
-            // BtnReConfig1
-            // 
-            this.BtnReConfig1.AutoSize = false;
-            this.BtnReConfig1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnReConfig1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnReConfig1.Depth = 0;
-            this.BtnReConfig1.HighEmphasis = true;
-            this.BtnReConfig1.Icon = null;
-            this.BtnReConfig1.Location = new System.Drawing.Point(231, 110);
-            this.BtnReConfig1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
-            this.BtnReConfig1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnReConfig1.Name = "BtnReConfig1";
-            this.BtnReConfig1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnReConfig1.Size = new System.Drawing.Size(96, 60);
-            this.BtnReConfig1.TabIndex = 23;
-            this.BtnReConfig1.Text = "Re Config";
-            this.BtnReConfig1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnReConfig1.UseAccentColor = false;
-            this.BtnReConfig1.UseVisualStyleBackColor = true;
-            this.BtnReConfig1.Click += new System.EventHandler(this.BtnReConfig1_Click);
-            // 
-            // BtnOpenLog1
-            // 
-            this.BtnOpenLog1.AutoSize = false;
-            this.BtnOpenLog1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnOpenLog1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnOpenLog1.Depth = 0;
-            this.BtnOpenLog1.HighEmphasis = true;
-            this.BtnOpenLog1.Icon = null;
-            this.BtnOpenLog1.Location = new System.Drawing.Point(441, 110);
-            this.BtnOpenLog1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
-            this.BtnOpenLog1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnOpenLog1.Name = "BtnOpenLog1";
-            this.BtnOpenLog1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnOpenLog1.Size = new System.Drawing.Size(96, 60);
-            this.BtnOpenLog1.TabIndex = 24;
-            this.BtnOpenLog1.Text = "Open Log";
-            this.BtnOpenLog1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnOpenLog1.UseAccentColor = false;
-            this.BtnOpenLog1.UseVisualStyleBackColor = true;
-            this.BtnOpenLog1.Click += new System.EventHandler(this.BtnOpenLog1_Click);
-            // 
-            // PicBox_Arrow
-            // 
-            this.PicBox_Arrow.Image = global::GateHelper.Properties.Resources.arrow_right;
-            this.PicBox_Arrow.Location = new System.Drawing.Point(385, 964);
-            this.PicBox_Arrow.Margin = new System.Windows.Forms.Padding(4);
-            this.PicBox_Arrow.Name = "PicBox_Arrow";
-            this.PicBox_Arrow.Size = new System.Drawing.Size(50, 50);
-            this.PicBox_Arrow.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.PicBox_Arrow.TabIndex = 26;
-            this.PicBox_Arrow.TabStop = false;
-            this.PicBox_Arrow.Click += new System.EventHandler(this.PicBox_Arrow_Click);
-            // 
-            // PicBox_Setting
-            // 
-            this.PicBox_Setting.Image = global::GateHelper.Properties.Resources.sun;
-            this.PicBox_Setting.Location = new System.Drawing.Point(443, 964);
-            this.PicBox_Setting.Margin = new System.Windows.Forms.Padding(4);
-            this.PicBox_Setting.Name = "PicBox_Setting";
-            this.PicBox_Setting.Size = new System.Drawing.Size(50, 50);
-            this.PicBox_Setting.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.PicBox_Setting.TabIndex = 25;
-            this.PicBox_Setting.TabStop = false;
-            this.PicBox_Setting.Click += new System.EventHandler(this.PicBox_Setting_Click);
-            // 
-            // CBox_TestMode1
-            // 
-            this.CBox_TestMode1.AutoSize = true;
-            this.CBox_TestMode1.Depth = 0;
-            this.CBox_TestMode1.Location = new System.Drawing.Point(27, 950);
-            this.CBox_TestMode1.Margin = new System.Windows.Forms.Padding(0);
-            this.CBox_TestMode1.MouseLocation = new System.Drawing.Point(-1, -1);
-            this.CBox_TestMode1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.CBox_TestMode1.Name = "CBox_TestMode1";
-            this.CBox_TestMode1.ReadOnly = false;
-            this.CBox_TestMode1.Ripple = true;
-            this.CBox_TestMode1.Size = new System.Drawing.Size(123, 37);
-            this.CBox_TestMode1.TabIndex = 27;
-            this.CBox_TestMode1.Text = "TEST MODE";
-            this.CBox_TestMode1.UseVisualStyleBackColor = true;
-            this.CBox_TestMode1.CheckedChanged += new System.EventHandler(this.CBox_TestMode1_CheckedChanged);
             // 
             // ListViewServer2
             // 
@@ -710,10 +467,11 @@ namespace GateHelper
             this.ListViewServer2.GridLines = true;
             this.ListViewServer2.HideSelection = false;
             this.ListViewServer2.HoverSelection = true;
-            this.ListViewServer2.Location = new System.Drawing.Point(3, 3);
-            this.ListViewServer2.MinimumSize = new System.Drawing.Size(200, 100);
+            this.ListViewServer2.Location = new System.Drawing.Point(2, 2);
+            this.ListViewServer2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.ListViewServer2.MinimumSize = new System.Drawing.Size(141, 68);
             this.ListViewServer2.Name = "ListViewServer2";
-            this.ListViewServer2.Size = new System.Drawing.Size(762, 522);
+            this.ListViewServer2.Size = new System.Drawing.Size(535, 349);
             this.ListViewServer2.TabIndex = 28;
             this.ListViewServer2.UseCompatibleStateImageBehavior = false;
             this.ListViewServer2.View = System.Windows.Forms.View.Details;
@@ -738,12 +496,252 @@ namespace GateHelper
             this.Memo1.Text = "Memo";
             this.Memo1.Width = 220;
             // 
+            // TabSelector1
+            // 
+            this.TabSelector1.BaseTabControl = this.TabControl1;
+            this.TabSelector1.CharacterCasing = MaterialSkin.Controls.MaterialTabSelector.CustomCharacterCasing.Normal;
+            this.TabSelector1.Depth = 0;
+            this.TabSelector1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.TabSelector1.ForeColor = System.Drawing.SystemColors.Control;
+            this.TabSelector1.Location = new System.Drawing.Point(19, 135);
+            this.TabSelector1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.TabSelector1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.TabSelector1.Name = "TabSelector1";
+            this.TabSelector1.Size = new System.Drawing.Size(365, 32);
+            this.TabSelector1.TabIndex = 5;
+            this.TabSelector1.TabIndicatorHeight = 3;
+            this.TabSelector1.Text = "TabSelector1";
+            // 
+            // CBox_DisablePopup1
+            // 
+            this.CBox_DisablePopup1.AutoSize = true;
+            this.CBox_DisablePopup1.Depth = 0;
+            this.CBox_DisablePopup1.Enabled = false;
+            this.CBox_DisablePopup1.Location = new System.Drawing.Point(18, 599);
+            this.CBox_DisablePopup1.Margin = new System.Windows.Forms.Padding(0);
+            this.CBox_DisablePopup1.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.CBox_DisablePopup1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.CBox_DisablePopup1.Name = "CBox_DisablePopup1";
+            this.CBox_DisablePopup1.ReadOnly = false;
+            this.CBox_DisablePopup1.Ripple = true;
+            this.CBox_DisablePopup1.Size = new System.Drawing.Size(201, 37);
+            this.CBox_DisablePopup1.TabIndex = 11;
+            this.CBox_DisablePopup1.Text = "DISABLE POP-UP (Non)";
+            this.CBox_DisablePopup1.UseVisualStyleBackColor = true;
+            this.CBox_DisablePopup1.CheckedChanged += new System.EventHandler(this.DisablePopupCheckBox1_CheckedChanged);
+            // 
+            // BtnStart2
+            // 
+            this.BtnStart2.AutoSize = false;
+            this.BtnStart2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnStart2.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnStart2.Depth = 0;
+            this.BtnStart2.Enabled = false;
+            this.BtnStart2.HighEmphasis = true;
+            this.BtnStart2.Icon = null;
+            this.BtnStart2.Location = new System.Drawing.Point(863, 106);
+            this.BtnStart2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnStart2.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnStart2.Name = "BtnStart2";
+            this.BtnStart2.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnStart2.Size = new System.Drawing.Size(147, 40);
+            this.BtnStart2.TabIndex = 17;
+            this.BtnStart2.Text = "Start2";
+            this.BtnStart2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnStart2.UseAccentColor = false;
+            this.BtnStart2.UseVisualStyleBackColor = true;
+            this.BtnStart2.Click += new System.EventHandler(this.BtnStart2_Click);
+            // 
+            // CBox_FavOneClickConnect1
+            // 
+            this.CBox_FavOneClickConnect1.AutoSize = true;
+            this.CBox_FavOneClickConnect1.Depth = 0;
+            this.CBox_FavOneClickConnect1.Enabled = false;
+            this.CBox_FavOneClickConnect1.Location = new System.Drawing.Point(18, 565);
+            this.CBox_FavOneClickConnect1.Margin = new System.Windows.Forms.Padding(0);
+            this.CBox_FavOneClickConnect1.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.CBox_FavOneClickConnect1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.CBox_FavOneClickConnect1.Name = "CBox_FavOneClickConnect1";
+            this.CBox_FavOneClickConnect1.ReadOnly = false;
+            this.CBox_FavOneClickConnect1.Ripple = true;
+            this.CBox_FavOneClickConnect1.Size = new System.Drawing.Size(193, 37);
+            this.CBox_FavOneClickConnect1.TabIndex = 18;
+            this.CBox_FavOneClickConnect1.Text = "Fav One-Click Connect";
+            this.toolTip_FavOneClickConnect1.SetToolTip(this.CBox_FavOneClickConnect1, "설정 : 검색후 접속까지\r\n해제 : 검색만\r\n");
+            this.CBox_FavOneClickConnect1.UseVisualStyleBackColor = true;
+            // 
+            // BtnOpenConfig1
+            // 
+            this.BtnOpenConfig1.AutoSize = false;
+            this.BtnOpenConfig1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnOpenConfig1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnOpenConfig1.Depth = 0;
+            this.BtnOpenConfig1.HighEmphasis = true;
+            this.BtnOpenConfig1.Icon = null;
+            this.BtnOpenConfig1.Location = new System.Drawing.Point(236, 73);
+            this.BtnOpenConfig1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnOpenConfig1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnOpenConfig1.Name = "BtnOpenConfig1";
+            this.BtnOpenConfig1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnOpenConfig1.Size = new System.Drawing.Size(67, 40);
+            this.BtnOpenConfig1.TabIndex = 20;
+            this.BtnOpenConfig1.Text = "Open Config";
+            this.BtnOpenConfig1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnOpenConfig1.UseAccentColor = false;
+            this.BtnOpenConfig1.UseVisualStyleBackColor = true;
+            this.BtnOpenConfig1.Click += new System.EventHandler(this.BtnOpenConfig1_Click);
+            // 
+            // groupShortCut1
+            // 
+            this.groupShortCut1.Controls.Add(this.BtnShortCut1);
+            this.groupShortCut1.Location = new System.Drawing.Point(574, 581);
+            this.groupShortCut1.Name = "groupShortCut1";
+            this.groupShortCut1.Size = new System.Drawing.Size(358, 275);
+            this.groupShortCut1.TabIndex = 7;
+            this.groupShortCut1.TabStop = false;
+            this.groupShortCut1.Text = "ShortCut";
+            // 
+            // BtnShortCut1
+            // 
+            this.BtnShortCut1.AutoSize = false;
+            this.BtnShortCut1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnShortCut1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnShortCut1.Depth = 0;
+            this.BtnShortCut1.Enabled = false;
+            this.BtnShortCut1.HighEmphasis = true;
+            this.BtnShortCut1.Icon = null;
+            this.BtnShortCut1.Location = new System.Drawing.Point(7, 23);
+            this.BtnShortCut1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnShortCut1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnShortCut1.Name = "BtnShortCut1";
+            this.BtnShortCut1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnShortCut1.Size = new System.Drawing.Size(70, 33);
+            this.BtnShortCut1.TabIndex = 18;
+            this.BtnShortCut1.Text = "ShortCut1";
+            this.BtnShortCut1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnShortCut1.UseAccentColor = false;
+            this.BtnShortCut1.UseVisualStyleBackColor = true;
+            // 
+            // PicBox_Question
+            // 
+            this.PicBox_Question.Image = global::GateHelper.Properties.Resources.question;
+            this.PicBox_Question.Location = new System.Drawing.Point(351, 643);
+            this.PicBox_Question.Name = "PicBox_Question";
+            this.PicBox_Question.Size = new System.Drawing.Size(35, 33);
+            this.PicBox_Question.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.PicBox_Question.TabIndex = 21;
+            this.PicBox_Question.TabStop = false;
+            this.toolTip_Question1.SetToolTip(this.PicBox_Question, "C# Windows Forms based Selenium\r\nMade by LeeJH");
+            // 
+            // BtnStart1
+            // 
+            this.BtnStart1.AutoSize = false;
+            this.BtnStart1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnStart1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnStart1.Depth = 0;
+            this.BtnStart1.Font = new System.Drawing.Font("돋움", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BtnStart1.HighEmphasis = true;
+            this.BtnStart1.Icon = null;
+            this.BtnStart1.Location = new System.Drawing.Point(17, 73);
+            this.BtnStart1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.BtnStart1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnStart1.Name = "BtnStart1";
+            this.BtnStart1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnStart1.Size = new System.Drawing.Size(136, 40);
+            this.BtnStart1.TabIndex = 22;
+            this.BtnStart1.Text = "Start Operation";
+            this.BtnStart1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnStart1.UseAccentColor = false;
+            this.BtnStart1.UseVisualStyleBackColor = true;
+            this.BtnStart1.Click += new System.EventHandler(this.BtnStart1_Click);
+            // 
+            // BtnReConfig1
+            // 
+            this.BtnReConfig1.AutoSize = false;
+            this.BtnReConfig1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnReConfig1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnReConfig1.Depth = 0;
+            this.BtnReConfig1.HighEmphasis = true;
+            this.BtnReConfig1.Icon = null;
+            this.BtnReConfig1.Location = new System.Drawing.Point(162, 73);
+            this.BtnReConfig1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnReConfig1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnReConfig1.Name = "BtnReConfig1";
+            this.BtnReConfig1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnReConfig1.Size = new System.Drawing.Size(67, 40);
+            this.BtnReConfig1.TabIndex = 23;
+            this.BtnReConfig1.Text = "Re Config";
+            this.BtnReConfig1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnReConfig1.UseAccentColor = false;
+            this.BtnReConfig1.UseVisualStyleBackColor = true;
+            this.BtnReConfig1.Click += new System.EventHandler(this.BtnReConfig1_Click);
+            // 
+            // BtnOpenLog1
+            // 
+            this.BtnOpenLog1.AutoSize = false;
+            this.BtnOpenLog1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnOpenLog1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnOpenLog1.Depth = 0;
+            this.BtnOpenLog1.HighEmphasis = true;
+            this.BtnOpenLog1.Icon = null;
+            this.BtnOpenLog1.Location = new System.Drawing.Point(309, 73);
+            this.BtnOpenLog1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnOpenLog1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnOpenLog1.Name = "BtnOpenLog1";
+            this.BtnOpenLog1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnOpenLog1.Size = new System.Drawing.Size(67, 40);
+            this.BtnOpenLog1.TabIndex = 24;
+            this.BtnOpenLog1.Text = "Open Log";
+            this.BtnOpenLog1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnOpenLog1.UseAccentColor = false;
+            this.BtnOpenLog1.UseVisualStyleBackColor = true;
+            this.BtnOpenLog1.Click += new System.EventHandler(this.BtnOpenLog1_Click);
+            // 
+            // PicBox_Arrow
+            // 
+            this.PicBox_Arrow.Image = global::GateHelper.Properties.Resources.arrow_right;
+            this.PicBox_Arrow.Location = new System.Drawing.Point(269, 643);
+            this.PicBox_Arrow.Name = "PicBox_Arrow";
+            this.PicBox_Arrow.Size = new System.Drawing.Size(35, 33);
+            this.PicBox_Arrow.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.PicBox_Arrow.TabIndex = 26;
+            this.PicBox_Arrow.TabStop = false;
+            this.PicBox_Arrow.Click += new System.EventHandler(this.PicBox_Arrow_Click);
+            // 
+            // PicBox_Setting
+            // 
+            this.PicBox_Setting.Image = global::GateHelper.Properties.Resources.sun;
+            this.PicBox_Setting.Location = new System.Drawing.Point(310, 643);
+            this.PicBox_Setting.Name = "PicBox_Setting";
+            this.PicBox_Setting.Size = new System.Drawing.Size(35, 33);
+            this.PicBox_Setting.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.PicBox_Setting.TabIndex = 25;
+            this.PicBox_Setting.TabStop = false;
+            this.PicBox_Setting.Click += new System.EventHandler(this.PicBox_Setting_Click);
+            // 
+            // CBox_TestMode1
+            // 
+            this.CBox_TestMode1.AutoSize = true;
+            this.CBox_TestMode1.Depth = 0;
+            this.CBox_TestMode1.Location = new System.Drawing.Point(19, 633);
+            this.CBox_TestMode1.Margin = new System.Windows.Forms.Padding(0);
+            this.CBox_TestMode1.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.CBox_TestMode1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.CBox_TestMode1.Name = "CBox_TestMode1";
+            this.CBox_TestMode1.ReadOnly = false;
+            this.CBox_TestMode1.Ripple = true;
+            this.CBox_TestMode1.Size = new System.Drawing.Size(123, 37);
+            this.CBox_TestMode1.TabIndex = 27;
+            this.CBox_TestMode1.Text = "TEST MODE";
+            this.CBox_TestMode1.UseVisualStyleBackColor = true;
+            this.CBox_TestMode1.CheckedChanged += new System.EventHandler(this.CBox_TestMode1_CheckedChanged);
+            // 
             // MainUI
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 18F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(1584, 1100);
+            this.ClientSize = new System.Drawing.Size(1109, 733);
             this.Controls.Add(this.ListViewServer1);
             this.Controls.Add(this.CBox_TestMode1);
             this.Controls.Add(this.PicBox_Arrow);
@@ -762,7 +760,9 @@ namespace GateHelper
             this.Controls.Add(this.BtnLogin1);
             this.Controls.Add(this.TestBtn1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
             this.Name = "MainUI";
+            this.Padding = new System.Windows.Forms.Padding(2, 43, 2, 2);
             this.Sizable = false;
             this.Text = "GATE HELPER";
             this.Load += new System.EventHandler(this.MainUI_Load);

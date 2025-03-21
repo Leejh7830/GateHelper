@@ -11,13 +11,14 @@ namespace GateHelper
 {
     internal class Util_Test
     {
-        public static void EnterTestMode(Form form, ref bool testModeFlag)
+        public static void EnterTestMode(Form form, Control TabSelector1, ref bool testModeFlag)
         {
             DialogResult result = MessageBox.Show("테스트 모드로 전환할까요?", "테스트 모드", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
             if (result == DialogResult.Yes)
             {
                 form.Size = new Size(1400, 800);
+                TabSelector1.Size = new Size(520, 30);
                 testModeFlag = true;
             }
             else
