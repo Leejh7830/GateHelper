@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BrightIdeasSoftware;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -6,6 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static GateHelper.LogManager;
+using static GateHelper.Util_ServerList;
 
 namespace GateHelper
 {
@@ -47,7 +49,7 @@ namespace GateHelper
             }
         }
 
-        // 서버 접속 시뮬레이션 (Connect)
+        // ListView에 서버 접속 정보 추가 (일반 listview)
         public static void SimulateServerConnect(Form form, ListView listView, ComboBox comboBox, ref bool testMode)
         {
             try
@@ -58,8 +60,6 @@ namespace GateHelper
                     LogMessage($"테스트 모드: 서버 '{selectedServer}'에 접속 시도", Level.Info);
                     string currentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                     AddServerToHistoryListView(listView, selectedServer, currentTime, "ListView 추가 완료");
-
-                    // MessageBox.Show($"테스트 모드: 서버 '{selectedServer}'에 접속!", "테스트 모드", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else
                 {
@@ -72,6 +72,7 @@ namespace GateHelper
                 MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+
 
         // ListView에 서버 접속 정보 추가
         private static void AddServerToHistoryListView(ListView listView, string serverName, string lastConnectedTime, string userMemo)
@@ -87,6 +88,50 @@ namespace GateHelper
             listView.Items.Add(listViewItem);
             listView.Invalidate();
         }
+
+        // ListView에 서버 접속 정보 추가 (ObjectListView 사용)
+        public static void SimulateServerConnect(Form form, ObjectListView listView, ComboBox comboBox, ref bool testMode)
+        {
+            try
+            {
+                if (testMode)
+                {
+                    string selectedServer = comboBox.SelectedItem.ToString();
+                    LogMessage($"테스트 모드: 서버 '{selectedServer}'에 접속 시도", Level.Info);
+                    string currentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+
+                    AddServerToHistoryListView(listView, selectedServer, currentTime, "ListView 추가 완료");
+                }
+                else
+                {
+                    MessageBox.Show("테스트 모드가 아닙니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error);
+                MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        
+        private static void AddServerToHistoryListView(ObjectListView listView, string serverName, string lastConnectedTime, string userMemo)
+        {
+            var serverInfo = new ServerInfo
+            {
+                No = (listView.GetItemCount() + 1).ToString(),
+                ServerName = serverName,
+                LastConnected = lastConnectedTime,
+                Memo = userMemo
+            };
+
+            listView.AddObject(serverInfo);
+            listView.Invalidate();
+
+            MessageBox.Show($"서버 '{serverName}'가 리스트뷰에 추가되었습니다.", "서버 추가", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+
 
     }
 }

@@ -12,6 +12,7 @@ using SeleniumExtras.WaitHelpers;
 using System.Configuration;
 using System.IO;
 using System.Threading;
+using BrightIdeasSoftware;
 
 
 namespace GateHelper
@@ -215,7 +216,6 @@ namespace GateHelper
             {
                 if (testMode) // 테스트 모드일 때만 동작
                 {
-                    // Util_Test.SimulateServerConnect(this, ListViewServer1, ComboBoxServerList1, ref testMode);
                     Util_Test.SimulateServerConnect(this, ListViewServer2, ComboBoxServerList1, ref testMode);
                     Util_ServerList.SaveServerDataToFile(ListViewServer2);
                     return;
@@ -538,59 +538,14 @@ namespace GateHelper
             tabControlOriginalSize = TabControl1.Size;
 
             Util_ServerList.LoadServerDataFromFile(ListViewServer2);
-
-            // ListView에서 LabelEdit 활성화
-            ListViewServer2.LabelEdit = true;
-
-            // 편집이 끝난 후의 이벤트 핸들러 설정
-            ListViewServer2.AfterLabelEdit += ListViewServer2_AfterLabelEdit;
-
-            // 아이템 활성화 이벤트 핸들러 설정
-            ListViewServer2.ItemActivate += ListViewServer2_ItemActivate;
         }
 
-        private void ListViewServer2_ItemActivate(object sender, EventArgs e)
-        {
-            ListView listView = sender as ListView;
 
-            // 선택된 항목을 가져옴
-            if (listView.SelectedItems.Count > 0)
-            {
-                var selectedItem = listView.SelectedItems[0];
 
-                // Memo 열에서만 수정 가능하도록 설정
-                if (selectedItem.SubItems[3].Text != "")
-                {
-                    // Memo 열을 편집할 수 있게 설정
-                    listView.LabelEdit = true;
-                    selectedItem.BeginEdit(); // 편집 시작
-                }
-                else
-                {
-                    MessageBox.Show("메모를 먼저 추가하세요.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
-            }
-        }
 
-        private void ListViewServer2_AfterLabelEdit(object sender, LabelEditEventArgs e)
-        {
-            ListView listView = sender as ListView;
 
-            // Memo 열만 수정 가능하도록 조건 확인
-            if (e.Item != -1 && e.Column == 3) // 3은 Memo 열의 인덱스
-            {
-                // 수정된 값을 저장
-                listView.Items[e.Item].SubItems[e.Column].Text = e.Label;
 
-                // 수정 후 ListView 저장
-                Util_ServerList.SaveServerDataToFile(listView);
-            }
-            else
-            {
-                // 편집을 취소하도록 설정
-                e.CancelEdit = true;
-            }
-        }
+
 
         private void CBox_TestMode1_CheckedChanged(object sender, EventArgs e)
         {
@@ -601,7 +556,8 @@ namespace GateHelper
                 if (testMode)
                 {
                     Util_Test.LoadTestServers(ComboBoxServerList1);
-                } else
+                }
+                else
                 {
                     CBox_TestMode1.Checked = false;
                 }
@@ -613,6 +569,7 @@ namespace GateHelper
                 testMode = false;
             }
         }
+
 
         private void SearchTxt1_KeyDown(object sender, KeyEventArgs e)
         {

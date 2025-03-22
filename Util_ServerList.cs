@@ -1,4 +1,5 @@
-﻿using System;
+﻿using BrightIdeasSoftware;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -130,6 +131,17 @@ namespace GateHelper
                 LogMessage($"Failed to create empty server data file: {ex.Message}", Level.Error);
             }
         }
-    }
 
+        public static void SetupDataListView(ObjectListView dataListView1)
+        {
+   
+            // 기본 설정
+            dataListView1.FullRowSelect = true;
+            dataListView1.GridLines = true;
+            dataListView1.View = View.Details;
+            dataListView1.CellEditActivation = ObjectListView.CellEditActivateMode.DoubleClick; // 더블클릭으로 편집
+        }
+
+
+    }
 }
