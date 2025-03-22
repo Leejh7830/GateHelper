@@ -272,9 +272,9 @@ namespace GateHelper
                             LogManager.LogMessage("접속후 MainHandle: " + mainHandle, Level.Info);
 
                             string currentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                            Util_ServerList.AddServerToListView(ListViewServer2, selectedServer, currentTime);
-
-                            Util_ServerList.SaveServerDataToFile(ListViewServer2);
+                            Util_ServerList.AddServerToListView(ListViewServer2, selectedServer, currentTime); // 추가
+                            Util_ServerList.TrimHistoryList(ListViewServer2, 30); // 삭제
+                            Util_ServerList.SaveServerDataToFile(ListViewServer2); // 저장
                             return;
                         }
                     }

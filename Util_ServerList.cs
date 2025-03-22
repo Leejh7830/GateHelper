@@ -25,18 +25,21 @@ namespace GateHelper
         }
 
         // 서버 데이터를 ListView에 추가
-        public static void AddServerToListView(ListView listView, string serverName, string lastConnected)
+        public static void AddServerToListView(ListView listView, string serverName, string lastConnected, int maxCount = 100)
         {
-            // 항목 번호는 ListView의 아이템 갯수를 기준으로 설정
+            TrimHistoryList(listView, maxCount);
+
+            // 항목 추가
             ListViewItem listViewItem = new ListViewItem(new[]
             {
-            (listView.Items.Count + 1).ToString(), // 항목 번호
-            serverName, // 서버 이름
-            lastConnected, // 마지막 접속 시간
-            "" // Memo는 빈 값으로 설정
-        });
+                "TEMP", // 일단 임시로 넣고, 나중에 No 재정렬
+                serverName,
+                lastConnected,
+                "" // Memo 값
+            });
 
-            listView.Items.Add(listViewItem); // ListView에 항목 추가
+            listView.Items.Add(listViewItem);
+            ReorderListViewItems(listView); // 재정렬
         }
 
         // 서버 데이터를 파일로 저장하는 메서드
@@ -94,11 +97,11 @@ namespace GateHelper
                     {
                         ListViewItem item = new ListViewItem(new[]
                         {
-                    server.No,
-                    server.ServerName,
-                    server.LastConnected,
-                    server.Memo
-                });
+                            server.No,
+                            server.ServerName,
+                            server.LastConnected,
+                            server.Memo
+                        });
                         listView.Items.Add(item);
                     }
 
@@ -132,16 +135,20 @@ namespace GateHelper
             }
         }
 
-        public static void SetupDataListView(ObjectListView dataListView1)
+        public static void TrimHistoryList(ListView listView, int maxCount)
         {
-   
-            // 기본 설정
-            dataListView1.FullRowSelect = true;
-            dataListView1.GridLines = true;
-            dataListView1.View = View.Details;
-            dataListView1.CellEditActivation = ObjectListView.CellEditActivateMode.DoubleClick; // 더블클릭으로 편집
+            while (listView.Items.Count >= maxCount)
+            {
+                listView.Items.RemoveAt(0); // 오래된 것 삭제
+            }
         }
 
-
+        public static void ReorderListViewItems(ListView listView)
+        {
+            for (int i = 0; i < listView.Items.Count; i++)
+            {
+                listView.Items[i].SubItems[0].Text = (i + 1).ToString();
+            }
+        }
     }
 }

@@ -7,7 +7,6 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static GateHelper.LogManager;
-using static GateHelper.Util_ServerList;
 
 namespace GateHelper
 {
@@ -34,12 +33,12 @@ namespace GateHelper
         {
             List<string> testServers = new List<string>
             {
-                "Test A Server1",
-                "Test B Server2",
-                "Test C Server3",
-                "Test D Client1",
-                "Test E Client2",
-                "Test F Client3"
+                "Test A 11111",
+                "Test B 22222",
+                "Test C 33333",
+                "Test D 44444",
+                "Test E 55555",
+                "Test F 66666"
             };
 
             comboBox.Items.Clear();
@@ -59,7 +58,8 @@ namespace GateHelper
                     string selectedServer = comboBox.SelectedItem.ToString();
                     LogMessage($"테스트 모드: 서버 '{selectedServer}'에 접속 시도", Level.Info);
                     string currentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                    AddServerToHistoryListView(listView, selectedServer, currentTime, "ListView 추가 완료");
+                    // AddServerToHistoryListView(listView, selectedServer, currentTime, "ListView 추가 완료");
+                    Util_ServerList.AddServerToListView(listView, selectedServer, currentTime, 30);
                 }
                 else
                 {
@@ -71,22 +71,6 @@ namespace GateHelper
                 LogException(ex, Level.Error);
                 MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-        }
-
-
-        // ListView에 서버 접속 정보 추가
-        private static void AddServerToHistoryListView(ListView listView, string serverName, string lastConnectedTime, string userMemo)
-        {
-            ListViewItem listViewItem = new ListViewItem(new[]
-            {
-                (listView.Items.Count + 1).ToString(), // 현재 항목의 갯수 + 1
-                serverName, // Server Name
-                lastConnectedTime, // Last Connected Time
-                userMemo // User Memo
-            });
-
-            listView.Items.Add(listViewItem);
-            listView.Invalidate();
         }
 
         // ListView에 서버 접속 정보 추가 (ObjectListView 사용)
@@ -117,7 +101,7 @@ namespace GateHelper
         
         private static void AddServerToHistoryListView(ObjectListView listView, string serverName, string lastConnectedTime, string userMemo)
         {
-            var serverInfo = new ServerInfo
+            var serverInfo = new Util_ServerList.ServerInfo
             {
                 No = (listView.GetItemCount() + 1).ToString(),
                 ServerName = serverName,
