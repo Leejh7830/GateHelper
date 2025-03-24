@@ -11,8 +11,6 @@ using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
 using System.Configuration;
 using System.IO;
-using System.Threading;
-using BrightIdeasSoftware;
 
 
 namespace GateHelper
@@ -35,7 +33,7 @@ namespace GateHelper
         private readonly System.Windows.Forms.Timer timer1;
 
         private Size formOriginalSize;
-        private Size groupRef1OriginalSize;
+        private Size groupConnect1OriginalSize;
         private Size tabSelector1OriginalSize;
         private Size tabControlOriginalSize;
 
@@ -165,6 +163,8 @@ namespace GateHelper
             }
         }
 
+        // 25.03.18 Added - Load Server List Button
+        // 25.03.19 Modified - Test Mode
         private void BtnLoadServers1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("BtnLoadServers1 Click", Level.Info);
@@ -336,6 +336,7 @@ namespace GateHelper
             Util.ClickFavBtn(_driver, _config, 3, () => BtnLoadServers1_Click(null, EventArgs.Empty));
         }
 
+        // 2025.03.17 Added - Config File Reload Button
         private void BtnReConfig1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("BtnConfig1 Click", Level.Info);
@@ -373,18 +374,19 @@ namespace GateHelper
             }
         }
 
+        // 2025.03.17 Added - Config File Open Button
         private void BtnOpenConfig1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("BtnOpenConfig1 Click", Level.Info);
             configManager.OpenConfigFile();
         }
-        // 2025.03.17 추가
+
+        // 2025.03.17 Added - Log File Open Button
         private void BtnOpenLog1_Click(object sender, EventArgs e)
         {
             LogManager.LogMessage("BtnOpenLog1 Click", Level.Info);
             LogManager.OpenLogFile();
         }
-
 
         private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -504,10 +506,8 @@ namespace GateHelper
 
                 // 탭 컨트롤 크기를 기준으로 그룹 박스 및 PictureBox 크기 계산
                 TabSelector1.Size = new Size(520, 30);
-                GroupRef1.Size = new Size(TabControl1.Width - 10, TabControl1.Height - 10);
-                PicBox_Ref1.Size = new Size(GroupRef1.Width - 10, GroupRef1.Height - 20);
+                GroupConnect1.Size = new Size(TabControl1.Width - 10, TabControl1.Height - 10);
 
-                PicBox_Ref1.SizeMode = PictureBoxSizeMode.StretchImage;
                 changeArrow = false;
 
                 // PictureBox 아이콘 A, B, C 위치 변경
@@ -518,9 +518,7 @@ namespace GateHelper
                 PicBox_Arrow.Image = Properties.Resources.arrow_right;
                 this.Size = formOriginalSize;
                 TabSelector1.Size = tabSelector1OriginalSize;
-
-                GroupRef1.Size = groupRef1OriginalSize;
-                PicBox_Ref1.Size = new Size(GroupRef1.Width - 10, GroupRef1.Height - 20);
+                GroupConnect1.Size = groupConnect1OriginalSize;
 
                 changeArrow = true;
 
@@ -532,12 +530,14 @@ namespace GateHelper
         private void MainUI_Load(object sender, EventArgs e)
         {
             formOriginalSize = this.Size;
-            groupRef1OriginalSize = GroupRef1.Size;
-            PicBox_Ref1.Size = new Size(GroupRef1.Width - 10, GroupRef1.Height - 20);
+            groupConnect1OriginalSize = GroupConnect1.Size;
             tabSelector1OriginalSize = TabSelector1.Size;
             tabControlOriginalSize = TabControl1.Size;
 
-            Util_ServerList.LoadServerDataFromFile(ListViewServer2);
+            Util_ImageLoader.EnsureReferenceImagesFolderExists(); // ReferenceImages Folder Check
+            Util_ImageLoader.LoadReferenceImages(flowLayoutPanel1);
+
+            Util_ServerList.LoadServerDataFromFile(ListViewServer2); // ServerData Load
         }
 
 
@@ -546,7 +546,7 @@ namespace GateHelper
 
 
 
-
+        // 25.03.19 Added - Test Mode Functions
         private void CBox_TestMode1_CheckedChanged(object sender, EventArgs e)
         {
             if (CBox_TestMode1.Checked)
@@ -579,5 +579,14 @@ namespace GateHelper
             }
         }
 
+        private void BtnOpenImages1_Click(object sender, EventArgs e)
+        {
+            Util_ImageLoader.OpenReferenceImagesFolder();
+        }
+
+        private void BtnReloadImages1_Click(object sender, EventArgs e)
+        {
+            Util_ImageLoader.LoadReferenceImages(flowLayoutPanel1);
+        }
     }
 }

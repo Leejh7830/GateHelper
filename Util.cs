@@ -12,7 +12,7 @@ using System.Runtime.InteropServices;
 using System.Collections.ObjectModel;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using Level = GateHelper.LogManager.Level;
+using static GateHelper.LogManager;
 using System.Diagnostics;
 
 namespace GateHelper
@@ -76,14 +76,25 @@ namespace GateHelper
             }
         }
 
+        public static string CreateMetaFolderAndGetPath()
+        {
+            string metaPath = Path.Combine(Application.StartupPath, "_meta");
 
+            if (!Directory.Exists(metaPath))
+            {
+                Directory.CreateDirectory(metaPath);
+                LogMessage("Create Meta Folder", Level.Info);
+            }
+
+            return metaPath;
+        }
 
         public static void ClickFavBtn(IWebDriver _driver, Config config, int favIndex, Action serverListLoadAction)
         {
             try
             {
                 string favKey = $"Fav{favIndex}";
-                LogManager.LogMessage($"BtnFav{favIndex} Click", Level.Info);
+                LogMessage($"BtnFav{favIndex} Click", Level.Info);
                 string serverName, serverIP;
                 ValidateServerInfo(config.GetType().GetProperty(favKey).GetValue(config).ToString(), out serverName, out serverIP);
 
@@ -108,17 +119,17 @@ namespace GateHelper
             }
             catch (ArgumentException ex)
             {
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
                 MessageBox.Show(ex.Message, "알림");
             }
             catch (NoSuchElementException ex)
             {
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
                 MessageBox.Show("요소를 찾을 수 없습니다.", "오류");
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, Level.Critical);
+                LogException(ex, Level.Critical);
                 MessageBox.Show("예상치 못한 오류가 발생했습니다.", "오류");
             }
         }
@@ -133,13 +144,13 @@ namespace GateHelper
             }
             catch (WebDriverTimeoutException ex)
             {
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
                 MessageBox.Show($"XPath 요소 로딩 시간 초과 (제한 시간: {timeoutSeconds}초)", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 throw; // 예외 다시 던지기
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
                 MessageBox.Show($"XPath 요소 로딩 중 오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 throw; // 예외 다시 던지기
             }
@@ -176,7 +187,7 @@ namespace GateHelper
             catch (Exception ex)
             {
                 MessageBox.Show($"키 입력 오류: {ex.Message}");
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
             }
         }
 
@@ -226,17 +237,17 @@ namespace GateHelper
             }
             catch (FormatException ex)
             {
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
                 MessageBox.Show($"잘못된 핸들 문자열 형식: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (OverflowException ex)
             {
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
                 MessageBox.Show($"핸들 문자열 값이 범위를 벗어남: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
                 MessageBox.Show($"크롬 창 포커스 이동 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -280,7 +291,7 @@ namespace GateHelper
             catch (Exception ex)
             {
                 MessageBox.Show($"iframe 조사 및 요소 수집 중 오류 발생: {ex.Message}", "오류");
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
             }
         }
 
@@ -350,7 +361,7 @@ namespace GateHelper
                 if (!Directory.Exists(folderPath))
                 {
                     Directory.CreateDirectory(folderPath);
-                    LogManager.LogMessage($"{Path.GetFileName(folderPath)} 폴더 생성", Level.Info);
+                    LogMessage($"{Path.GetFileName(folderPath)} 폴더 생성", Level.Info);
                     return true;
                 }
                 else
@@ -362,7 +373,7 @@ namespace GateHelper
             catch (Exception ex)
             {
                 MessageBox.Show($"폴더 생성 오류: {ex.Message}");
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
                 return false; // 실패
             }
         }
@@ -377,11 +388,11 @@ namespace GateHelper
             catch (Exception ex)
             {
                 MessageBox.Show($"드라이버 종료 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
             }
             finally
             {
-                LogManager.LogMessage("ChromeDriver 종료", Level.Info);
+                LogMessage("ChromeDriver 종료", Level.Info);
             }
         }
 

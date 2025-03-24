@@ -7,8 +7,9 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.IO;
+using static GateHelper.LogManager;
 
 namespace GateHelper
 {
@@ -116,6 +117,7 @@ namespace GateHelper
                 pictureBoxA.Location = new Point(xPos, formOriginalSize.Height - pictureBoxA.Height - 10);
             }
         }
+
 
         
 

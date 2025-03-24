@@ -35,8 +35,6 @@ namespace GateHelper
             this.BtnLogin1 = new MaterialSkin.Controls.MaterialButton();
             this.TestBtn1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnSearch1 = new MaterialSkin.Controls.MaterialButton();
-            this.GroupRef1 = new System.Windows.Forms.GroupBox();
-            this.PicBox_Ref1 = new System.Windows.Forms.PictureBox();
             this.ListViewServer1 = new MaterialSkin.Controls.MaterialListView();
             this.No = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SVName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -53,8 +51,13 @@ namespace GateHelper
             this.BtnFav3 = new MaterialSkin.Controls.MaterialButton();
             this.TabControl1 = new MaterialSkin.Controls.MaterialTabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.dummyControlOutsideTab = new MaterialSkin.Controls.MaterialButton();
+            this.BtnOpenImages1 = new MaterialSkin.Controls.MaterialButton();
+            this.BtnReloadImages1 = new MaterialSkin.Controls.MaterialButton();
+            this.GroupRef2 = new System.Windows.Forms.GroupBox();
+            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
+            this.tabPage4 = new System.Windows.Forms.TabPage();
             this.ListViewServer2 = new System.Windows.Forms.ListView();
             this.No1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SVName1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -81,14 +84,13 @@ namespace GateHelper
             this.SVName2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.LastConnected2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.Memo2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
-            this.GroupRef1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.PicBox_Ref1)).BeginInit();
             this.GroupConnect1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
             this.TabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
-            this.tabPage2.SuspendLayout();
             this.tabPage3.SuspendLayout();
+            this.GroupRef2.SuspendLayout();
+            this.tabPage4.SuspendLayout();
             this.groupShortCut1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).BeginInit();
@@ -156,29 +158,6 @@ namespace GateHelper
             this.BtnSearch1.UseVisualStyleBackColor = true;
             this.BtnSearch1.Click += new System.EventHandler(this.BtnSearch1_Click);
             // 
-            // GroupRef1
-            // 
-            this.GroupRef1.Controls.Add(this.PicBox_Ref1);
-            this.GroupRef1.Location = new System.Drawing.Point(4, 4);
-            this.GroupRef1.Margin = new System.Windows.Forms.Padding(4);
-            this.GroupRef1.Name = "GroupRef1";
-            this.GroupRef1.Padding = new System.Windows.Forms.Padding(4);
-            this.GroupRef1.Size = new System.Drawing.Size(554, 454);
-            this.GroupRef1.TabIndex = 6;
-            this.GroupRef1.TabStop = false;
-            this.GroupRef1.Text = "Reference";
-            // 
-            // PicBox_Ref1
-            // 
-            this.PicBox_Ref1.Image = ((System.Drawing.Image)(resources.GetObject("PicBox_Ref1.Image")));
-            this.PicBox_Ref1.Location = new System.Drawing.Point(4, 26);
-            this.PicBox_Ref1.Margin = new System.Windows.Forms.Padding(4);
-            this.PicBox_Ref1.Name = "PicBox_Ref1";
-            this.PicBox_Ref1.Size = new System.Drawing.Size(546, 424);
-            this.PicBox_Ref1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.PicBox_Ref1.TabIndex = 21;
-            this.PicBox_Ref1.TabStop = false;
-            // 
             // ListViewServer1
             // 
             this.ListViewServer1.AutoSizeTable = false;
@@ -199,6 +178,7 @@ namespace GateHelper
             this.ListViewServer1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.ListViewServer1.MouseState = MaterialSkin.MouseState.OUT;
             this.ListViewServer1.Name = "ListViewServer1";
+            this.ListViewServer1.OwnerDraw = true;
             this.ListViewServer1.Size = new System.Drawing.Size(694, 253);
             this.ListViewServer1.TabIndex = 10;
             this.ListViewServer1.UseCompatibleStateImageBehavior = false;
@@ -415,8 +395,8 @@ namespace GateHelper
             // TabControl1
             // 
             this.TabControl1.Controls.Add(this.tabPage1);
-            this.TabControl1.Controls.Add(this.tabPage2);
             this.TabControl1.Controls.Add(this.tabPage3);
+            this.TabControl1.Controls.Add(this.tabPage4);
             this.TabControl1.Depth = 0;
             this.TabControl1.Location = new System.Drawing.Point(9, 254);
             this.TabControl1.MouseState = MaterialSkin.MouseState.HOVER;
@@ -437,27 +417,113 @@ namespace GateHelper
             this.tabPage1.Text = "SERVER";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
-            // tabPage2
-            // 
-            this.tabPage2.Controls.Add(this.GroupRef1);
-            this.tabPage2.Location = new System.Drawing.Point(4, 28);
-            this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(768, 534);
-            this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "REFERENCE";
-            this.tabPage2.UseVisualStyleBackColor = true;
-            // 
             // tabPage3
             // 
-            this.tabPage3.Controls.Add(this.ListViewServer2);
+            this.tabPage3.Controls.Add(this.dummyControlOutsideTab);
+            this.tabPage3.Controls.Add(this.BtnOpenImages1);
+            this.tabPage3.Controls.Add(this.BtnReloadImages1);
+            this.tabPage3.Controls.Add(this.GroupRef2);
             this.tabPage3.Location = new System.Drawing.Point(4, 28);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage3.Size = new System.Drawing.Size(768, 534);
             this.tabPage3.TabIndex = 2;
-            this.tabPage3.Text = "HISTORY";
+            this.tabPage3.Text = "tabPage4";
             this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // dummyControlOutsideTab
+            // 
+            this.dummyControlOutsideTab.AutoSize = false;
+            this.dummyControlOutsideTab.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.dummyControlOutsideTab.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.dummyControlOutsideTab.Depth = 0;
+            this.dummyControlOutsideTab.HighEmphasis = true;
+            this.dummyControlOutsideTab.Icon = null;
+            this.dummyControlOutsideTab.Location = new System.Drawing.Point(752, 12);
+            this.dummyControlOutsideTab.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.dummyControlOutsideTab.MouseState = MaterialSkin.MouseState.HOVER;
+            this.dummyControlOutsideTab.Name = "dummyControlOutsideTab";
+            this.dummyControlOutsideTab.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.dummyControlOutsideTab.Size = new System.Drawing.Size(0, 0);
+            this.dummyControlOutsideTab.TabIndex = 29;
+            this.dummyControlOutsideTab.Text = "ShortCut1";
+            this.dummyControlOutsideTab.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.dummyControlOutsideTab.UseAccentColor = true;
+            this.dummyControlOutsideTab.UseVisualStyleBackColor = true;
+            // 
+            // BtnOpenImages1
+            // 
+            this.BtnOpenImages1.AutoSize = false;
+            this.BtnOpenImages1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnOpenImages1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnOpenImages1.Depth = 0;
+            this.BtnOpenImages1.HighEmphasis = true;
+            this.BtnOpenImages1.Icon = null;
+            this.BtnOpenImages1.Location = new System.Drawing.Point(118, 465);
+            this.BtnOpenImages1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnOpenImages1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnOpenImages1.Name = "BtnOpenImages1";
+            this.BtnOpenImages1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnOpenImages1.Size = new System.Drawing.Size(96, 60);
+            this.BtnOpenImages1.TabIndex = 31;
+            this.BtnOpenImages1.Text = "Open Images";
+            this.BtnOpenImages1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnOpenImages1.UseAccentColor = false;
+            this.BtnOpenImages1.UseVisualStyleBackColor = true;
+            this.BtnOpenImages1.Click += new System.EventHandler(this.BtnOpenImages1_Click);
+            // 
+            // BtnReloadImages1
+            // 
+            this.BtnReloadImages1.AutoSize = false;
+            this.BtnReloadImages1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnReloadImages1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnReloadImages1.Depth = 0;
+            this.BtnReloadImages1.HighEmphasis = true;
+            this.BtnReloadImages1.Icon = null;
+            this.BtnReloadImages1.Location = new System.Drawing.Point(14, 465);
+            this.BtnReloadImages1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnReloadImages1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnReloadImages1.Name = "BtnReloadImages1";
+            this.BtnReloadImages1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnReloadImages1.Size = new System.Drawing.Size(96, 60);
+            this.BtnReloadImages1.TabIndex = 32;
+            this.BtnReloadImages1.Text = "Reload Images";
+            this.BtnReloadImages1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnReloadImages1.UseAccentColor = false;
+            this.BtnReloadImages1.UseVisualStyleBackColor = true;
+            this.BtnReloadImages1.Click += new System.EventHandler(this.BtnReloadImages1_Click);
+            // 
+            // GroupRef2
+            // 
+            this.GroupRef2.Controls.Add(this.flowLayoutPanel1);
+            this.GroupRef2.Location = new System.Drawing.Point(4, 4);
+            this.GroupRef2.Margin = new System.Windows.Forms.Padding(4);
+            this.GroupRef2.Name = "GroupRef2";
+            this.GroupRef2.Padding = new System.Windows.Forms.Padding(4);
+            this.GroupRef2.Size = new System.Drawing.Size(554, 454);
+            this.GroupRef2.TabIndex = 7;
+            this.GroupRef2.TabStop = false;
+            this.GroupRef2.Text = "Reference";
+            // 
+            // flowLayoutPanel1
+            // 
+            this.flowLayoutPanel1.AutoScroll = true;
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(4, 26);
+            this.flowLayoutPanel1.Name = "flowLayoutPanel1";
+            this.flowLayoutPanel1.Padding = new System.Windows.Forms.Padding(5);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(543, 421);
+            this.flowLayoutPanel1.TabIndex = 29;
+            // 
+            // tabPage4
+            // 
+            this.tabPage4.Controls.Add(this.ListViewServer2);
+            this.tabPage4.Location = new System.Drawing.Point(4, 28);
+            this.tabPage4.Name = "tabPage4";
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage4.Size = new System.Drawing.Size(768, 534);
+            this.tabPage4.TabIndex = 3;
+            this.tabPage4.Text = "HISTORY";
+            this.tabPage4.UseVisualStyleBackColor = true;
             // 
             // ListViewServer2
             // 
@@ -757,6 +823,7 @@ namespace GateHelper
             this.SVName2,
             this.LastConnected2,
             this.Memo2});
+            this.dataListView1.Cursor = System.Windows.Forms.Cursors.Default;
             this.dataListView1.DataSource = null;
             this.dataListView1.GridLines = true;
             this.dataListView1.HideSelection = false;
@@ -815,14 +882,13 @@ namespace GateHelper
             this.Sizable = false;
             this.Text = "GATE HELPER";
             this.Load += new System.EventHandler(this.MainUI_Load);
-            this.GroupRef1.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.PicBox_Ref1)).EndInit();
             this.GroupConnect1.ResumeLayout(false);
             this.GroupFav1.ResumeLayout(false);
             this.TabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
-            this.tabPage2.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
+            this.GroupRef2.ResumeLayout(false);
+            this.tabPage4.ResumeLayout(false);
             this.groupShortCut1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).EndInit();
@@ -837,11 +903,9 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton BtnLogin1;
         private MaterialSkin.Controls.MaterialButton TestBtn1;
         private MaterialSkin.Controls.MaterialButton BtnSearch1;
-        private System.Windows.Forms.GroupBox GroupRef1;
         private System.Windows.Forms.GroupBox GroupConnect1;
         private MaterialSkin.Controls.MaterialTabControl TabControl1;
         private System.Windows.Forms.TabPage tabPage1;
-        private System.Windows.Forms.TabPage tabPage2;
         private MaterialSkin.Controls.MaterialTabSelector TabSelector1;
         private MaterialSkin.Controls.MaterialListView ListViewServer1;
         private System.Windows.Forms.ColumnHeader No;
@@ -870,7 +934,6 @@ namespace GateHelper
         private System.Windows.Forms.PictureBox PicBox_Setting;
         private System.Windows.Forms.PictureBox PicBox_Arrow;
         private System.Windows.Forms.TabPage tabPage3;
-        private System.Windows.Forms.PictureBox PicBox_Ref1;
         private System.Windows.Forms.ColumnHeader Memo;
         private MaterialSkin.Controls.MaterialCheckbox CBox_TestMode1;
         private System.Windows.Forms.ColumnHeader No1;
@@ -883,6 +946,12 @@ namespace GateHelper
         private BrightIdeasSoftware.OLVColumn SVName2;
         private BrightIdeasSoftware.OLVColumn LastConnected2;
         private BrightIdeasSoftware.OLVColumn Memo2;
+        private System.Windows.Forms.TabPage tabPage4;
+        private System.Windows.Forms.GroupBox GroupRef2;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
+        private MaterialSkin.Controls.MaterialButton BtnOpenImages1;
+        private MaterialSkin.Controls.MaterialButton BtnReloadImages1;
+        private MaterialSkin.Controls.MaterialButton dummyControlOutsideTab;
     }
 }
 

@@ -148,6 +148,7 @@
     <Compile Include="Form_Setting.Designer.cs">
       <DependentUpon>Form_Setting.cs</DependentUpon>
     </Compile>
+    <Compile Include="Util_ImageLoader.cs" />
     <Compile Include="LogManager.cs" />
     <Compile Include="MainUI.cs">
       <SubType>Form</SubType>
