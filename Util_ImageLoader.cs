@@ -72,7 +72,7 @@ namespace GateHelper
             try
             {
                 pic.Image = Image.FromFile(imgPath);
-                pic.ImageLocation = imgPath;
+                pic.ImageLocation = imgPath; // Ensure ImageLocation is set
             }
             catch
             {
@@ -85,18 +85,36 @@ namespace GateHelper
             pic.Height = 10;
             pic.Margin = new Padding(5);
             pic.Cursor = Cursors.Hand;
-            pic.AllowDrop = true; // Enable drop for drag-and-drop sorting
+            pic.AllowDrop = true;
 
-            // NEW: Drag-and-drop support
+            // Handle Drag-and-Drop
+            string folderPath = Path.Combine(Application.StartupPath, "ReferenceImages");
+            HandleDragAndDrop(pic, panel, folderPath);
+
+            pic.MouseClick += (s, e) =>
+            {
+                if (e.Button == MouseButtons.Right)
+                {
+                    ShowImagePreview(imgPath);
+                }
+            };
+
+            panel.Controls.Add(pic);
+
+            ApplyZoomAnimation(pic);
+        }
+
+        private static void HandleDragAndDrop(PictureBox pic, FlowLayoutPanel panel, string folderPath)
+        {
             pic.MouseDown += (s, e) =>
             {
                 if (e.Button == MouseButtons.Left)
-                    pic.DoDragDrop(pic, DragDropEffects.Move);
+                    pic.DoDragDrop(pic, DragDropEffects.Move); // Start drag operation
             };
 
             pic.DragEnter += (s, e) =>
             {
-                if (e.Data.GetDataPresent(typeof(PictureBox)))
+                if (e.Data.GetDataPresent(typeof(PictureBox))) // Ensure we are dragging a PictureBox
                     e.Effect = DragDropEffects.Move;
             };
 
@@ -110,49 +128,48 @@ namespace GateHelper
                     int sourceIndex = panel.Controls.GetChildIndex(source);
                     int targetIndex = panel.Controls.GetChildIndex(target);
 
+                    // Swap the PictureBox positions in the panel
                     panel.Controls.SetChildIndex(source, targetIndex);
                     panel.Controls.SetChildIndex(target, sourceIndex);
 
-                    panel.Invalidate(); // Optional: redraw
+                    panel.Invalidate(); // Optional: Force redraw
 
-                    // ✅ Save new order immediately after drop
-                    string folderPath = Path.Combine(Application.StartupPath, "ReferenceImages");
+                    // Save the new order immediately after the drag and drop
                     SaveImageOrder(panel, folderPath);
                 }
             };
+        }
 
-            // Image preview on click
-            pic.Click += (s, e) =>
+        private static void ShowImagePreview(string imgPath)
+        {
+            Form preview = new Form
             {
-                Form preview = new Form
-                {
-                    StartPosition = FormStartPosition.CenterParent,
-                    Size = new Size(600, 600)
-                };
-
-                PictureBox previewPic = new PictureBox
-                {
-                    Dock = DockStyle.Fill,
-                    SizeMode = PictureBoxSizeMode.Zoom
-                };
-
-                try
-                {
-                    previewPic.Image = Image.FromFile(imgPath);
-                }
-                catch
-                {
-                    preview.Close();
-                    return;
-                }
-
-                preview.Controls.Add(previewPic);
-                preview.ShowDialog();
+                StartPosition = FormStartPosition.CenterParent,
+                Size = new Size(600, 600)
             };
 
-            panel.Controls.Add(pic);
+            PictureBox previewPic = new PictureBox
+            {
+                Dock = DockStyle.Fill,
+                SizeMode = PictureBoxSizeMode.Zoom
+            };
 
-            // Zoom-in animation
+            try
+            {
+                previewPic.Image = Image.FromFile(imgPath);
+            }
+            catch
+            {
+                preview.Close();
+                return;
+            }
+
+            preview.Controls.Add(previewPic);
+            preview.ShowDialog();
+        }
+
+        private static void ApplyZoomAnimation(PictureBox pic)
+        {
             Timer growTimer = new Timer();
             growTimer.Interval = 15;
             growTimer.Tick += (s, e) =>
@@ -172,6 +189,10 @@ namespace GateHelper
             };
             growTimer.Start();
         }
+
+
+
+
 
 
         public static List<string> LoadImageOrder(string imageFolder)
