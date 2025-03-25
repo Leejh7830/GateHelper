@@ -20,13 +20,8 @@ namespace GateHelper
             options.AddArgument("--start-maximized");
             options.AddArgument("--disable-notifications");
 
-            // 사용자 데이터 디렉토리 설정
-            string userDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "Google", "Chrome", "User Data");
-            options.AddArgument($"--user-data-dir={userDataDir}");
-            options.AddArgument("--profile-directory=Profile 1");
-
             // Add the remote debugging port argument
-            options.AddArgument("--remote-debugging-port=9222"); // 지정된 포트를 사용
+            options.AddArgument("--remote-debugging-port=9223"); // 지정된 포트를 사용
 
             // Optional: If Chrome is crashing, disable sandbox mode
             options.AddArgument("--no-sandbox");
@@ -38,19 +33,16 @@ namespace GateHelper
 
         private void MonitorConnectionAndDriver(IWebDriver driver)
         {
-            // 인터넷 연결 상태 확인
-            bool isInternetConnected = CheckInternetConnection();
+            bool isInternetConnected = CheckInternetConnection(); // 인터넷 연결 상태 확인
 
             if (isInternetConnected)
             {
                 LogMessage("Internet connection is active.", Level.Info);
-                // 인터넷 연결 복구 시 드라이버 상태를 점검하고 복구 시도
-                MonitorDriverStatus(driver); // 드라이버를 넘겨줌
+                MonitorDriverStatus(driver); // 드라이버 상태 점검
             }
             else
             {
                 LogMessage("Internet connection lost.", Level.Error);
-                // 인터넷이 재연결될 때까지 기다리기
             }
         }
 
@@ -78,35 +70,40 @@ namespace GateHelper
                 driver.Navigate().Refresh();
 
                 // 새로 고침 후 페이지가 정상적으로 로드되었는지 확인
-                Console.WriteLine("Page has been refreshed, and the driver is functioning normally.");
+                LogMessage("Page has been refreshed, and the driver is functioning normally.", Level.Info);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error with ChromeDriver: {ex.Message}");
+                LogMessage($"Error with ChromeDriver: {ex.Message}", Level.Critical);
 
-                RestartDriver(driver);
+                RestartDriver(driver);  // 에러 발생 시에만 재시작
             }
         }
 
         public static void RestartDriver(IWebDriver driver)
         {
-            LogMessage("Restarting WebDriver...", Level.Info);
+            if (driver != null)
+            {
+                LogMessage("Restarting WebDriver...", Level.Critical);
+                driver.Quit();
+            }
 
-            driver.Quit();
-
+            // 드라이버 재시작
             string chromePath = "C:\\path\\to\\chrome.exe";
             ChromeOptions options = ChromeDriverOptionSet(chromePath);
-
-            driver = new ChromeDriver(options);
+            driver = new ChromeDriver(options);  // 새로운 드라이버 인스턴스 생성
 
             LogMessage("WebDriver has been restarted.", Level.Info);
         }
 
         public void StartMonitoring(IWebDriver driver, string chromePath)
         {
-            driver = new ChromeDriver(ChromeDriverOptionSet(chromePath));
+            if (driver == null)
+            {
+                driver = new ChromeDriver(ChromeDriverManager.ChromeDriverOptionSet(chromePath));
+            }
 
-            // 타이머 설정마다 인터넷 연결 상태 및 드라이버 상태 확인
+            // 타이머 설정: 5초마다 인터넷 연결 상태 및 드라이버 상태 확인
             _monitoringTimer = new Timer();
             _monitoringTimer.Interval = 5000; // 시간 간격 설정
             _monitoringTimer.Tick += (sender, e) => MonitorConnectionAndDriver(driver);

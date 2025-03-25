@@ -71,7 +71,7 @@ namespace GateHelper
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
                 throw;
             }
         }
