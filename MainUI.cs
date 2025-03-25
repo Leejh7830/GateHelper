@@ -22,6 +22,7 @@ namespace GateHelper
 
         private Config _config;
         private ConfigManager configManager = new ConfigManager();
+        private ChromeDriverManager chromeDriverManager = new ChromeDriverManager();
 
         private string serverName;
         private string serverIP;
@@ -30,7 +31,7 @@ namespace GateHelper
         
         /// Option 전용
         private bool disablePopup;
-        private readonly System.Windows.Forms.Timer timer1;
+        private readonly Timer timer1;
 
         private Size formOriginalSize;
         private Size groupConnect1OriginalSize;
@@ -87,6 +88,9 @@ namespace GateHelper
                 _driver.Navigate().GoToUrl(_config.Url); // 입력한 사이트로 이동
                 mainHandle = _driver.CurrentWindowHandle; // MainHandle 저장
                 LogManager.LogMessage("Start MainHandle: " + mainHandle, Level.Info);
+
+                // 드라이버 준비 완료 후 모니터링 시작
+                chromeDriverManager.StartMonitoring(_driver, _config.ChromePath);
 
                 Util_Control.MoveFormToTop(this);
             }
