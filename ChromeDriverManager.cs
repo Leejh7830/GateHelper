@@ -11,6 +11,8 @@ namespace GateHelper
 {
     class ChromeDriverManager
     {
+        private IWebDriver _driver;
+        private Config _config;
         private Timer _monitoringTimer;
 
         public static ChromeOptions ChromeDriverOptionSet(string chromePath)
@@ -30,28 +32,60 @@ namespace GateHelper
             return options;
         }
 
-
-        private void MonitorConnectionAndDriver(IWebDriver driver)
+        public IWebDriver StartMonitoring(IWebDriver driver, Config config)
         {
-            bool isInternetConnected = CheckInternetConnection(); // 인터넷 연결 상태 확인
+            _driver = driver;
+            _config = config;
 
-            if (isInternetConnected)
+            _monitoringTimer = new Timer();
+            _monitoringTimer.Interval = 5000;
+            _monitoringTimer.Tick += (s, e) =>
             {
-                LogMessage("Internet connection is active.", Level.Info);
-                MonitorDriverStatus(driver); // 드라이버 상태 점검
+                if (CheckInternetConnection())
+                {
+                    var checkedDriver = MonitorDriverStatus();
+                    if (checkedDriver != _driver)
+                    {
+                        _driver = checkedDriver; // ✅ 문제가 있을 때만 갱신
+                    }
+                }
+            };
+            _monitoringTimer.Start();
+
+            return _driver; // 첫 진입 시에는 기존 driver 그대로 반환
+        }
+
+        private IWebDriver MonitorDriverStatus()
+        {
+            try
+            {
+                // 새로고침 대신 간단한 접근 시도
+                var check = _driver.Title;
+                LogMessage("Driver OK", Level.Info);
+                return _driver;
             }
-            else
+            catch
             {
-                LogMessage("Internet connection lost.", Level.Error);
+                LogMessage("Driver error. Restarting...", Level.Critical);
+                return RestartDriver();
             }
         }
+
+        private IWebDriver RestartDriver()
+        {
+            try { _driver.Quit(); } catch { }
+
+            _driver = Util.InitializeDriver(_config);
+            return _driver;
+        }
+
 
         private bool CheckInternetConnection()
         {
             try
             {
                 using (var client = new System.Net.WebClient())
-                using (client.OpenRead("http://clients3.google.com/generate_204")) // 구글 204 페이지를 확인
+                using (client.OpenRead("http://clients3.google.com/generate_204")) // 네트워크 확인용 페이지
                 {
                     return true; // 인터넷 연결 있음
                 }
@@ -61,55 +95,6 @@ namespace GateHelper
                 return false; // 인터넷 연결 없음
             }
         }
-
-        public static void MonitorDriverStatus(IWebDriver driver)
-        {
-            try
-            {
-                // 페이지 새로 고침
-                driver.Navigate().Refresh();
-
-                // 새로 고침 후 페이지가 정상적으로 로드되었는지 확인
-                LogMessage("Page has been refreshed, and the driver is functioning normally.", Level.Info);
-            }
-            catch (Exception ex)
-            {
-                LogMessage($"Error with ChromeDriver: {ex.Message}", Level.Critical);
-
-                RestartDriver(driver);  // 에러 발생 시에만 재시작
-            }
-        }
-
-        public static void RestartDriver(IWebDriver driver)
-        {
-            if (driver != null)
-            {
-                LogMessage("Restarting WebDriver...", Level.Critical);
-                driver.Quit();
-            }
-
-            // 드라이버 재시작
-            string chromePath = "C:\\path\\to\\chrome.exe";
-            ChromeOptions options = ChromeDriverOptionSet(chromePath);
-            driver = new ChromeDriver(options);  // 새로운 드라이버 인스턴스 생성
-
-            LogMessage("WebDriver has been restarted.", Level.Info);
-        }
-
-        public void StartMonitoring(IWebDriver driver, string chromePath)
-        {
-            if (driver == null)
-            {
-                driver = new ChromeDriver(ChromeDriverManager.ChromeDriverOptionSet(chromePath));
-            }
-
-            // 타이머 설정: 5초마다 인터넷 연결 상태 및 드라이버 상태 확인
-            _monitoringTimer = new Timer();
-            _monitoringTimer.Interval = 5000; // 시간 간격 설정
-            _monitoringTimer.Tick += (sender, e) => MonitorConnectionAndDriver(driver);
-            _monitoringTimer.Start();
-        }
-
 
 
     }

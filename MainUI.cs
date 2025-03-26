@@ -90,7 +90,7 @@ namespace GateHelper
                 LogManager.LogMessage("Start MainHandle: " + mainHandle, Level.Info);
 
                 // 드라이버 준비 완료 후 모니터링 시작
-                chromeDriverManager.StartMonitoring(_driver, _config.ChromePath);
+                _driver = chromeDriverManager.StartMonitoring(_driver, _config);
 
                 Util_Control.MoveFormToTop(this);
             }
