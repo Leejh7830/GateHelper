@@ -15,84 +15,37 @@ namespace GateHelper
         private Config _config;
         private Timer _monitoringTimer;
 
-        public static ChromeOptions ChromeDriverOptionSet(string chromePath)
-        {
-            var options = new ChromeOptions();
-            options.BinaryLocation = chromePath;
-            options.AddArgument("--start-maximized");
-            options.AddArgument("--disable-notifications");
-
-            // Add the remote debugging port argument
-            options.AddArgument("--remote-debugging-port=9223"); // 지정된 포트를 사용
-
-            // Optional: If Chrome is crashing, disable sandbox mode
-            options.AddArgument("--no-sandbox");
-            options.AddArgument("--disable-dev-shm-usage");
-
-            return options;
-        }
-
-        public IWebDriver StartMonitoring(IWebDriver driver, Config config)
-        {
-            _driver = driver;
-            _config = config;
-
-            _monitoringTimer = new Timer();
-            _monitoringTimer.Interval = 5000;
-            _monitoringTimer.Tick += (s, e) =>
-            {
-                if (CheckInternetConnection())
-                {
-                    var checkedDriver = MonitorDriverStatus();
-                    if (checkedDriver != _driver)
-                    {
-                        _driver = checkedDriver; // ✅ 문제가 있을 때만 갱신
-                    }
-                }
-            };
-            _monitoringTimer.Start();
-
-            return _driver; // 첫 진입 시에는 기존 driver 그대로 반환
-        }
-
-        private IWebDriver MonitorDriverStatus()
+        private bool IsDriverAlive()
         {
             try
             {
-                // 새로고침 대신 간단한 접근 시도
-                var check = _driver.Title;
-                LogMessage("Driver OK", Level.Info);
-                return _driver;
+                // 간단한 속성 접근만으로도 연결 상태 확인 가능
+                var title = _driver.Title;
+                return true; // 정상 작동
+            }
+            catch (WebDriverException)
+            {
+                return false; // 드라이버와 연결 불가
             }
             catch
             {
-                LogMessage("Driver error. Restarting...", Level.Critical);
-                return RestartDriver();
+                return false; // 다른 예외 → 비정상 상태로 간주
             }
         }
 
-        private IWebDriver RestartDriver()
-        {
-            try { _driver.Quit(); } catch { }
-
-            _driver = Util.InitializeDriver(_config);
-            return _driver;
-        }
-
-
-        private bool CheckInternetConnection()
+        private bool IsInternetAvailable()
         {
             try
             {
                 using (var client = new System.Net.WebClient())
-                using (client.OpenRead("http://clients3.google.com/generate_204")) // 네트워크 확인용 페이지
+                using (client.OpenRead("http://clients3.google.com/generate_204"))
                 {
-                    return true; // 인터넷 연결 있음
+                    return true;
                 }
             }
             catch
             {
-                return false; // 인터넷 연결 없음
+                return false;
             }
         }
 
