@@ -86,7 +86,7 @@ namespace GateHelper
             this.Memo2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.lblDriverStatus = new System.Windows.Forms.Label();
             this.lblInternetStatus = new System.Windows.Forms.Label();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.CBox_ListViewClickConnect = new MaterialSkin.Controls.MaterialCheckbox();
             this.GroupConnect1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
             this.TabControl1.SuspendLayout();
@@ -552,6 +552,7 @@ namespace GateHelper
             this.ListViewServer2.TabIndex = 28;
             this.ListViewServer2.UseCompatibleStateImageBehavior = false;
             this.ListViewServer2.View = System.Windows.Forms.View.Details;
+            this.ListViewServer2.DoubleClick += new System.EventHandler(this.ListViewServer2_DoubleClick);
             // 
             // No1
             // 
@@ -800,7 +801,7 @@ namespace GateHelper
             // 
             this.CBox_TestMode1.AutoSize = true;
             this.CBox_TestMode1.Depth = 0;
-            this.CBox_TestMode1.Location = new System.Drawing.Point(19, 627);
+            this.CBox_TestMode1.Location = new System.Drawing.Point(18, 627);
             this.CBox_TestMode1.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_TestMode1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_TestMode1.MouseState = MaterialSkin.MouseState.HOVER;
@@ -874,14 +875,21 @@ namespace GateHelper
             this.lblInternetStatus.TabIndex = 30;
             this.lblInternetStatus.Text = "Internet";
             // 
-            // groupBox1
+            // CBox_ListViewClickConnect
             // 
-            this.groupBox1.Location = new System.Drawing.Point(222, 551);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(179, 57);
-            this.groupBox1.TabIndex = 33;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "groupBox1";
+            this.CBox_ListViewClickConnect.AutoSize = true;
+            this.CBox_ListViewClickConnect.Depth = 0;
+            this.CBox_ListViewClickConnect.Location = new System.Drawing.Point(18, 664);
+            this.CBox_ListViewClickConnect.Margin = new System.Windows.Forms.Padding(0);
+            this.CBox_ListViewClickConnect.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.CBox_ListViewClickConnect.MouseState = MaterialSkin.MouseState.HOVER;
+            this.CBox_ListViewClickConnect.Name = "CBox_ListViewClickConnect";
+            this.CBox_ListViewClickConnect.ReadOnly = false;
+            this.CBox_ListViewClickConnect.Ripple = true;
+            this.CBox_ListViewClickConnect.Size = new System.Drawing.Size(195, 37);
+            this.CBox_ListViewClickConnect.TabIndex = 34;
+            this.CBox_ListViewClickConnect.Text = "ListView Click Connect";
+            this.CBox_ListViewClickConnect.UseVisualStyleBackColor = true;
             // 
             // MainUI
             // 
@@ -889,9 +897,9 @@ namespace GateHelper
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1114, 714);
+            this.Controls.Add(this.CBox_ListViewClickConnect);
             this.Controls.Add(this.lblInternetStatus);
             this.Controls.Add(this.lblDriverStatus);
-            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.dataListView1);
             this.Controls.Add(this.ListViewServer1);
             this.Controls.Add(this.CBox_TestMode1);
@@ -989,7 +997,7 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton dummyControlOutsideTab;
         private System.Windows.Forms.Label lblDriverStatus;
         private System.Windows.Forms.Label lblInternetStatus;
-        private System.Windows.Forms.GroupBox groupBox1;
+        private MaterialSkin.Controls.MaterialCheckbox CBox_ListViewClickConnect;
     }
 }
 

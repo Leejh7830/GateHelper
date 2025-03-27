@@ -118,8 +118,22 @@ namespace GateHelper
             }
         }
 
+        public static void FillSearchFields(IWebDriver driver, string serverName, string serverIP)
+        {
+            if (!string.IsNullOrEmpty(serverIP))
+            {
+                // 입력: IP 주소
+                SendKeysToElement(driver, "//*[@id='id_IPADDR']", serverIP);
+                SendKeysToElement(driver, "//*[@id='id_DEVNAME']", "");
+            }
+            else if (!string.IsNullOrEmpty(serverName))
+            {
+                // 입력: 서버 이름
+                SendKeysToElement(driver, "//*[@id='id_DEVNAME']", serverName);
+                SendKeysToElement(driver, "//*[@id='id_IPADDR']", "");
+            }
+        }
 
-        
 
     }
 }

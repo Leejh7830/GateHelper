@@ -18,8 +18,8 @@ namespace GateHelper
 
             if (result == DialogResult.Yes)
             {
-                form.Size = new Size(1400, 800);
-                TabSelector1.Size = new Size(520, 32);
+                // form.Size = MainUI.FormExtendedSize;
+                // TabSelector1.Size = new Size(520, 32);
                 testModeFlag = true;
             }
             else

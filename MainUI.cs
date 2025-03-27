@@ -11,7 +11,7 @@ using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
 using System.Configuration;
 using System.IO;
-
+using System.Linq;
 
 namespace GateHelper
 {
@@ -33,7 +33,8 @@ namespace GateHelper
         private bool disablePopup;
         private readonly Timer timer1;
 
-        private Size formOriginalSize;
+        public static readonly Size FormOriginalSize = new Size(400, 700);
+        public static readonly Size FormExtendedSize = new Size(550, 700);
         private Size groupConnect1OriginalSize;
         private Size tabSelector1OriginalSize;
         private Size tabControl1OriginalSize;
@@ -62,7 +63,7 @@ namespace GateHelper
 
             this.MaximizeBox = false;
             // this.MinimizeBox = false;
-            this.Size = new Size(400, 700);
+            this.Size = FormOriginalSize;
 
             // Util_Control.MoveControl(TabSelector1, 150, 30);
 
@@ -163,27 +164,24 @@ namespace GateHelper
         }
 
 
+        // 25.03.27 Modified - Module
         private void BtnSearch1_Click(object sender, EventArgs e)
         {
+            if (!Util.CheckDriverExists(_driver))
+                return;
+
             LogManager.LogMessage("BtnSearch1 Click", Level.Info);
             Util.SwitchToMainHandle(_driver, mainHandle);
+
             try
             {
+                // 입력된 형식 검사
                 Util.ValidateServerInfo(SearchTxt1.Text, out serverName, out serverIP);
 
-                if (!string.IsNullOrEmpty(serverIP))
-                {
-                    // IP 주소인 경우
-                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", serverIP);
-                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", "");
-                }
-                else if (!string.IsNullOrEmpty(serverName))
-                {
-                    // 서버 이름인 경우
-                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", serverName);
-                    Util_Control.SendKeysToElement(_driver, "//*[@id='id_IPADDR']", "");
-                }
+                // 필드 채우기
+                Util_Control.FillSearchFields(_driver, serverName, serverIP);
 
+                // 검색 버튼 클릭
                 Util_Control.ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
             }
             catch (ArgumentException ex)
@@ -207,6 +205,9 @@ namespace GateHelper
         // 25.03.19 Modified - Test Mode
         private void BtnLoadServers1_Click(object sender, EventArgs e)
         {
+            if (!Util.CheckDriverExists(_driver))
+                return;
+
             LogManager.LogMessage("BtnLoadServers1 Click", Level.Info);
 
             try
@@ -252,114 +253,29 @@ namespace GateHelper
             LogManager.LogMessage("BtnConnect1 Click", Level.Info);
             LogManager.LogMessage("Connect MainHandle : " + mainHandle, Level.Info);
 
-            try
+            // ✅ 테스트 모드일 때는 드라이버 체크 건너뜀
+            if (testMode)
             {
-                if (testMode) // 테스트 모드일 때만 동작
-                {
-                    Util_Test.SimulateServerConnect(this, ListViewServer2, ComboBoxServerList1, ref testMode);
-                    Util_ServerList.SaveServerDataToFile(ListViewServer2);
-                    return;
-                }
-
-                // 선택된 드롭다운 항목 확인
-                if (ComboBoxServerList1.SelectedItem == null)
-                {
-                    MessageBox.Show("서버를 선택해주세요.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                string selectedServer = ComboBoxServerList1.SelectedItem.ToString(); // 선택된 서버 이름 가져오기
-                LogManager.LogMessage("접속 서버 명 :" + selectedServer, Level.Info);
-               
-                int tbodyIndex = 1;
-
-                while (true)
-                {
-                    string serverNameXpath = $"//*[@id=\'seltable\']/tbody[{tbodyIndex}]/tr/td[4]";
-                    IReadOnlyCollection<IWebElement> serverNameElements = _driver.FindElements(By.XPath(serverNameXpath));
-
-                    if (serverNameElements == null || serverNameElements.Count == 0)
-                    {
-                        break; // 더 이상 요소가 없으면 루프 종료
-                    }
-
-                    foreach (IWebElement element in serverNameElements)
-                    {
-                        if (element.Text == selectedServer)
-                        {
-                            // 해당 서버를 찾았으므로 "rdp" 문자열을 포함하는 span 태그 클릭
-                            string spanXpath = $"//*[@id=\'seltable\']/tbody[{tbodyIndex}]/tr/td[5]/span[contains(@id, 'rdp')]";
-                            IWebElement spanElement = _driver.FindElement(By.XPath(spanXpath));
-                            IWebElement aElement = spanElement.FindElement(By.TagName("a")); // span 태그 안의 a 태그 찾기
-                            aElement.Click();
-
-                            System.Threading.Thread.Sleep(1000);
-
-                            try
-                            {
-                                IAlert alert = _driver.SwitchTo().Alert(); // 경고창 확인 버튼 클릭
-                                alert.Accept();
-                            }
-                            catch (NoAlertPresentException)
-                            {
-                                // 경고창이 없는 경우 (또는 확인 버튼을 찾을 수 없는 경우)
-                                // 스페이스바 입력
-                                SendKeys.SendWait(" ");
-                            }
-                            EnterCredentials(_config.GateID, _config.GatePW);
-
-                            Util.SwitchToMainHandle(_driver, mainHandle);
-                            LogManager.LogMessage("접속후 MainHandle: " + mainHandle, Level.Info);
-
-                            string currentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                            Util_ServerList.AddServerToListView(ListViewServer2, selectedServer, currentTime); // 추가
-                            Util_ServerList.TrimHistoryList(ListViewServer2, 30); // 삭제
-                            Util_ServerList.SaveServerDataToFile(ListViewServer2); // 저장
-                            return;
-                        }
-                    }
-                    tbodyIndex++; // 다음 tbody로 이동
-                }
-
-                MessageBox.Show($"서버 '{selectedServer}'를 찾을 수 없습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                Util_Test.SimulateServerConnect(this, ListViewServer2, ComboBoxServerList1, ref testMode);
+                Util_ServerList.SaveServerDataToFile(ListViewServer2);
+                return;
             }
-            catch (Exception ex)
+
+            if (!Util.CheckDriverExists(_driver))
+                return;
+
+            if (ComboBoxServerList1.SelectedItem == null)
             {
-                LogManager.LogException(ex, Level.Error);
-                MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("서버를 선택해주세요.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
+
+            string selectedServer = ComboBoxServerList1.SelectedItem.ToString();
+            LogManager.LogMessage("접속 서버 명: " + selectedServer, Level.Info);
+
+            Util_Connect.ConnectToServer(_driver, mainHandle, _config, selectedServer, ListViewServer2);
         }
 
-        private void EnterCredentials(string gataID, string gatePW)
-        {
-            try
-            {
-                SwitchToPopup(); // 새 팝업창으로 전환
-
-                WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10)); // 10초 대기
-
-                // ID 입력
-                IWebElement idInput = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='userid']")));
-                idInput.SendKeys(gataID);
-
-                // 비밀번호 입력
-                IWebElement pwInput = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='passwd']")));
-                pwInput.SendKeys(gatePW);
-
-                // 접속하기 버튼 클릭
-                IWebElement loginButton = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='pop_container']/div[2]/a")));
-                loginButton.Click();
-            }
-            catch (WebDriverTimeoutException)
-            {
-                MessageBox.Show("ID/PW 입력 필드 또는 접속하기 버튼을 찾을 수 없습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            catch (Exception ex)
-            {
-                LogManager.LogException(ex, Level.Error);
-                MessageBox.Show($"ID/PW 입력 및 접속 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
 
         private void BtnFav1_Click(object sender, EventArgs e)
         {
@@ -487,35 +403,69 @@ namespace GateHelper
             disablePopup = CBox_DisablePopup1.Checked;
         }
 
-        private void SwitchToPopup()
+        
+
+
+        // 25.03.19 Added - Test Mode Functions
+        private void CBox_TestMode1_CheckedChanged(object sender, EventArgs e)
         {
+            if (CBox_TestMode1.Checked)
+            {
+                Util_Test.EnterTestMode(this, TabSelector1, ref testMode);
+
+                if (testMode)
+                {
+                    Util_Test.LoadTestServers(ComboBoxServerList1);
+                }
+                else
+                {
+                    CBox_TestMode1.Checked = false;
+                }
+            }
+            else
+            {
+                // this.Size = FormOriginalSize;
+                ComboBoxServerList1.Items.Clear();
+                testMode = false;
+            }
+        }
+
+
+        // 25.03.27 Added - Double Click Connect
+        private void ListViewServer2_DoubleClick(object sender, EventArgs e)
+        {
+            if (!CBox_ListViewClickConnect.Checked || ListViewServer2.SelectedItems.Count == 0)
+                return;
+
+            string serverName = ListViewServer2.SelectedItems[0].SubItems[1].Text;
+
+            LogManager.LogMessage("ListView 더블클릭 접속 시도: " + serverName, Level.Info);
+
+            // 1. 검색 실행
+            SearchTxt1.Text = serverName;
+            BtnSearch1_Click(null, null);
+
+            // 2. ✅ 검색 결과 로딩 대기 (서버 리스트 안에 해당 서버 이름이 뜰 때까지)
             try
             {
-                WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10)); // 최대 10초 대기
-                wait.Until(driver => driver.WindowHandles.Count > 1); // 창 핸들 수가 2개 이상이 될 때까지 대기
-
-                string originalWindow = _driver.CurrentWindowHandle; // 원래 창 핸들 저장
-                foreach (string windowHandle in _driver.WindowHandles)
+                WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
+                wait.Until(driver =>
                 {
-                    if (windowHandle != originalWindow)
-                    {
-                        _driver.SwitchTo().Window(windowHandle); // 새 창으로 전환
-                        break;
-                    }
-                }
+                    var elements = driver.FindElements(By.XPath("//*[@id='seltable']//td[4]"));
+                    return elements.Any(el => el.Text == serverName);
+                });
             }
             catch (WebDriverTimeoutException)
             {
-                MessageBox.Show("팝업창이 열리지 않았습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                // 필요한 경우 원래 창으로 전환
-                // _driver.SwitchTo().Window(originalWindow);
+                MessageBox.Show("검색 결과가 로딩되지 않았습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
             }
-            catch (Exception ex)
-            {
-                LogManager.LogException(ex, Level.Error);
-                MessageBox.Show($"팝업창 전환 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+
+            // 3. 접속 시도
+            Util_Connect.ConnectToServer(_driver, mainHandle, _config, serverName, ListViewServer2);
         }
+
+
         //////////////////////////////////////////////////////////////////////////////// 옵션 전용 끝
 
         private bool changeSkinColor = true;
@@ -542,7 +492,7 @@ namespace GateHelper
             if (changeArrow)
             {
                 PicBox_Arrow.Image = Properties.Resources.arrow_left;
-                this.Size = new Size(550, 700);
+                this.Size = FormExtendedSize;
 
                 // 탭 컨트롤 크기를 기준으로 그룹 박스 및 PictureBox 크기 계산
                 TabSelector1.Size = new Size(520, 30);
@@ -551,25 +501,24 @@ namespace GateHelper
                 changeArrow = false;
 
                 // PictureBox 아이콘 A, B, C 위치 변경
-                Util_Control.MovePictureBoxIcons(this, PicBox_Arrow, PicBox_Setting, PicBox_Question, formOriginalSize, true);
+                Util_Control.MovePictureBoxIcons(this, PicBox_Arrow, PicBox_Setting, PicBox_Question, FormOriginalSize, true);
             }
             else
             {
                 PicBox_Arrow.Image = Properties.Resources.arrow_right;
-                this.Size = formOriginalSize;
+                this.Size = FormOriginalSize;
                 TabSelector1.Size = tabSelector1OriginalSize;
                 GroupConnect1.Size = groupConnect1OriginalSize;
 
                 changeArrow = true;
 
                 // PictureBox 아이콘 A, B, C 위치 복원
-                Util_Control.MovePictureBoxIcons(this, PicBox_Arrow, PicBox_Setting, PicBox_Question, formOriginalSize, false);
+                Util_Control.MovePictureBoxIcons(this, PicBox_Arrow, PicBox_Setting, PicBox_Question, FormOriginalSize, false);
             }
         }
 
         private void MainUI_Load(object sender, EventArgs e)
         {
-            formOriginalSize = this.Size;
             groupConnect1OriginalSize = GroupConnect1.Size;
             tabSelector1OriginalSize = TabSelector1.Size;
             tabControl1OriginalSize = TabControl1.Size;
@@ -581,34 +530,13 @@ namespace GateHelper
         }
 
 
+        
 
 
 
 
 
-        // 25.03.19 Added - Test Mode Functions
-        private void CBox_TestMode1_CheckedChanged(object sender, EventArgs e)
-        {
-            if (CBox_TestMode1.Checked)
-            {
-                Util_Test.EnterTestMode(this, TabSelector1, ref testMode);
-
-                if (testMode)
-                {
-                    Util_Test.LoadTestServers(ComboBoxServerList1);
-                }
-                else
-                {
-                    CBox_TestMode1.Checked = false;
-                }
-            }
-            else
-            {
-                this.Size = formOriginalSize;
-                ComboBoxServerList1.Items.Clear();
-                testMode = false;
-            }
-        }
+        
 
 
         private void SearchTxt1_KeyDown(object sender, KeyEventArgs e)
@@ -628,5 +556,7 @@ namespace GateHelper
         {
             Util_ImageLoader.LoadReferenceImages(flowLayoutPanel1);
         }
+
+
     }
 }

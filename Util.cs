@@ -91,6 +91,9 @@ namespace GateHelper
 
         public static void ClickFavBtn(IWebDriver _driver, Config config, int favIndex, Action serverListLoadAction)
         {
+            if (!CheckDriverExists(_driver))
+                return;
+
             try
             {
                 string favKey = $"Fav{favIndex}";
@@ -194,139 +197,24 @@ namespace GateHelper
 
 
 
-        public static string FindWindowHandleByUrl(IWebDriver _driver, string url)
+        public static bool CheckDriverExists(IWebDriver driver)
         {
-            ReadOnlyCollection<string> windowHandles = _driver.WindowHandles;
-
-            foreach (string handle in windowHandles)
+            if (driver == null)
             {
-                _driver.SwitchTo().Window(handle);
-                if (_driver.Url == url)
-                {
-                    return handle;
-                }
+                MessageBox.Show("ChromeDriver가 실행 중이 아닙니다.\n먼저 [Start] 버튼을 눌러주세요.", "드라이버 없음", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return false;
             }
-            return null;
+            return true;
         }
 
-        public static void FocusMainWindow(string chromeHandleString)
-        {
-            try
-            {
-                if (!string.IsNullOrEmpty(chromeHandleString))
-                {
-                    ulong chromeHandleULong = Convert.ToUInt64(chromeHandleString, 16);
-                    IntPtr chromeHandle = new IntPtr((long)chromeHandleULong);
-
-                    if (chromeHandle != IntPtr.Zero)
-                    {
-                        if (!SetForegroundWindow(chromeHandle))
-                        {
-                            MessageBox.Show("크롬 창으로 포커스 이동 실패.");
-                        }
-                    }
-                    else
-                    {
-                        MessageBox.Show("크롬 창 핸들을 찾을 수 없습니다.");
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("크롬 창 핸들을 찾을 수 없습니다.");
-                }
-            }
-            catch (FormatException ex)
-            {
-                LogException(ex, Level.Error);
-                MessageBox.Show($"잘못된 핸들 문자열 형식: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            catch (OverflowException ex)
-            {
-                LogException(ex, Level.Error);
-                MessageBox.Show($"핸들 문자열 값이 범위를 벗어남: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            catch (Exception ex)
-            {
-                LogException(ex, Level.Error);
-                MessageBox.Show($"크롬 창 포커스 이동 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
+        
 
         public static void SwitchToMainHandle(IWebDriver _driver, string mainHandle)
         {
             _driver.SwitchTo().Window(mainHandle);
         }
 
-        // iframe순회, 클릭가능한 Element 조사
-        public static void InvestigateIframesAndCollectClickableElements(IWebDriver _driver)
-        {
-            try
-            {
-                StringBuilder elementInfo = new StringBuilder();
-
-                // 기본 문서의 클릭 가능한 요소 조사
-                CollectClickableElements(_driver, elementInfo, "기본 문서");
-
-                // 모든 iframe 찾기
-                IReadOnlyCollection<IWebElement> iframes = _driver.FindElements(By.TagName("iframe"));
-
-                if (iframes.Count > 0)
-                {
-                    foreach (IWebElement iframe in iframes)
-                    {
-                        // iframe으로 전환
-                        _driver.SwitchTo().Frame(iframe);
-
-                        // iframe 내부의 클릭 가능한 요소 조사
-                        CollectClickableElements(_driver, elementInfo, $"iframe (이름: {iframe.GetAttribute("name")}, ID: {iframe.GetAttribute("id")})");
-
-                        // 기본 문서로 전환
-                        _driver.SwitchTo().DefaultContent();
-                    }
-                }
-
-                // 메시지 박스에 요소 정보 표시
-                MessageBox.Show(elementInfo.ToString(), "클릭 가능한 요소 정보");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"iframe 조사 및 요소 수집 중 오류 발생: {ex.Message}", "오류");
-                LogException(ex, Level.Error);
-            }
-        }
-
-        private static void CollectClickableElements(IWebDriver driver, StringBuilder elementInfo, string location)
-        {
-            // 클릭 가능한 요소 찾기 (button, a, input[type=button], input[type=submit])
-            IReadOnlyCollection<IWebElement> clickableElements = driver.FindElements(By.XPath("//button | //a | //input[@type='button'] | //input[@type='submit']"));
-
-            if (clickableElements.Count > 0)
-            {
-                elementInfo.AppendLine($"\n{location}의 클릭 가능한 요소:");
-                foreach (IWebElement element in clickableElements)
-                {
-                    elementInfo.AppendLine($"XPath: {GetXPath(driver ,element)}");
-                }
-            }
-            else
-            {
-                elementInfo.AppendLine($"\n{location}에 클릭 가능한 요소가 없습니다.");
-            }
-        }
-
-        private static string GetXPath(IWebDriver driver, IWebElement element)
-        {
-            try
-            {
-                return (string)((IJavaScriptExecutor)driver).ExecuteScript(
-                    "gPt=function(c){if(c.id!==''){return'id(\"'+c.id+'\")'}if(c===document.body){return'html/'+c.tagName}var a=0;var e=c.parentNode.childNodes;for(var b=0;b<e.length;b++){var d=e[b];if(d===c){return gPt(c.parentNode)+'/'+c.tagName+'['+(a+1)+']'}if(d.nodeType===1&&d.tagName===c.tagName){a++}}};return gPt(arguments[0]).toLowerCase();",
-                    element);
-            }
-            catch (Exception)
-            {
-                return "XPath를 가져올 수 없습니다.";
-            }
-        }
+        
 
         public static void ValidateServerInfo(string inputText, out string serverName, out string serverIP)
         {
@@ -378,23 +266,41 @@ namespace GateHelper
             }
         }
 
-        // ChromeDriver 종료 메소드
+        // ChromeDriver 종료
         public static void CloseDriver(IWebDriver driver)
         {
-            try
+            // 드라이버 종료 시도
+            if (driver != null)
             {
-                driver.Quit();
+                try
+                {
+                    driver.Quit();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"드라이버 종료 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    LogException(ex, Level.Error);
+                }
+                finally
+                {
+                    LogMessage("ChromeDriver 종료", Level.Info);
+                }
+            }
+
+            try // 25.03.27 Added - 백그라운드 chromedriver 프로세스 강제 종료
+            {
+                foreach (var process in Process.GetProcessesByName("chromedriver"))
+                {
+                    process.Kill();
+                }
+                LogMessage("남아있는 ChromeDriver 프로세스 강제 종료", Level.Info);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"드라이버 종료 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 LogException(ex, Level.Error);
             }
-            finally
-            {
-                LogMessage("ChromeDriver 종료", Level.Info);
-            }
         }
+
 
 
     }
