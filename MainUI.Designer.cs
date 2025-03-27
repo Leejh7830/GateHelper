@@ -84,6 +84,9 @@ namespace GateHelper
             this.SVName2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.LastConnected2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.Memo2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.lblDriverStatus = new System.Windows.Forms.Label();
+            this.lblInternetStatus = new System.Windows.Forms.Label();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.GroupConnect1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
             this.TabControl1.SuspendLayout();
@@ -174,7 +177,7 @@ namespace GateHelper
             this.ListViewServer1.HideSelection = false;
             this.ListViewServer1.LabelEdit = true;
             this.ListViewServer1.Location = new System.Drawing.Point(598, 369);
-            this.ListViewServer1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.ListViewServer1.Margin = new System.Windows.Forms.Padding(2);
             this.ListViewServer1.MinimumSize = new System.Drawing.Size(140, 67);
             this.ListViewServer1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.ListViewServer1.MouseState = MaterialSkin.MouseState.OUT;
@@ -216,7 +219,7 @@ namespace GateHelper
             this.SearchTxt1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.SearchTxt1.LeadingIcon = null;
             this.SearchTxt1.Location = new System.Drawing.Point(5, 19);
-            this.SearchTxt1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.SearchTxt1.Margin = new System.Windows.Forms.Padding(2);
             this.SearchTxt1.MaxLength = 32767;
             this.SearchTxt1.MouseState = MaterialSkin.MouseState.OUT;
             this.SearchTxt1.Name = "SearchTxt1";
@@ -308,7 +311,7 @@ namespace GateHelper
             this.ComboBoxServerList1.IntegralHeight = false;
             this.ComboBoxServerList1.ItemHeight = 43;
             this.ComboBoxServerList1.Location = new System.Drawing.Point(125, 77);
-            this.ComboBoxServerList1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.ComboBoxServerList1.Margin = new System.Windows.Forms.Padding(2);
             this.ComboBoxServerList1.MaxDropDownItems = 4;
             this.ComboBoxServerList1.MouseState = MaterialSkin.MouseState.OUT;
             this.ComboBoxServerList1.Name = "ComboBoxServerList1";
@@ -398,7 +401,7 @@ namespace GateHelper
             this.TabControl1.Controls.Add(this.tabPage4);
             this.TabControl1.Depth = 0;
             this.TabControl1.Location = new System.Drawing.Point(6, 169);
-            this.TabControl1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.TabControl1.Margin = new System.Windows.Forms.Padding(2);
             this.TabControl1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TabControl1.Multiline = true;
             this.TabControl1.Name = "TabControl1";
@@ -410,9 +413,9 @@ namespace GateHelper
             // 
             this.tabPage1.Controls.Add(this.GroupConnect1);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
-            this.tabPage1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage1.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(2);
             this.tabPage1.Size = new System.Drawing.Size(535, 351);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "SERVER";
@@ -425,9 +428,9 @@ namespace GateHelper
             this.tabPage3.Controls.Add(this.BtnReloadImages1);
             this.tabPage3.Controls.Add(this.GroupRef2);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
-            this.tabPage3.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage3.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(2);
             this.tabPage3.Size = new System.Drawing.Size(535, 351);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "REFERENCE";
@@ -509,9 +512,9 @@ namespace GateHelper
             // 
             this.flowLayoutPanel1.AutoScroll = true;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 17);
-            this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(2);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.flowLayoutPanel1.Padding = new System.Windows.Forms.Padding(3);
             this.flowLayoutPanel1.Size = new System.Drawing.Size(380, 281);
             this.flowLayoutPanel1.TabIndex = 29;
             // 
@@ -519,9 +522,9 @@ namespace GateHelper
             // 
             this.tabPage4.Controls.Add(this.ListViewServer2);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
-            this.tabPage4.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage4.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(2);
             this.tabPage4.Size = new System.Drawing.Size(535, 351);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "HISTORY";
@@ -542,7 +545,7 @@ namespace GateHelper
             this.ListViewServer2.HideSelection = false;
             this.ListViewServer2.HoverSelection = true;
             this.ListViewServer2.Location = new System.Drawing.Point(2, 2);
-            this.ListViewServer2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.ListViewServer2.Margin = new System.Windows.Forms.Padding(2);
             this.ListViewServer2.MinimumSize = new System.Drawing.Size(141, 68);
             this.ListViewServer2.Name = "ListViewServer2";
             this.ListViewServer2.Size = new System.Drawing.Size(535, 349);
@@ -558,7 +561,7 @@ namespace GateHelper
             // SVName1
             // 
             this.SVName1.Text = "Name";
-            this.SVName1.Width = 170;
+            this.SVName1.Width = 180;
             // 
             // LastConnected1
             // 
@@ -578,7 +581,7 @@ namespace GateHelper
             this.TabSelector1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
             this.TabSelector1.ForeColor = System.Drawing.SystemColors.Control;
             this.TabSelector1.Location = new System.Drawing.Point(19, 135);
-            this.TabSelector1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.TabSelector1.Margin = new System.Windows.Forms.Padding(2);
             this.TabSelector1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TabSelector1.Name = "TabSelector1";
             this.TabSelector1.Size = new System.Drawing.Size(365, 32);
@@ -591,7 +594,7 @@ namespace GateHelper
             this.CBox_DisablePopup1.AutoSize = true;
             this.CBox_DisablePopup1.Depth = 0;
             this.CBox_DisablePopup1.Enabled = false;
-            this.CBox_DisablePopup1.Location = new System.Drawing.Point(18, 599);
+            this.CBox_DisablePopup1.Location = new System.Drawing.Point(18, 590);
             this.CBox_DisablePopup1.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_DisablePopup1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_DisablePopup1.MouseState = MaterialSkin.MouseState.HOVER;
@@ -631,7 +634,7 @@ namespace GateHelper
             this.CBox_FavOneClickConnect1.AutoSize = true;
             this.CBox_FavOneClickConnect1.Depth = 0;
             this.CBox_FavOneClickConnect1.Enabled = false;
-            this.CBox_FavOneClickConnect1.Location = new System.Drawing.Point(18, 565);
+            this.CBox_FavOneClickConnect1.Location = new System.Drawing.Point(18, 556);
             this.CBox_FavOneClickConnect1.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_FavOneClickConnect1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_FavOneClickConnect1.MouseState = MaterialSkin.MouseState.HOVER;
@@ -797,7 +800,7 @@ namespace GateHelper
             // 
             this.CBox_TestMode1.AutoSize = true;
             this.CBox_TestMode1.Depth = 0;
-            this.CBox_TestMode1.Location = new System.Drawing.Point(19, 633);
+            this.CBox_TestMode1.Location = new System.Drawing.Point(19, 627);
             this.CBox_TestMode1.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_TestMode1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_TestMode1.MouseState = MaterialSkin.MouseState.HOVER;
@@ -827,7 +830,7 @@ namespace GateHelper
             this.dataListView1.GridLines = true;
             this.dataListView1.HideSelection = false;
             this.dataListView1.Location = new System.Drawing.Point(598, 209);
-            this.dataListView1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.dataListView1.Margin = new System.Windows.Forms.Padding(2);
             this.dataListView1.Name = "dataListView1";
             this.dataListView1.Size = new System.Drawing.Size(487, 151);
             this.dataListView1.TabIndex = 28;
@@ -853,12 +856,42 @@ namespace GateHelper
             this.Memo2.Text = "Memo";
             this.Memo2.Width = 150;
             // 
+            // lblDriverStatus
+            // 
+            this.lblDriverStatus.AutoSize = true;
+            this.lblDriverStatus.Location = new System.Drawing.Point(211, 43);
+            this.lblDriverStatus.Name = "lblDriverStatus";
+            this.lblDriverStatus.Size = new System.Drawing.Size(37, 12);
+            this.lblDriverStatus.TabIndex = 29;
+            this.lblDriverStatus.Text = "Driver";
+            // 
+            // lblInternetStatus
+            // 
+            this.lblInternetStatus.AutoSize = true;
+            this.lblInternetStatus.Location = new System.Drawing.Point(292, 43);
+            this.lblInternetStatus.Name = "lblInternetStatus";
+            this.lblInternetStatus.Size = new System.Drawing.Size(46, 12);
+            this.lblInternetStatus.TabIndex = 30;
+            this.lblInternetStatus.Text = "Internet";
+            // 
+            // groupBox1
+            // 
+            this.groupBox1.Location = new System.Drawing.Point(222, 551);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(179, 57);
+            this.groupBox1.TabIndex = 33;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "groupBox1";
+            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1114, 714);
+            this.Controls.Add(this.lblInternetStatus);
+            this.Controls.Add(this.lblDriverStatus);
+            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.dataListView1);
             this.Controls.Add(this.ListViewServer1);
             this.Controls.Add(this.CBox_TestMode1);
@@ -878,7 +911,7 @@ namespace GateHelper
             this.Controls.Add(this.BtnLogin1);
             this.Controls.Add(this.TestBtn1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainUI";
             this.Padding = new System.Windows.Forms.Padding(2, 43, 2, 2);
             this.Sizable = false;
@@ -954,6 +987,9 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton BtnOpenImages1;
         private MaterialSkin.Controls.MaterialButton BtnReloadImages1;
         private MaterialSkin.Controls.MaterialButton dummyControlOutsideTab;
+        private System.Windows.Forms.Label lblDriverStatus;
+        private System.Windows.Forms.Label lblInternetStatus;
+        private System.Windows.Forms.GroupBox groupBox1;
     }
 }
 

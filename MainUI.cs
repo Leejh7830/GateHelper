@@ -36,7 +36,11 @@ namespace GateHelper
         private Size formOriginalSize;
         private Size groupConnect1OriginalSize;
         private Size tabSelector1OriginalSize;
-        private Size tabControlOriginalSize;
+        private Size tabControl1OriginalSize;
+
+        // 연결상태 감지용
+        private string _lastDriverStatus = "";
+        private string _lastInternetStatus = "";
 
         private bool testMode = false;
 
@@ -63,15 +67,50 @@ namespace GateHelper
             // Util_Control.MoveControl(TabSelector1, 150, 30);
 
             timer1 = new System.Windows.Forms.Timer();
-            timer1.Interval = 5000; // 5초마다 팝업 탐색
-            // timer1.Tick += Timer1_Tick;
+            timer1.Interval = 5000; // 5초마다 상태 확인
+            timer1.Tick += TimerStatusChecker_Tick;
             timer1.Start();
 
 
             LogManager.LogMessage("프로그램 초기화 완료", Level.Info);
         }
 
-        
+        // 25.03.27 Added
+        private void TimerStatusChecker_Tick(object sender, EventArgs e)
+        {
+            Color onColor = ColorTranslator.FromHtml("#4CAF50"); // Green 500
+            Color offColor = ColorTranslator.FromHtml("#F44336"); // Red 500
+
+            // 🔍 Driver 상태
+            bool driverOn = (_driver != null && chromeDriverManager.IsDriverAlive(_driver));
+            string newDriverStatus = driverOn ? "ON" : "OFF";
+
+            lblDriverStatus.Text = $"Driver {newDriverStatus}";
+            lblDriverStatus.BackColor = driverOn ? onColor : offColor;
+            lblDriverStatus.ForeColor = Color.White;
+
+            if (_lastDriverStatus != newDriverStatus)
+            {
+                LogManager.LogMessage($"[Status Change] Driver {newDriverStatus}", driverOn ? Level.Info : Level.Critical);
+                _lastDriverStatus = newDriverStatus;
+            }
+
+            // 🔍 Network 상태
+            bool netOn = chromeDriverManager.IsInternetAvailable();
+            string newNetStatus = netOn ? "ON" : "OFF";
+
+            lblInternetStatus.Text = $"Network {newNetStatus}";
+            lblInternetStatus.BackColor = netOn ? onColor : offColor;
+            lblInternetStatus.ForeColor = Color.White;
+
+            if (_lastInternetStatus != newNetStatus)
+            {
+                LogManager.LogMessage($"[Status Change] Network {newNetStatus}", netOn ? Level.Info : Level.Error);
+                _lastInternetStatus = newNetStatus;
+            }
+        }
+
+
 
 
 
@@ -88,9 +127,6 @@ namespace GateHelper
                 _driver.Navigate().GoToUrl(_config.Url); // 입력한 사이트로 이동
                 mainHandle = _driver.CurrentWindowHandle; // MainHandle 저장
                 LogManager.LogMessage("Start MainHandle: " + mainHandle, Level.Info);
-
-                // 드라이버 준비 완료 후 모니터링 시작
-                _driver = chromeDriverManager.StartMonitoring(_driver, _config);
 
                 Util_Control.MoveFormToTop(this);
             }
@@ -536,7 +572,7 @@ namespace GateHelper
             formOriginalSize = this.Size;
             groupConnect1OriginalSize = GroupConnect1.Size;
             tabSelector1OriginalSize = TabSelector1.Size;
-            tabControlOriginalSize = TabControl1.Size;
+            tabControl1OriginalSize = TabControl1.Size;
 
             Util_ImageLoader.EnsureReferenceImagesFolderExists(); // ReferenceImages Folder Check
             Util_ImageLoader.LoadReferenceImages(flowLayoutPanel1);
