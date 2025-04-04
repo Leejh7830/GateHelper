@@ -31,7 +31,7 @@ namespace GateHelper
             options.AddArgument("--disable-dev-shm-usage");
 
             return options;
-        }
+        } 
 
         public bool IsDriverAlive(IWebDriver _driver)
         {
