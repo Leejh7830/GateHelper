@@ -397,6 +397,7 @@ namespace GateHelper
             }
         }
 
+
         private void DisablePopupCheckBox1_CheckedChanged(object sender, EventArgs e)
         {
             LogManager.LogMessage("DisablePopupCheckBox CheckedChanged", Level.Info);
@@ -404,8 +405,6 @@ namespace GateHelper
         }
 
         
-
-
         // 25.03.19 Added - Test Mode Functions
         private void CBox_TestMode1_CheckedChanged(object sender, EventArgs e)
         {
@@ -415,6 +414,7 @@ namespace GateHelper
 
                 if (testMode)
                 {
+                    LogManager.LogMessage("TEST MODE 진입", Level.Info);
                     Util_Test.LoadTestServers(ComboBoxServerList1);
                 }
                 else
@@ -441,11 +441,11 @@ namespace GateHelper
 
             LogManager.LogMessage("ListView 더블클릭 접속 시도: " + serverName, Level.Info);
 
-            // 1. 검색 실행
+            // 검색 실행
             SearchTxt1.Text = serverName;
             BtnSearch1_Click(null, null);
 
-            // 2. ✅ 검색 결과 로딩 대기 (서버 리스트 안에 해당 서버 이름이 뜰 때까지)
+            // 검색 결과 로딩 대기 (서버 리스트 안에 해당 서버 이름이 뜰 때까지)
             try
             {
                 WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
@@ -461,7 +461,7 @@ namespace GateHelper
                 return;
             }
 
-            // 3. 접속 시도
+            // 접속 시도
             Util_Connect.ConnectToServer(_driver, mainHandle, _config, serverName, ListViewServer2);
         }
 
@@ -524,7 +524,7 @@ namespace GateHelper
             tabControl1OriginalSize = TabControl1.Size;
 
             Util_ImageLoader.EnsureReferenceImagesFolderExists(); // ReferenceImages Folder Check
-            Util_ImageLoader.LoadReferenceImages(flowLayoutPanel1);
+            Util_ImageLoader.LoadReferenceImages(flowLayoutPanel1); // Images Load
 
             Util_ServerList.LoadServerDataFromFile(ListViewServer2); // ServerData Load
         }
