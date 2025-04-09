@@ -208,7 +208,9 @@
       <Install>false</Install>
     </BootstrapperPackage>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Content Include="Resource_TEMP\Spinner.gif" />
+  </ItemGroup>
   <ItemGroup>
     <None Include="Resource_TEMP\arrow_right.png" />
   </ItemGroup>

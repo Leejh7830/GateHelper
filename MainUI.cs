@@ -20,6 +20,7 @@ namespace GateHelper
         private readonly MaterialSkinManager materialSkinManager;
         public static IWebDriver _driver = null;
 
+        // Instance 등록
         private Config _config;
         private ConfigManager configManager = new ConfigManager();
         private ChromeDriverManager chromeDriverManager = new ChromeDriverManager();
@@ -33,17 +34,24 @@ namespace GateHelper
         private bool disablePopup;
         private readonly Timer timer1;
 
+        // 연결상태 감지용
+        private string _lastDriverStatus = "";
+        private string _lastInternetStatus = "";
+
+        // TestMode 확인용
+        private bool testMode = false;
+
+        // Control 관리용
         public static readonly Size FormOriginalSize = new Size(400, 700);
         public static readonly Size FormExtendedSize = new Size(550, 700);
         private Size groupConnect1OriginalSize;
         private Size tabSelector1OriginalSize;
         private Size tabControl1OriginalSize;
 
-        // 연결상태 감지용
-        private string _lastDriverStatus = "";
-        private string _lastInternetStatus = "";
+        private Panel _loadingPanel = null;
 
-        private bool testMode = false;
+
+
 
         public MainUI()
         {
@@ -408,6 +416,7 @@ namespace GateHelper
         // 25.03.19 Added - Test Mode Functions
         private void CBox_TestMode1_CheckedChanged(object sender, EventArgs e)
         {
+            _loadingPanel = Util_Control.ShowLoadingPanel(this); // 확인필요
             if (CBox_TestMode1.Checked)
             {
                 Util_Test.EnterTestMode(this, TabSelector1, ref testMode);
@@ -428,6 +437,7 @@ namespace GateHelper
                 ComboBoxServerList1.Items.Clear();
                 testMode = false;
             }
+            Util_Control.HideLoadingPanel(this, _loadingPanel); // 확인필요
         }
 
 
