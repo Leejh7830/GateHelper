@@ -2,10 +2,6 @@
 using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using static GateHelper.LogManager;
 
@@ -107,7 +103,7 @@ namespace GateHelper
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
                 MessageBox.Show($"팝업창 전환 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -134,42 +130,52 @@ namespace GateHelper
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
                 MessageBox.Show($"ID/PW 입력 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
-        public static void SearchAndConnect_ListView(
-            IWebDriver driver,
-            string mainHandle,
-            Config config,
-            string serverName,
-            Control searchBox,
-            ComboBox comboBox,
-            ListView listView,
-            Action btnSearchClick,
-            Action btnConnectClick)
+        public static void AutoConnect_1_Step(IWebDriver driver, Form MainForm)
         {
-            // 검색창에 서버명 입력
-            searchBox.Text = serverName;
-
-            // 검색 실행
-            btnSearchClick?.Invoke();
-
-            // 드롭다운 목록에서 서버 선택
-            if (comboBox.Items.Contains(serverName))
+            
+            try
             {
-                comboBox.SelectedItem = serverName;
-                btnConnectClick?.Invoke();
+                if (driver == null)
+                {
+                    MessageBox.Show("드라이버가 초기화되지 않았습니다. 먼저 시작 버튼을 눌러주세요.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                Util_Control.ClickElementByXPath(driver, "/html/body/div/div[2]/button[3]"); // 고급
+                Util_Control.ClickElementByXPath(driver, "/html/body/div/div[3]/p[2]/a"); // 안전하지않음으로이동
+
+                Util.InputKeys("{Tab},SPACE,{Tab},SPACE"); // MPO Helper
+
+                Util_Control.MoveFormToTop(MainForm);
+
             }
-            else
+            catch (Exception ex)
             {
-                MessageBox.Show($"서버 '{serverName}'가 검색 결과에 없습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                LogException(ex, Level.Error);
             }
         }
 
-
-
+        public static void AutoConnect_2_Step(IWebDriver driver, Config config, string mainHandle)
+        {
+            try
+            {
+                Util.SwitchToMainHandle(driver, mainHandle);
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+                var idInput = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='USERID_ENC']")));
+                idInput.SendKeys(config.GateID);
+                var pwInput = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='PASSWD']")));
+                pwInput.SendKeys(config.GatePW);
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error);
+            }
+        }
 
 
 

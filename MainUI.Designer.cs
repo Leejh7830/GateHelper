@@ -32,7 +32,7 @@ namespace GateHelper
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainUI));
-            this.BtnLogin1 = new MaterialSkin.Controls.MaterialButton();
+            this.BtnGateOneLogin1 = new MaterialSkin.Controls.MaterialButton();
             this.TestBtn1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnSearch1 = new MaterialSkin.Controls.MaterialButton();
             this.ListViewServer1 = new MaterialSkin.Controls.MaterialListView();
@@ -101,25 +101,26 @@ namespace GateHelper
             ((System.ComponentModel.ISupportInitialize)(this.dataListView1)).BeginInit();
             this.SuspendLayout();
             // 
-            // BtnLogin1
+            // BtnGateOneLogin1
             // 
-            this.BtnLogin1.AutoSize = false;
-            this.BtnLogin1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnLogin1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnLogin1.Depth = 0;
-            this.BtnLogin1.HighEmphasis = true;
-            this.BtnLogin1.Icon = null;
-            this.BtnLogin1.Location = new System.Drawing.Point(723, 69);
-            this.BtnLogin1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.BtnLogin1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnLogin1.Name = "BtnLogin1";
-            this.BtnLogin1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnLogin1.Size = new System.Drawing.Size(117, 106);
-            this.BtnLogin1.TabIndex = 4;
-            this.BtnLogin1.Text = "GATEONE LOGIN";
-            this.BtnLogin1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnLogin1.UseAccentColor = false;
-            this.BtnLogin1.UseVisualStyleBackColor = true;
+            this.BtnGateOneLogin1.AutoSize = false;
+            this.BtnGateOneLogin1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnGateOneLogin1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnGateOneLogin1.Depth = 0;
+            this.BtnGateOneLogin1.HighEmphasis = true;
+            this.BtnGateOneLogin1.Icon = null;
+            this.BtnGateOneLogin1.Location = new System.Drawing.Point(390, 121);
+            this.BtnGateOneLogin1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnGateOneLogin1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnGateOneLogin1.Name = "BtnGateOneLogin1";
+            this.BtnGateOneLogin1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnGateOneLogin1.Size = new System.Drawing.Size(103, 40);
+            this.BtnGateOneLogin1.TabIndex = 4;
+            this.BtnGateOneLogin1.Text = "GATEONE LOGIN";
+            this.BtnGateOneLogin1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnGateOneLogin1.UseAccentColor = false;
+            this.BtnGateOneLogin1.UseVisualStyleBackColor = true;
+            this.BtnGateOneLogin1.Click += new System.EventHandler(this.BtnGateOneLogin1_Click);
             // 
             // TestBtn1
             // 
@@ -177,7 +178,7 @@ namespace GateHelper
             this.ListViewServer1.HideSelection = false;
             this.ListViewServer1.LabelEdit = true;
             this.ListViewServer1.Location = new System.Drawing.Point(598, 369);
-            this.ListViewServer1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.ListViewServer1.Margin = new System.Windows.Forms.Padding(2);
             this.ListViewServer1.MinimumSize = new System.Drawing.Size(140, 67);
             this.ListViewServer1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.ListViewServer1.MouseState = MaterialSkin.MouseState.OUT;
@@ -219,7 +220,7 @@ namespace GateHelper
             this.SearchTxt1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.SearchTxt1.LeadingIcon = null;
             this.SearchTxt1.Location = new System.Drawing.Point(5, 19);
-            this.SearchTxt1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.SearchTxt1.Margin = new System.Windows.Forms.Padding(2);
             this.SearchTxt1.MaxLength = 32767;
             this.SearchTxt1.MouseState = MaterialSkin.MouseState.OUT;
             this.SearchTxt1.Name = "SearchTxt1";
@@ -311,7 +312,7 @@ namespace GateHelper
             this.ComboBoxServerList1.IntegralHeight = false;
             this.ComboBoxServerList1.ItemHeight = 43;
             this.ComboBoxServerList1.Location = new System.Drawing.Point(125, 77);
-            this.ComboBoxServerList1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.ComboBoxServerList1.Margin = new System.Windows.Forms.Padding(2);
             this.ComboBoxServerList1.MaxDropDownItems = 4;
             this.ComboBoxServerList1.MouseState = MaterialSkin.MouseState.OUT;
             this.ComboBoxServerList1.Name = "ComboBoxServerList1";
@@ -401,7 +402,7 @@ namespace GateHelper
             this.TabControl1.Controls.Add(this.tabPage4);
             this.TabControl1.Depth = 0;
             this.TabControl1.Location = new System.Drawing.Point(6, 169);
-            this.TabControl1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.TabControl1.Margin = new System.Windows.Forms.Padding(2);
             this.TabControl1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TabControl1.Multiline = true;
             this.TabControl1.Name = "TabControl1";
@@ -413,9 +414,9 @@ namespace GateHelper
             // 
             this.tabPage1.Controls.Add(this.GroupConnect1);
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
-            this.tabPage1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage1.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(2);
             this.tabPage1.Size = new System.Drawing.Size(535, 351);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "SERVER";
@@ -428,9 +429,9 @@ namespace GateHelper
             this.tabPage3.Controls.Add(this.BtnReloadImages1);
             this.tabPage3.Controls.Add(this.GroupRef2);
             this.tabPage3.Location = new System.Drawing.Point(4, 22);
-            this.tabPage3.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage3.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(2);
             this.tabPage3.Size = new System.Drawing.Size(535, 351);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "REFERENCE";
@@ -512,9 +513,9 @@ namespace GateHelper
             // 
             this.flowLayoutPanel1.AutoScroll = true;
             this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 17);
-            this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(2);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Padding = new System.Windows.Forms.Padding(3, 3, 3, 3);
+            this.flowLayoutPanel1.Padding = new System.Windows.Forms.Padding(3);
             this.flowLayoutPanel1.Size = new System.Drawing.Size(380, 281);
             this.flowLayoutPanel1.TabIndex = 29;
             // 
@@ -522,9 +523,9 @@ namespace GateHelper
             // 
             this.tabPage4.Controls.Add(this.ListViewServer2);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
-            this.tabPage4.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage4.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Padding = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(2);
             this.tabPage4.Size = new System.Drawing.Size(535, 351);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "HISTORY";
@@ -545,7 +546,7 @@ namespace GateHelper
             this.ListViewServer2.HideSelection = false;
             this.ListViewServer2.HoverSelection = true;
             this.ListViewServer2.Location = new System.Drawing.Point(2, 2);
-            this.ListViewServer2.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.ListViewServer2.Margin = new System.Windows.Forms.Padding(2);
             this.ListViewServer2.MinimumSize = new System.Drawing.Size(141, 68);
             this.ListViewServer2.Name = "ListViewServer2";
             this.ListViewServer2.Size = new System.Drawing.Size(535, 349);
@@ -582,7 +583,7 @@ namespace GateHelper
             this.TabSelector1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
             this.TabSelector1.ForeColor = System.Drawing.SystemColors.Control;
             this.TabSelector1.Location = new System.Drawing.Point(19, 135);
-            this.TabSelector1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.TabSelector1.Margin = new System.Windows.Forms.Padding(2);
             this.TabSelector1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TabSelector1.Name = "TabSelector1";
             this.TabSelector1.Size = new System.Drawing.Size(365, 32);
@@ -614,10 +615,9 @@ namespace GateHelper
             this.BtnStart2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BtnStart2.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.BtnStart2.Depth = 0;
-            this.BtnStart2.Enabled = false;
             this.BtnStart2.HighEmphasis = true;
             this.BtnStart2.Icon = null;
-            this.BtnStart2.Location = new System.Drawing.Point(863, 106);
+            this.BtnStart2.Location = new System.Drawing.Point(384, 73);
             this.BtnStart2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnStart2.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnStart2.Name = "BtnStart2";
@@ -831,7 +831,7 @@ namespace GateHelper
             this.dataListView1.GridLines = true;
             this.dataListView1.HideSelection = false;
             this.dataListView1.Location = new System.Drawing.Point(598, 209);
-            this.dataListView1.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.dataListView1.Margin = new System.Windows.Forms.Padding(2);
             this.dataListView1.Name = "dataListView1";
             this.dataListView1.Size = new System.Drawing.Size(487, 151);
             this.dataListView1.TabIndex = 28;
@@ -916,10 +916,10 @@ namespace GateHelper
             this.Controls.Add(this.BtnStart2);
             this.Controls.Add(this.TabSelector1);
             this.Controls.Add(this.TabControl1);
-            this.Controls.Add(this.BtnLogin1);
+            this.Controls.Add(this.BtnGateOneLogin1);
             this.Controls.Add(this.TestBtn1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(2, 2, 2, 2);
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainUI";
             this.Padding = new System.Windows.Forms.Padding(2, 43, 2, 2);
             this.Sizable = false;
@@ -943,7 +943,7 @@ namespace GateHelper
         }
 
         #endregion
-        private MaterialSkin.Controls.MaterialButton BtnLogin1;
+        private MaterialSkin.Controls.MaterialButton BtnGateOneLogin1;
         private MaterialSkin.Controls.MaterialButton TestBtn1;
         private MaterialSkin.Controls.MaterialButton BtnSearch1;
         private System.Windows.Forms.GroupBox GroupConnect1;

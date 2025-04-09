@@ -5,13 +5,13 @@ using MaterialSkin.Controls;
 using MaterialSkin;
 using System.Drawing;
 using System.Windows.Forms;
-using Level = GateHelper.LogManager.Level;
 using System.Collections.Generic;
 using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
 using System.Configuration;
 using System.IO;
 using System.Linq;
+using static GateHelper.LogManager;
 
 namespace GateHelper
 {
@@ -48,15 +48,13 @@ namespace GateHelper
         private Size tabSelector1OriginalSize;
         private Size tabControl1OriginalSize;
 
-        private Panel _loadingPanel = null;
-
 
 
 
         public MainUI()
         {
-            LogManager.InitializeLogFile();
-            LogManager.LogMessage("========== Initialize ==========", Level.Info);
+            InitializeLogFile();
+            LogMessage("========== Initialize ==========", Level.Info);
             InitializeComponent();
 
             configManager.ReloadConfig(); // 설정 파일 로드
@@ -81,7 +79,7 @@ namespace GateHelper
             timer1.Start();
 
 
-            LogManager.LogMessage("프로그램 초기화 완료", Level.Info);
+            LogMessage("프로그램 초기화 완료", Level.Info);
         }
 
         // 25.03.27 Added
@@ -100,7 +98,7 @@ namespace GateHelper
 
             if (_lastDriverStatus != newDriverStatus)
             {
-                LogManager.LogMessage($"[Status Change] Driver {newDriverStatus}", driverOn ? Level.Info : Level.Critical);
+                LogMessage($"[Status Change] Driver {newDriverStatus}", driverOn ? Level.Info : Level.Critical);
                 _lastDriverStatus = newDriverStatus;
             }
 
@@ -114,7 +112,7 @@ namespace GateHelper
 
             if (_lastInternetStatus != newNetStatus)
             {
-                LogManager.LogMessage($"[Status Change] Network {newNetStatus}", netOn ? Level.Info : Level.Error);
+                LogMessage($"[Status Change] Network {newNetStatus}", netOn ? Level.Info : Level.Error);
                 _lastInternetStatus = newNetStatus;
             }
         }
@@ -126,7 +124,7 @@ namespace GateHelper
 
         protected async void BtnStart1_Click(object sender, EventArgs e)
         {
-            LogManager.LogMessage("BtnStart1 Click", Level.Info);
+            LogMessage("BtnStart1 Click", Level.Info);
             try
             {
                 BtnReConfig1_Click(sender, e);
@@ -135,40 +133,26 @@ namespace GateHelper
 
                 _driver.Navigate().GoToUrl(_config.Url); // 입력한 사이트로 이동
                 mainHandle = _driver.CurrentWindowHandle; // MainHandle 저장
-                LogManager.LogMessage("Start MainHandle: " + mainHandle, Level.Info);
+                LogMessage("Start MainHandle: " + mainHandle, Level.Info);
 
                 Util_Control.MoveFormToTop(this);
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
             }
         }
 
         private void BtnStart2_Click(object sender, EventArgs e)
         {
-            LogManager.LogMessage("BtnStart2 Click", Level.Info);
-            try
-            {
-                if (_driver == null)
-                {
-                    MessageBox.Show("드라이버가 초기화되지 않았습니다. 먼저 시작 버튼을 눌러주세요.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
+            LogMessage("BtnStart2 Click", Level.Info);
+            Util_Connect.AutoConnect_1_Step(_driver, this);
+        }
 
-                Util_Control.ClickElementByXPath(_driver, "/html/body/div/div[2]/button[3]"); // 고급
-                Util_Control.ClickElementByXPath(_driver, "/html/body/div/div[3]/p[2]/a"); // 안전하지않음으로이동
-
-                Util.InputKeys("{Tab},SPACE,{Tab},SPACE"); // MPO Helper
-
-                Util_Control.MoveFormToTop(this);
-
-            }
-            catch (Exception ex)
-            {
-                // MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                LogManager.LogException(ex, Level.Error);
-            }
+        private void BtnGateOneLogin1_Click(object sender, EventArgs e)
+        {
+            LogMessage("BtnGateOneLogin1_Click", Level.Info);
+            Util_Connect.AutoConnect_2_Step(_driver, _config, mainHandle);
         }
 
 
@@ -178,7 +162,7 @@ namespace GateHelper
             if (!Util.CheckDriverExists(_driver))
                 return;
 
-            LogManager.LogMessage("BtnSearch1 Click", Level.Info);
+            LogMessage("BtnSearch1 Click", Level.Info);
             Util.SwitchToMainHandle(_driver, mainHandle);
 
             try
@@ -194,17 +178,17 @@ namespace GateHelper
             }
             catch (ArgumentException ex)
             {
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
                 MessageBox.Show(ex.Message, "알림");
             }
             catch (NoSuchElementException ex)
             {
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
                 MessageBox.Show("요소를 찾을 수 없습니다.", "오류");
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, Level.Critical);
+                LogException(ex, Level.Critical);
                 MessageBox.Show("예상치 못한 오류가 발생했습니다.", "오류");
             }
         }
@@ -216,7 +200,7 @@ namespace GateHelper
             if (!Util.CheckDriverExists(_driver))
                 return;
 
-            LogManager.LogMessage("BtnLoadServers1 Click", Level.Info);
+            LogMessage("BtnLoadServers1 Click", Level.Info);
 
             try
             {
@@ -241,7 +225,7 @@ namespace GateHelper
                     tbodyIndex++; // tbody 증가 (다음 테이블 이동)
                 }
 
-                LogManager.LogMessage($"서버 이름 리스트:\n{string.Join("\n", serverList)}", Level.Info);
+                LogMessage($"서버 이름 리스트:\n{string.Join("\n", serverList)}", Level.Info);
 
                 ComboBoxServerList1.Items.Clear();
                 foreach (string serverName in serverList) // 서버 이름 드롭다운 박스 매칭
@@ -251,15 +235,15 @@ namespace GateHelper
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
                 MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void BtnConnect1_Click(object sender, EventArgs e)
         {
-            LogManager.LogMessage("BtnConnect1 Click", Level.Info);
-            LogManager.LogMessage("Connect MainHandle : " + mainHandle, Level.Info);
+            LogMessage("BtnConnect1 Click", Level.Info);
+            LogMessage("Connect MainHandle : " + mainHandle, Level.Info);
 
             // ✅ 테스트 모드일 때는 드라이버 체크 건너뜀
             if (testMode)
@@ -279,7 +263,7 @@ namespace GateHelper
             }
 
             string selectedServer = ComboBoxServerList1.SelectedItem.ToString();
-            LogManager.LogMessage("접속 서버 명: " + selectedServer, Level.Info);
+            LogMessage("접속 서버 명: " + selectedServer, Level.Info);
 
             Util_Connect.ConnectToServer(_driver, mainHandle, _config, selectedServer, ListViewServer2);
         }
@@ -303,7 +287,7 @@ namespace GateHelper
         // 2025.03.17 Added - Config File Reload Button
         private void BtnReConfig1_Click(object sender, EventArgs e)
         {
-            LogManager.LogMessage("BtnConfig1 Click", Level.Info);
+            LogMessage("BtnConfig1 Click", Level.Info);
             try
             {
                 configManager.ReloadConfig();
@@ -318,22 +302,22 @@ namespace GateHelper
                 }
                 else
                 {
-                    LogManager.LogMessage("Fail Config Re-Load", Level.Info);
+                    LogMessage("Fail Config Re-Load", Level.Info);
                 }
             }
             catch (ConfigurationErrorsException ex)
             {
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
                 MessageBox.Show($"설정 파일 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (FileNotFoundException ex)
             {
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
                 MessageBox.Show($"설정 파일을 찾을 수 없습니다: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, Level.Error);
+                LogException(ex, Level.Error);
                 MessageBox.Show($"설정 로드 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -341,15 +325,15 @@ namespace GateHelper
         // 2025.03.17 Added - Config File Open Button
         private void BtnOpenConfig1_Click(object sender, EventArgs e)
         {
-            LogManager.LogMessage("BtnOpenConfig1 Click", Level.Info);
+            LogMessage("BtnOpenConfig1 Click", Level.Info);
             configManager.OpenConfigFile();
         }
 
         // 2025.03.17 Added - Log File Open Button
         private void BtnOpenLog1_Click(object sender, EventArgs e)
         {
-            LogManager.LogMessage("BtnOpenLog1 Click", Level.Info);
-            LogManager.OpenLogFile();
+            LogMessage("BtnOpenLog1 Click", Level.Info);
+            OpenLogFile();
         }
 
         private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
@@ -360,7 +344,7 @@ namespace GateHelper
                 _driver = null;  // 드라이버 객체 해제
             }
             // 프로그램 완전 종료'
-            LogManager.LogMessage("프로그램 종료", Level.Info);
+            LogMessage("프로그램 종료", Level.Info);
             Environment.Exit(0);
         }
 
@@ -388,11 +372,11 @@ namespace GateHelper
                 }
                 catch (NoSuchElementException ex)
                 {
-                    LogManager.LogException(ex, Level.Error);
+                    LogException(ex, Level.Error);
                 }
                 catch (NoSuchWindowException ex)
                 {
-                    LogManager.LogException(ex, Level.Error);
+                    LogException(ex, Level.Error);
                 }
                 catch (NoAlertPresentException)
                 {
@@ -400,7 +384,7 @@ namespace GateHelper
                 }
                 catch (Exception ex)
                 {
-                    LogManager.LogException(ex, Level.Error);
+                    LogException(ex, Level.Error);
                 }
             }
         }
@@ -408,22 +392,23 @@ namespace GateHelper
 
         private void DisablePopupCheckBox1_CheckedChanged(object sender, EventArgs e)
         {
-            LogManager.LogMessage("DisablePopupCheckBox CheckedChanged", Level.Info);
+            LogMessage("DisablePopupCheckBox CheckedChanged", Level.Info);
             disablePopup = CBox_DisablePopup1.Checked;
         }
 
         
         // 25.03.19 Added - Test Mode Functions
+        // 25.04.09 Modif - LoadingPanel Added
         private void CBox_TestMode1_CheckedChanged(object sender, EventArgs e)
         {
-            _loadingPanel = Util_Control.ShowLoadingPanel(this); // 확인필요
+            Util_Control.ToggleMessagePanel(this, "ON");
             if (CBox_TestMode1.Checked)
             {
                 Util_Test.EnterTestMode(this, TabSelector1, ref testMode);
 
                 if (testMode)
                 {
-                    LogManager.LogMessage("TEST MODE 진입", Level.Info);
+                    LogMessage("TEST MODE 진입", Level.Info);
                     Util_Test.LoadTestServers(ComboBoxServerList1);
                 }
                 else
@@ -437,7 +422,7 @@ namespace GateHelper
                 ComboBoxServerList1.Items.Clear();
                 testMode = false;
             }
-            Util_Control.HideLoadingPanel(this, _loadingPanel); // 확인필요
+            // Util_Control.ToggleMessagePanel(this, "OFF");
         }
 
 
@@ -449,7 +434,7 @@ namespace GateHelper
 
             string serverName = ListViewServer2.SelectedItems[0].SubItems[1].Text;
 
-            LogManager.LogMessage("ListView 더블클릭 접속 시도: " + serverName, Level.Info);
+            LogMessage("ListView 더블클릭 접속 시도: " + serverName, Level.Info);
 
             // 검색 실행
             SearchTxt1.Text = serverName;
