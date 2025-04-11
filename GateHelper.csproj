@@ -148,6 +148,9 @@
     <Compile Include="Form_Setting.Designer.cs">
       <DependentUpon>Form_Setting.cs</DependentUpon>
     </Compile>
+    <Compile Include="TransparentPictureBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
     <Compile Include="Util_Connect.cs" />
     <Compile Include="Util_ImageLoader.cs" />
     <Compile Include="LogManager.cs" />

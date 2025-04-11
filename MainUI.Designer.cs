@@ -87,6 +87,7 @@ namespace GateHelper
             this.lblDriverStatus = new System.Windows.Forms.Label();
             this.lblInternetStatus = new System.Windows.Forms.Label();
             this.CBox_ListViewClickConnect = new MaterialSkin.Controls.MaterialCheckbox();
+            this.CBox_AutoLogin1 = new MaterialSkin.Controls.MaterialCheckbox();
             this.GroupConnect1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
             this.TabControl1.SuspendLayout();
@@ -891,12 +892,30 @@ namespace GateHelper
             this.CBox_ListViewClickConnect.Text = "ListView Click Connect";
             this.CBox_ListViewClickConnect.UseVisualStyleBackColor = true;
             // 
+            // CBox_AutoLogin1
+            // 
+            this.CBox_AutoLogin1.AutoSize = true;
+            this.CBox_AutoLogin1.Depth = 0;
+            this.CBox_AutoLogin1.Location = new System.Drawing.Point(19, 660);
+            this.CBox_AutoLogin1.Margin = new System.Windows.Forms.Padding(0);
+            this.CBox_AutoLogin1.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.CBox_AutoLogin1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.CBox_AutoLogin1.Name = "CBox_AutoLogin1";
+            this.CBox_AutoLogin1.ReadOnly = false;
+            this.CBox_AutoLogin1.Ripple = true;
+            this.CBox_AutoLogin1.Size = new System.Drawing.Size(112, 37);
+            this.CBox_AutoLogin1.TabIndex = 35;
+            this.CBox_AutoLogin1.Text = "Auto Login";
+            this.CBox_AutoLogin1.UseVisualStyleBackColor = true;
+            this.CBox_AutoLogin1.CheckedChanged += new System.EventHandler(this.CBox_AutoLogin1_CheckedChanged);
+            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1114, 714);
+            this.Controls.Add(this.CBox_AutoLogin1);
             this.Controls.Add(this.CBox_ListViewClickConnect);
             this.Controls.Add(this.lblInternetStatus);
             this.Controls.Add(this.lblDriverStatus);
@@ -998,6 +1017,7 @@ namespace GateHelper
         private System.Windows.Forms.Label lblDriverStatus;
         private System.Windows.Forms.Label lblInternetStatus;
         private MaterialSkin.Controls.MaterialCheckbox CBox_ListViewClickConnect;
+        private MaterialSkin.Controls.MaterialCheckbox CBox_AutoLogin1;
     }
 }
 

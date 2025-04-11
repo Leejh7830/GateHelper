@@ -401,7 +401,6 @@ namespace GateHelper
         // 25.04.09 Modif - LoadingPanel Added
         private void CBox_TestMode1_CheckedChanged(object sender, EventArgs e)
         {
-            Util_Control.ToggleMessagePanel(this, "ON");
             if (CBox_TestMode1.Checked)
             {
                 Util_Test.EnterTestMode(this, TabSelector1, ref testMode);
@@ -422,7 +421,6 @@ namespace GateHelper
                 ComboBoxServerList1.Items.Clear();
                 testMode = false;
             }
-            // Util_Control.ToggleMessagePanel(this, "OFF");
         }
 
 
@@ -463,22 +461,22 @@ namespace GateHelper
 
         //////////////////////////////////////////////////////////////////////////////// 옵션 전용 끝
 
-        private bool changeSkinColor = true;
+        private bool isDarkMode = true;
         private bool changeArrow = true;
 
         private void PicBox_Setting_Click(object sender, EventArgs e)
         {
-            if (changeSkinColor)
+            if (isDarkMode)
             {
                 materialSkinManager.Theme = MaterialSkinManager.Themes.LIGHT;
                 PicBox_Setting.Image = Properties.Resources.moon;
-                changeSkinColor = false;
+                isDarkMode = false;
             }
             else
             {
                 materialSkinManager.Theme = MaterialSkinManager.Themes.DARK;
                 PicBox_Setting.Image = Properties.Resources.sun;
-                changeSkinColor = true;
+                isDarkMode = true;
             }
         }
 
@@ -552,6 +550,11 @@ namespace GateHelper
             Util_ImageLoader.LoadReferenceImages(flowLayoutPanel1);
         }
 
-
+        private void CBox_AutoLogin1_CheckedChanged(object sender, EventArgs e)
+        {
+            // AutoLogin CheckBox가 켜져있다면..
+            // StartBtn을 눌렀을 때 추가로 진행한다.
+            // 진행중 로딩패널 확인..
+        }
     }
 }

@@ -17,6 +17,7 @@ namespace GateHelper
     {
         // LoadingPanel Instance
         private static Panel _messagePanel = null;
+        private static PictureBox _spinnerPicture = null;
 
         public static void MoveFormToTop(Form form)
         {
@@ -139,26 +140,28 @@ namespace GateHelper
 
 
 
-        public static void ToggleMessagePanel(Control parent, string mode)
+        // 25.04.10 Added
+        public static void ToggleSpinner(Control parent, string mode, bool isDarkMode)
         {
             if (mode.Equals("on", StringComparison.OrdinalIgnoreCase))
             {
-                if (_messagePanel == null)
+                if (_spinnerPicture == null)
                 {
-                    _messagePanel = CreateMessagePanel(parent); // 패널 생성
-                    parent.Controls.Add(_messagePanel);           // 패널 추가
-                    _messagePanel.BringToFront();                   // 최상단으로 이동
-                    DisableInteractiveControls(parent);           // 버튼 등 비활성화
+                    _spinnerPicture = CreateSpinnerPictureBox(parent, isDarkMode); // isDarkMode에 따라 배경색 결정
+                    parent.Controls.Add(_spinnerPicture);
+                    _spinnerPicture.BringToFront();
+                    // 단, DisableInteractiveControls는 spinner는 제외해서 계속 애니메이션되게 처리
+                    DisableInteractiveControls(parent);
                 }
             }
             else if (mode.Equals("off", StringComparison.OrdinalIgnoreCase))
             {
-                if (_messagePanel != null)
+                if (_spinnerPicture != null)
                 {
-                    parent.Controls.Remove(_messagePanel);        // 패널 제거
-                    _messagePanel.Dispose();                      // 자원 해제
-                    _messagePanel = null;
-                    EnableInteractiveControls(parent);            // 버튼 등 활성화
+                    parent.Controls.Remove(_spinnerPicture);
+                    _spinnerPicture.Dispose();
+                    _spinnerPicture = null;
+                    EnableInteractiveControls(parent);
                 }
             }
             else
@@ -167,38 +170,42 @@ namespace GateHelper
             }
         }
 
-        public static Panel CreateMessagePanel(Control parent)
+        public static PictureBox CreateSpinnerPictureBox(Control parent, bool DarkMode)
         {
-            Panel messagePanel = new Panel();
-            messagePanel.Size = new Size(300, 150);
-            // 어두운 배경 (ARGB: alpha 220)
-            messagePanel.BackColor = Color.FromArgb(220, 0, 0, 0);
-            messagePanel.BorderStyle = BorderStyle.FixedSingle;
-            messagePanel.Location = new Point(
-                (parent.ClientSize.Width - messagePanel.Width) / 2,
-                (parent.ClientSize.Height - messagePanel.Height) / 2);
-
-            Label lblMessage = new Label();
-            lblMessage.Text = "잠시만 기다려주세요...";
-            lblMessage.ForeColor = Color.White;
-            lblMessage.Font = new Font("Segoe UI", 24, FontStyle.Bold);
-
-            lblMessage.AutoSize = false;
-            lblMessage.TextAlign = ContentAlignment.MiddleCenter;
-            lblMessage.Dock = DockStyle.Fill;
-
-            messagePanel.Controls.Add(lblMessage);
-            return messagePanel;
+            // TransparentPictureBox를 사용하면 true한 투명 효과를 기대할 수 있음
+            TransparentPictureBox spinner = new TransparentPictureBox();
+            string imagePath = Path.Combine(Application.StartupPath, "Resources", "Spinner.gif");
+            if (System.IO.File.Exists(imagePath))
+            {
+                spinner.Image = new Bitmap(imagePath); // 새 Bitmap 객체로 로드
+            }
+            else
+            {
+                MessageBox.Show("Spinner.gif 파일을 찾을 수 없습니다.\n경로: " + imagePath,
+                                "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            spinner.SizeMode = PictureBoxSizeMode.Zoom;
+            spinner.Size = new Size(100, 100);
+            spinner.Location = new Point(
+                (parent.ClientSize.Width - spinner.Width) / 2,
+                (parent.ClientSize.Height - spinner.Height) / 2);
+            // 배경색은 Transparent로 설정 (이제 사용자 정의 컨트롤이 제대로 작동하면 누끼가 보임)
+            spinner.BackColor = System.Drawing.Color.Transparent;
+            return spinner;
         }
 
         // 컨트롤 비활성화
         public static void DisableInteractiveControls(Control parent)
         {
-            foreach (Control ctrl in parent.Controls)
+            foreach (Control control in parent.Controls)
             {
-                if (ctrl is Button)
+                // spinner PictureBox는 건너뛰기
+                if (control == _spinnerPicture) continue;
+
+                control.Enabled = false;
+                if (control.Controls.Count > 0)
                 {
-                    ctrl.Enabled = false;
+                    DisableInteractiveControls(control);
                 }
             }
         }
