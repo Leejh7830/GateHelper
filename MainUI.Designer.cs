@@ -110,7 +110,7 @@ namespace GateHelper
             this.BtnGateOneLogin1.Depth = 0;
             this.BtnGateOneLogin1.HighEmphasis = true;
             this.BtnGateOneLogin1.Icon = null;
-            this.BtnGateOneLogin1.Location = new System.Drawing.Point(390, 121);
+            this.BtnGateOneLogin1.Location = new System.Drawing.Point(598, 127);
             this.BtnGateOneLogin1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnGateOneLogin1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnGateOneLogin1.Name = "BtnGateOneLogin1";
@@ -618,7 +618,7 @@ namespace GateHelper
             this.BtnStart2.Depth = 0;
             this.BtnStart2.HighEmphasis = true;
             this.BtnStart2.Icon = null;
-            this.BtnStart2.Location = new System.Drawing.Point(384, 73);
+            this.BtnStart2.Location = new System.Drawing.Point(598, 84);
             this.BtnStart2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnStart2.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnStart2.Name = "BtnStart2";
@@ -896,7 +896,7 @@ namespace GateHelper
             // 
             this.CBox_AutoLogin1.AutoSize = true;
             this.CBox_AutoLogin1.Depth = 0;
-            this.CBox_AutoLogin1.Location = new System.Drawing.Point(19, 660);
+            this.CBox_AutoLogin1.Location = new System.Drawing.Point(19, 651);
             this.CBox_AutoLogin1.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_AutoLogin1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_AutoLogin1.MouseState = MaterialSkin.MouseState.HOVER;

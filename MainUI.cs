@@ -136,6 +136,11 @@ namespace GateHelper
                 LogMessage("Start MainHandle: " + mainHandle, Level.Info);
 
                 Util_Control.MoveFormToTop(this);
+
+                if (CBox_AutoLogin1.Checked == true)
+                {
+                    BtnStart2_Click(sender, e);
+                }
             }
             catch (Exception ex)
             {
@@ -148,6 +153,7 @@ namespace GateHelper
             LogMessage("BtnStart2 Click", Level.Info);
             Util_Connect.AutoConnect_1_Step(_driver, this);
         }
+
 
         private void BtnGateOneLogin1_Click(object sender, EventArgs e)
         {
@@ -458,6 +464,13 @@ namespace GateHelper
             Util_Connect.ConnectToServer(_driver, mainHandle, _config, serverName, ListViewServer2);
         }
 
+        private void CBox_AutoLogin1_CheckedChanged(object sender, EventArgs e)
+        {
+            // AutoLogin CheckBox가 켜져있다면..
+            // StartBtn을 눌렀을 때 추가로 진행한다.
+            // 진행중 로딩패널 확인..
+        }
+
 
         //////////////////////////////////////////////////////////////////////////////// 옵션 전용 끝
 
@@ -550,11 +563,5 @@ namespace GateHelper
             Util_ImageLoader.LoadReferenceImages(flowLayoutPanel1);
         }
 
-        private void CBox_AutoLogin1_CheckedChanged(object sender, EventArgs e)
-        {
-            // AutoLogin CheckBox가 켜져있다면..
-            // StartBtn을 눌렀을 때 추가로 진행한다.
-            // 진행중 로딩패널 확인..
-        }
     }
 }

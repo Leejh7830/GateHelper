@@ -16,7 +16,6 @@ namespace GateHelper
     internal class Util_Control
     {
         // LoadingPanel Instance
-        private static Panel _messagePanel = null;
         private static PictureBox _spinnerPicture = null;
 
         public static void MoveFormToTop(Form form)
