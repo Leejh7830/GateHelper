@@ -48,6 +48,8 @@ namespace GateHelper
         private Size tabSelector1OriginalSize;
         private Size tabControl1OriginalSize;
 
+        
+
 
 
 
@@ -119,9 +121,6 @@ namespace GateHelper
 
 
 
-
-
-
         protected async void BtnStart1_Click(object sender, EventArgs e)
         {
             LogMessage("BtnStart1 Click", Level.Info);
@@ -140,6 +139,7 @@ namespace GateHelper
                 if (CBox_AutoLogin1.Checked == true)
                 {
                     BtnStart2_Click(sender, e);
+                    BtnGateOneLogin1_Click(sender, e);
                 }
             }
             catch (Exception ex)
@@ -152,15 +152,22 @@ namespace GateHelper
         {
             LogMessage("BtnStart2 Click", Level.Info);
             Util_Connect.AutoConnect_1_Step(_driver, this);
+            
         }
-
 
         private void BtnGateOneLogin1_Click(object sender, EventArgs e)
         {
             LogMessage("BtnGateOneLogin1_Click", Level.Info);
-            Util_Connect.AutoConnect_2_Step(_driver, _config, mainHandle);
-        }
+            // Util_Connect.AutoConnect_2_Step(_driver, _config, mainHandle);
+            // A 값을 입력
+            Util.InputKeys(_config.GateID, 100);
 
+            // Tab 키 누르기
+            Util.InputKeys("{TAB}", 100);
+
+            // B 값을 입력
+            Util.InputKeys(_config.GatePW, 200);
+        }
 
         // 25.03.27 Modified - Module
         private void BtnSearch1_Click(object sender, EventArgs e)
@@ -528,6 +535,9 @@ namespace GateHelper
             groupConnect1OriginalSize = GroupConnect1.Size;
             tabSelector1OriginalSize = TabSelector1.Size;
             tabControl1OriginalSize = TabControl1.Size;
+
+            CBox_AutoLogin1.Checked = true;
+            BtnStart1_Click(sender, e);
 
             Util_ImageLoader.EnsureReferenceImagesFolderExists(); // ReferenceImages Folder Check
             Util_ImageLoader.LoadReferenceImages(flowLayoutPanel1); // Images Load

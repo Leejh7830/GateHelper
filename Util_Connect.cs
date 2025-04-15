@@ -151,7 +151,7 @@ namespace GateHelper
 
                 Util.InputKeys("{Tab},SPACE,{Tab},SPACE"); // MPO Helper
 
-                Util_Control.MoveFormToTop(MainForm);
+                // Util_Control.MoveFormToTop(MainForm);
 
             }
             catch (Exception ex)

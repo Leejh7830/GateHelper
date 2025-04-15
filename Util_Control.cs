@@ -59,6 +59,42 @@ namespace GateHelper
             }
         }
 
+        /*
+        public static void ClickElementByXPath(IWebDriver driver, string xpath)
+        {
+            try
+            {
+                // WebDriverWait을 사용하여 요소가 클릭 가능한 상태로 나타날 때까지 기다리기
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
+                IWebElement element = wait.Until(ExpectedConditions.ElementToBeClickable(By.XPath(xpath)));
+
+                // 요소가 클릭 가능하면 클릭
+                element.Click();
+            }
+            catch (NoSuchElementException ex)
+            {
+                MessageBox.Show($"XPath에 해당하는 요소를 찾을 수 없습니다.: {ex.Message}", "실패", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw;
+            }
+            catch (WebDriverTimeoutException ex)
+            {
+                MessageBox.Show($"요소가 클릭 가능한 상태가 되지 않았습니다.: {ex.Message}", "실패", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                throw;
+            }
+            catch (ElementClickInterceptedException ex)
+            {
+                // 만약 요소가 다른 요소에 의해 가려져 있을 경우, JavaScriptExecutor를 사용하여 강제로 클릭
+                IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
+                js.ExecuteScript("arguments[0].click();", driver.FindElement(By.XPath(xpath)));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                throw;
+            }
+        }
+        */
+
         // 요소에 값을 입력하는 메서드
         public static void SendKeysToElement(IWebDriver driver, string xpath, string value)
         {
