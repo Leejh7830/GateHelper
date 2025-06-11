@@ -536,8 +536,7 @@ namespace GateHelper
             tabSelector1OriginalSize = TabSelector1.Size;
             tabControl1OriginalSize = TabControl1.Size;
 
-            CBox_AutoLogin1.Checked = true;
-            BtnStart1_Click(sender, e);
+            // CBox_AutoLogin1.Checked = true;
 
             Util_ImageLoader.EnsureReferenceImagesFolderExists(); // ReferenceImages Folder Check
             Util_ImageLoader.LoadReferenceImages(flowLayoutPanel1); // Images Load
