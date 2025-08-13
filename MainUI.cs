@@ -85,7 +85,7 @@ namespace GateHelper
         }
 
         // 25.03.27 Added
-        private void TimerStatusChecker_Tick(object sender, EventArgs e)
+        private async void TimerStatusChecker_Tick(object sender, EventArgs e)
         {
             Color onColor = ColorTranslator.FromHtml("#4CAF50"); // Green 500
             Color offColor = ColorTranslator.FromHtml("#F44336"); // Red 500
@@ -100,7 +100,7 @@ namespace GateHelper
 
             if (_lastDriverStatus != newDriverStatus)
             {
-                LogMessage($"[Status Change] Driver {newDriverStatus}", driverOn ? Level.Info : Level.Critical);
+                LogMessage($"[Status Change] Driver {newDriverStatus}", driverOn ? Level.Info : Level.Error);
                 _lastDriverStatus = newDriverStatus;
             }
 
@@ -116,6 +116,18 @@ namespace GateHelper
             {
                 LogMessage($"[Status Change] Network {newNetStatus}", netOn ? Level.Info : Level.Error);
                 _lastInternetStatus = newNetStatus;
+            }
+
+            if (driverOn)
+            {
+                try
+                {
+                    await Util_Option.HandleWindows(_driver, mainHandle, _config);
+                }
+                catch (Exception ex)
+                {
+                    LogException(ex, Level.Error);
+                }
             }
         }
 
