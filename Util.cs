@@ -17,7 +17,7 @@ using System.Diagnostics;
 
 namespace GateHelper
 {
-    public static class Util
+    public static class Util // 공통 유틸리티
     {
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]

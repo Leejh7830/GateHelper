@@ -136,7 +136,7 @@ namespace GateHelper
 
                 Util_Control.MoveFormToTop(this);
 
-                if (CBox_AutoLogin1.Checked == true)
+                if (CBox_AutoLogin1.Checked == true) // Auto Login
                 {
                     BtnStart2_Click(sender, e);
                     BtnGateOneLogin1_Click(sender, e);
@@ -535,8 +535,6 @@ namespace GateHelper
             groupConnect1OriginalSize = GroupConnect1.Size;
             tabSelector1OriginalSize = TabSelector1.Size;
             tabControl1OriginalSize = TabControl1.Size;
-
-            // CBox_AutoLogin1.Checked = true;
 
             Util_ImageLoader.EnsureReferenceImagesFolderExists(); // ReferenceImages Folder Check
             Util_ImageLoader.LoadReferenceImages(flowLayoutPanel1); // Images Load
