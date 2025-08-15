@@ -33,12 +33,14 @@ namespace GateHelper
             return options;
         } 
 
+        // Driver 체크용
         public bool IsDriverAlive(IWebDriver _driver)
         {
             try { var title = _driver.Title; return true; }
             catch { return false; }
         }
 
+        // Network 체크용
         public bool IsInternetAvailable()
         {
             try
@@ -54,5 +56,18 @@ namespace GateHelper
         }
 
 
+        // 25.08.14 Added - Driver Check
+        public bool IsDriverReady(IWebDriver _driver)
+        {
+            // _driver 객체가 있고, 드라이버가 활성화된 상태인지 확인합니다.
+            if (_driver != null && IsDriverAlive(_driver))
+            {
+                return true;
+            }
+
+            // 드라이버가 준비되지 않았을 경우, 메시지 박스를 띄웁니다.
+            MessageBox.Show("ChromeDriver가 OFF 상태입니다. 드라이버를 실행해주세요.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return false;
+        }
     }
 }

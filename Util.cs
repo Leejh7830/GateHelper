@@ -254,8 +254,7 @@ namespace GateHelper
                 }
                 else
                 {
-                    // 이미 존재함
-                    return true;
+                    return true; // 이미 존재함
                 }
             }
             catch (Exception ex)

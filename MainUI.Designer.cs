@@ -88,6 +88,7 @@ namespace GateHelper
             this.lblInternetStatus = new System.Windows.Forms.Label();
             this.CBox_ListViewClickConnect = new MaterialSkin.Controls.MaterialCheckbox();
             this.CBox_AutoLogin1 = new MaterialSkin.Controls.MaterialCheckbox();
+            this.lblPopupStatus = new System.Windows.Forms.Label();
             this.GroupConnect1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
             this.TabControl1.SuspendLayout();
@@ -596,7 +597,6 @@ namespace GateHelper
             // 
             this.CBox_DisablePopup1.AutoSize = true;
             this.CBox_DisablePopup1.Depth = 0;
-            this.CBox_DisablePopup1.Enabled = false;
             this.CBox_DisablePopup1.Location = new System.Drawing.Point(19, 567);
             this.CBox_DisablePopup1.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_DisablePopup1.MouseLocation = new System.Drawing.Point(-1, -1);
@@ -909,12 +909,22 @@ namespace GateHelper
             this.CBox_AutoLogin1.UseVisualStyleBackColor = true;
             this.CBox_AutoLogin1.CheckedChanged += new System.EventHandler(this.CBox_AutoLogin1_CheckedChanged);
             // 
+            // lblPopupStatus
+            // 
+            this.lblPopupStatus.AutoSize = true;
+            this.lblPopupStatus.Location = new System.Drawing.Point(231, 578);
+            this.lblPopupStatus.Name = "lblPopupStatus";
+            this.lblPopupStatus.Size = new System.Drawing.Size(40, 12);
+            this.lblPopupStatus.TabIndex = 36;
+            this.lblPopupStatus.Text = "Detect";
+            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1114, 714);
+            this.Controls.Add(this.lblPopupStatus);
             this.Controls.Add(this.CBox_AutoLogin1);
             this.Controls.Add(this.CBox_ListViewClickConnect);
             this.Controls.Add(this.lblInternetStatus);
@@ -1018,6 +1028,7 @@ namespace GateHelper
         private System.Windows.Forms.Label lblInternetStatus;
         private MaterialSkin.Controls.MaterialCheckbox CBox_ListViewClickConnect;
         private MaterialSkin.Controls.MaterialCheckbox CBox_AutoLogin1;
+        private System.Windows.Forms.Label lblPopupStatus;
     }
 }
 

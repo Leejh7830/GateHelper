@@ -16,7 +16,9 @@ namespace GateHelper
 
         public static async Task<bool> HandleWindows(IWebDriver driver, string mainHandle, Config config)
         {
-            // 팝업 창 처리
+            bool wasHandled = false; // 팝업 처리 여부를 저장할 변수
+
+            // 팝업 창 처리 (새 창 핸들을 가진 팝업)
             List<string> windowHandles = new List<string>(driver.WindowHandles);
             foreach (string handle in windowHandles)
             {
@@ -24,11 +26,12 @@ namespace GateHelper
                 {
                     try
                     {
-                        LogMessage("Popup Detected", Level.Info);
+                        LogMessage("Popup Window Detected", Level.Info);
                         driver.SwitchTo().Window(handle);
-                        await Task.Delay(3000); // 3초 대기 후 닫기
+                        await Task.Delay(3000);
                         driver.Close();
-                        LogMessage("Closed Popup", Level.Info);
+                        LogMessage("Closed Popup Window", Level.Info);
+                        wasHandled = true; // 팝업 처리됨
                     }
                     catch (Exception ex)
                     {

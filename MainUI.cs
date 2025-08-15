@@ -32,11 +32,13 @@ namespace GateHelper
         
         /// Option 전용
         private bool disablePopup;
+        private int _popupCount = 0; // 팝업 처리 횟수 카운터
         private readonly Timer timer1;
 
         // 연결상태 감지용
         private string _lastDriverStatus = "";
         private string _lastInternetStatus = "";
+        private string _lastPopupStatus = "";
 
         // TestMode 확인용
         private bool testMode = false;
@@ -85,19 +87,19 @@ namespace GateHelper
         }
 
         // 25.03.27 Added
+        // 25.08.14 Modified - Popup Detector
         private async void TimerStatusChecker_Tick(object sender, EventArgs e)
         {
             Color onColor = ColorTranslator.FromHtml("#4CAF50"); // Green 500
             Color offColor = ColorTranslator.FromHtml("#F44336"); // Red 500
+            Color whiteColor = Color.White;
 
             // 🔍 Driver 상태
             bool driverOn = (_driver != null && chromeDriverManager.IsDriverAlive(_driver));
             string newDriverStatus = driverOn ? "ON" : "OFF";
-
             lblDriverStatus.Text = $"Driver {newDriverStatus}";
             lblDriverStatus.BackColor = driverOn ? onColor : offColor;
             lblDriverStatus.ForeColor = Color.White;
-
             if (_lastDriverStatus != newDriverStatus)
             {
                 LogMessage($"[Status Change] Driver {newDriverStatus}", driverOn ? Level.Info : Level.Error);
@@ -107,22 +109,37 @@ namespace GateHelper
             // 🔍 Network 상태
             bool netOn = chromeDriverManager.IsInternetAvailable();
             string newNetStatus = netOn ? "ON" : "OFF";
-
             lblInternetStatus.Text = $"Network {newNetStatus}";
             lblInternetStatus.BackColor = netOn ? onColor : offColor;
             lblInternetStatus.ForeColor = Color.White;
-
             if (_lastInternetStatus != newNetStatus)
             {
                 LogMessage($"[Status Change] Network {newNetStatus}", netOn ? Level.Info : Level.Error);
                 _lastInternetStatus = newNetStatus;
             }
 
-            if (driverOn)
+            // 🔍 팝업 감지 상태 추가
+            bool popupFeatureOn = CBox_DisablePopup1.Checked;
+            string newPopupStatus = popupFeatureOn ? "ON" : "OFF";
+            lblPopupStatus.Text = $"Detect {newPopupStatus} ({_popupCount})";
+            lblPopupStatus.BackColor = popupFeatureOn ? onColor : offColor;
+            lblPopupStatus.ForeColor = whiteColor;
+
+            if (_lastPopupStatus != newPopupStatus)
+            {
+                LogMessage($"[Status Change] Popup {newPopupStatus}", Level.Info);
+                _lastPopupStatus = newPopupStatus;
+            }
+
+            if (driverOn && popupFeatureOn)
             {
                 try
                 {
-                    await Util_Option.HandleWindows(_driver, mainHandle, _config);
+                    bool popupHandled = await Util_Option.HandleWindows(_driver, mainHandle, _config);
+                    if (popupHandled)
+                    {
+                        _popupCount++;
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -135,6 +152,11 @@ namespace GateHelper
 
         protected async void BtnStart1_Click(object sender, EventArgs e)
         {
+            if (!chromeDriverManager.IsDriverReady(_driver))
+            {
+                return;
+            }
+
             LogMessage("BtnStart1 Click", Level.Info);
             try
             {
