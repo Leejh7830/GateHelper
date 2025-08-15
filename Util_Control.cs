@@ -31,31 +31,33 @@ namespace GateHelper
             control.Location = new Point(x, y);
         }
 
-        public static void ClickElementByXPath(IWebDriver driver, string xpath)
+        public static bool ClickElementByXPath(IWebDriver driver, string xpath)
         {
             try
             {
-                // WebDriverWait을 사용하여 요소가 클릭 가능한 상태로 나타날 때까지 기다리기
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
                 IWebElement element = wait.Until(ExpectedConditions.ElementToBeClickable(By.XPath(xpath)));
 
-                // 클릭 가능하면 클릭
                 element.Click();
+                return true;
             }
             catch (NoSuchElementException ex)
             {
-                MessageBox.Show($"XPath에 해당하는 요소를 찾을 수 없습니다.: {ex.Message}", "실패", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw;
+                // XPath에 해당하는 요소를 찾을 수 없는 경우
+                LogException(ex, Level.Error, $"클릭 오류: XPath '{xpath}' - 요소를 찾을 수 없습니다.");
+                return false;
             }
             catch (WebDriverTimeoutException ex)
             {
-                MessageBox.Show($"요소가 클릭 가능한 상태가 되지 않았습니다.: {ex.Message}", "실패", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                throw;
+                // 요소를 찾았지만 5초 안에 클릭 가능한 상태가 되지 않은 경우
+                LogException(ex, Level.Error, $"클릭 오류: XPath '{xpath}' - 요소가 클릭 가능한 상태가 아닙니다.");
+                return false;
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                throw;
+                // 그 외 예상치 못한 모든 오류
+                LogException(ex, Level.Error, $"클릭 오류: XPath '{xpath}' - 예상치 못한 오류 발생.");
+                return false;
             }
         }
 
@@ -96,33 +98,34 @@ namespace GateHelper
         */
 
         // 요소에 값을 입력하는 메서드
-        public static void SendKeysToElement(IWebDriver driver, string xpath, string value)
+        public static bool SendKeysToElement(IWebDriver driver, string xpath, string value)
         {
             try
             {
-                // WebDriverWait을 사용하여 요소가 나타날 때까지 대기
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
-
-                // 요소가 준비될 때까지 기다림
                 var element = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath(xpath)));
 
-                if (element != null)
-                {
-                    element.Clear(); // 빈 값을 입력하여 초기화
-                    element.SendKeys(value); // 값을 입력
-                }
-                else
-                {
-                    throw new NoSuchElementException($"{xpath} 요소를 찾을 수 없습니다.");
-                }
+                element.Clear();
+                element.SendKeys(value);
+                return true;
             }
-            catch (NoSuchElementException ex)
+            catch (WebDriverTimeoutException ex)
             {
-                throw new Exception($"요소를 찾을 수 없습니다: {ex.Message}");
+                // 5초 안에 요소를 찾지 못했거나 보이지 않는 경우
+                LogException(ex, Level.Error, $"키 입력 오류: XPath '{xpath}' - 요소를 찾지 못했습니다.");
+                return false;
+            }
+            catch (ElementNotInteractableException ex)
+            {
+                // 요소는 찾았지만, 입력할 수 없는 상태인 경우
+                LogException(ex, Level.Error, $"키 입력 오류: XPath '{xpath}' - 요소가 상호작용 불가능한 상태입니다.");
+                return false;
             }
             catch (Exception ex)
             {
-                throw new Exception($"오류 발생: {ex.Message}");
+                // 그 외 예상치 못한 모든 오류
+                LogException(ex, Level.Error, $"키 입력 오류: XPath '{xpath}' - 예상치 못한 오류 발생.");
+                return false;
             }
         }
 

@@ -7,6 +7,8 @@ namespace GateHelper
         public string Url { get; set; }
         public string GateID { get; set; }
         public string GatePW { get; set; }
+        public string EnportalID { get; set; }
+        public string EnportalPW { get; set; }
         public string ChromePath { get; set; }
         public string Fav1 { get; set; }
         public string Fav2 { get; set; }

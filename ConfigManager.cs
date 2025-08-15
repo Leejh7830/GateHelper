@@ -24,6 +24,7 @@ namespace GateHelper
             }
         }
 
+        // 25.08.15 Added - Enportal ID/PW 추가
         private void CreateConfigFiles()
         {
             try
@@ -34,6 +35,8 @@ namespace GateHelper
 <configuration>
   <appSettings>
     <add key=""Url"" value="""" />
+    <add key=""EnportalID"" value="""" />
+    <add key=""EnportalPW"" value="""" />
     <add key=""GateID"" value="""" />
     <add key=""GatePW"" value="""" />
     <add key=""ChromePath"" value=""C:\Program Files\Google\Chrome\Application\chrome.exe"" />
@@ -87,6 +90,7 @@ namespace GateHelper
             LoadConfig(); // 설정 파일 로드
         }
 
+        // 25.08.15 Added - Enportal ID/PW 추가
         private void LoadConfig()
         {
             try
@@ -98,6 +102,8 @@ namespace GateHelper
                 var missingFields = new System.Text.StringBuilder(); // 25.03.12 필수 항목 검증
 
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["Url"].Value)) missingFields.AppendLine("URL");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["EnportalID"].Value)) missingFields.AppendLine("EnportalID");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["EnportalPW"].Value)) missingFields.AppendLine("EnportalPW");
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["GateID"].Value)) missingFields.AppendLine("GateID");
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["GatePW"].Value)) missingFields.AppendLine("GatePW");
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["ChromePath"].Value)) missingFields.AppendLine("ChromePath");
@@ -117,6 +123,8 @@ namespace GateHelper
                 LoadedConfig = new Config
                 {
                     Url = config.AppSettings.Settings["Url"].Value,
+                    EnportalID = config.AppSettings.Settings["EnportalID"].Value,
+                    EnportalPW = config.AppSettings.Settings["EnportalPW"].Value,
                     GateID = config.AppSettings.Settings["GateID"].Value,
                     GatePW = config.AppSettings.Settings["GatePW"].Value,
                     ChromePath = config.AppSettings.Settings["ChromePath"].Value,

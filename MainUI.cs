@@ -82,7 +82,6 @@ namespace GateHelper
             timer1.Tick += TimerStatusChecker_Tick;
             timer1.Start();
 
-
             LogMessage("프로그램 초기화 완료", Level.Info);
         }
 
@@ -139,6 +138,7 @@ namespace GateHelper
                     if (popupHandled)
                     {
                         _popupCount++;
+                        LogMessage("_popupCount 증가 ++", Level.Info);
                     }
                 }
                 catch (Exception ex)
@@ -152,10 +152,6 @@ namespace GateHelper
 
         protected async void BtnStart1_Click(object sender, EventArgs e)
         {
-            if (!chromeDriverManager.IsDriverReady(_driver))
-            {
-                return;
-            }
 
             LogMessage("BtnStart1 Click", Level.Info);
             try
@@ -186,11 +182,15 @@ namespace GateHelper
         {
             LogMessage("BtnStart2 Click", Level.Info);
             Util_Connect.AutoConnect_1_Step(_driver, this);
-            
         }
 
         private void BtnGateOneLogin1_Click(object sender, EventArgs e)
         {
+            if (!chromeDriverManager.IsDriverReady(_driver))
+            {
+                return;
+            }
+
             LogMessage("BtnGateOneLogin1_Click", Level.Info);
             // Util_Connect.AutoConnect_2_Step(_driver, _config, mainHandle);
             // A 값을 입력
@@ -206,6 +206,11 @@ namespace GateHelper
         // 25.03.27 Modified - Module
         private void BtnSearch1_Click(object sender, EventArgs e)
         {
+            if (!chromeDriverManager.IsDriverReady(_driver))
+            {
+                return;
+            }
+
             if (!Util.CheckDriverExists(_driver))
                 return;
 
@@ -244,6 +249,11 @@ namespace GateHelper
         // 25.03.19 Modified - Test Mode
         private void BtnLoadServers1_Click(object sender, EventArgs e)
         {
+            if (!chromeDriverManager.IsDriverReady(_driver))
+            {
+                return;
+            }
+
             if (!Util.CheckDriverExists(_driver))
                 return;
 
@@ -289,6 +299,11 @@ namespace GateHelper
 
         private void BtnConnect1_Click(object sender, EventArgs e)
         {
+            if (!chromeDriverManager.IsDriverReady(_driver))
+            {
+                return;
+            }
+
             LogMessage("BtnConnect1 Click", Level.Info);
             LogMessage("Connect MainHandle : " + mainHandle, Level.Info);
 

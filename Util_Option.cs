@@ -16,7 +16,7 @@ namespace GateHelper
 
         public static async Task<bool> HandleWindows(IWebDriver driver, string mainHandle, Config config)
         {
-            bool wasHandled = false; // 팝업 처리 여부를 저장할 변수
+            bool wasHandled = false;
 
             // 팝업 창 처리 (새 창 핸들을 가진 팝업)
             List<string> windowHandles = new List<string>(driver.WindowHandles);
@@ -31,7 +31,7 @@ namespace GateHelper
                         await Task.Delay(3000);
                         driver.Close();
                         LogMessage("Closed Popup Window", Level.Info);
-                        wasHandled = true; // 팝업 처리됨
+                        wasHandled = true;
                     }
                     catch (Exception ex)
                     {
@@ -40,19 +40,29 @@ namespace GateHelper
                 }
             }
 
-            // 모달 창 처리
+            // 모달 창 처리 (HTML 요소 기반의 팝업)
+            // 2. 모달 창 처리 (HTML 요소 기반의 팝업)
             if (IsModalPresent(driver))
             {
                 try
                 {
                     LogMessage("Lock screen Modal Detected", Level.Error);
-                        MessageBox.Show(
-                            "화면 잠금 모달창이 감지되었습니다. 비밀번호를 입력하려면 확인을 눌러주세요.",
-                            "모달 감지",
-                            MessageBoxButtons.OK,
-                            MessageBoxIcon.Warning);
-                    await EnterModalPassword(driver, config);
-                    LogMessage("Lock screen Modal Closed successfully.", Level.Info);
+                    await Task.Delay(3000);
+
+                    // 비밀번호 입력 및 확인 버튼 클릭 로직을 시도
+                    bool passwordEntered = await EnterModalPassword(driver, config);
+
+                    // 자동화가 성공했는지 여부와 상관없이,
+                    // 모달창이 더 이상 보이지 않으면 성공으로 간주
+                    if (!IsModalPresent(driver))
+                    {
+                        LogMessage("Lock screen Modal Closed successfully.", Level.Info);
+                        wasHandled = true;
+                    }
+                    else
+                    {
+                        LogMessage("Lock screen Modal remains visible after processing attempt.", Level.Critical);
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -60,24 +70,27 @@ namespace GateHelper
                 }
             }
 
-            // 경고창 처리
+            // 경고창 처리 (브라우저 자체의 Alert)
             try
             {
                 IAlert alert = driver.SwitchTo().Alert();
-                alert.Accept(); // 또는 alert.Dismiss();
-                LogMessage("Closed Alert", Level.Info);
-                return true; // 경고창 처리 성공
+                string alertText = alert.Text;
+                alert.Accept();
+                LogMessage($"Closed Alert: '{alertText}'", Level.Info);
+                wasHandled = true;
             }
             catch (NoAlertPresentException)
             {
                 // 경고창이 없는 경우
-                return false; // 경고창 처리 실패 또는 없음
             }
             catch (Exception ex)
             {
                 LogException(ex, Level.Error);
-                return false; // 경고창 처리 실패 또는 없음
             }
+            // 모든 처리 후 메인 핸들로 다시 전환
+            // driver.SwitchTo().Window(mainHandle);
+
+            return wasHandled;
         }
 
         private static bool IsModalPresent(IWebDriver driver)
@@ -92,24 +105,36 @@ namespace GateHelper
             }
         }
 
-        private static async Task EnterModalPassword(IWebDriver driver, Config config)
+        private static async Task<bool> EnterModalPassword(IWebDriver driver, Config config)
         {
-            if (config == null || string.IsNullOrEmpty(config.GatePW))
+            if (config == null || string.IsNullOrEmpty(config.EnportalPW))
             {
-                throw new ArgumentException("Config 객체 또는 GatePW 속성이 유효하지 않습니다.");
+                LogMessage("Enportal 값 오류", Level.Error);
+                return false;
             }
 
-            // 헬퍼 메서드를 사용하여 비밀번호 입력
-            SendKeysToElement(driver, "//*[@id='lock_passwd']", config.GatePW);
+            // 비밀번호 입력
+            if (!SendKeysToElement(driver, "//*[@id='lock_passwd']", config.EnportalPW))
+            {
+                return false;
+            }
 
-            // 텍스트 입력 후 클릭 전 잠시 대기
-            await Task.Delay(500);
+            // 비밀번호 입력창에 직접 엔터 키를 입력
+            try
+            {
+                var passwordElement = driver.FindElement(By.XPath("//*[@id='lock_passwd']"));
+                passwordElement.SendKeys(OpenQA.Selenium.Keys.Enter);
+                LogMessage("비밀번호 입력 후 엔터 키 입력 성공.", Level.Info);
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error, "엔터 키 입력 오류: 요소를 찾을 수 없거나 상호작용할 수 없습니다.");
+                return false;
+            }
 
-            // 헬퍼 메서드를 사용하여 확인 버튼 클릭
-            ClickElementByXPath(driver, "//*[@id='pop_container']/div[2]/a[1]");
+            await Task.Delay(1000); // 엔터 키 처리 대기
 
-            // 클릭 후 모달이 닫힐 때까지 잠시 대기
-            await Task.Delay(1000);
+            return true;
         }
 
         /////////////////////////////////////////////////////////////////////////////////////////
