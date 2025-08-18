@@ -7,6 +7,9 @@ using System.Windows.Forms;
 using Newtonsoft.Json;
 using SeleniumExtras.WaitHelpers;
 using System.Text;
+using static GateHelper.LogManager;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace GateHelper
 {
@@ -14,6 +17,35 @@ namespace GateHelper
     {
 
         /// //////////////////////////////////////////////////////////////////////////////////////////////////
+        public static void FindAndAlertElement(IWebDriver driver, string xpath)
+        {
+            try
+            {
+                // 최대 5초 동안 요소가 화면에 나타날 때까지 기다립니다.
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
+
+                // ElementIsVisible은 요소가 존재하고, 화면에 표시될 때까지 기다립니다.
+                wait.Until(ExpectedConditions.ElementIsVisible(By.XPath(xpath)));
+
+                // 성공적으로 기다렸다면, 요소가 발견된 것입니다.
+                string message = $"XPath '{xpath}'에 해당하는 요소를 발견했습니다.";
+                LogManager.LogMessage(message, Level.Info);
+                MessageBox.Show(message, "요소 발견", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch (WebDriverTimeoutException)
+            {
+                // 5초 안에 요소를 찾지 못하면 이 예외가 발생합니다.
+                string message = $"XPath '{xpath}'에 해당하는 요소를 찾을 수 없습니다.";
+                LogManager.LogMessage(message, Level.Error);
+                MessageBox.Show(message, "요소 없음", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+            catch (Exception ex)
+            {
+                // 그 외 예상치 못한 오류가 발생한 경우
+                LogManager.LogException(ex, Level.Error, $"요소 검색 중 예상치 못한 오류 발생: '{xpath}'");
+                MessageBox.Show($"오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
 
         public static void FindElementAndShowMessage(IWebDriver driver, string query)
         {
@@ -76,66 +108,79 @@ namespace GateHelper
 
         /// //////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-        public static void ShowAllElementXpaths(IWebDriver driver)
+        public static List<string> FindAllXPaths(IWebDriver driver)
         {
-            try
+            LogMessage("Starting to find all accessible XPaths across all windows...", Level.Info);
+
+            // 원래 창의 핸들을 저장합니다.
+            string originalHandle = driver.CurrentWindowHandle;
+
+            // 모든 열린 창의 핸들을 가져옵니다.
+            var allHandles = driver.WindowHandles;
+
+            var allXPaths = new List<string>();
+
+            foreach (var handle in allHandles)
             {
-                // 페이지 내 모든 요소 찾기
-                var allElements = driver.FindElements(By.XPath("//*"));
-
-                if (allElements.Count == 0)
+                try
                 {
-                    MessageBox.Show("페이지에 요소가 없습니다.", "정보", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
+                    // 각 창으로 포커스를 전환합니다.
+                    driver.SwitchTo().Window(handle);
+                    LogManager.LogMessage($"Switched to window with title: {driver.Title}", Level.Info);
+
+                    // 현재 창에 있는 모든 요소를 가져옵니다.
+                    var allElements = driver.FindElements(By.XPath("//*"));
+
+                    foreach (var element in allElements)
+                    {
+                        try
+                        {
+                            // id가 있는 경우, id를 기반으로 XPath를 생성합니다.
+                            string id = element.GetAttribute("id");
+                            if (!string.IsNullOrEmpty(id))
+                            {
+                                string xpathById = $"//*[@id='{id}']";
+                                if (!allXPaths.Contains(xpathById))
+                                {
+                                    allXPaths.Add(xpathById);
+                                    LogManager.LogMessage($"Found XPath by ID: {xpathById}", Level.Info);
+                                }
+                            }
+
+                            // class가 있는 경우, class를 기반으로 XPath를 생성합니다.
+                            string className = element.GetAttribute("class");
+                            if (!string.IsNullOrEmpty(className))
+                            {
+                                // 여러 클래스가 있는 경우 첫 번째 클래스만 사용합니다.
+                                string firstClass = className.Split(' ')[0];
+                                string xpathByClass = $"//*[@class='{firstClass}']";
+                                if (!allXPaths.Contains(xpathByClass))
+                                {
+                                    allXPaths.Add(xpathByClass);
+                                    LogManager.LogMessage($"Found XPath by Class: {xpathByClass}", Level.Info);
+                                }
+                            }
+                        }
+                        catch (StaleElementReferenceException)
+                        {
+                            // 요소가 사라지면 무시하고 계속 진행합니다.
+                            continue;
+                        }
+                    }
                 }
-
-                // XPath 생성 및 출력 준비
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine("페이지의 모든 XPath 목록:");
-
-                foreach (var element in allElements)
+                catch (NoSuchWindowException)
                 {
-                    // 각 요소의 XPath를 생성
-                    string xpath = GetElementXPath(driver, element);
-                    sb.AppendLine(xpath);
+                    // 창이 닫혔으면 무시합니다.
+                    LogManager.LogMessage($"Window with handle {handle} was closed.", Level.Error);
+                    continue;
                 }
-
-                // 결과 출력
-                MessageBox.Show(sb.ToString(), "모든 XPath", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
 
-        // 요소의 XPath를 생성하는 함수
-        private static string GetElementXPath(IWebDriver driver, IWebElement element)
-        {
-            string script = "function getElementXPath(element) {" +
-                            "var paths = [];" +
-                            "while (element.nodeType === Node.ELEMENT_NODE) {" +
-                            "var index = 0;" +
-                            "var sibling = element.previousSibling;" +
-                            "while (sibling) {" +
-                            "if (sibling.nodeType === Node.DOCUMENT_TYPE_NODE) {" +
-                            "} else if (sibling.nodeName === element.nodeName) {" +
-                            "index++;" +
-                            "}" +
-                            "sibling = sibling.previousSibling;" +
-                            "}" +
-                            "var tagName = element.nodeName.toLowerCase();" +
-                            "var pathIndex = (index ? '[' + (index + 1) + ']' : '');" +
-                            "paths.unshift(tagName + pathIndex);" +
-                            "element = element.parentNode;" +
-                            "}" +
-                            "return paths.length ? '/' + paths.join('/') : null;" +
-                            "}" +
-                            "return getElementXPath(arguments[0]);";
+            // 작업이 끝나면 원래 창으로 포커스를 복귀시킵니다.
+            driver.SwitchTo().Window(originalHandle);
+            LogManager.LogMessage($"Successfully collected {allXPaths.Count} unique XPaths and returned to the original window.", Level.Info);
 
-            var xpath = (string)((IJavaScriptExecutor)driver).ExecuteScript(script, element);
-            return xpath;
+            return allXPaths;
         }
 
 

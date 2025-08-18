@@ -89,9 +89,9 @@ namespace GateHelper
             return metaPath;
         }
 
-        public static void ClickFavBtn(IWebDriver _driver, Config config, int favIndex, Action serverListLoadAction)
+        public static void ClickFavBtn(IWebDriver _driver, Config config, int favIndex, Action serverListLoadAction, ChromeDriverManager chromeDriverManager)
         {
-            if (!CheckDriverExists(_driver))
+            if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
 
             try
@@ -160,7 +160,7 @@ namespace GateHelper
         }
 
 
-        public static void InputKeys(string keys, int intervalMilliseconds = 1000) // 메서드 이름 변경
+        public static void InputKeys(string keys, int intervalMilliseconds = 1000)
         {
             try
             {
@@ -197,15 +197,7 @@ namespace GateHelper
 
 
 
-        public static bool CheckDriverExists(IWebDriver driver)
-        {
-            if (driver == null)
-            {
-                MessageBox.Show("ChromeDriver가 실행 중이 아닙니다.\n먼저 [Start] 버튼을 눌러주세요.", "드라이버 없음", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return false;
-            }
-            return true;
-        }
+
 
         
 

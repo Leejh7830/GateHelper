@@ -9,7 +9,7 @@ using static GateHelper.LogManager;
 
 namespace GateHelper
 {
-    class ChromeDriverManager
+    public class ChromeDriverManager
     {
 
         public static ChromeOptions ChromeDriverOptionSet(string chromePath)
@@ -55,7 +55,6 @@ namespace GateHelper
             }
         }
 
-
         // 25.08.14 Added - Driver Check
         public bool IsDriverReady(IWebDriver _driver)
         {
@@ -66,7 +65,7 @@ namespace GateHelper
             }
 
             // 드라이버가 준비되지 않았을 경우, 메시지 박스를 띄웁니다.
-            MessageBox.Show("ChromeDriver가 OFF 상태입니다. 드라이버를 실행해주세요.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            MessageBox.Show("ChromeDriver가 OFF 상태입니다. [Start]버튼을 눌러 드라이버를 실행해주세요.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return false;
         }
     }

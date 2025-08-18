@@ -3,6 +3,7 @@ using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
 using System;
 using System.Windows.Forms;
+using System.Threading;
 using static GateHelper.LogManager;
 
 namespace GateHelper
@@ -37,7 +38,7 @@ namespace GateHelper
                             var aElement = spanElement.FindElement(By.TagName("a"));
                             aElement.Click();
 
-                            System.Threading.Thread.Sleep(1000);
+                            Thread.Sleep(1000);
 
                             try
                              {
@@ -160,16 +161,20 @@ namespace GateHelper
             }
         }
 
-        public static void AutoConnect_2_Step(IWebDriver driver, Config config, string mainHandle)
+        public static void AutoConnect_2_Step(IWebDriver driver, Config _config, string mainHandle)
         {
             try
             {
                 Util.SwitchToMainHandle(driver, mainHandle);
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-                var idInput = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='USERID_ENC']")));
-                idInput.SendKeys(config.GateID);
-                var pwInput = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='PASSWD']")));
-                pwInput.SendKeys(config.GatePW);
+                //WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+                //Util_Control.SendKeysToElement(driver, "//*[@id='USERID']", _config.EnportalID); 
+                //Util_Control.SendKeysToElement(driver, "//*[@id='PASSWD']", _config.EnportalPW);
+                //Util.InputKeys("{ENTER}", 100);
+
+                Util.InputKeys(_config.EnportalID, 200);
+                Util.InputKeys("{TAB}", 200);
+                Util.InputKeys(_config.EnportalPW, 200);
+                Util.InputKeys("{ENTER}", 200);
             }
             catch (Exception ex)
             {
@@ -177,8 +182,12 @@ namespace GateHelper
             }
         }
 
-
-
+        public static void AutoConnect_3_Step(IWebDriver driver)
+        {
+            Thread.Sleep(3000);
+            Util_Control.ClickElementByXPath(driver, "//*[@id='login_return']");
+            // Util_Element.FindAndAlertElement(driver, "//*[@id='login_return']");
+        }
 
     }
 

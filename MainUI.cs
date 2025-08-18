@@ -138,7 +138,7 @@ namespace GateHelper
                     if (popupHandled)
                     {
                         _popupCount++;
-                        LogMessage("_popupCount 증가 ++", Level.Info);
+                        LogMessage($"팝업 처리 횟수 : {_popupCount}회", Level.Info);
                     }
                 }
                 catch (Exception ex)
@@ -181,37 +181,24 @@ namespace GateHelper
         private void BtnStart2_Click(object sender, EventArgs e)
         {
             LogMessage("BtnStart2 Click", Level.Info);
-            Util_Connect.AutoConnect_1_Step(_driver, this);
+            Util_Connect.AutoConnect_1_Step(_driver, this); // 고급 - MPOHelper 클릭
         }
 
         private void BtnGateOneLogin1_Click(object sender, EventArgs e)
         {
             if (!chromeDriverManager.IsDriverReady(_driver))
-            {
                 return;
-            }
 
             LogMessage("BtnGateOneLogin1_Click", Level.Info);
-            // Util_Connect.AutoConnect_2_Step(_driver, _config, mainHandle);
-            // A 값을 입력
-            Util.InputKeys(_config.GateID, 100);
-
-            // Tab 키 누르기
-            Util.InputKeys("{TAB}", 100);
-
-            // B 값을 입력
-            Util.InputKeys(_config.GatePW, 200);
+            Util_Connect.AutoConnect_2_Step(_driver, _config, mainHandle);
+            // Util_Connect.AutoConnect_3_Step(_driver);
+            
         }
 
         // 25.03.27 Modified - Module
         private void BtnSearch1_Click(object sender, EventArgs e)
         {
             if (!chromeDriverManager.IsDriverReady(_driver))
-            {
-                return;
-            }
-
-            if (!Util.CheckDriverExists(_driver))
                 return;
 
             LogMessage("BtnSearch1 Click", Level.Info);
@@ -250,11 +237,6 @@ namespace GateHelper
         private void BtnLoadServers1_Click(object sender, EventArgs e)
         {
             if (!chromeDriverManager.IsDriverReady(_driver))
-            {
-                return;
-            }
-
-            if (!Util.CheckDriverExists(_driver))
                 return;
 
             LogMessage("BtnLoadServers1 Click", Level.Info);
@@ -299,14 +281,6 @@ namespace GateHelper
 
         private void BtnConnect1_Click(object sender, EventArgs e)
         {
-            if (!chromeDriverManager.IsDriverReady(_driver))
-            {
-                return;
-            }
-
-            LogMessage("BtnConnect1 Click", Level.Info);
-            LogMessage("Connect MainHandle : " + mainHandle, Level.Info);
-
             // ✅ 테스트 모드일 때는 드라이버 체크 건너뜀
             if (testMode)
             {
@@ -315,7 +289,10 @@ namespace GateHelper
                 return;
             }
 
-            if (!Util.CheckDriverExists(_driver))
+            LogMessage("BtnConnect1 Click", Level.Info);
+            LogMessage("Connect MainHandle : " + mainHandle, Level.Info);
+
+            if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
 
             if (ComboBoxServerList1.SelectedItem == null)
@@ -333,17 +310,17 @@ namespace GateHelper
 
         private void BtnFav1_Click(object sender, EventArgs e)
         {
-            Util.ClickFavBtn(_driver, _config, 1, () => BtnLoadServers1_Click(null, EventArgs.Empty));
+            Util.ClickFavBtn(_driver, _config, 1, () => BtnLoadServers1_Click(null, EventArgs.Empty), chromeDriverManager);
         }
 
         private void BtnFav2_Click(object sender, EventArgs e)
         {
-            Util.ClickFavBtn(_driver, _config, 2, () => BtnLoadServers1_Click(null, EventArgs.Empty));
+            Util.ClickFavBtn(_driver, _config, 2, () => BtnLoadServers1_Click(null, EventArgs.Empty), chromeDriverManager);
         }
 
         private void BtnTFav3_Click(object sender, EventArgs e)
         {
-            Util.ClickFavBtn(_driver, _config, 3, () => BtnLoadServers1_Click(null, EventArgs.Empty));
+            Util.ClickFavBtn(_driver, _config, 3, () => BtnLoadServers1_Click(null, EventArgs.Empty), chromeDriverManager);
         }
 
         // 2025.03.17 Added - Config File Reload Button
@@ -411,9 +388,15 @@ namespace GateHelper
         }
 
 
-
-
         //////////////////////////////////////////////////////////////////////////////// 옵션 전용 시작
+
+        private void CBox_FavOneClickConnect1_CheckedChanged(object sender, EventArgs e)
+        {
+            string status = CBox_FavOneClickConnect1.Checked ? "Enabled" : "Disabled";
+            LogMessage($"Favorite One-Click Connect Option: {status}", Level.Info);
+        }
+
+
         private async void Timer1_Tick(object sender, EventArgs e)
         {
             if (_driver != null && !string.IsNullOrEmpty(mainHandle) && _driver.WindowHandles.Contains(mainHandle) && disablePopup)
@@ -452,9 +435,10 @@ namespace GateHelper
         }
 
 
-        private void DisablePopupCheckBox1_CheckedChanged(object sender, EventArgs e)
+        private void CBox_DisablePopup1_CheckedChanged(object sender, EventArgs e)
         {
-            LogMessage("DisablePopupCheckBox CheckedChanged", Level.Info);
+            string status = CBox_DisablePopup1.Checked ? "Enabled" : "Disabled";
+            LogMessage($"Popup Detection Option: {status}", Level.Info);
             disablePopup = CBox_DisablePopup1.Checked;
         }
 
@@ -463,13 +447,17 @@ namespace GateHelper
         // 25.04.09 Modif - LoadingPanel Added
         private void CBox_TestMode1_CheckedChanged(object sender, EventArgs e)
         {
+            string status = CBox_TestMode1.Checked ? "Enabled" : "Disabled";
+            LogMessage($"Test Mode Option: {status}", Level.Info);
+
             if (CBox_TestMode1.Checked)
             {
                 Util_Test.EnterTestMode(this, TabSelector1, ref testMode);
 
                 if (testMode)
                 {
-                    LogMessage("TEST MODE 진입", Level.Info);
+                    
+                    LogMessage("Test Mode 진입", Level.Info);
                     Util_Test.LoadTestServers(ComboBoxServerList1);
                 }
                 else
@@ -485,6 +473,11 @@ namespace GateHelper
             }
         }
 
+        private void CBox_ListViewClickConnect_CheckedChanged(object sender, EventArgs e)
+        {
+            string status = CBox_ListViewClickConnect.Checked ? "Enabled" : "Disabled";
+            LogMessage($"ListView Click Connect Option: {status}", Level.Info);
+        }
 
         // 25.03.27 Added - Double Click Connect
         private void ListViewServer2_DoubleClick(object sender, EventArgs e)
@@ -525,6 +518,8 @@ namespace GateHelper
             // AutoLogin CheckBox가 켜져있다면..
             // StartBtn을 눌렀을 때 추가로 진행한다.
             // 진행중 로딩패널 확인..
+            string status = CBox_AutoLogin1.Checked ? "Enabled" : "Disabled";
+            LogMessage($"Auto Login Option: {status}", Level.Info);
         }
 
 
@@ -619,5 +614,11 @@ namespace GateHelper
             Util_ImageLoader.LoadReferenceImages(flowLayoutPanel1);
         }
 
+        private void TestBtn1_Click(object sender, EventArgs e)
+        {
+            System.Threading.Thread.Sleep(5000);
+            // Util_Element.FindAndAlertAlert(_driver);
+            Util_Element.FindAllXPaths(_driver);
+        }
     }
 }

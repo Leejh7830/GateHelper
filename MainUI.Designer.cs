@@ -131,7 +131,7 @@ namespace GateHelper
             this.TestBtn1.Depth = 0;
             this.TestBtn1.HighEmphasis = true;
             this.TestBtn1.Icon = null;
-            this.TestBtn1.Location = new System.Drawing.Point(863, 70);
+            this.TestBtn1.Location = new System.Drawing.Point(361, 49);
             this.TestBtn1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.TestBtn1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TestBtn1.Name = "TestBtn1";
@@ -142,6 +142,7 @@ namespace GateHelper
             this.TestBtn1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.TestBtn1.UseAccentColor = false;
             this.TestBtn1.UseVisualStyleBackColor = true;
+            this.TestBtn1.Click += new System.EventHandler(this.TestBtn1_Click);
             // 
             // BtnSearch1
             // 
@@ -604,11 +605,11 @@ namespace GateHelper
             this.CBox_DisablePopup1.Name = "CBox_DisablePopup1";
             this.CBox_DisablePopup1.ReadOnly = false;
             this.CBox_DisablePopup1.Ripple = true;
-            this.CBox_DisablePopup1.Size = new System.Drawing.Size(201, 37);
+            this.CBox_DisablePopup1.Size = new System.Drawing.Size(157, 37);
             this.CBox_DisablePopup1.TabIndex = 11;
-            this.CBox_DisablePopup1.Text = "DISABLE POP-UP (Non)";
+            this.CBox_DisablePopup1.Text = "DISABLE POP-UP";
             this.CBox_DisablePopup1.UseVisualStyleBackColor = true;
-            this.CBox_DisablePopup1.CheckedChanged += new System.EventHandler(this.DisablePopupCheckBox1_CheckedChanged);
+            this.CBox_DisablePopup1.CheckedChanged += new System.EventHandler(this.CBox_DisablePopup1_CheckedChanged);
             // 
             // BtnStart2
             // 
@@ -648,6 +649,7 @@ namespace GateHelper
             this.CBox_FavOneClickConnect1.Text = "Fav One-Click Connect";
             this.toolTip_FavOneClickConnect1.SetToolTip(this.CBox_FavOneClickConnect1, "설정 : 검색후 접속까지\r\n해제 : 검색만\r\n");
             this.CBox_FavOneClickConnect1.UseVisualStyleBackColor = true;
+            this.CBox_FavOneClickConnect1.CheckedChanged += new System.EventHandler(this.CBox_FavOneClickConnect1_CheckedChanged);
             // 
             // BtnOpenConfig1
             // 
@@ -891,6 +893,7 @@ namespace GateHelper
             this.CBox_ListViewClickConnect.TabIndex = 34;
             this.CBox_ListViewClickConnect.Text = "ListView Click Connect";
             this.CBox_ListViewClickConnect.UseVisualStyleBackColor = true;
+            this.CBox_ListViewClickConnect.CheckedChanged += new System.EventHandler(this.CBox_ListViewClickConnect_CheckedChanged);
             // 
             // CBox_AutoLogin1
             // 
@@ -912,7 +915,7 @@ namespace GateHelper
             // lblPopupStatus
             // 
             this.lblPopupStatus.AutoSize = true;
-            this.lblPopupStatus.Location = new System.Drawing.Point(231, 578);
+            this.lblPopupStatus.Location = new System.Drawing.Point(184, 576);
             this.lblPopupStatus.Name = "lblPopupStatus";
             this.lblPopupStatus.Size = new System.Drawing.Size(40, 12);
             this.lblPopupStatus.TabIndex = 36;
