@@ -52,7 +52,9 @@ namespace GateHelper
         private Size tabSelector1OriginalSize;
         private Size tabControl1OriginalSize;
 
-        
+        private ContextMenuStrip contextMenuStrip;
+
+
 
 
 
@@ -71,13 +73,17 @@ namespace GateHelper
             materialSkinManager = MaterialSkinManager.Instance;
             materialSkinManager.AddFormToManage(this);
             materialSkinManager.Theme = MaterialSkinManager.Themes.DARK;
-            // materialSkinManager.ColorScheme = new ColorScheme(Primary.Blue100, Primary.Blue900, Primary.Blue300, Accent.LightBlue200, TextShade.WHITE);
+
+            // ContextMenuStrip 초기화 및 테마 동기화
+            contextMenuStrip = new ContextMenuStrip();
+            contextMenuStrip.Items.Add(new ToolStripMenuItem("Delete", null, MenuItem1_Click));
+            // contextMenuStrip.Items.Add(new ToolStripMenuItem("메모 편집", null, EditMemo_Click)); // 새로운 메뉴 아이템 추가 시
+            ListViewServer2.ContextMenuStrip = contextMenuStrip;
+            materialSkinManager.ThemeChanged += (sender) => ApplyThemeToContextMenuStrip();
+            ApplyThemeToContextMenuStrip(); // 초기 테마 적용
 
             this.MaximizeBox = false;
-            // this.MinimizeBox = false;
             this.Size = FormOriginalSize;
-
-            // Util_Control.MoveControl(TabSelector1, 150, 30);
 
             timer1 = new System.Windows.Forms.Timer();
             timer1.Interval = 5000; // 5초마다 상태 확인
@@ -592,6 +598,52 @@ namespace GateHelper
             Util_Element.FindAllXPaths(_driver);
         }
 
+        private void MenuItem1_Click(object sender, EventArgs e)
+        {
+            if (ListViewServer2.SelectedItems.Count > 0)
+            {
+                // 선택된 항목을 가져옵니다.
+                ListViewItem selectedItem = ListViewServer2.SelectedItems[0];
+                string serverName = selectedItem.SubItems[1].Text;
 
+                DialogResult dialogResult = MessageBox.Show($"'{serverName}' 항목을 삭제하시겠습니까?", "항목 삭제 확인", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+                if (dialogResult == DialogResult.Yes)
+                {
+                    ListViewServer2.Items.Remove(selectedItem); // 삭제
+
+                    Util_ServerList.ReorderListViewItems(ListViewServer2); // 재정렬
+                    Util_ServerList.SaveServerDataToFile(ListViewServer2); // 저장
+
+                    LogMessage($"Server entry '{serverName}' has been removed from the list.", Level.Info);
+                }
+            }
+        }
+
+        private void ApplyThemeToContextMenuStrip() // 테마 색상 변경에 따른 컨텍스트메뉴 색상 변경
+        {
+            if (materialSkinManager.Theme == MaterialSkinManager.Themes.DARK)
+            {
+                ToolStripManager.Renderer = new ToolStripProfessionalRenderer(new MaterialToolStripColorTable());
+                contextMenuStrip.ForeColor = Color.White;
+            }
+            else
+            {
+                ToolStripManager.Renderer = null;
+                contextMenuStrip.ForeColor = Color.Black;
+            }
+        }
+
+        public class MaterialToolStripColorTable : ProfessionalColorTable
+        {
+            public override Color MenuItemSelected => ColorTranslator.FromHtml("#424242");
+            public override Color MenuItemSelectedGradientBegin => ColorTranslator.FromHtml("#424242");
+            public override Color MenuItemSelectedGradientEnd => ColorTranslator.FromHtml("#424242");
+            public override Color MenuItemPressedGradientBegin => ColorTranslator.FromHtml("#212121");
+            public override Color MenuItemPressedGradientEnd => ColorTranslator.FromHtml("#212121");
+            public override Color MenuItemBorder => ColorTranslator.FromHtml("#424242");
+            public override Color ToolStripDropDownBackground => ColorTranslator.FromHtml("#212121");
+            public override Color ToolStripBorder => ColorTranslator.FromHtml("#424242");
+        }
     }
 }

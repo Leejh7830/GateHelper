@@ -63,6 +63,9 @@ namespace GateHelper
             this.SVName1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.LastConnected1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Memo1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.ListViewContext1 = new System.Windows.Forms.ContextMenuStrip(this.components);
+            this.MenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.testToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.TabSelector1 = new MaterialSkin.Controls.MaterialTabSelector();
             this.CBox_DisablePopup1 = new MaterialSkin.Controls.MaterialCheckbox();
             this.BtnStart2 = new MaterialSkin.Controls.MaterialButton();
@@ -97,6 +100,7 @@ namespace GateHelper
             this.tabPage3.SuspendLayout();
             this.GroupRef2.SuspendLayout();
             this.tabPage4.SuspendLayout();
+            this.ListViewContext1.SuspendLayout();
             this.groupShortCut1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).BeginInit();
@@ -544,6 +548,7 @@ namespace GateHelper
             this.SVName1,
             this.LastConnected1,
             this.Memo1});
+            this.ListViewServer2.ContextMenuStrip = this.ListViewContext1;
             this.ListViewServer2.Font = new System.Drawing.Font("휴먼옛체", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.ListViewServer2.FullRowSelect = true;
             this.ListViewServer2.GridLines = true;
@@ -579,6 +584,28 @@ namespace GateHelper
             this.Memo1.Text = "Memo";
             this.Memo1.Width = 220;
             // 
+            // ListViewContext1
+            // 
+            this.ListViewContext1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.MenuItem1,
+            this.testToolStripMenuItem});
+            this.ListViewContext1.Name = "contextMenuStrip1";
+            this.ListViewContext1.ShowImageMargin = false;
+            this.ListViewContext1.Size = new System.Drawing.Size(156, 70);
+            // 
+            // MenuItem1
+            // 
+            this.MenuItem1.Name = "MenuItem1";
+            this.MenuItem1.Size = new System.Drawing.Size(155, 22);
+            this.MenuItem1.Text = "Delete";
+            this.MenuItem1.Click += new System.EventHandler(this.MenuItem1_Click);
+            // 
+            // testToolStripMenuItem
+            // 
+            this.testToolStripMenuItem.Name = "testToolStripMenuItem";
+            this.testToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
+            this.testToolStripMenuItem.Text = "Test";
+            // 
             // TabSelector1
             // 
             this.TabSelector1.BaseTabControl = this.TabControl1;
@@ -599,7 +626,7 @@ namespace GateHelper
             // 
             this.CBox_DisablePopup1.AutoSize = true;
             this.CBox_DisablePopup1.Depth = 0;
-            this.CBox_DisablePopup1.Location = new System.Drawing.Point(19, 567);
+            this.CBox_DisablePopup1.Location = new System.Drawing.Point(14, 577);
             this.CBox_DisablePopup1.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_DisablePopup1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_DisablePopup1.MouseState = MaterialSkin.MouseState.HOVER;
@@ -638,7 +665,7 @@ namespace GateHelper
             this.CBox_FavOneClickConnect1.AutoSize = true;
             this.CBox_FavOneClickConnect1.Depth = 0;
             this.CBox_FavOneClickConnect1.Enabled = false;
-            this.CBox_FavOneClickConnect1.Location = new System.Drawing.Point(19, 539);
+            this.CBox_FavOneClickConnect1.Location = new System.Drawing.Point(14, 549);
             this.CBox_FavOneClickConnect1.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_FavOneClickConnect1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_FavOneClickConnect1.MouseState = MaterialSkin.MouseState.HOVER;
@@ -707,7 +734,7 @@ namespace GateHelper
             // PicBox_Question
             // 
             this.PicBox_Question.Image = global::GateHelper.Properties.Resources.question;
-            this.PicBox_Question.Location = new System.Drawing.Point(351, 643);
+            this.PicBox_Question.Location = new System.Drawing.Point(351, 653);
             this.PicBox_Question.Name = "PicBox_Question";
             this.PicBox_Question.Size = new System.Drawing.Size(35, 33);
             this.PicBox_Question.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -782,7 +809,7 @@ namespace GateHelper
             // PicBox_Arrow
             // 
             this.PicBox_Arrow.Image = global::GateHelper.Properties.Resources.arrow_right;
-            this.PicBox_Arrow.Location = new System.Drawing.Point(269, 643);
+            this.PicBox_Arrow.Location = new System.Drawing.Point(269, 653);
             this.PicBox_Arrow.Name = "PicBox_Arrow";
             this.PicBox_Arrow.Size = new System.Drawing.Size(35, 33);
             this.PicBox_Arrow.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -793,7 +820,7 @@ namespace GateHelper
             // PicBox_Setting
             // 
             this.PicBox_Setting.Image = global::GateHelper.Properties.Resources.sun;
-            this.PicBox_Setting.Location = new System.Drawing.Point(310, 643);
+            this.PicBox_Setting.Location = new System.Drawing.Point(310, 653);
             this.PicBox_Setting.Name = "PicBox_Setting";
             this.PicBox_Setting.Size = new System.Drawing.Size(35, 33);
             this.PicBox_Setting.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
@@ -805,7 +832,7 @@ namespace GateHelper
             // 
             this.CBox_TestMode1.AutoSize = true;
             this.CBox_TestMode1.Depth = 0;
-            this.CBox_TestMode1.Location = new System.Drawing.Point(19, 595);
+            this.CBox_TestMode1.Location = new System.Drawing.Point(14, 605);
             this.CBox_TestMode1.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_TestMode1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_TestMode1.MouseState = MaterialSkin.MouseState.HOVER;
@@ -883,7 +910,7 @@ namespace GateHelper
             // 
             this.CBox_ListViewClickConnect.AutoSize = true;
             this.CBox_ListViewClickConnect.Depth = 0;
-            this.CBox_ListViewClickConnect.Location = new System.Drawing.Point(19, 623);
+            this.CBox_ListViewClickConnect.Location = new System.Drawing.Point(14, 633);
             this.CBox_ListViewClickConnect.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_ListViewClickConnect.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_ListViewClickConnect.MouseState = MaterialSkin.MouseState.HOVER;
@@ -900,7 +927,7 @@ namespace GateHelper
             // 
             this.CBox_AutoLogin1.AutoSize = true;
             this.CBox_AutoLogin1.Depth = 0;
-            this.CBox_AutoLogin1.Location = new System.Drawing.Point(19, 651);
+            this.CBox_AutoLogin1.Location = new System.Drawing.Point(14, 661);
             this.CBox_AutoLogin1.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_AutoLogin1.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_AutoLogin1.MouseState = MaterialSkin.MouseState.HOVER;
@@ -916,7 +943,7 @@ namespace GateHelper
             // lblPopupStatus
             // 
             this.lblPopupStatus.AutoSize = true;
-            this.lblPopupStatus.Location = new System.Drawing.Point(184, 576);
+            this.lblPopupStatus.Location = new System.Drawing.Point(179, 586);
             this.lblPopupStatus.Name = "lblPopupStatus";
             this.lblPopupStatus.Size = new System.Drawing.Size(40, 12);
             this.lblPopupStatus.TabIndex = 36;
@@ -926,7 +953,7 @@ namespace GateHelper
             // 
             this.CBox_RemoveDuplicate.AutoSize = true;
             this.CBox_RemoveDuplicate.Depth = 0;
-            this.CBox_RemoveDuplicate.Location = new System.Drawing.Point(19, 510);
+            this.CBox_RemoveDuplicate.Location = new System.Drawing.Point(14, 520);
             this.CBox_RemoveDuplicate.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_RemoveDuplicate.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_RemoveDuplicate.MouseState = MaterialSkin.MouseState.HOVER;
@@ -983,6 +1010,7 @@ namespace GateHelper
             this.tabPage3.ResumeLayout(false);
             this.GroupRef2.ResumeLayout(false);
             this.tabPage4.ResumeLayout(false);
+            this.ListViewContext1.ResumeLayout(false);
             this.groupShortCut1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).EndInit();
@@ -1052,6 +1080,9 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialCheckbox CBox_AutoLogin1;
         private System.Windows.Forms.Label lblPopupStatus;
         private MaterialSkin.Controls.MaterialCheckbox CBox_RemoveDuplicate;
+        private System.Windows.Forms.ContextMenuStrip ListViewContext1;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem testToolStripMenuItem;
     }
 }
 

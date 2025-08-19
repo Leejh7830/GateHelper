@@ -4,17 +4,10 @@ using OpenQA.Selenium.Support.UI;
 using System;
 using System.IO;
 using System.Windows.Forms;
-using Newtonsoft.Json;
-using SeleniumExtras.WaitHelpers;
-using System.Text;
 using System.Threading;
-using System.Runtime.InteropServices;
-using System.Collections.ObjectModel;
-using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using static GateHelper.LogManager;
 using static GateHelper.Util_Element;
-using System.Diagnostics;
 
 namespace GateHelper
 {

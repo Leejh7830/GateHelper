@@ -29,7 +29,7 @@ namespace GateHelper
             CreateLogFileIfNotExists(_currentLogFilePath); // 로그파일 생성
         }
 
-        // Message 로그 기록
+        // Message 단순 로그
         public static void LogMessage(string message, Level level, [CallerMemberName] string memberName = "")
         {
             CreateLogIfNecessary();
@@ -48,6 +48,7 @@ namespace GateHelper
             }
         }
 
+        // 오류 발생 로그
         public static void LogException(Exception ex, Level level, [CallerMemberName] string memberName = "")
         {
             CreateLogIfNecessary();
@@ -68,6 +69,7 @@ namespace GateHelper
             }
         }
 
+        // 최초 로그 생성
         private static void CreateLogIfNecessary()
         {
             string newLogFilePath = GetLogFilePath();

@@ -83,6 +83,33 @@ namespace GateHelper
         }
 
 
+        private static void EnterCredentials(IWebDriver driver, string id, string pw)
+        {
+            try
+            {
+                SwitchToPopup(driver);
+
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+                var idInput = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='userid']")));
+                idInput.SendKeys(id);
+
+                var pwInput = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='passwd']")));
+                pwInput.SendKeys(pw);
+
+                var loginBtn = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='pop_container']/div[2]/a")));
+                loginBtn.Click();
+            }
+            catch (WebDriverTimeoutException)
+            {
+                MessageBox.Show("ID/PW 입력 필드 또는 접속 버튼을 찾을 수 없습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error);
+                MessageBox.Show($"ID/PW 입력 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private static void SwitchToPopup(IWebDriver driver)
         {
             try
@@ -111,36 +138,9 @@ namespace GateHelper
             }
         }
 
-        private static void EnterCredentials(IWebDriver driver, string id, string pw)
-        {
-            try
-            {
-                SwitchToPopup(driver);
-
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-                var idInput = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='userid']")));
-                idInput.SendKeys(id);
-
-                var pwInput = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='passwd']")));
-                pwInput.SendKeys(pw);
-
-                var loginBtn = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='pop_container']/div[2]/a")));
-                loginBtn.Click();
-            }
-            catch (WebDriverTimeoutException)
-            {
-                MessageBox.Show("ID/PW 입력 필드 또는 접속 버튼을 찾을 수 없습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            catch (Exception ex)
-            {
-                LogException(ex, Level.Error);
-                MessageBox.Show($"ID/PW 입력 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
         public static void AutoConnect_1_Step(IWebDriver driver, Form MainForm)
         {
-            
+            // 고급-안전하지않음으로이동-MPO Helper체크-확인
             try
             {
                 if (driver == null)
@@ -165,6 +165,7 @@ namespace GateHelper
 
         public static void AutoConnect_2_Step(IWebDriver driver, Config _config, string mainHandle)
         {
+            // EnID,PW 입력
             try
             {
                 Util.SwitchToMainHandle(driver, mainHandle);

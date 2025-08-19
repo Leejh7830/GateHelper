@@ -64,33 +64,46 @@ namespace GateHelper
 
             Process.Start("explorer.exe", folderPath);
         }
+        
 
         public static void AddPictureBoxWithZoomEffect(FlowLayoutPanel panel, string imgPath)
         {
-            PictureBox pic = new PictureBox();
-
+            Image img = null;
             try
             {
-                pic.Image = Image.FromFile(imgPath);
-                pic.ImageLocation = imgPath; // Ensure ImageLocation is set
+                using (var stream = new FileStream(imgPath, FileMode.Open, FileAccess.Read))
+                {
+                    img = Image.FromStream(stream);
+                }
             }
-            catch
+            catch (Exception ex) // 이미지로드 실패
             {
-                return; // Image load failed
+                LogMessage($"Failed to load image from '{imgPath}'. Error: {ex.Message}", Level.Error);
+                return;
             }
 
-            // Basic PictureBox setup
+            // 이미지가 정상적으로 로드되지 않았으면 종료
+            if (img == null) return;
+
+            PictureBox pic = new PictureBox();
+
+            // PictureBox에 이미지와 이미지 파일 경로 할당
+            pic.Image = img;
+            pic.ImageLocation = imgPath;
+
+            // 기본적인 PictureBox 속성 설정
             pic.SizeMode = PictureBoxSizeMode.Zoom;
-            pic.Width = 10; // Start small for zoom animation
+            pic.Width = 10; // 줌 애니메이션을 위해 초기 크기를 작게 설정
             pic.Height = 10;
             pic.Margin = new Padding(5);
             pic.Cursor = Cursors.Hand;
             pic.AllowDrop = true;
 
-            // Handle Drag-and-Drop
+            // 드래그 앤 드롭 이벤트 핸들러를 연결
             string folderPath = Path.Combine(Application.StartupPath, "ReferenceImages");
             HandleDragAndDrop(pic, panel, folderPath);
 
+            // 마우스 오른쪽 클릭 시 이미지 미리보기를 띄웁니다.
             pic.MouseClick += (s, e) =>
             {
                 if (e.Button == MouseButtons.Right)
@@ -99,8 +112,10 @@ namespace GateHelper
                 }
             };
 
+            // PictureBox를 FlowLayoutPanel에 추가합니다.
             panel.Controls.Add(pic);
 
+            // 줌 애니메이션을 적용합니다.
             ApplyZoomAnimation(pic);
         }
 
@@ -190,11 +205,6 @@ namespace GateHelper
             growTimer.Start();
         }
 
-
-
-
-
-
         public static List<string> LoadImageOrder(string imageFolder)
         {
             string metaFolder = Util.CreateMetaFolderAndGetPath();
@@ -227,8 +237,6 @@ namespace GateHelper
 
             File.WriteAllLines(orderPath, fileNames);
         }
-
-
 
     }
 }

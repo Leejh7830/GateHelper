@@ -39,7 +39,6 @@ namespace GateHelper
             }
 
             // 모달 창 처리 (HTML 요소 기반의 팝업)
-            // 2. 모달 창 처리 (HTML 요소 기반의 팝업)
             if (IsModalPresent(driver))
             {
                 try
@@ -85,7 +84,6 @@ namespace GateHelper
             {
                 LogException(ex, Level.Error);
             }
-            // 모든 처리 후 메인 핸들로 다시 전환
             // driver.SwitchTo().Window(mainHandle);
 
             return wasHandled;
