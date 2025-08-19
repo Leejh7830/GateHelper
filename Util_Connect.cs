@@ -5,6 +5,7 @@ using System;
 using System.Windows.Forms;
 using System.Threading;
 using static GateHelper.LogManager;
+using static GateHelper.Util_Element;
 
 namespace GateHelper
 {
@@ -15,7 +16,8 @@ namespace GateHelper
             string mainHandle,
             Config config,
             string serverName,
-            ListView listView)
+            ListView listView,
+            bool isDuplicateCheck)
         {
             try
             {
@@ -58,7 +60,7 @@ namespace GateHelper
 
                             // 접속 이력 추가
                             string now = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                            Util_ServerList.AddServerToListView(listView, serverName, now);
+                            Util_ServerList.AddServerToListView(listView, serverName, now, isDuplicateCheck);
                             Util_ServerList.TrimHistoryList(listView, 30);
                             Util_ServerList.SaveServerDataToFile(listView);
 
@@ -147,8 +149,8 @@ namespace GateHelper
                     return;
                 }
 
-                Util_Control.ClickElementByXPath(driver, "/html/body/div/div[2]/button[3]"); // 고급
-                Util_Control.ClickElementByXPath(driver, "/html/body/div/div[3]/p[2]/a"); // 안전하지않음으로이동
+                ClickElementByXPath(driver, "/html/body/div/div[2]/button[3]"); // 고급
+                ClickElementByXPath(driver, "/html/body/div/div[3]/p[2]/a"); // 안전하지않음으로이동
 
                 Util.InputKeys("{Tab},SPACE,{Tab},SPACE"); // MPO Helper
 
@@ -185,7 +187,7 @@ namespace GateHelper
         public static void AutoConnect_3_Step(IWebDriver driver)
         {
             Thread.Sleep(3000);
-            Util_Control.ClickElementByXPath(driver, "//*[@id='login_return']");
+            ClickElementByXPath(driver, "//*[@id='login_return']");
             // Util_Element.FindAndAlertElement(driver, "//*[@id='login_return']");
         }
 

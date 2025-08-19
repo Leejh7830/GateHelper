@@ -18,7 +18,7 @@ namespace GateHelper
 
             if (result == DialogResult.Yes)
             {
-                form.Size = MainUI.FormExtendedSize;
+                form.Size = MainUI.TestFormExtendedSize;
                 TabSelector1.Size = new Size(520, 32);
                 testModeFlag = true;
             }
@@ -49,7 +49,7 @@ namespace GateHelper
         }
 
         // ListView에 서버 접속 정보 추가 (일반 listview)
-        public static void SimulateServerConnect(Form form, ListView listView, ComboBox comboBox, ref bool testMode)
+        public static void SimulateServerConnect(Form form, ListView listView, ComboBox comboBox, ref bool testMode, bool isDuplicateCheck)
         {
             try
             {
@@ -59,7 +59,7 @@ namespace GateHelper
                     LogMessage($"테스트 모드: 서버 '{selectedServer}'에 접속 시도", Level.Info);
                     string currentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
                     // AddServerToHistoryListView(listView, selectedServer, currentTime, "ListView 추가 완료");
-                    Util_ServerList.AddServerToListView(listView, selectedServer, currentTime, 30);
+                    Util_ServerList.AddServerToListView(listView, selectedServer, currentTime, isDuplicateCheck, 30);
                 }
                 else
                 {

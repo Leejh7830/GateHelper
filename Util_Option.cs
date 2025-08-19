@@ -3,9 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using Level = GateHelper.LogManager.Level;
 using static GateHelper.LogManager;
-using static GateHelper.Util_Control;
 
 namespace GateHelper
 {
@@ -114,7 +112,7 @@ namespace GateHelper
             }
 
             // 비밀번호 입력
-            if (!SendKeysToElement(driver, "//*[@id='lock_passwd']", config.EnportalPW))
+            if (!Util_Element.SendKeysToElement(driver, "//*[@id='lock_passwd']", config.EnportalPW))
             {
                 return false;
             }

@@ -9,10 +9,10 @@ using static GateHelper.LogManager;
 
 namespace GateHelper
 {
-    internal class Util_ServerList
+    internal class Util_ServerList // ServerList 및 ListView에 관련된 메서드
     {
         // 저장 파일 경로를 클래스 내에 정의
-        private static string _serverFilePath = Path.Combine(Application.StartupPath, "serverData.dat");
+        private static readonly string _serverFilePath = Path.Combine(Application.StartupPath, "serverData.dat");
 
         // 서버 정보 모델
         [Serializable]
@@ -25,11 +25,32 @@ namespace GateHelper
         }
 
         // 서버 데이터를 ListView에 추가
-        public static void AddServerToListView(ListView listView, string serverName, string lastConnected, int maxCount = 100)
+        // 25.08.19 Added - Remove Duplicate Server
+        public static void AddServerToListView(ListView listView, string serverName, string lastConnected, bool isDuplicateCheck, int maxCount = 100)
         {
+            // 중복 제거 옵션이 활성화된 경우
+            if (isDuplicateCheck)
+            {
+                int removedCount = 0;
+
+                for (int i = listView.Items.Count - 1; i >= 0; i--)
+                {
+                    if (listView.Items[i].SubItems[1].Text.Equals(serverName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        listView.Items.RemoveAt(i);
+                        removedCount++;
+                    }
+                }
+
+                if (removedCount > 1)
+                {
+                    LogMessage($"Duplicate server entry for '{serverName}' removed. Total: {removedCount}", Level.Info);
+                }
+            }
+
             TrimHistoryList(listView, maxCount);
 
-            // 항목 추가
+            // 새 항목 추가
             ListViewItem listViewItem = new ListViewItem(new[]
             {
                 "TEMP", // 일단 임시로 넣고, 나중에 No 재정렬

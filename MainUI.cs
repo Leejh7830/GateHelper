@@ -34,6 +34,7 @@ namespace GateHelper
         private bool disablePopup;
         private int _popupCount = 0; // 팝업 처리 횟수 카운터
         private readonly Timer timer1;
+        private bool removeDuplicates = false; // 서버리스트 중복 제거
 
         // 연결상태 감지용
         private string _lastDriverStatus = "";
@@ -46,6 +47,7 @@ namespace GateHelper
         // Control 관리용
         public static readonly Size FormOriginalSize = new Size(400, 700);
         public static readonly Size FormExtendedSize = new Size(550, 700);
+        public static readonly Size TestFormExtendedSize = new Size(1100, 700);
         private Size groupConnect1OriginalSize;
         private Size tabSelector1OriginalSize;
         private Size tabControl1OriginalSize;
@@ -157,7 +159,7 @@ namespace GateHelper
             try
             {
                 BtnReConfig1_Click(sender, e);
-                _driver = await Task.Run(() => Util.InitializeDriver(_config)); // 비동기로 드라이버 초기화
+                _driver = await Task.Run(() => ChromeDriverManager.InitializeDriver(_config)); // 비동기로 드라이버 초기화
 
 
                 _driver.Navigate().GoToUrl(_config.Url); // 입력한 사이트로 이동
@@ -213,7 +215,7 @@ namespace GateHelper
                 Util_Control.FillSearchFields(_driver, serverName, serverIP);
 
                 // 검색 버튼 클릭
-                Util_Control.ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
+                Util_Element.ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
             }
             catch (ArgumentException ex)
             {
@@ -284,7 +286,7 @@ namespace GateHelper
             // ✅ 테스트 모드일 때는 드라이버 체크 건너뜀
             if (testMode)
             {
-                Util_Test.SimulateServerConnect(this, ListViewServer2, ComboBoxServerList1, ref testMode);
+                Util_Test.SimulateServerConnect(this, ListViewServer2, ComboBoxServerList1, ref testMode, removeDuplicates);
                 Util_ServerList.SaveServerDataToFile(ListViewServer2);
                 return;
             }
@@ -304,7 +306,7 @@ namespace GateHelper
             string selectedServer = ComboBoxServerList1.SelectedItem.ToString();
             LogMessage("접속 서버 명: " + selectedServer, Level.Info);
 
-            Util_Connect.ConnectToServer(_driver, mainHandle, _config, selectedServer, ListViewServer2);
+            Util_Connect.ConnectToServer(_driver, mainHandle, _config, selectedServer, ListViewServer2, removeDuplicates);
         }
 
 
@@ -379,7 +381,7 @@ namespace GateHelper
         {
             if (_driver != null)
             {
-                Util.CloseDriver(_driver);
+                ChromeDriverManager.CloseDriver(_driver);
                 _driver = null;  // 드라이버 객체 해제
             }
             // 프로그램 완전 종료'
@@ -390,61 +392,30 @@ namespace GateHelper
 
         //////////////////////////////////////////////////////////////////////////////// 옵션 전용 시작
 
+        // 25.08.19 Added - Remove Duplicate Server
+        private void CBox_RemoveDuplicate_CheckedChanged(object sender, EventArgs e)
+        {
+            removeDuplicates = CBox_RemoveDuplicate.Checked;
+            string status = removeDuplicates ? "Enabled" : "Disabled";
+            LogMessage($"Remove Duplicate Option: {status}", Level.Info);
+        }
+
         private void CBox_FavOneClickConnect1_CheckedChanged(object sender, EventArgs e)
         {
             string status = CBox_FavOneClickConnect1.Checked ? "Enabled" : "Disabled";
             LogMessage($"Favorite One-Click Connect Option: {status}", Level.Info);
         }
 
-
-        private async void Timer1_Tick(object sender, EventArgs e)
-        {
-            if (_driver != null && !string.IsNullOrEmpty(mainHandle) && _driver.WindowHandles.Contains(mainHandle) && disablePopup)
-            {
-                try
-                {
-                    bool alertHandled = await Util_Option.HandleWindows(_driver, mainHandle, _config);
-                    if (alertHandled)
-                    {
-                        Console.WriteLine("경고창 처리 성공");
-                        // 경고창 처리 성공 시 추가 작업 수행
-                    }
-                    else
-                    {
-                        Console.WriteLine("경고창 처리 실패 또는 없음");
-                        // 경고창 처리 실패 시 추가 작업 수행
-                    }
-                }
-                catch (NoSuchElementException ex)
-                {
-                    LogException(ex, Level.Error);
-                }
-                catch (NoSuchWindowException ex)
-                {
-                    LogException(ex, Level.Error);
-                }
-                catch (NoAlertPresentException)
-                {
-                    //
-                }
-                catch (Exception ex)
-                {
-                    LogException(ex, Level.Error);
-                }
-            }
-        }
-
-
+        // 25.08.18 Added - Disable Popup/Modal
         private void CBox_DisablePopup1_CheckedChanged(object sender, EventArgs e)
         {
-            string status = CBox_DisablePopup1.Checked ? "Enabled" : "Disabled";
-            LogMessage($"Popup Detection Option: {status}", Level.Info);
             disablePopup = CBox_DisablePopup1.Checked;
+            string status = disablePopup ? "Enabled" : "Disabled";
+            LogMessage($"Popup Detection Option: {status}", Level.Info);
         }
 
         
         // 25.03.19 Added - Test Mode Functions
-        // 25.04.09 Modif - LoadingPanel Added
         private void CBox_TestMode1_CheckedChanged(object sender, EventArgs e)
         {
             string status = CBox_TestMode1.Checked ? "Enabled" : "Disabled";
@@ -510,7 +481,7 @@ namespace GateHelper
             }
 
             // 접속 시도
-            Util_Connect.ConnectToServer(_driver, mainHandle, _config, serverName, ListViewServer2);
+            Util_Connect.ConnectToServer(_driver, mainHandle, _config, serverName, ListViewServer2, removeDuplicates);
         }
 
         private void CBox_AutoLogin1_CheckedChanged(object sender, EventArgs e)
@@ -620,5 +591,7 @@ namespace GateHelper
             // Util_Element.FindAndAlertAlert(_driver);
             Util_Element.FindAllXPaths(_driver);
         }
+
+
     }
 }

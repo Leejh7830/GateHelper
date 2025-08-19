@@ -10,6 +10,7 @@ using System.Threading;
 using System.Windows.Forms;
 using System.IO;
 using static GateHelper.LogManager;
+using static GateHelper.Util_Element;
 
 namespace GateHelper
 {
@@ -31,67 +32,7 @@ namespace GateHelper
             control.Location = new Point(x, y);
         }
 
-        public static bool ClickElementByXPath(IWebDriver driver, string xpath)
-        {
-            try
-            {
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
-                IWebElement element = wait.Until(ExpectedConditions.ElementToBeClickable(By.XPath(xpath)));
-
-                element.Click();
-                return true;
-            }
-            catch (NoSuchElementException ex)
-            {
-                // XPath에 해당하는 요소를 찾을 수 없는 경우
-                LogException(ex, Level.Error, $"클릭 오류: XPath '{xpath}' - 요소를 찾을 수 없습니다.");
-                return false;
-            }
-            catch (WebDriverTimeoutException ex)
-            {
-                // 요소를 찾았지만 5초 안에 클릭 가능한 상태가 되지 않은 경우
-                LogException(ex, Level.Error, $"클릭 오류: XPath '{xpath}' - 요소가 클릭 가능한 상태가 아닙니다.");
-                return false;
-            }
-            catch (Exception ex)
-            {
-                // 그 외 예상치 못한 모든 오류
-                LogException(ex, Level.Error, $"클릭 오류: XPath '{xpath}' - 예상치 못한 오류 발생.");
-                return false;
-            }
-        }
-
-        // 요소에 값을 입력하는 메서드
-        public static bool SendKeysToElement(IWebDriver driver, string xpath, string value)
-        {
-            try
-            {
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
-                var element = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath(xpath)));
-
-                element.Clear();
-                element.SendKeys(value);
-                return true;
-            }
-            catch (WebDriverTimeoutException ex)
-            {
-                // 5초 안에 요소를 찾지 못했거나 보이지 않는 경우
-                LogException(ex, Level.Error, $"키 입력 오류: XPath '{xpath}' - 요소를 찾지 못했습니다.");
-                return false;
-            }
-            catch (ElementNotInteractableException ex)
-            {
-                // 요소는 찾았지만, 입력할 수 없는 상태인 경우
-                LogException(ex, Level.Error, $"키 입력 오류: XPath '{xpath}' - 요소가 상호작용 불가능한 상태입니다.");
-                return false;
-            }
-            catch (Exception ex)
-            {
-                // 그 외 예상치 못한 모든 오류
-                LogException(ex, Level.Error, $"키 입력 오류: XPath '{xpath}' - 예상치 못한 오류 발생.");
-                return false;
-            }
-        }
+        
 
         public static void MovePictureBoxIcons(Form form, PictureBox pictureBoxA, PictureBox pictureBoxB, PictureBox pictureBoxC, Size formOriginalSize, bool isExpanded)
         {

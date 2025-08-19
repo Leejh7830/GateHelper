@@ -89,6 +89,7 @@ namespace GateHelper
             this.CBox_ListViewClickConnect = new MaterialSkin.Controls.MaterialCheckbox();
             this.CBox_AutoLogin1 = new MaterialSkin.Controls.MaterialCheckbox();
             this.lblPopupStatus = new System.Windows.Forms.Label();
+            this.CBox_RemoveDuplicate = new MaterialSkin.Controls.MaterialCheckbox();
             this.GroupConnect1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
             this.TabControl1.SuspendLayout();
@@ -131,7 +132,7 @@ namespace GateHelper
             this.TestBtn1.Depth = 0;
             this.TestBtn1.HighEmphasis = true;
             this.TestBtn1.Icon = null;
-            this.TestBtn1.Location = new System.Drawing.Point(361, 49);
+            this.TestBtn1.Location = new System.Drawing.Point(598, 79);
             this.TestBtn1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.TestBtn1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TestBtn1.Name = "TestBtn1";
@@ -675,9 +676,9 @@ namespace GateHelper
             // groupShortCut1
             // 
             this.groupShortCut1.Controls.Add(this.BtnShortCut1);
-            this.groupShortCut1.Location = new System.Drawing.Point(574, 581);
+            this.groupShortCut1.Location = new System.Drawing.Point(598, 546);
             this.groupShortCut1.Name = "groupShortCut1";
-            this.groupShortCut1.Size = new System.Drawing.Size(358, 275);
+            this.groupShortCut1.Size = new System.Drawing.Size(358, 142);
             this.groupShortCut1.TabIndex = 7;
             this.groupShortCut1.TabStop = false;
             this.groupShortCut1.Text = "ShortCut";
@@ -921,12 +922,30 @@ namespace GateHelper
             this.lblPopupStatus.TabIndex = 36;
             this.lblPopupStatus.Text = "Detect";
             // 
+            // CBox_RemoveDuplicate
+            // 
+            this.CBox_RemoveDuplicate.AutoSize = true;
+            this.CBox_RemoveDuplicate.Depth = 0;
+            this.CBox_RemoveDuplicate.Location = new System.Drawing.Point(19, 510);
+            this.CBox_RemoveDuplicate.Margin = new System.Windows.Forms.Padding(0);
+            this.CBox_RemoveDuplicate.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.CBox_RemoveDuplicate.MouseState = MaterialSkin.MouseState.HOVER;
+            this.CBox_RemoveDuplicate.Name = "CBox_RemoveDuplicate";
+            this.CBox_RemoveDuplicate.ReadOnly = false;
+            this.CBox_RemoveDuplicate.Ripple = true;
+            this.CBox_RemoveDuplicate.Size = new System.Drawing.Size(163, 37);
+            this.CBox_RemoveDuplicate.TabIndex = 37;
+            this.CBox_RemoveDuplicate.Text = "Remove Duplicate";
+            this.CBox_RemoveDuplicate.UseVisualStyleBackColor = true;
+            this.CBox_RemoveDuplicate.CheckedChanged += new System.EventHandler(this.CBox_RemoveDuplicate_CheckedChanged);
+            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1114, 714);
+            this.Controls.Add(this.CBox_RemoveDuplicate);
             this.Controls.Add(this.lblPopupStatus);
             this.Controls.Add(this.CBox_AutoLogin1);
             this.Controls.Add(this.CBox_ListViewClickConnect);
@@ -1032,6 +1051,7 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialCheckbox CBox_ListViewClickConnect;
         private MaterialSkin.Controls.MaterialCheckbox CBox_AutoLogin1;
         private System.Windows.Forms.Label lblPopupStatus;
+        private MaterialSkin.Controls.MaterialCheckbox CBox_RemoveDuplicate;
     }
 }
 
