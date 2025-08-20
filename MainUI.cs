@@ -31,18 +31,18 @@ namespace GateHelper
         private string mainHandle;
         
         /// Option 전용
-        private bool disablePopup;
         private int _popupCount = 0; // 팝업 처리 횟수 카운터
         private readonly Timer timer1;
-        private bool removeDuplicates = false; // 서버리스트 중복 제거
+        private bool removeDuplicates = false;
+        private bool autoLogin = false;
+        private bool disablePopup = false;
+        private bool testMode = false;
+        private bool ServerClickConnect = false;
 
         // 연결상태 감지용
         private string _lastDriverStatus = "";
         private string _lastInternetStatus = "";
         private string _lastPopupStatus = "";
-
-        // TestMode 확인용
-        private bool testMode = false;
 
         // Control 관리용
         public static readonly Size FormOriginalSize = new Size(400, 700);
@@ -126,7 +126,7 @@ namespace GateHelper
             }
 
             // 🔍 팝업 감지 상태 추가
-            bool popupFeatureOn = CBox_DisablePopup1.Checked;
+            bool popupFeatureOn = disablePopup;
             string newPopupStatus = popupFeatureOn ? "ON" : "OFF";
             lblPopupStatus.Text = $"Detect {newPopupStatus} ({_popupCount})";
             lblPopupStatus.BackColor = popupFeatureOn ? onColor : offColor;
@@ -174,7 +174,7 @@ namespace GateHelper
 
                 Util_Control.MoveFormToTop(this);
 
-                if (CBox_AutoLogin1.Checked == true) // Auto Login
+                if (autoLogin == true) // Auto Login
                 {
                     BtnStart2_Click(sender, e);
                     BtnGateOneLogin1_Click(sender, e);
@@ -331,7 +331,7 @@ namespace GateHelper
             Util.ClickFavBtn(_driver, _config, 3, () => BtnLoadServers1_Click(null, EventArgs.Empty), chromeDriverManager);
         }
 
-        // 2025.03.17 Added - Config File Reload Button
+        // 25.03.17 Added - Config File Reload Button
         private void BtnReConfig1_Click(object sender, EventArgs e)
         {
             LogMessage("BtnConfig1 Click", Level.Info);
@@ -369,18 +369,93 @@ namespace GateHelper
             }
         }
 
-        // 2025.03.17 Added - Config File Open Button
+        // 25.03.17 Added - Config File Open Button
         private void BtnOpenConfig1_Click(object sender, EventArgs e)
         {
             LogMessage("BtnOpenConfig1 Click", Level.Info);
             configManager.OpenConfigFile();
         }
 
-        // 2025.03.17 Added - Log File Open Button
+        // 25.03.17 Added - Log File Open Button
         private void BtnOpenLog1_Click(object sender, EventArgs e)
         {
             LogMessage("BtnOpenLog1 Click", Level.Info);
             OpenLogFile();
+        }
+
+        // 25.08.20 Added - Option Form
+        private void BtnOption1_Click(object sender, EventArgs e)
+        {
+            OptionForm optionForm = new OptionForm(removeDuplicates,
+                autoLogin,
+                disablePopup,
+                testMode,
+                ServerClickConnect);
+            DialogResult result = optionForm.ShowDialog();
+
+            if (result == DialogResult.OK)
+            {
+                // OptionForm에서 변경된 값을 바로 받아와 현재 상태와 비교
+                bool newRemoveDuplicates = optionForm.IsRemoveDuplicatesEnabled;
+                bool newAutoLogin = optionForm.IsAutoLoginEnabled;
+                bool newDisablePopup = optionForm.IsPopupDisabled;
+                bool newTestMode = optionForm.IsTestModeEnabled;
+                bool newServerClickConnect = optionForm.IsServerClickEnabled;
+
+                List<string> changes = new List<string>();
+
+                // 기존 값과 새로운 값이 다를 경우에만 로그를 추가하고 상태를 업데이트
+                if (removeDuplicates != newRemoveDuplicates)
+                {
+                    removeDuplicates = newRemoveDuplicates;
+                    string status = removeDuplicates ? "Enabled" : "Disabled";
+                    changes.Add($"- Remove Duplicates: {status}");
+                }
+
+                if (autoLogin != newAutoLogin)
+                {
+                    autoLogin = newAutoLogin;
+                    string status = autoLogin ? "Enabled" : "Disabled";
+                    changes.Add($"- Auto Login: {status}");
+                }
+
+                if (disablePopup != newDisablePopup)
+                {
+                    disablePopup = newDisablePopup;
+                    string status = disablePopup ? "Enabled" : "Disabled";
+                    changes.Add($"- Disable Popup: {status}");
+                }
+
+                // 25.03.19 Added - Test Mode Functions
+                if (testMode != newTestMode)
+                {
+                    ApplyTestMode(newTestMode);
+
+                    string status = testMode ? "Enabled" : "Disabled";
+                    changes.Add($"- Test Mode: {status}");
+                }
+
+                // 25.03.27 Added - Double Click Connect
+                if (ServerClickConnect != newServerClickConnect)
+                {
+                    ServerClickConnect = newServerClickConnect;
+                    string status = ServerClickConnect ? "Enabled" : "Disabled";
+                    changes.Add($"- Server Click Connect: {status}");
+                }
+
+                // 변경 사항이 있을 경우에만 로그를 남김
+                if (changes.Count > 0)
+                {
+                    string logMessage = $"Options updated:{Environment.NewLine}" + string.Join(Environment.NewLine, changes);
+                    LogMessage(logMessage, Level.Info);
+
+                    UpdatePopupStatusUI(); // Popup Detect 텍스트 색상
+                }
+                else
+                {
+                    LogMessage("No option changes were made.", Level.Info);
+                }
+            }
         }
 
         private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
@@ -398,68 +473,42 @@ namespace GateHelper
 
         //////////////////////////////////////////////////////////////////////////////// 옵션 전용 시작
 
-        // 25.08.19 Added - Remove Duplicate Server
-        private void CBox_RemoveDuplicate_CheckedChanged(object sender, EventArgs e)
+        private void ApplyTestMode(bool isEnabled)
         {
-            removeDuplicates = CBox_RemoveDuplicate.Checked;
-            string status = removeDuplicates ? "Enabled" : "Disabled";
-            LogMessage($"Remove Duplicate Option: {status}", Level.Info);
-        }
+            bool oldTestMode = testMode;
 
-        private void CBox_FavOneClickConnect1_CheckedChanged(object sender, EventArgs e)
-        {
-            string status = CBox_FavOneClickConnect1.Checked ? "Enabled" : "Disabled";
-            LogMessage($"Favorite One-Click Connect Option: {status}", Level.Info);
-        }
-
-        // 25.08.18 Added - Disable Popup/Modal
-        private void CBox_DisablePopup1_CheckedChanged(object sender, EventArgs e)
-        {
-            disablePopup = CBox_DisablePopup1.Checked;
-            string status = disablePopup ? "Enabled" : "Disabled";
-            LogMessage($"Popup Detection Option: {status}", Level.Info);
-        }
-
-        
-        // 25.03.19 Added - Test Mode Functions
-        private void CBox_TestMode1_CheckedChanged(object sender, EventArgs e)
-        {
-            string status = CBox_TestMode1.Checked ? "Enabled" : "Disabled";
-            LogMessage($"Test Mode Option: {status}", Level.Info);
-
-            if (CBox_TestMode1.Checked)
+            if (isEnabled)
             {
                 Util_Test.EnterTestMode(this, TabSelector1, ref testMode);
 
                 if (testMode)
                 {
-                    
-                    LogMessage("Test Mode 진입", Level.Info);
-                    Util_Test.LoadTestServers(ComboBoxServerList1);
+                    if (!oldTestMode) // 이전에 테스트 모드가 아니었다면
+                    {
+                        LogMessage("Test Mode 진입", Level.Info);
+                        Util_Test.LoadTestServers(ComboBoxServerList1);
+                    }
                 }
                 else
                 {
-                    CBox_TestMode1.Checked = false;
+                    LogMessage("Test Mode 진입 실패", Level.Critical);
                 }
             }
             else
             {
-                // this.Size = FormOriginalSize;
-                ComboBoxServerList1.Items.Clear();
-                testMode = false;
+                if (oldTestMode)
+                {
+                    LogMessage("Test Mode 종료", Level.Info);
+                    ComboBoxServerList1.Items.Clear();
+                    testMode = false;
+                }
             }
-        }
-
-        private void CBox_ListViewClickConnect_CheckedChanged(object sender, EventArgs e)
-        {
-            string status = CBox_ListViewClickConnect.Checked ? "Enabled" : "Disabled";
-            LogMessage($"ListView Click Connect Option: {status}", Level.Info);
         }
 
         // 25.03.27 Added - Double Click Connect
         private void ListViewServer2_DoubleClick(object sender, EventArgs e)
         {
-            if (!CBox_ListViewClickConnect.Checked || ListViewServer2.SelectedItems.Count == 0)
+            if (!ServerClickConnect || ListViewServer2.SelectedItems.Count == 0)
                 return;
 
             string serverName = ListViewServer2.SelectedItems[0].SubItems[1].Text;
@@ -490,13 +539,20 @@ namespace GateHelper
             Util_Connect.ConnectToServer(_driver, mainHandle, _config, serverName, ListViewServer2, removeDuplicates);
         }
 
-        private void CBox_AutoLogin1_CheckedChanged(object sender, EventArgs e)
+        private void UpdatePopupStatusUI()
         {
-            // AutoLogin CheckBox가 켜져있다면..
-            // StartBtn을 눌렀을 때 추가로 진행한다.
-            // 진행중 로딩패널 확인..
-            string status = CBox_AutoLogin1.Checked ? "Enabled" : "Disabled";
-            LogMessage($"Auto Login Option: {status}", Level.Info);
+            // this.disablePopup 변수를 사용합니다.
+            bool popupFeatureOn = disablePopup;
+            string newPopupStatus = popupFeatureOn ? "ON" : "OFF";
+
+            // 이전에 사용했던 _popupCount 변수가 필요하다면 MainUI에 선언되어 있어야 합니다.
+            lblPopupStatus.Text = $"Detect {newPopupStatus} ({_popupCount})";
+
+            Color onColor = Color.Red; // ON 상태일 때의 색상 정의
+            Color offColor = Color.Green; // OFF 상태일 때의 색상 정의
+
+            lblPopupStatus.BackColor = popupFeatureOn ? onColor : offColor;
+            lblPopupStatus.ForeColor = Color.White; // 흰색으로 통일
         }
 
 
@@ -645,5 +701,6 @@ namespace GateHelper
             public override Color ToolStripDropDownBackground => ColorTranslator.FromHtml("#212121");
             public override Color ToolStripBorder => ColorTranslator.FromHtml("#424242");
         }
+
     }
 }

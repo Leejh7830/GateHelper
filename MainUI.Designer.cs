@@ -51,12 +51,6 @@ namespace GateHelper
             this.BtnFav3 = new MaterialSkin.Controls.MaterialButton();
             this.TabControl1 = new MaterialSkin.Controls.MaterialTabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.dummyControlOutsideTab = new MaterialSkin.Controls.MaterialButton();
-            this.BtnOpenImages1 = new MaterialSkin.Controls.MaterialButton();
-            this.BtnReloadImages1 = new MaterialSkin.Controls.MaterialButton();
-            this.GroupRef2 = new System.Windows.Forms.GroupBox();
-            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.ListViewServer2 = new System.Windows.Forms.ListView();
             this.No1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
@@ -66,10 +60,14 @@ namespace GateHelper
             this.ListViewContext1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.MenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.testToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.dummyControlOutsideTab = new MaterialSkin.Controls.MaterialButton();
+            this.BtnOpenImages1 = new MaterialSkin.Controls.MaterialButton();
+            this.BtnReloadImages1 = new MaterialSkin.Controls.MaterialButton();
+            this.GroupRef2 = new System.Windows.Forms.GroupBox();
+            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.TabSelector1 = new MaterialSkin.Controls.MaterialTabSelector();
-            this.CBox_DisablePopup1 = new MaterialSkin.Controls.MaterialCheckbox();
             this.BtnStart2 = new MaterialSkin.Controls.MaterialButton();
-            this.CBox_FavOneClickConnect1 = new MaterialSkin.Controls.MaterialCheckbox();
             this.BtnOpenConfig1 = new MaterialSkin.Controls.MaterialButton();
             this.groupShortCut1 = new System.Windows.Forms.GroupBox();
             this.BtnShortCut1 = new MaterialSkin.Controls.MaterialButton();
@@ -81,7 +79,6 @@ namespace GateHelper
             this.BtnOpenLog1 = new MaterialSkin.Controls.MaterialButton();
             this.PicBox_Arrow = new System.Windows.Forms.PictureBox();
             this.PicBox_Setting = new System.Windows.Forms.PictureBox();
-            this.CBox_TestMode1 = new MaterialSkin.Controls.MaterialCheckbox();
             this.dataListView1 = new BrightIdeasSoftware.DataListView();
             this.No2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.SVName2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
@@ -89,18 +86,16 @@ namespace GateHelper
             this.Memo2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.lblDriverStatus = new System.Windows.Forms.Label();
             this.lblInternetStatus = new System.Windows.Forms.Label();
-            this.CBox_ListViewClickConnect = new MaterialSkin.Controls.MaterialCheckbox();
-            this.CBox_AutoLogin1 = new MaterialSkin.Controls.MaterialCheckbox();
+            this.BtnOption1 = new MaterialSkin.Controls.MaterialButton();
             this.lblPopupStatus = new System.Windows.Forms.Label();
-            this.CBox_RemoveDuplicate = new MaterialSkin.Controls.MaterialCheckbox();
             this.GroupConnect1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
             this.TabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
-            this.tabPage3.SuspendLayout();
-            this.GroupRef2.SuspendLayout();
             this.tabPage4.SuspendLayout();
             this.ListViewContext1.SuspendLayout();
+            this.tabPage3.SuspendLayout();
+            this.GroupRef2.SuspendLayout();
             this.groupShortCut1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).BeginInit();
@@ -406,8 +401,8 @@ namespace GateHelper
             // TabControl1
             // 
             this.TabControl1.Controls.Add(this.tabPage1);
-            this.TabControl1.Controls.Add(this.tabPage3);
             this.TabControl1.Controls.Add(this.tabPage4);
+            this.TabControl1.Controls.Add(this.tabPage3);
             this.TabControl1.Depth = 0;
             this.TabControl1.Location = new System.Drawing.Point(6, 169);
             this.TabControl1.Margin = new System.Windows.Forms.Padding(2);
@@ -429,6 +424,85 @@ namespace GateHelper
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "SERVER";
             this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // tabPage4
+            // 
+            this.tabPage4.Controls.Add(this.ListViewServer2);
+            this.tabPage4.Location = new System.Drawing.Point(4, 22);
+            this.tabPage4.Margin = new System.Windows.Forms.Padding(2);
+            this.tabPage4.Name = "tabPage4";
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPage4.Size = new System.Drawing.Size(535, 351);
+            this.tabPage4.TabIndex = 3;
+            this.tabPage4.Text = "HISTORY";
+            this.tabPage4.UseVisualStyleBackColor = true;
+            // 
+            // ListViewServer2
+            // 
+            this.ListViewServer2.BackColor = System.Drawing.SystemColors.Info;
+            this.ListViewServer2.CheckBoxes = true;
+            this.ListViewServer2.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.No1,
+            this.SVName1,
+            this.LastConnected1,
+            this.Memo1});
+            this.ListViewServer2.ContextMenuStrip = this.ListViewContext1;
+            this.ListViewServer2.Font = new System.Drawing.Font("휴먼옛체", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.ListViewServer2.FullRowSelect = true;
+            this.ListViewServer2.GridLines = true;
+            this.ListViewServer2.HideSelection = false;
+            this.ListViewServer2.HoverSelection = true;
+            this.ListViewServer2.Location = new System.Drawing.Point(2, 2);
+            this.ListViewServer2.Margin = new System.Windows.Forms.Padding(2);
+            this.ListViewServer2.MinimumSize = new System.Drawing.Size(141, 68);
+            this.ListViewServer2.Name = "ListViewServer2";
+            this.ListViewServer2.Size = new System.Drawing.Size(535, 349);
+            this.ListViewServer2.TabIndex = 28;
+            this.ListViewServer2.UseCompatibleStateImageBehavior = false;
+            this.ListViewServer2.View = System.Windows.Forms.View.Details;
+            this.ListViewServer2.DoubleClick += new System.EventHandler(this.ListViewServer2_DoubleClick);
+            // 
+            // No1
+            // 
+            this.No1.Text = "No";
+            this.No1.Width = 50;
+            // 
+            // SVName1
+            // 
+            this.SVName1.Text = "Name";
+            this.SVName1.Width = 180;
+            // 
+            // LastConnected1
+            // 
+            this.LastConnected1.Text = "Last Connected";
+            this.LastConnected1.Width = 180;
+            // 
+            // Memo1
+            // 
+            this.Memo1.Text = "Memo";
+            this.Memo1.Width = 220;
+            // 
+            // ListViewContext1
+            // 
+            this.ListViewContext1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.MenuItem1,
+            this.testToolStripMenuItem});
+            this.ListViewContext1.Name = "contextMenuStrip1";
+            this.ListViewContext1.ShowImageMargin = false;
+            this.ListViewContext1.Size = new System.Drawing.Size(84, 48);
+            // 
+            // MenuItem1
+            // 
+            this.MenuItem1.Name = "MenuItem1";
+            this.MenuItem1.Size = new System.Drawing.Size(83, 22);
+            this.MenuItem1.Text = "Delete";
+            this.MenuItem1.Click += new System.EventHandler(this.MenuItem1_Click);
+            // 
+            // testToolStripMenuItem
+            // 
+            this.testToolStripMenuItem.Name = "testToolStripMenuItem";
+            this.testToolStripMenuItem.Size = new System.Drawing.Size(83, 22);
+            this.testToolStripMenuItem.Text = "Test";
             // 
             // tabPage3
             // 
@@ -527,85 +601,6 @@ namespace GateHelper
             this.flowLayoutPanel1.Size = new System.Drawing.Size(380, 281);
             this.flowLayoutPanel1.TabIndex = 29;
             // 
-            // tabPage4
-            // 
-            this.tabPage4.Controls.Add(this.ListViewServer2);
-            this.tabPage4.Location = new System.Drawing.Point(4, 22);
-            this.tabPage4.Margin = new System.Windows.Forms.Padding(2);
-            this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Padding = new System.Windows.Forms.Padding(2);
-            this.tabPage4.Size = new System.Drawing.Size(535, 351);
-            this.tabPage4.TabIndex = 3;
-            this.tabPage4.Text = "HISTORY";
-            this.tabPage4.UseVisualStyleBackColor = true;
-            // 
-            // ListViewServer2
-            // 
-            this.ListViewServer2.BackColor = System.Drawing.SystemColors.Info;
-            this.ListViewServer2.CheckBoxes = true;
-            this.ListViewServer2.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.No1,
-            this.SVName1,
-            this.LastConnected1,
-            this.Memo1});
-            this.ListViewServer2.ContextMenuStrip = this.ListViewContext1;
-            this.ListViewServer2.Font = new System.Drawing.Font("휴먼옛체", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.ListViewServer2.FullRowSelect = true;
-            this.ListViewServer2.GridLines = true;
-            this.ListViewServer2.HideSelection = false;
-            this.ListViewServer2.HoverSelection = true;
-            this.ListViewServer2.Location = new System.Drawing.Point(2, 2);
-            this.ListViewServer2.Margin = new System.Windows.Forms.Padding(2);
-            this.ListViewServer2.MinimumSize = new System.Drawing.Size(141, 68);
-            this.ListViewServer2.Name = "ListViewServer2";
-            this.ListViewServer2.Size = new System.Drawing.Size(535, 349);
-            this.ListViewServer2.TabIndex = 28;
-            this.ListViewServer2.UseCompatibleStateImageBehavior = false;
-            this.ListViewServer2.View = System.Windows.Forms.View.Details;
-            this.ListViewServer2.DoubleClick += new System.EventHandler(this.ListViewServer2_DoubleClick);
-            // 
-            // No1
-            // 
-            this.No1.Text = "No";
-            this.No1.Width = 50;
-            // 
-            // SVName1
-            // 
-            this.SVName1.Text = "Name";
-            this.SVName1.Width = 180;
-            // 
-            // LastConnected1
-            // 
-            this.LastConnected1.Text = "Last Connected";
-            this.LastConnected1.Width = 180;
-            // 
-            // Memo1
-            // 
-            this.Memo1.Text = "Memo";
-            this.Memo1.Width = 220;
-            // 
-            // ListViewContext1
-            // 
-            this.ListViewContext1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.MenuItem1,
-            this.testToolStripMenuItem});
-            this.ListViewContext1.Name = "contextMenuStrip1";
-            this.ListViewContext1.ShowImageMargin = false;
-            this.ListViewContext1.Size = new System.Drawing.Size(156, 70);
-            // 
-            // MenuItem1
-            // 
-            this.MenuItem1.Name = "MenuItem1";
-            this.MenuItem1.Size = new System.Drawing.Size(155, 22);
-            this.MenuItem1.Text = "Delete";
-            this.MenuItem1.Click += new System.EventHandler(this.MenuItem1_Click);
-            // 
-            // testToolStripMenuItem
-            // 
-            this.testToolStripMenuItem.Name = "testToolStripMenuItem";
-            this.testToolStripMenuItem.Size = new System.Drawing.Size(155, 22);
-            this.testToolStripMenuItem.Text = "Test";
-            // 
             // TabSelector1
             // 
             this.TabSelector1.BaseTabControl = this.TabControl1;
@@ -621,23 +616,6 @@ namespace GateHelper
             this.TabSelector1.TabIndex = 5;
             this.TabSelector1.TabIndicatorHeight = 3;
             this.TabSelector1.Text = "TabSelector1";
-            // 
-            // CBox_DisablePopup1
-            // 
-            this.CBox_DisablePopup1.AutoSize = true;
-            this.CBox_DisablePopup1.Depth = 0;
-            this.CBox_DisablePopup1.Location = new System.Drawing.Point(14, 577);
-            this.CBox_DisablePopup1.Margin = new System.Windows.Forms.Padding(0);
-            this.CBox_DisablePopup1.MouseLocation = new System.Drawing.Point(-1, -1);
-            this.CBox_DisablePopup1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.CBox_DisablePopup1.Name = "CBox_DisablePopup1";
-            this.CBox_DisablePopup1.ReadOnly = false;
-            this.CBox_DisablePopup1.Ripple = true;
-            this.CBox_DisablePopup1.Size = new System.Drawing.Size(157, 37);
-            this.CBox_DisablePopup1.TabIndex = 11;
-            this.CBox_DisablePopup1.Text = "DISABLE POP-UP";
-            this.CBox_DisablePopup1.UseVisualStyleBackColor = true;
-            this.CBox_DisablePopup1.CheckedChanged += new System.EventHandler(this.CBox_DisablePopup1_CheckedChanged);
             // 
             // BtnStart2
             // 
@@ -659,25 +637,6 @@ namespace GateHelper
             this.BtnStart2.UseAccentColor = false;
             this.BtnStart2.UseVisualStyleBackColor = true;
             this.BtnStart2.Click += new System.EventHandler(this.BtnStart2_Click);
-            // 
-            // CBox_FavOneClickConnect1
-            // 
-            this.CBox_FavOneClickConnect1.AutoSize = true;
-            this.CBox_FavOneClickConnect1.Depth = 0;
-            this.CBox_FavOneClickConnect1.Enabled = false;
-            this.CBox_FavOneClickConnect1.Location = new System.Drawing.Point(14, 549);
-            this.CBox_FavOneClickConnect1.Margin = new System.Windows.Forms.Padding(0);
-            this.CBox_FavOneClickConnect1.MouseLocation = new System.Drawing.Point(-1, -1);
-            this.CBox_FavOneClickConnect1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.CBox_FavOneClickConnect1.Name = "CBox_FavOneClickConnect1";
-            this.CBox_FavOneClickConnect1.ReadOnly = false;
-            this.CBox_FavOneClickConnect1.Ripple = true;
-            this.CBox_FavOneClickConnect1.Size = new System.Drawing.Size(193, 37);
-            this.CBox_FavOneClickConnect1.TabIndex = 18;
-            this.CBox_FavOneClickConnect1.Text = "Fav One-Click Connect";
-            this.toolTip_FavOneClickConnect1.SetToolTip(this.CBox_FavOneClickConnect1, "설정 : 검색후 접속까지\r\n해제 : 검색만\r\n");
-            this.CBox_FavOneClickConnect1.UseVisualStyleBackColor = true;
-            this.CBox_FavOneClickConnect1.CheckedChanged += new System.EventHandler(this.CBox_FavOneClickConnect1_CheckedChanged);
             // 
             // BtnOpenConfig1
             // 
@@ -828,23 +787,6 @@ namespace GateHelper
             this.PicBox_Setting.TabStop = false;
             this.PicBox_Setting.Click += new System.EventHandler(this.PicBox_Setting_Click);
             // 
-            // CBox_TestMode1
-            // 
-            this.CBox_TestMode1.AutoSize = true;
-            this.CBox_TestMode1.Depth = 0;
-            this.CBox_TestMode1.Location = new System.Drawing.Point(14, 605);
-            this.CBox_TestMode1.Margin = new System.Windows.Forms.Padding(0);
-            this.CBox_TestMode1.MouseLocation = new System.Drawing.Point(-1, -1);
-            this.CBox_TestMode1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.CBox_TestMode1.Name = "CBox_TestMode1";
-            this.CBox_TestMode1.ReadOnly = false;
-            this.CBox_TestMode1.Ripple = true;
-            this.CBox_TestMode1.Size = new System.Drawing.Size(123, 37);
-            this.CBox_TestMode1.TabIndex = 27;
-            this.CBox_TestMode1.Text = "TEST MODE";
-            this.CBox_TestMode1.UseVisualStyleBackColor = true;
-            this.CBox_TestMode1.CheckedChanged += new System.EventHandler(this.CBox_TestMode1_CheckedChanged);
-            // 
             // dataListView1
             // 
             this.dataListView1.AllColumns.Add(this.No2);
@@ -891,7 +833,7 @@ namespace GateHelper
             // lblDriverStatus
             // 
             this.lblDriverStatus.AutoSize = true;
-            this.lblDriverStatus.Location = new System.Drawing.Point(211, 43);
+            this.lblDriverStatus.Location = new System.Drawing.Point(24, 634);
             this.lblDriverStatus.Name = "lblDriverStatus";
             this.lblDriverStatus.Size = new System.Drawing.Size(37, 12);
             this.lblDriverStatus.TabIndex = 29;
@@ -900,71 +842,41 @@ namespace GateHelper
             // lblInternetStatus
             // 
             this.lblInternetStatus.AutoSize = true;
-            this.lblInternetStatus.Location = new System.Drawing.Point(292, 43);
+            this.lblInternetStatus.Location = new System.Drawing.Point(23, 604);
             this.lblInternetStatus.Name = "lblInternetStatus";
             this.lblInternetStatus.Size = new System.Drawing.Size(46, 12);
             this.lblInternetStatus.TabIndex = 30;
             this.lblInternetStatus.Text = "Internet";
             // 
-            // CBox_ListViewClickConnect
+            // BtnOption1
             // 
-            this.CBox_ListViewClickConnect.AutoSize = true;
-            this.CBox_ListViewClickConnect.Depth = 0;
-            this.CBox_ListViewClickConnect.Location = new System.Drawing.Point(14, 633);
-            this.CBox_ListViewClickConnect.Margin = new System.Windows.Forms.Padding(0);
-            this.CBox_ListViewClickConnect.MouseLocation = new System.Drawing.Point(-1, -1);
-            this.CBox_ListViewClickConnect.MouseState = MaterialSkin.MouseState.HOVER;
-            this.CBox_ListViewClickConnect.Name = "CBox_ListViewClickConnect";
-            this.CBox_ListViewClickConnect.ReadOnly = false;
-            this.CBox_ListViewClickConnect.Ripple = true;
-            this.CBox_ListViewClickConnect.Size = new System.Drawing.Size(195, 37);
-            this.CBox_ListViewClickConnect.TabIndex = 34;
-            this.CBox_ListViewClickConnect.Text = "ListView Click Connect";
-            this.CBox_ListViewClickConnect.UseVisualStyleBackColor = true;
-            this.CBox_ListViewClickConnect.CheckedChanged += new System.EventHandler(this.CBox_ListViewClickConnect_CheckedChanged);
-            // 
-            // CBox_AutoLogin1
-            // 
-            this.CBox_AutoLogin1.AutoSize = true;
-            this.CBox_AutoLogin1.Depth = 0;
-            this.CBox_AutoLogin1.Location = new System.Drawing.Point(14, 661);
-            this.CBox_AutoLogin1.Margin = new System.Windows.Forms.Padding(0);
-            this.CBox_AutoLogin1.MouseLocation = new System.Drawing.Point(-1, -1);
-            this.CBox_AutoLogin1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.CBox_AutoLogin1.Name = "CBox_AutoLogin1";
-            this.CBox_AutoLogin1.ReadOnly = false;
-            this.CBox_AutoLogin1.Ripple = true;
-            this.CBox_AutoLogin1.Size = new System.Drawing.Size(112, 37);
-            this.CBox_AutoLogin1.TabIndex = 35;
-            this.CBox_AutoLogin1.Text = "Auto Login";
-            this.CBox_AutoLogin1.UseVisualStyleBackColor = true;
-            this.CBox_AutoLogin1.CheckedChanged += new System.EventHandler(this.CBox_AutoLogin1_CheckedChanged);
+            this.BtnOption1.AutoSize = false;
+            this.BtnOption1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnOption1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnOption1.Depth = 0;
+            this.BtnOption1.HighEmphasis = true;
+            this.BtnOption1.Icon = null;
+            this.BtnOption1.Location = new System.Drawing.Point(314, 599);
+            this.BtnOption1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnOption1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnOption1.Name = "BtnOption1";
+            this.BtnOption1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnOption1.Size = new System.Drawing.Size(70, 33);
+            this.BtnOption1.TabIndex = 38;
+            this.BtnOption1.Text = "OPTION";
+            this.BtnOption1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnOption1.UseAccentColor = false;
+            this.BtnOption1.UseVisualStyleBackColor = true;
+            this.BtnOption1.Click += new System.EventHandler(this.BtnOption1_Click);
             // 
             // lblPopupStatus
             // 
             this.lblPopupStatus.AutoSize = true;
-            this.lblPopupStatus.Location = new System.Drawing.Point(179, 586);
+            this.lblPopupStatus.Location = new System.Drawing.Point(24, 664);
             this.lblPopupStatus.Name = "lblPopupStatus";
             this.lblPopupStatus.Size = new System.Drawing.Size(40, 12);
-            this.lblPopupStatus.TabIndex = 36;
+            this.lblPopupStatus.TabIndex = 45;
             this.lblPopupStatus.Text = "Detect";
-            // 
-            // CBox_RemoveDuplicate
-            // 
-            this.CBox_RemoveDuplicate.AutoSize = true;
-            this.CBox_RemoveDuplicate.Depth = 0;
-            this.CBox_RemoveDuplicate.Location = new System.Drawing.Point(14, 520);
-            this.CBox_RemoveDuplicate.Margin = new System.Windows.Forms.Padding(0);
-            this.CBox_RemoveDuplicate.MouseLocation = new System.Drawing.Point(-1, -1);
-            this.CBox_RemoveDuplicate.MouseState = MaterialSkin.MouseState.HOVER;
-            this.CBox_RemoveDuplicate.Name = "CBox_RemoveDuplicate";
-            this.CBox_RemoveDuplicate.ReadOnly = false;
-            this.CBox_RemoveDuplicate.Ripple = true;
-            this.CBox_RemoveDuplicate.Size = new System.Drawing.Size(163, 37);
-            this.CBox_RemoveDuplicate.TabIndex = 37;
-            this.CBox_RemoveDuplicate.Text = "Remove Duplicate";
-            this.CBox_RemoveDuplicate.UseVisualStyleBackColor = true;
-            this.CBox_RemoveDuplicate.CheckedChanged += new System.EventHandler(this.CBox_RemoveDuplicate_CheckedChanged);
             // 
             // MainUI
             // 
@@ -972,15 +884,12 @@ namespace GateHelper
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1114, 714);
-            this.Controls.Add(this.CBox_RemoveDuplicate);
             this.Controls.Add(this.lblPopupStatus);
-            this.Controls.Add(this.CBox_AutoLogin1);
-            this.Controls.Add(this.CBox_ListViewClickConnect);
+            this.Controls.Add(this.BtnOption1);
             this.Controls.Add(this.lblInternetStatus);
             this.Controls.Add(this.lblDriverStatus);
             this.Controls.Add(this.dataListView1);
             this.Controls.Add(this.ListViewServer1);
-            this.Controls.Add(this.CBox_TestMode1);
             this.Controls.Add(this.PicBox_Arrow);
             this.Controls.Add(this.PicBox_Setting);
             this.Controls.Add(this.BtnOpenLog1);
@@ -988,9 +897,7 @@ namespace GateHelper
             this.Controls.Add(this.BtnStart1);
             this.Controls.Add(this.PicBox_Question);
             this.Controls.Add(this.groupShortCut1);
-            this.Controls.Add(this.CBox_DisablePopup1);
             this.Controls.Add(this.BtnOpenConfig1);
-            this.Controls.Add(this.CBox_FavOneClickConnect1);
             this.Controls.Add(this.BtnStart2);
             this.Controls.Add(this.TabSelector1);
             this.Controls.Add(this.TabControl1);
@@ -1007,10 +914,10 @@ namespace GateHelper
             this.GroupFav1.ResumeLayout(false);
             this.TabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
-            this.tabPage3.ResumeLayout(false);
-            this.GroupRef2.ResumeLayout(false);
             this.tabPage4.ResumeLayout(false);
             this.ListViewContext1.ResumeLayout(false);
+            this.tabPage3.ResumeLayout(false);
+            this.GroupRef2.ResumeLayout(false);
             this.groupShortCut1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).EndInit();
@@ -1033,7 +940,6 @@ namespace GateHelper
         private System.Windows.Forms.ColumnHeader No;
         private System.Windows.Forms.ColumnHeader SVName;
         private System.Windows.Forms.ColumnHeader LastConnected;
-        private MaterialSkin.Controls.MaterialCheckbox CBox_DisablePopup1;
         private MaterialSkin.Controls.MaterialButton BtnConnect1;
         private MaterialSkin.Controls.MaterialTextBox2 SearchTxt1;
         private MaterialSkin.Controls.MaterialComboBox ComboBoxServerList1;
@@ -1042,7 +948,6 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton BtnFav2;
         private MaterialSkin.Controls.MaterialButton BtnFav3;
         private MaterialSkin.Controls.MaterialButton BtnStart2;
-        private MaterialSkin.Controls.MaterialCheckbox CBox_FavOneClickConnect1;
         private System.Windows.Forms.GroupBox GroupFav1;
         private MaterialSkin.Controls.MaterialButton BtnOpenConfig1;
         private System.Windows.Forms.GroupBox groupShortCut1;
@@ -1057,7 +962,6 @@ namespace GateHelper
         private System.Windows.Forms.PictureBox PicBox_Arrow;
         private System.Windows.Forms.TabPage tabPage3;
         private System.Windows.Forms.ColumnHeader Memo;
-        private MaterialSkin.Controls.MaterialCheckbox CBox_TestMode1;
         private System.Windows.Forms.ColumnHeader No1;
         private System.Windows.Forms.ColumnHeader SVName1;
         private System.Windows.Forms.ColumnHeader LastConnected1;
@@ -1076,13 +980,11 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton dummyControlOutsideTab;
         private System.Windows.Forms.Label lblDriverStatus;
         private System.Windows.Forms.Label lblInternetStatus;
-        private MaterialSkin.Controls.MaterialCheckbox CBox_ListViewClickConnect;
-        private MaterialSkin.Controls.MaterialCheckbox CBox_AutoLogin1;
-        private System.Windows.Forms.Label lblPopupStatus;
-        private MaterialSkin.Controls.MaterialCheckbox CBox_RemoveDuplicate;
         private System.Windows.Forms.ContextMenuStrip ListViewContext1;
         private System.Windows.Forms.ToolStripMenuItem MenuItem1;
         private System.Windows.Forms.ToolStripMenuItem testToolStripMenuItem;
+        private MaterialSkin.Controls.MaterialButton BtnOption1;
+        private System.Windows.Forms.Label lblPopupStatus;
     }
 }
 
