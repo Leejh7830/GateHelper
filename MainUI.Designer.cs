@@ -111,7 +111,7 @@ namespace GateHelper
             this.BtnGateOneLogin1.Depth = 0;
             this.BtnGateOneLogin1.HighEmphasis = true;
             this.BtnGateOneLogin1.Icon = null;
-            this.BtnGateOneLogin1.Location = new System.Drawing.Point(417, 127);
+            this.BtnGateOneLogin1.Location = new System.Drawing.Point(961, 116);
             this.BtnGateOneLogin1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnGateOneLogin1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnGateOneLogin1.Name = "BtnGateOneLogin1";
@@ -131,7 +131,7 @@ namespace GateHelper
             this.TestBtn1.Depth = 0;
             this.TestBtn1.HighEmphasis = true;
             this.TestBtn1.Icon = null;
-            this.TestBtn1.Location = new System.Drawing.Point(598, 79);
+            this.TestBtn1.Location = new System.Drawing.Point(855, 73);
             this.TestBtn1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.TestBtn1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TestBtn1.Name = "TestBtn1";
@@ -625,7 +625,7 @@ namespace GateHelper
             this.BtnStart2.Depth = 0;
             this.BtnStart2.HighEmphasis = true;
             this.BtnStart2.Icon = null;
-            this.BtnStart2.Location = new System.Drawing.Point(417, 79);
+            this.BtnStart2.Location = new System.Drawing.Point(961, 73);
             this.BtnStart2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnStart2.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnStart2.Name = "BtnStart2";

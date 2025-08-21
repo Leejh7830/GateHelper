@@ -95,8 +95,6 @@ namespace GateHelper
             LogMessage("프로그램 초기화 완료", Level.Info);
         }
 
-        // 25.03.27 Added
-        // 25.08.14 Modified - Popup Detector
         private async void TimerStatusChecker_Tick(object sender, EventArgs e)
         {
             Color onColor = ColorTranslator.FromHtml("#4CAF50"); // Green 500
@@ -205,7 +203,6 @@ namespace GateHelper
             
         }
 
-        // 25.03.27 Modified - Module
         private void BtnSearch1_Click(object sender, EventArgs e)
         {
             if (!chromeDriverManager.IsDriverReady(_driver))
@@ -242,8 +239,6 @@ namespace GateHelper
             }
         }
 
-        // 25.03.18 Added - Load Server List Button
-        // 25.03.19 Modified - Test Mode
         private void BtnLoadServers1_Click(object sender, EventArgs e)
         {
             if (!chromeDriverManager.IsDriverReady(_driver))
@@ -333,7 +328,6 @@ namespace GateHelper
             Util.ClickFavBtn(_driver, _config, 3, () => BtnLoadServers1_Click(null, EventArgs.Empty), chromeDriverManager);
         }
 
-        // 25.03.17 Added - Config File Reload Button
         private void BtnReConfig1_Click(object sender, EventArgs e)
         {
             LogMessage("BtnConfig1 Click", Level.Info);
@@ -371,21 +365,18 @@ namespace GateHelper
             }
         }
 
-        // 25.03.17 Added - Config File Open Button
         private void BtnOpenConfig1_Click(object sender, EventArgs e)
         {
             LogMessage("BtnOpenConfig1 Click", Level.Info);
             configManager.OpenConfigFile();
         }
 
-        // 25.03.17 Added - Log File Open Button
         private void BtnOpenLog1_Click(object sender, EventArgs e)
         {
             LogMessage("BtnOpenLog1 Click", Level.Info);
             OpenLogFile();
         }
 
-        // 25.08.20 Added - Option Form
         private void BtnOption1_Click(object sender, EventArgs e)
         {
             OptionForm optionForm = new OptionForm(removeDuplicates,
@@ -429,7 +420,6 @@ namespace GateHelper
                     changes.Add($"- Disable Popup: {status}");
                 }
 
-                // 25.03.19 Added - Test Mode Functions
                 if (testMode != newTestMode)
                 {
                     ApplyTestMode(newTestMode);
@@ -438,7 +428,6 @@ namespace GateHelper
                     changes.Add($"- Test Mode: {status}");
                 }
 
-                // 25.03.27 Added - Double Click Connect
                 if (ServerClickConnect != newServerClickConnect)
                 {
                     ServerClickConnect = newServerClickConnect;
@@ -508,7 +497,6 @@ namespace GateHelper
             }
         }
 
-        // 25.03.27 Added - Double Click Connect
         private void ListViewServer2_DoubleClick(object sender, EventArgs e)
         {
             if (!ServerClickConnect || ListViewServer2.SelectedItems.Count == 0)
@@ -709,7 +697,7 @@ namespace GateHelper
 
         
 
-        public class MaterialToolStripColorTable : ProfessionalColorTable
+        public class MaterialToolStripColorTable : ProfessionalColorTable // 컨텍스트용
         {
             public override Color MenuItemSelected => ColorTranslator.FromHtml("#424242");
             public override Color MenuItemSelectedGradientBegin => ColorTranslator.FromHtml("#424242");
