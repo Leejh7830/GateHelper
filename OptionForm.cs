@@ -15,6 +15,8 @@ namespace GateHelper
 {
     public partial class OptionForm : MaterialForm
     {
+        private readonly MaterialSkinManager materialSkinManager;
+
         public bool IsRemoveDuplicatesEnabled { get; set; }
         public bool IsAutoLoginEnabled { get; set; }
         public bool IsPopupDisabled { get; set; }
@@ -23,9 +25,14 @@ namespace GateHelper
 
 
         public OptionForm(bool currentRemoveDuplicatesStatus, bool currentAutoLoginStatus,
-                      bool currentPopupStatus, bool currentTestModeStatus, bool currentServerClickStatus)
+                      bool currentPopupStatus, bool currentTestModeStatus, bool currentServerClickStatus, bool currentIsDarkMode)
         {
             InitializeComponent();
+            materialSkinManager = MaterialSkinManager.Instance;
+            materialSkinManager.AddFormToManage(this);
+            materialSkinManager.Theme = currentIsDarkMode ?
+                                    MaterialSkinManager.Themes.DARK :
+                                    MaterialSkinManager.Themes.LIGHT;
 
             // public 속성 값으로 UI 컨트롤의 초기 상태 설정
             CBox_RemoveDuplicate.Checked = currentRemoveDuplicatesStatus;
@@ -64,5 +71,6 @@ namespace GateHelper
         {
             IsServerClickEnabled = CBox_ServerClickConnect.Checked;
         }
+
     }
 }

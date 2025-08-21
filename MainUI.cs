@@ -29,7 +29,9 @@ namespace GateHelper
         private string serverIP;
 
         private string mainHandle;
-        
+        private bool isDarkMode = true;
+        private bool changeArrow = true;
+
         /// Option 전용
         private int _popupCount = 0; // 팝업 처리 횟수 카운터
         private readonly Timer timer1;
@@ -390,7 +392,8 @@ namespace GateHelper
                 autoLogin,
                 disablePopup,
                 testMode,
-                ServerClickConnect);
+                ServerClickConnect,
+                isDarkMode);
             DialogResult result = optionForm.ShowDialog();
 
             if (result == DialogResult.OK)
@@ -558,24 +561,46 @@ namespace GateHelper
 
         //////////////////////////////////////////////////////////////////////////////// 옵션 전용 끝
 
-        private bool isDarkMode = true;
-        private bool changeArrow = true;
+        
 
         private void PicBox_Setting_Click(object sender, EventArgs e)
         {
-            if (isDarkMode)
+            ApplyTheme(!isDarkMode); // 현재값과 반대값을 전달
+        }
+
+        private void ApplyTheme(bool newIsDarkMode)
+        {
+            isDarkMode = newIsDarkMode;
+            if (isDarkMode) // LIGHT이면 DARK로 변경
+            {
+                materialSkinManager.Theme = MaterialSkinManager.Themes.DARK;
+                PicBox_Setting.Image = Properties.Resources.sun; // DARK 일 때 태양 아이콘
+            }
+            else // DARK이면 LIGHT로 변경
             {
                 materialSkinManager.Theme = MaterialSkinManager.Themes.LIGHT;
-                PicBox_Setting.Image = Properties.Resources.moon;
-                isDarkMode = false;
+                PicBox_Setting.Image = Properties.Resources.moon; // LIGHT 일 때 달 아이콘
+            }
+
+            // 컨텍스트 메뉴 테마 변경 로직 호출
+            ApplyThemeToContextMenuStrip();
+        }
+
+        private void ApplyThemeToContextMenuStrip() // 테마 색상 변경에 따른 컨텍스트메뉴 색상 변경
+        {
+            if (materialSkinManager.Theme == MaterialSkinManager.Themes.DARK)
+            {
+                ToolStripManager.Renderer = new ToolStripProfessionalRenderer(new MaterialToolStripColorTable());
+                contextMenuStrip.ForeColor = Color.White;
             }
             else
             {
-                materialSkinManager.Theme = MaterialSkinManager.Themes.DARK;
-                PicBox_Setting.Image = Properties.Resources.sun;
-                isDarkMode = true;
+                ToolStripManager.Renderer = null;
+                contextMenuStrip.ForeColor = Color.Black;
             }
         }
+
+        
 
         private void PicBox_Arrow_Click(object sender, EventArgs e)
         {
@@ -606,6 +631,12 @@ namespace GateHelper
                 Util_Control.MovePictureBoxIcons(this, PicBox_Arrow, PicBox_Setting, PicBox_Question, FormOriginalSize, false);
             }
         }
+
+        private void PicBox_Question_Click(object sender, EventArgs e)
+        {
+            Util.OpenReleaseNotes();
+        }
+
 
         private void MainUI_Load(object sender, EventArgs e)
         {
@@ -676,19 +707,7 @@ namespace GateHelper
             }
         }
 
-        private void ApplyThemeToContextMenuStrip() // 테마 색상 변경에 따른 컨텍스트메뉴 색상 변경
-        {
-            if (materialSkinManager.Theme == MaterialSkinManager.Themes.DARK)
-            {
-                ToolStripManager.Renderer = new ToolStripProfessionalRenderer(new MaterialToolStripColorTable());
-                contextMenuStrip.ForeColor = Color.White;
-            }
-            else
-            {
-                ToolStripManager.Renderer = null;
-                contextMenuStrip.ForeColor = Color.Black;
-            }
-        }
+        
 
         public class MaterialToolStripColorTable : ProfessionalColorTable
         {
@@ -702,5 +721,6 @@ namespace GateHelper
             public override Color ToolStripBorder => ColorTranslator.FromHtml("#424242");
         }
 
+ 
     }
 }

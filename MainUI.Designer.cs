@@ -699,7 +699,8 @@ namespace GateHelper
             this.PicBox_Question.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.PicBox_Question.TabIndex = 21;
             this.PicBox_Question.TabStop = false;
-            this.toolTip_Question1.SetToolTip(this.PicBox_Question, "C# Windows Forms based Selenium V 1.0 (2025.04.08)\r\nMade by LeeJH");
+            this.toolTip_Question1.SetToolTip(this.PicBox_Question, "C# Windows Forms based Selenium V 1.0 (2025.04.08)\r\n");
+            this.PicBox_Question.Click += new System.EventHandler(this.PicBox_Question_Click);
             // 
             // BtnStart1
             // 

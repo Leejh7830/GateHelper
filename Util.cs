@@ -8,6 +8,7 @@ using System.Threading;
 using System.Text.RegularExpressions;
 using static GateHelper.LogManager;
 using static GateHelper.Util_Element;
+using System.Diagnostics;
 
 namespace GateHelper
 {
@@ -27,6 +28,35 @@ namespace GateHelper
             }
 
             return metaPath;
+        }
+
+        public static void OpenReleaseNotes()
+        {
+            string metaFolderPath = CreateMetaFolderAndGetPath();
+            string releaseNotesPath = Path.Combine(metaFolderPath, "ReleaseNotes.txt");
+
+            // 릴리즈 노트 파일이 없으면 초기 내용과 함께 생성
+            if (!File.Exists(releaseNotesPath))
+            {
+                try
+                {
+                    string initialContent = "v1.0.0 (2025.04.15)\r\n- Initial Release";
+                    File.WriteAllText(releaseNotesPath, initialContent);
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"릴리즈 노트 파일 생성 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+            }
+            try
+            {
+                Process.Start(new ProcessStartInfo(releaseNotesPath) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"릴리즈 노트를 여는 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
 
         public static void ClickFavBtn(IWebDriver _driver, Config config, int favIndex, Action serverListLoadAction, ChromeDriverManager chromeDriverManager)

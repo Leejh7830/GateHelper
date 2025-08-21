@@ -35,6 +35,9 @@ namespace GateHelper
             this.CBox_TestMode = new MaterialSkin.Controls.MaterialCheckbox();
             this.CBox_DisablePopup = new MaterialSkin.Controls.MaterialCheckbox();
             this.CBox_FavOneClickConnect = new MaterialSkin.Controls.MaterialCheckbox();
+            this.textBox1 = new System.Windows.Forms.TextBox();
+            this.materialButton1 = new MaterialSkin.Controls.MaterialButton();
+            this.materialButton2 = new MaterialSkin.Controls.MaterialButton();
             this.SuspendLayout();
             // 
             // CBox_RemoveDuplicate
@@ -49,7 +52,7 @@ namespace GateHelper
             this.CBox_RemoveDuplicate.ReadOnly = false;
             this.CBox_RemoveDuplicate.Ripple = true;
             this.CBox_RemoveDuplicate.Size = new System.Drawing.Size(163, 37);
-            this.CBox_RemoveDuplicate.TabIndex = 1;
+            this.CBox_RemoveDuplicate.TabIndex = 2;
             this.CBox_RemoveDuplicate.Text = "Remove Duplicate";
             this.CBox_RemoveDuplicate.UseVisualStyleBackColor = true;
             this.CBox_RemoveDuplicate.CheckedChanged += new System.EventHandler(this.CBox_RemoveDuplicate_CheckedChanged);
@@ -66,7 +69,7 @@ namespace GateHelper
             this.CBox_AutoLogin.ReadOnly = false;
             this.CBox_AutoLogin.Ripple = true;
             this.CBox_AutoLogin.Size = new System.Drawing.Size(112, 37);
-            this.CBox_AutoLogin.TabIndex = 2;
+            this.CBox_AutoLogin.TabIndex = 3;
             this.CBox_AutoLogin.Text = "Auto Login";
             this.CBox_AutoLogin.UseVisualStyleBackColor = true;
             this.CBox_AutoLogin.CheckedChanged += new System.EventHandler(this.CBox_AutoLogin_CheckedChanged);
@@ -83,7 +86,7 @@ namespace GateHelper
             this.CBox_ServerClickConnect.ReadOnly = false;
             this.CBox_ServerClickConnect.Ripple = true;
             this.CBox_ServerClickConnect.Size = new System.Drawing.Size(179, 37);
-            this.CBox_ServerClickConnect.TabIndex = 5;
+            this.CBox_ServerClickConnect.TabIndex = 6;
             this.CBox_ServerClickConnect.Text = "Server Click Connect";
             this.CBox_ServerClickConnect.UseVisualStyleBackColor = true;
             this.CBox_ServerClickConnect.CheckedChanged += new System.EventHandler(this.CBox_ServerClick_CheckedChanged);
@@ -100,7 +103,7 @@ namespace GateHelper
             this.CBox_TestMode.ReadOnly = false;
             this.CBox_TestMode.Ripple = true;
             this.CBox_TestMode.Size = new System.Drawing.Size(123, 37);
-            this.CBox_TestMode.TabIndex = 4;
+            this.CBox_TestMode.TabIndex = 5;
             this.CBox_TestMode.Text = "TEST MODE";
             this.CBox_TestMode.UseVisualStyleBackColor = true;
             this.CBox_TestMode.CheckedChanged += new System.EventHandler(this.CBox_TestMode_CheckedChanged);
@@ -117,7 +120,7 @@ namespace GateHelper
             this.CBox_DisablePopup.ReadOnly = false;
             this.CBox_DisablePopup.Ripple = true;
             this.CBox_DisablePopup.Size = new System.Drawing.Size(157, 37);
-            this.CBox_DisablePopup.TabIndex = 3;
+            this.CBox_DisablePopup.TabIndex = 4;
             this.CBox_DisablePopup.Text = "DISABLE POP-UP";
             this.CBox_DisablePopup.UseVisualStyleBackColor = true;
             this.CBox_DisablePopup.CheckedChanged += new System.EventHandler(this.CBox_DisablePopup_CheckedChanged);
@@ -135,21 +138,74 @@ namespace GateHelper
             this.CBox_FavOneClickConnect.ReadOnly = false;
             this.CBox_FavOneClickConnect.Ripple = true;
             this.CBox_FavOneClickConnect.Size = new System.Drawing.Size(193, 37);
-            this.CBox_FavOneClickConnect.TabIndex = 6;
+            this.CBox_FavOneClickConnect.TabIndex = 7;
             this.CBox_FavOneClickConnect.Text = "Fav One-Click Connect";
             this.CBox_FavOneClickConnect.UseVisualStyleBackColor = true;
+            // 
+            // textBox1
+            // 
+            this.textBox1.Location = new System.Drawing.Point(442, 398);
+            this.textBox1.Name = "textBox1";
+            this.textBox1.Size = new System.Drawing.Size(100, 21);
+            this.textBox1.TabIndex = 0;
+            // 
+            // materialButton1
+            // 
+            this.materialButton1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.materialButton1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.materialButton1.Depth = 0;
+            this.materialButton1.DialogResult = System.Windows.Forms.DialogResult.OK;
+            this.materialButton1.HighEmphasis = true;
+            this.materialButton1.Icon = null;
+            this.materialButton1.Location = new System.Drawing.Point(203, 282);
+            this.materialButton1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.materialButton1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialButton1.Name = "materialButton1";
+            this.materialButton1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.materialButton1.Size = new System.Drawing.Size(64, 36);
+            this.materialButton1.TabIndex = 8;
+            this.materialButton1.Text = "SAVE";
+            this.materialButton1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.materialButton1.UseAccentColor = false;
+            this.materialButton1.UseVisualStyleBackColor = true;
+            // 
+            // materialButton2
+            // 
+            this.materialButton2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.materialButton2.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.materialButton2.Depth = 0;
+            this.materialButton2.DialogResult = System.Windows.Forms.DialogResult.Cancel;
+            this.materialButton2.HighEmphasis = true;
+            this.materialButton2.Icon = null;
+            this.materialButton2.Location = new System.Drawing.Point(275, 282);
+            this.materialButton2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.materialButton2.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialButton2.Name = "materialButton2";
+            this.materialButton2.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.materialButton2.Size = new System.Drawing.Size(77, 36);
+            this.materialButton2.TabIndex = 9;
+            this.materialButton2.Text = "CANCEL";
+            this.materialButton2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.materialButton2.UseAccentColor = false;
+            this.materialButton2.UseVisualStyleBackColor = true;
             // 
             // OptionForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(342, 329);
+            this.ClientSize = new System.Drawing.Size(346, 296);
+            this.Controls.Add(this.materialButton2);
+            this.Controls.Add(this.materialButton1);
+            this.Controls.Add(this.textBox1);
             this.Controls.Add(this.CBox_AutoLogin);
             this.Controls.Add(this.CBox_ServerClickConnect);
             this.Controls.Add(this.CBox_TestMode);
             this.Controls.Add(this.CBox_DisablePopup);
             this.Controls.Add(this.CBox_FavOneClickConnect);
             this.Controls.Add(this.CBox_RemoveDuplicate);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "OptionForm";
             this.Text = "OptionForm";
             this.Load += new System.EventHandler(this.OptionForm_Load);
@@ -166,5 +222,8 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialCheckbox CBox_TestMode;
         private MaterialSkin.Controls.MaterialCheckbox CBox_DisablePopup;
         private MaterialSkin.Controls.MaterialCheckbox CBox_FavOneClickConnect;
+        private System.Windows.Forms.TextBox textBox1;
+        private MaterialSkin.Controls.MaterialButton materialButton1;
+        private MaterialSkin.Controls.MaterialButton materialButton2;
     }
 }
