@@ -2,15 +2,13 @@
 using OpenQA.Selenium;
 using SeleniumExtras.WaitHelpers;
 using System;
-using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using System.IO;
 using static GateHelper.LogManager;
 using static GateHelper.Util_Element;
+
 
 namespace GateHelper
 {
@@ -80,6 +78,50 @@ namespace GateHelper
                 SendKeysToElement(driver, "//*[@id='id_IPADDR']", "");
             }
         }
+
+        public static void ToggleFormLayout(
+            Form form,
+            PictureBox arrowPicBox,
+            PictureBox settingPicBox,
+            PictureBox questionPicBox,
+            Size formOriginalSize,
+            Size formExtendedSize,
+            Control tabSelector,
+            Size tabSelectorOriginalSize,
+            Control groupConnect,
+            Size groupConnectOriginalSize,
+            Size tabControlSize,
+            ref bool changeArrow)
+        {
+            if (changeArrow)
+            {
+                arrowPicBox.Image = Properties.Resources.arrow_left;
+                form.Size = formExtendedSize;
+
+                // 탭 컨트롤 크기를 기준으로 그룹 박스 및 TabSelector 크기 계산
+                tabSelector.Size = new Size(tabControlSize.Width - 10, 30);
+                groupConnect.Size = new Size(tabControlSize.Width - 10, tabControlSize.Height - 10);
+
+                changeArrow = false;
+
+                // PictureBox 아이콘 위치 변경
+                MovePictureBoxIcons(form, arrowPicBox, settingPicBox, questionPicBox, formOriginalSize, true);
+            }
+            else
+            {
+                arrowPicBox.Image = Properties.Resources.arrow_right;
+                form.Size = formOriginalSize;
+                tabSelector.Size = tabSelectorOriginalSize;
+                groupConnect.Size = groupConnectOriginalSize;
+
+                changeArrow = true;
+
+                // PictureBox 아이콘 위치 복원
+                MovePictureBoxIcons(form, arrowPicBox, settingPicBox, questionPicBox, formOriginalSize, false);
+            }
+        }
+
+
 
         /// <summary>
         /// 아래는 점검 필요

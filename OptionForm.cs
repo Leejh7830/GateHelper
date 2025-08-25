@@ -17,60 +17,48 @@ namespace GateHelper
     {
         private readonly MaterialSkinManager materialSkinManager;
 
-        public bool IsRemoveDuplicatesEnabled { get; set; }
-        public bool IsAutoLoginEnabled { get; set; }
-        public bool IsPopupDisabled { get; set; }
-        public bool IsTestModeEnabled { get; set; }
-        public bool IsServerClickEnabled { get; set; }
+        // ⭐ 외부로 노출할 속성: MainUI가 이 속성을 통해 변경된 설정을 가져갑니다.
+        public AppSettings AppSettings { get; private set; }
+        public bool IsDarkModeEnabled { get; private set; }
 
 
-        public OptionForm(bool currentRemoveDuplicatesStatus, bool currentAutoLoginStatus,
-                      bool currentPopupStatus, bool currentTestModeStatus, bool currentServerClickStatus, bool currentIsDarkMode)
+        // ⭐ AppSettings 객체와 isDarkMode 상태를 인자로 받는 새로운 생성자
+        public OptionForm(AppSettings appSettings, bool isDarkMode)
         {
             InitializeComponent();
+
+            this.AppSettings = appSettings;
+            this.IsDarkModeEnabled = isDarkMode;
+
             materialSkinManager = MaterialSkinManager.Instance;
             materialSkinManager.AddFormToManage(this);
-            materialSkinManager.Theme = currentIsDarkMode ?
-                                    MaterialSkinManager.Themes.DARK :
-                                    MaterialSkinManager.Themes.LIGHT;
-
-            // public 속성 값으로 UI 컨트롤의 초기 상태 설정
-            CBox_RemoveDuplicate.Checked = currentRemoveDuplicatesStatus;
-            CBox_AutoLogin.Checked = currentAutoLoginStatus;
-            CBox_DisablePopup.Checked = currentPopupStatus;
-            CBox_TestMode.Checked = currentTestModeStatus;
-            CBox_ServerClickConnect.Checked = currentServerClickStatus;
+            materialSkinManager.Theme = isDarkMode ?
+                                        MaterialSkinManager.Themes.DARK :
+                                        MaterialSkinManager.Themes.LIGHT;
         }
 
         private void OptionForm_Load(object sender, EventArgs e)
         {
+            CBox_RemoveDuplicate.Checked = AppSettings.RemoveDuplicates;
+            CBox_AutoLogin.Checked = AppSettings.AutoLogin;
+            CBox_DisablePopup.Checked = AppSettings.DisablePopup;
+            CBox_TestMode.Checked = AppSettings.TestMode;
+            CBox_ServerClickConnect.Checked = AppSettings.ServerClickConnect;
+
             Focus();
         }
 
-        private void CBox_RemoveDuplicate_CheckedChanged(object sender, EventArgs e)
+        private void BtnOK_Click(object sender, EventArgs e)
         {
-            IsRemoveDuplicatesEnabled = CBox_RemoveDuplicate.Checked;
-        }
+            // ⭐ UI의 변경사항을 AppSettings 객체에 다시 저장
+            AppSettings.RemoveDuplicates = CBox_RemoveDuplicate.Checked;
+            AppSettings.AutoLogin = CBox_AutoLogin.Checked;
+            AppSettings.DisablePopup = CBox_DisablePopup.Checked;
+            AppSettings.TestMode = CBox_TestMode.Checked;
+            AppSettings.ServerClickConnect = CBox_ServerClickConnect.Checked;
 
-        private void CBox_AutoLogin_CheckedChanged(object sender, EventArgs e)
-        {
-            IsAutoLoginEnabled = CBox_AutoLogin.Checked;
+            this.DialogResult = DialogResult.OK;
+            this.Close();
         }
-
-        private void CBox_DisablePopup_CheckedChanged(object sender, EventArgs e)
-        {
-            IsPopupDisabled = CBox_DisablePopup.Checked;
-        }
-
-        private void CBox_TestMode_CheckedChanged(object sender, EventArgs e)
-        {
-            IsTestModeEnabled = CBox_TestMode.Checked;
-        }
-
-        private void CBox_ServerClick_CheckedChanged(object sender, EventArgs e)
-        {
-            IsServerClickEnabled = CBox_ServerClickConnect.Checked;
-        }
-
     }
 }

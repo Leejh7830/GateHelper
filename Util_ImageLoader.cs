@@ -14,6 +14,7 @@ namespace GateHelper
     {
 
         // 25.03.23 Added - Load reference images from ReferenceImages folder
+        // 25.08.25 Relaod 수정
         public static void LoadReferenceImages(FlowLayoutPanel panel)
         {
             string folderPath = Path.Combine(Application.StartupPath, "ReferenceImages");
@@ -32,7 +33,7 @@ namespace GateHelper
             // 2. 폴더확인, 없으면 생성
             EnsureReferenceImagesFolderExists();
 
-            // 3. 모든 이미지 파일 목록을 가져옵니다.
+            // 3. 이미지 파일 가져옴(jpg,png,jpeg,bmp)
             List<string> currentImageFiles = Directory.GetFiles(folderPath, "*.*")
                                                        .Where(file => file.EndsWith(".jpg", StringComparison.OrdinalIgnoreCase) ||
                                                                       file.EndsWith(".png", StringComparison.OrdinalIgnoreCase) ||

@@ -139,21 +139,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AppSettings.cs" />
     <Compile Include="ChromeDriverManager.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="ConfigManager.cs" />
-    <Compile Include="Form_Setting.cs">
-      <SubType>Form</SubType>
-    </Compile>
-    <Compile Include="Form_Setting.Designer.cs">
-      <DependentUpon>Form_Setting.cs</DependentUpon>
-    </Compile>
     <Compile Include="OptionForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="OptionForm.Designer.cs">
       <DependentUpon>OptionForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="ThemeManager.cs" />
     <Compile Include="TransparentPictureBox.cs">
       <SubType>Component</SubType>
     </Compile>

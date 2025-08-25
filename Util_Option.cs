@@ -1,6 +1,7 @@
 ﻿using OpenQA.Selenium;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static GateHelper.LogManager;
@@ -131,6 +132,19 @@ namespace GateHelper
             await Task.Delay(1000); // 엔터 키 처리 대기
 
             return true;
+        }
+
+        public static void UpdatePopupStatus(Label popupStatusLabel, bool isPopupEnabled, int popupCount)
+        {
+            string newPopupStatus = isPopupEnabled ? "ON" : "OFF";
+
+            popupStatusLabel.Text = $"Detect {newPopupStatus} ({popupCount})";
+
+            Color onColor = Color.Red;
+            Color offColor = Color.Green;
+
+            popupStatusLabel.BackColor = isPopupEnabled ? onColor : offColor;
+            popupStatusLabel.ForeColor = Color.White;
         }
 
         /////////////////////////////////////////////////////////////////////////////////////////

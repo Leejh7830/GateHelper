@@ -29,17 +29,20 @@ namespace GateHelper
         private string serverIP;
 
         private string mainHandle;
-        private bool isDarkMode = true;
+        private ThemeManager _themeManager;
         private bool changeArrow = true;
 
         /// Option 전용
         private int _popupCount = 0; // 팝업 처리 횟수 카운터
         private readonly Timer timer1;
-        private bool removeDuplicates = false;
+
+        /* private bool removeDuplicates = false;
         private bool autoLogin = false;
         private bool disablePopup = false;
         private bool testMode = false;
-        private bool ServerClickConnect = false;
+        private bool ServerClickConnect = false;*/
+        private AppSettings _appSettings;
+
 
         // 연결상태 감지용
         private string _lastDriverStatus = "";
@@ -80,9 +83,10 @@ namespace GateHelper
             contextMenuStrip = new ContextMenuStrip();
             contextMenuStrip.Items.Add(new ToolStripMenuItem("Delete", null, MenuItem1_Click));
             // contextMenuStrip.Items.Add(new ToolStripMenuItem("메모 편집", null, EditMemo_Click)); // 새로운 메뉴 아이템 추가 시
-            ListViewServer2.ContextMenuStrip = contextMenuStrip;
-            materialSkinManager.ThemeChanged += (sender) => ApplyThemeToContextMenuStrip();
-            ApplyThemeToContextMenuStrip(); // 초기 테마 적용
+
+            _themeManager = new ThemeManager(materialSkinManager, contextMenuStrip);
+            _themeManager.ApplyContextMenuStripTheme(contextMenuStrip);
+            materialSkinManager.ThemeChanged += (sender) => _themeManager.ApplyContextMenuStripTheme(contextMenuStrip);
 
             this.MaximizeBox = false;
             this.Size = FormOriginalSize;
@@ -91,6 +95,8 @@ namespace GateHelper
             timer1.Interval = 5000; // 5초마다 상태 확인
             timer1.Tick += TimerStatusChecker_Tick;
             timer1.Start();
+
+            _appSettings = new AppSettings(); // 옵션 변수
 
             LogMessage("프로그램 초기화 완료", Level.Info);
         }
@@ -126,7 +132,7 @@ namespace GateHelper
             }
 
             // 🔍 팝업 감지 상태 추가
-            bool popupFeatureOn = disablePopup;
+            bool popupFeatureOn = _appSettings.DisablePopup;
             string newPopupStatus = popupFeatureOn ? "ON" : "OFF";
             lblPopupStatus.Text = $"Detect {newPopupStatus} ({_popupCount})";
             lblPopupStatus.BackColor = popupFeatureOn ? onColor : offColor;
@@ -174,7 +180,7 @@ namespace GateHelper
 
                 Util_Control.MoveFormToTop(this);
 
-                if (autoLogin == true) // Auto Login
+                if (_appSettings.AutoLogin == true) // Auto Login
                 {
                     BtnStart2_Click(sender, e);
                     BtnGateOneLogin1_Click(sender, e);
@@ -203,7 +209,7 @@ namespace GateHelper
             
         }
 
-        private void BtnSearch1_Click(object sender, EventArgs e)
+        private async void BtnSearch1_Click(object sender, EventArgs e)
         {
             if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
@@ -221,6 +227,8 @@ namespace GateHelper
 
                 // 검색 버튼 클릭
                 Util_Element.ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
+
+                await LoadServersIntoComboBoxAsync(); // 서버목록 갱신
             }
             catch (ArgumentException ex)
             {
@@ -239,15 +247,25 @@ namespace GateHelper
             }
         }
 
-        private void BtnLoadServers1_Click(object sender, EventArgs e)
+        private async void BtnLoadServers1_Click(object sender, EventArgs e)
         {
+            // 드라이버가 준비되지 않았으면 즉시 종료합니다.
             if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
 
             LogMessage("BtnLoadServers1 Click", Level.Info);
 
+            // 모든 로직은 별도로 분리된 메서드에서 처리합니다.
+            await LoadServersIntoComboBoxAsync();
+        }
+
+        private async Task LoadServersIntoComboBoxAsync()
+        {
             try
             {
+                WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
+                wait.Until(ExpectedConditions.PresenceOfAllElementsLocatedBy(By.XPath("//*[@id='seltable']//tr")));
+
                 List<string> serverList = new List<string>();
                 int tbodyIndex = 1;
 
@@ -256,7 +274,7 @@ namespace GateHelper
                     string xpath = $"//*[@id=\'seltable\']/tbody[{tbodyIndex}]/tr/td[4]";
                     IReadOnlyCollection<IWebElement> serverListElements = _driver.FindElements(By.XPath(xpath));
 
-                    if (serverListElements == null || serverListElements.Count == 0) // 더 이상 요소가 없으면 루프 종료
+                    if (serverListElements == null || serverListElements.Count == 0)
                     {
                         break;
                     }
@@ -265,31 +283,54 @@ namespace GateHelper
                     {
                         serverList.Add(element.Text);
                     }
-
-                    tbodyIndex++; // tbody 증가 (다음 테이블 이동)
+                    tbodyIndex++;
                 }
 
-                LogMessage($"서버 이름 리스트:\n{string.Join("\n", serverList)}", Level.Info);
-
-                ComboBoxServerList1.Items.Clear();
-                foreach (string serverName in serverList) // 서버 이름 드롭다운 박스 매칭
+                // UI 업데이트는 메인 스레드에서
+                await Task.Run(() =>
                 {
-                    ComboBoxServerList1.Items.Add(serverName);
+                    Invoke(new Action(() =>
+                    {
+                        ComboBoxServerList1.Items.Clear();
+                        foreach (string serverName in serverList)
+                        {
+                            ComboBoxServerList1.Items.Add(serverName);
+                        }
+                    }));
+                });
+
+                this.Activate();
+
+                if (serverList.Count == 0)
+                {
+                    MessageBox.Show(this, "검색 결과가 없습니다.\n입력하신 내용을 다시 확인해 주세요.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LogMessage("검색 결과 없음.", Level.Info);
                 }
+                else
+                {
+                    LogMessage("서버 목록 로딩 완료.", Level.Info);
+                }
+            }
+            catch (WebDriverTimeoutException)
+            {
+                this.Activate();
+                MessageBox.Show(this, "서버 목록을 불러오는 데 실패했습니다.\n(Timeout Exception)", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LogMessage("WebDriverTimeoutException: ", Level.Error);
             }
             catch (Exception ex)
             {
+                this.Activate();
+                MessageBox.Show($"서버 목록 로딩 중 오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 LogException(ex, Level.Error);
-                MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
         private void BtnConnect1_Click(object sender, EventArgs e)
         {
             // ✅ 테스트 모드일 때는 드라이버 체크 건너뜀
-            if (testMode)
+            if (_appSettings.TestMode)
             {
-                Util_Test.SimulateServerConnect(this, ListViewServer2, ComboBoxServerList1, ref testMode, removeDuplicates);
+                Util_Test.SimulateServerConnect(this, ListViewServer2, ComboBoxServerList1, _appSettings.TestMode, _appSettings.RemoveDuplicates);
                 Util_ServerList.SaveServerDataToFile(ListViewServer2);
                 return;
             }
@@ -309,7 +350,7 @@ namespace GateHelper
             string selectedServer = ComboBoxServerList1.SelectedItem.ToString();
             LogMessage("접속 서버 명: " + selectedServer, Level.Info);
 
-            Util_Connect.ConnectToServer(_driver, mainHandle, _config, selectedServer, ListViewServer2, removeDuplicates);
+            Util_Connect.ConnectToServer(_driver, mainHandle, _config, selectedServer, ListViewServer2, _appSettings.RemoveDuplicates);
         }
 
 
@@ -379,74 +420,35 @@ namespace GateHelper
 
         private void BtnOption1_Click(object sender, EventArgs e)
         {
-            OptionForm optionForm = new OptionForm(removeDuplicates,
-                autoLogin,
-                disablePopup,
-                testMode,
-                ServerClickConnect,
-                isDarkMode);
+            bool oldTestMode = _appSettings.TestMode; // 기존 값 저장
+            bool oldDisablePopup = _appSettings.DisablePopup;
+
+            OptionForm optionForm = new OptionForm(_appSettings, _themeManager.IsDarkMode);
             DialogResult result = optionForm.ShowDialog();
 
             if (result == DialogResult.OK)
             {
-                // OptionForm에서 변경된 값을 바로 받아와 현재 상태와 비교
-                bool newRemoveDuplicates = optionForm.IsRemoveDuplicatesEnabled;
-                bool newAutoLogin = optionForm.IsAutoLoginEnabled;
-                bool newDisablePopup = optionForm.IsPopupDisabled;
-                bool newTestMode = optionForm.IsTestModeEnabled;
-                bool newServerClickConnect = optionForm.IsServerClickEnabled;
+                _appSettings = optionForm.AppSettings; // 새로운 값 업데이트
+                bool newIsDarkMode = optionForm.IsDarkModeEnabled;
 
-                List<string> changes = new List<string>();
+                _themeManager.SetTheme(newIsDarkMode, PicBox_Setting);
 
-                // 기존 값과 새로운 값이 다를 경우에만 로그를 추가하고 상태를 업데이트
-                if (removeDuplicates != newRemoveDuplicates)
+
+                if (oldTestMode != _appSettings.TestMode)
                 {
-                    removeDuplicates = newRemoveDuplicates;
-                    string status = removeDuplicates ? "Enabled" : "Disabled";
-                    changes.Add($"- Remove Duplicates: {status}");
+                    ApplyTestMode(_appSettings.TestMode);
                 }
 
-                if (autoLogin != newAutoLogin)
-                {
-                    autoLogin = newAutoLogin;
-                    string status = autoLogin ? "Enabled" : "Disabled";
-                    changes.Add($"- Auto Login: {status}");
-                }
+                LogMessage("Options updated.", Level.Info);
 
-                if (disablePopup != newDisablePopup)
+                if (oldDisablePopup != _appSettings.DisablePopup)
                 {
-                    disablePopup = newDisablePopup;
-                    string status = disablePopup ? "Enabled" : "Disabled";
-                    changes.Add($"- Disable Popup: {status}");
+                    Util_Option.UpdatePopupStatus(lblPopupStatus, !_appSettings.DisablePopup, _popupCount);
                 }
-
-                if (testMode != newTestMode)
-                {
-                    ApplyTestMode(newTestMode);
-
-                    string status = testMode ? "Enabled" : "Disabled";
-                    changes.Add($"- Test Mode: {status}");
-                }
-
-                if (ServerClickConnect != newServerClickConnect)
-                {
-                    ServerClickConnect = newServerClickConnect;
-                    string status = ServerClickConnect ? "Enabled" : "Disabled";
-                    changes.Add($"- Server Click Connect: {status}");
-                }
-
-                // 변경 사항이 있을 경우에만 로그를 남김
-                if (changes.Count > 0)
-                {
-                    string logMessage = $"Options updated:{Environment.NewLine}" + string.Join(Environment.NewLine, changes);
-                    LogMessage(logMessage, Level.Info);
-
-                    UpdatePopupStatusUI(); // Popup Detect 텍스트 색상
-                }
-                else
-                {
-                    LogMessage("No option changes were made.", Level.Info);
-                }
+            }
+            else
+            {
+                LogMessage("No option changes were made.", Level.Info);
             }
         }
 
@@ -467,39 +469,31 @@ namespace GateHelper
 
         private void ApplyTestMode(bool isEnabled)
         {
-            bool oldTestMode = testMode;
-
             if (isEnabled)
             {
-                Util_Test.EnterTestMode(this, TabSelector1, ref testMode);
+                _appSettings.TestMode = Util_Test.EnterTestMode(this, TabSelector1);
 
-                if (testMode)
+                if (_appSettings.TestMode)
                 {
-                    if (!oldTestMode) // 이전에 테스트 모드가 아니었다면
-                    {
-                        LogMessage("Test Mode 진입", Level.Info);
-                        Util_Test.LoadTestServers(ComboBoxServerList1);
-                    }
+                    LogMessage("Test Mode 진입", Level.Info);
+                    Util_Test.LoadTestServers(ComboBoxServerList1);
                 }
                 else
                 {
                     LogMessage("Test Mode 진입 실패", Level.Critical);
                 }
             }
-            else
+            else // isEnabled가 false일 때
             {
-                if (oldTestMode)
-                {
-                    LogMessage("Test Mode 종료", Level.Info);
-                    ComboBoxServerList1.Items.Clear();
-                    testMode = false;
-                }
+                LogMessage("Test Mode 종료", Level.Info);
+                ComboBoxServerList1.Items.Clear();
+                _appSettings.TestMode = false;
             }
         }
 
         private void ListViewServer2_DoubleClick(object sender, EventArgs e)
         {
-            if (!ServerClickConnect || ListViewServer2.SelectedItems.Count == 0)
+            if (!_appSettings.ServerClickConnect || ListViewServer2.SelectedItems.Count == 0)
                 return;
 
             string serverName = ListViewServer2.SelectedItems[0].SubItems[1].Text;
@@ -527,25 +521,8 @@ namespace GateHelper
             }
 
             // 접속 시도
-            Util_Connect.ConnectToServer(_driver, mainHandle, _config, serverName, ListViewServer2, removeDuplicates);
+            Util_Connect.ConnectToServer(_driver, mainHandle, _config, serverName, ListViewServer2, _appSettings.RemoveDuplicates);
         }
-
-        private void UpdatePopupStatusUI()
-        {
-            // this.disablePopup 변수를 사용합니다.
-            bool popupFeatureOn = disablePopup;
-            string newPopupStatus = popupFeatureOn ? "ON" : "OFF";
-
-            // 이전에 사용했던 _popupCount 변수가 필요하다면 MainUI에 선언되어 있어야 합니다.
-            lblPopupStatus.Text = $"Detect {newPopupStatus} ({_popupCount})";
-
-            Color onColor = Color.Red; // ON 상태일 때의 색상 정의
-            Color offColor = Color.Green; // OFF 상태일 때의 색상 정의
-
-            lblPopupStatus.BackColor = popupFeatureOn ? onColor : offColor;
-            lblPopupStatus.ForeColor = Color.White; // 흰색으로 통일
-        }
-
 
         //////////////////////////////////////////////////////////////////////////////// 옵션 전용 끝
 
@@ -553,71 +530,14 @@ namespace GateHelper
 
         private void PicBox_Setting_Click(object sender, EventArgs e)
         {
-            ApplyTheme(!isDarkMode); // 현재값과 반대값을 전달
+            _themeManager.SetTheme(!_themeManager.IsDarkMode, PicBox_Setting);
         }
-
-        private void ApplyTheme(bool newIsDarkMode)
-        {
-            isDarkMode = newIsDarkMode;
-            if (isDarkMode) // LIGHT이면 DARK로 변경
-            {
-                materialSkinManager.Theme = MaterialSkinManager.Themes.DARK;
-                PicBox_Setting.Image = Properties.Resources.sun; // DARK 일 때 태양 아이콘
-            }
-            else // DARK이면 LIGHT로 변경
-            {
-                materialSkinManager.Theme = MaterialSkinManager.Themes.LIGHT;
-                PicBox_Setting.Image = Properties.Resources.moon; // LIGHT 일 때 달 아이콘
-            }
-
-            // 컨텍스트 메뉴 테마 변경 로직 호출
-            ApplyThemeToContextMenuStrip();
-        }
-
-        private void ApplyThemeToContextMenuStrip() // 테마 색상 변경에 따른 컨텍스트메뉴 색상 변경
-        {
-            if (materialSkinManager.Theme == MaterialSkinManager.Themes.DARK)
-            {
-                ToolStripManager.Renderer = new ToolStripProfessionalRenderer(new MaterialToolStripColorTable());
-                contextMenuStrip.ForeColor = Color.White;
-            }
-            else
-            {
-                ToolStripManager.Renderer = null;
-                contextMenuStrip.ForeColor = Color.Black;
-            }
-        }
-
-        
 
         private void PicBox_Arrow_Click(object sender, EventArgs e)
         {
-            if (changeArrow)
-            {
-                PicBox_Arrow.Image = Properties.Resources.arrow_left;
-                this.Size = FormExtendedSize;
-
-                // 탭 컨트롤 크기를 기준으로 그룹 박스 및 PictureBox 크기 계산
-                TabSelector1.Size = new Size(520, 30);
-                GroupConnect1.Size = new Size(TabControl1.Width - 10, TabControl1.Height - 10);
-
-                changeArrow = false;
-
-                // PictureBox 아이콘 A, B, C 위치 변경
-                Util_Control.MovePictureBoxIcons(this, PicBox_Arrow, PicBox_Setting, PicBox_Question, FormOriginalSize, true);
-            }
-            else
-            {
-                PicBox_Arrow.Image = Properties.Resources.arrow_right;
-                this.Size = FormOriginalSize;
-                TabSelector1.Size = tabSelector1OriginalSize;
-                GroupConnect1.Size = groupConnect1OriginalSize;
-
-                changeArrow = true;
-
-                // PictureBox 아이콘 A, B, C 위치 복원
-                Util_Control.MovePictureBoxIcons(this, PicBox_Arrow, PicBox_Setting, PicBox_Question, FormOriginalSize, false);
-            }
+            Util_Control.ToggleFormLayout(
+                this, PicBox_Arrow, PicBox_Setting, PicBox_Question, FormOriginalSize, FormExtendedSize, TabSelector1,
+                tabSelector1OriginalSize, GroupConnect1, groupConnect1OriginalSize, TabControl1.Size, ref changeArrow);
         }
 
         private void PicBox_Question_Click(object sender, EventArgs e)
@@ -697,17 +617,7 @@ namespace GateHelper
 
         
 
-        public class MaterialToolStripColorTable : ProfessionalColorTable // 컨텍스트용
-        {
-            public override Color MenuItemSelected => ColorTranslator.FromHtml("#424242");
-            public override Color MenuItemSelectedGradientBegin => ColorTranslator.FromHtml("#424242");
-            public override Color MenuItemSelectedGradientEnd => ColorTranslator.FromHtml("#424242");
-            public override Color MenuItemPressedGradientBegin => ColorTranslator.FromHtml("#212121");
-            public override Color MenuItemPressedGradientEnd => ColorTranslator.FromHtml("#212121");
-            public override Color MenuItemBorder => ColorTranslator.FromHtml("#424242");
-            public override Color ToolStripDropDownBackground => ColorTranslator.FromHtml("#212121");
-            public override Color ToolStripBorder => ColorTranslator.FromHtml("#424242");
-        }
+        
 
  
     }

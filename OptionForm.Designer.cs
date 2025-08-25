@@ -55,7 +55,6 @@ namespace GateHelper
             this.CBox_RemoveDuplicate.TabIndex = 2;
             this.CBox_RemoveDuplicate.Text = "Remove Duplicate";
             this.CBox_RemoveDuplicate.UseVisualStyleBackColor = true;
-            this.CBox_RemoveDuplicate.CheckedChanged += new System.EventHandler(this.CBox_RemoveDuplicate_CheckedChanged);
             // 
             // CBox_AutoLogin
             // 
@@ -72,7 +71,6 @@ namespace GateHelper
             this.CBox_AutoLogin.TabIndex = 3;
             this.CBox_AutoLogin.Text = "Auto Login";
             this.CBox_AutoLogin.UseVisualStyleBackColor = true;
-            this.CBox_AutoLogin.CheckedChanged += new System.EventHandler(this.CBox_AutoLogin_CheckedChanged);
             // 
             // CBox_ServerClickConnect
             // 
@@ -89,7 +87,6 @@ namespace GateHelper
             this.CBox_ServerClickConnect.TabIndex = 6;
             this.CBox_ServerClickConnect.Text = "Server Click Connect";
             this.CBox_ServerClickConnect.UseVisualStyleBackColor = true;
-            this.CBox_ServerClickConnect.CheckedChanged += new System.EventHandler(this.CBox_ServerClick_CheckedChanged);
             // 
             // CBox_TestMode
             // 
@@ -106,7 +103,6 @@ namespace GateHelper
             this.CBox_TestMode.TabIndex = 5;
             this.CBox_TestMode.Text = "TEST MODE";
             this.CBox_TestMode.UseVisualStyleBackColor = true;
-            this.CBox_TestMode.CheckedChanged += new System.EventHandler(this.CBox_TestMode_CheckedChanged);
             // 
             // CBox_DisablePopup
             // 
@@ -123,7 +119,6 @@ namespace GateHelper
             this.CBox_DisablePopup.TabIndex = 4;
             this.CBox_DisablePopup.Text = "DISABLE POP-UP";
             this.CBox_DisablePopup.UseVisualStyleBackColor = true;
-            this.CBox_DisablePopup.CheckedChanged += new System.EventHandler(this.CBox_DisablePopup_CheckedChanged);
             // 
             // CBox_FavOneClickConnect
             // 
@@ -168,6 +163,7 @@ namespace GateHelper
             this.materialButton1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.materialButton1.UseAccentColor = false;
             this.materialButton1.UseVisualStyleBackColor = true;
+            this.materialButton1.Click += new System.EventHandler(this.BtnOK_Click);
             // 
             // materialButton2
             // 
@@ -193,7 +189,7 @@ namespace GateHelper
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(346, 296);
+            this.ClientSize = new System.Drawing.Size(362, 335);
             this.Controls.Add(this.materialButton2);
             this.Controls.Add(this.materialButton1);
             this.Controls.Add(this.textBox1);
