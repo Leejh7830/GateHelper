@@ -35,27 +35,13 @@ namespace GateHelper
             string metaFolderPath = CreateMetaFolderAndGetPath();
             string releaseNotesPath = Path.Combine(metaFolderPath, "ReleaseNotes.txt");
 
-            // 릴리즈 노트 파일이 없으면 초기 내용과 함께 생성
-            if (!File.Exists(releaseNotesPath))
-            {
-                try
-                {
-                    string initialContent = "v1.0.0 (2024.03.03)\r\n- Initial Release";
-                    File.WriteAllText(releaseNotesPath, initialContent);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"릴리즈 노트 파일 생성 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
-                }
-            }
             try
             {
                 Process.Start(new ProcessStartInfo(releaseNotesPath) { UseShellExecute = true });
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"릴리즈 노트를 여는 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"An error occurred while opening the release notes: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

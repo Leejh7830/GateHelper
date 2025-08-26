@@ -36,11 +36,6 @@ namespace GateHelper
         private int _popupCount = 0; // 팝업 처리 횟수 카운터
         private readonly Timer timer1;
 
-        /* private bool removeDuplicates = false;
-        private bool autoLogin = false;
-        private bool disablePopup = false;
-        private bool testMode = false;
-        private bool ServerClickConnect = false;*/
         private AppSettings _appSettings;
 
 
@@ -249,13 +244,11 @@ namespace GateHelper
 
         private async void BtnLoadServers1_Click(object sender, EventArgs e)
         {
-            // 드라이버가 준비되지 않았으면 즉시 종료합니다.
             if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
 
             LogMessage("BtnLoadServers1 Click", Level.Info);
 
-            // 모든 로직은 별도로 분리된 메서드에서 처리합니다.
             await LoadServersIntoComboBoxAsync();
         }
 
