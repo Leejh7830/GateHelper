@@ -58,9 +58,8 @@ namespace GateHelper
                 {
                     string selectedServer = comboBox.SelectedItem.ToString();
                     LogMessage($"테스트 모드: 서버 '{selectedServer}'에 접속 시도", Level.Info);
-                    string currentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-                    Util_ServerList.AddServerToListView(listView, selectedServer, currentTime, isDuplicateCheck, 30);
+                    Util_ServerList.AddServerToListView(listView, selectedServer, DateTime.Now, isDuplicateCheck, 30);
                 }
                 else
                 {
@@ -83,9 +82,8 @@ namespace GateHelper
                 {
                     string selectedServer = comboBox.SelectedItem.ToString();
                     LogMessage($"테스트 모드: 서버 '{selectedServer}'에 접속 시도", Level.Info);
-                    string currentTime = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
 
-                    AddServerToHistoryListView(listView, selectedServer, currentTime, "ListView 추가 완료");
+                    AddServerToHistoryListView(listView, selectedServer, DateTime.Now, "ListView 추가 완료");
                 }
                 else
                 {
@@ -99,21 +97,22 @@ namespace GateHelper
             }
         }
 
-        
-        private static void AddServerToHistoryListView(ObjectListView listView, string serverName, string lastConnectedTime, string userMemo)
+
+        private static void AddServerToHistoryListView(ObjectListView listView, string serverName, DateTime lastConnectedTime, string userMemo, bool isFavorite = false)
         {
             var serverInfo = new Util_ServerList.ServerInfo
             {
-                No = (listView.GetItemCount() + 1).ToString(),
+                No = listView.GetItemCount() + 1, // int로 직접 할당
                 ServerName = serverName,
-                LastConnected = lastConnectedTime,
-                Memo = userMemo
+                LastConnected = lastConnectedTime, // DateTime으로 직접 할당
+                Memo = userMemo,
+                IsFavorite = isFavorite // ⭐ 즐겨찾기 상태 할당
             };
 
             listView.AddObject(serverInfo);
             listView.Invalidate();
 
-            MessageBox.Show($"서버 '{serverName}'가 리스트뷰에 추가되었습니다.", "서버 추가", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            LogMessage($"Server '{serverName}' added to history list.", Level.Info);
         }
 
 

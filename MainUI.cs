@@ -76,7 +76,7 @@ namespace GateHelper
 
             // ContextMenuStrip 초기화 및 테마 동기화
             contextMenuStrip = new ContextMenuStrip();
-            contextMenuStrip.Items.Add(new ToolStripMenuItem("Delete", null, MenuItem1_Click));
+            contextMenuStrip.Items.Add(new ToolStripMenuItem("Delete", null, MenuItem1_Delete_Click));
             // contextMenuStrip.Items.Add(new ToolStripMenuItem("메모 편집", null, EditMemo_Click)); // 새로운 메뉴 아이템 추가 시
 
             _themeManager = new ThemeManager(materialSkinManager, contextMenuStrip);
@@ -586,7 +586,7 @@ namespace GateHelper
             Util_Element.FindAllXPaths(_driver);
         }
 
-        private void MenuItem1_Click(object sender, EventArgs e)
+        private void MenuItem1_Delete_Click(object sender, EventArgs e)
         {
             if (ListViewServer2.SelectedItems.Count > 0)
             {
@@ -608,10 +608,39 @@ namespace GateHelper
             }
         }
 
-        
+        private void MenuItem2_Favorite_Click(object sender, EventArgs e)
+        {
+            if (ListViewServer2.SelectedItems.Count > 0)
+            {
+                var selectedItem = ListViewServer2.SelectedItems[0];
+                if (selectedItem.Tag is Util_ServerList.ServerInfo serverInfo)
+                {
+                    serverInfo.IsFavorite = !serverInfo.IsFavorite;
 
-        
+                    if (serverInfo.IsFavorite)
+                    {
+                        selectedItem.Font = new Font(selectedItem.Font, FontStyle.Bold);
+                    }
+                    else
+                    {
+                        selectedItem.Font = new Font(selectedItem.Font, FontStyle.Regular);
+                    }
 
- 
+                    Util_ServerList.SaveServerDataToFile(ListViewServer2);
+
+                    string logMessage;
+                    if (serverInfo.IsFavorite)
+                    {
+                        logMessage = $"Server '{serverInfo.ServerName}' Favorited!";
+                    }
+                    else
+                    {
+                        logMessage = $"Server '{serverInfo.ServerName}' Unfavorited!";
+                    }
+
+                    LogMessage(logMessage, Level.Info);
+                }
+            }
+        }
     }
 }

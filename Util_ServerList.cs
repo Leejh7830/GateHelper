@@ -1,175 +1,146 @@
 ﻿using BrightIdeasSoftware;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Net;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Windows.Forms;
 using static GateHelper.LogManager;
+using System.Text.Json;
 
-namespace GateHelper
+internal class Util_ServerList
 {
-    internal class Util_ServerList // ServerList 및 ListView에 관련된 메서드
+    private static readonly string _serverFilePath = Path.Combine(Application.StartupPath, "serverData.json");
+
+    [Serializable]
+    public class ServerInfo
     {
-        // 저장 파일 경로를 클래스 내에 정의
-        private static readonly string _serverFilePath = Path.Combine(Application.StartupPath, "serverData.dat");
+        public int No { get; set; }
+        public string ServerName { get; set; }
+        public DateTime LastConnected { get; set; }
+        public string Memo { get; set; }
+        public bool IsFavorite { get; set; }
+    }
 
-        // 서버 정보 모델
-        [Serializable]
-        public class ServerInfo
+    public static void AddServerToListView(ListView listView, string serverName, DateTime lastConnected, bool isDuplicateCheck, int maxCount = 100)
+    {
+        // 중복 제거 로직은 Tag를 기반으로 수정해야 하지만, 일단 간단한 텍스트 기반으로 유지
+        if (isDuplicateCheck)
         {
-            public string No { get; set; }
-            public string ServerName { get; set; }
-            public string LastConnected { get; set; }
-            public string Memo { get; set; }
-        }
-
-        // 서버 데이터를 ListView에 추가
-        // 25.08.19 Added - Remove Duplicate Server
-        public static void AddServerToListView(ListView listView, string serverName, string lastConnected, bool isDuplicateCheck, int maxCount = 100)
-        {
-            // 중복 제거 옵션이 활성화된 경우
-            if (isDuplicateCheck)
+            for (int i = listView.Items.Count - 1; i >= 0; i--)
             {
-                int removedCount = 0;
-
-                for (int i = listView.Items.Count - 1; i >= 0; i--)
+                if (listView.Items[i].SubItems[1].Text.Equals(serverName, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (listView.Items[i].SubItems[1].Text.Equals(serverName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        listView.Items.RemoveAt(i);
-                        removedCount++;
-                    }
-                }
-
-                if (removedCount > 1)
-                {
-                    LogMessage($"Duplicate server entry for '{serverName}' removed. Total: {removedCount}", Level.Info);
+                    listView.Items.RemoveAt(i);
                 }
             }
-
-            TrimHistoryList(listView, maxCount);
-
-            // 새 항목 추가
-            ListViewItem listViewItem = new ListViewItem(new[]
-            {
-                "TEMP", // 일단 임시로 넣고, 나중에 No 재정렬
-                serverName,
-                lastConnected,
-                "" // Memo 값
-            });
-
-            listView.Items.Add(listViewItem);
-            ReorderListViewItems(listView); // 재정렬
         }
 
-        // 서버 데이터를 파일로 저장하는 메서드
-        public static void SaveServerDataToFile(ListView listView)
-        {
-            try
-            {
-                List<ServerInfo> serverList = new List<ServerInfo>();
+        TrimHistoryList(listView, maxCount);
 
-                foreach (ListViewItem item in listView.Items)
+        // ⭐ 새로운 ServerInfo 객체를 생성하여 ListViewItem에 연결
+        var serverInfo = new ServerInfo
+        {
+            ServerName = serverName,
+            LastConnected = lastConnected,
+            Memo = ""
+        };
+
+        ListViewItem item = new ListViewItem(new[]
+        {
+            "TEMP",
+            serverInfo.ServerName,
+            serverInfo.LastConnected.ToString("yyyy-MM-dd HH:mm:ss"),
+            serverInfo.Memo
+        });
+
+        // ⭐ Tag 속성에 객체 저장
+        item.Tag = serverInfo;
+
+        listView.Items.Add(item);
+        ReorderListViewItems(listView);
+    }
+
+    public static void SaveServerDataToFile(ListView listView)
+    {
+        try
+        {
+            List<ServerInfo> serverList = new List<ServerInfo>();
+
+            foreach (ListViewItem item in listView.Items)
+            {
+                // ⭐ Tag 속성에서 ServerInfo 객체를 가져와 리스트에 추가
+                if (item.Tag is ServerInfo serverInfo)
                 {
-                    var serverInfo = new ServerInfo
-                    {
-                        No = item.SubItems[0].Text,
-                        ServerName = item.SubItems[1].Text,
-                        LastConnected = item.SubItems[2].Text,
-                        Memo = item.SubItems[3].Text
-                    };
                     serverList.Add(serverInfo);
                 }
+            }
 
-                // 데이터가 없으면 파일을 새로 생성
-                using (Stream stream = File.Open(_serverFilePath, FileMode.Create))
-                {
-                    BinaryFormatter formatter = new BinaryFormatter();
-                    formatter.Serialize(stream, serverList);
-                }
-            }
-            catch (Exception ex)
-            {
-                LogMessage($"Failed to save Server Data: {ex.Message}", Level.Error);
-            }
+            string jsonString = JsonSerializer.Serialize(serverList, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_serverFilePath, jsonString);
         }
-
-        // 서버 데이터를 파일에서 읽어오는 메서드
-        public static void LoadServerDataFromFile(ListView listView)
+        catch (Exception ex)
         {
-            try
-            {
-                // 파일이 존재하지 않으면 새로 생성하고 빈 리스트를 저장하고 종료
-                if (!File.Exists(_serverFilePath))
-                {
-                    CreateEmptyServerDataFile();
-                    return;
-                }
-
-                // 파일이 존재하면 데이터 로드
-                using (Stream stream = File.Open(_serverFilePath, FileMode.Open))
-                {
-                    BinaryFormatter formatter = new BinaryFormatter();
-                    List<ServerInfo> serverList = (List<ServerInfo>)formatter.Deserialize(stream);
-
-                    // 리스트뷰에 항목 추가
-                    foreach (var server in serverList)
-                    {
-                        ListViewItem item = new ListViewItem(new[]
-                        {
-                            server.No,
-                            server.ServerName,
-                            server.LastConnected,
-                            server.Memo
-                        });
-                        listView.Items.Add(item);
-                    }
-
-                    LogMessage("Server Data loaded successfully.", Level.Info);
-                }
-            }
-            catch (Exception ex)
-            {
-                LogMessage($"Failed to load Server Data: {ex.Message}", Level.Error);
-            }
+            LogMessage($"Failed to save Server Data: {ex.Message}", Level.Error);
         }
+    }
 
-        // Data 파일이 없을 경우 빈 파일을 생성
-        private static void CreateEmptyServerDataFile()
+    public static void LoadServerDataFromFile(ListView listView)
+    {
+        try
         {
-            try
+            if (!File.Exists(_serverFilePath))
             {
-                List<ServerInfo> emptyServerList = new List<ServerInfo>(); // 빈 서버 리스트 생성
+                File.WriteAllText(_serverFilePath, "[]");
+                return;
+            }
 
-                using (Stream stream = File.Open(_serverFilePath, FileMode.Create)) // 빈 데이터 파일 생성
+            string jsonString = File.ReadAllText(_serverFilePath);
+            List<ServerInfo> serverList = JsonSerializer.Deserialize<List<ServerInfo>>(jsonString);
+
+            listView.Items.Clear();
+
+            foreach (var server in serverList)
+            {
+                ListViewItem item = new ListViewItem(new[]
                 {
-                    BinaryFormatter formatter = new BinaryFormatter();
-                    formatter.Serialize(stream, emptyServerList);
+                    server.No.ToString(),
+                    server.ServerName,
+                    server.LastConnected.ToString("yyyy-MM-dd HH:mm:ss"),
+                    server.Memo
+                });
+
+                if (server.IsFavorite)
+                {
+                    item.Font = new Font(listView.Font, FontStyle.Bold);
                 }
+                item.Tag = server;
 
-                LogMessage("Empty server data file created.", Level.Info);
+                listView.Items.Add(item);
             }
-            catch (Exception ex)
-            {
-                LogMessage($"Failed to create empty server data file: {ex.Message}", Level.Error);
-            }
+
+            LogMessage("Server Data loaded successfully.", Level.Info);
         }
-
-        public static void TrimHistoryList(ListView listView, int maxCount)
+        catch (Exception ex)
         {
-            while (listView.Items.Count >= maxCount)
-            {
-                listView.Items.RemoveAt(0); // 오래된 것 삭제
-            }
+            LogMessage($"Failed to load Server Data: {ex.Message}", Level.Error);
         }
+    }
 
-        public static void ReorderListViewItems(ListView listView)
+    public static void TrimHistoryList(ListView listView, int maxCount)
+    {
+        while (listView.Items.Count >= maxCount)
         {
-            for (int i = 0; i < listView.Items.Count; i++)
-            {
-                listView.Items[i].SubItems[0].Text = (i + 1).ToString();
-            }
+            listView.Items.RemoveAt(0);
+        }
+    }
+
+    public static void ReorderListViewItems(ListView listView)
+    {
+        for (int i = 0; i < listView.Items.Count; i++)
+        {
+            listView.Items[i].SubItems[0].Text = (i + 1).ToString();
         }
     }
 }

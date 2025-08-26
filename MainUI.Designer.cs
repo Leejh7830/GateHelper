@@ -58,8 +58,8 @@ namespace GateHelper
             this.LastConnected1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.Memo1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.ListViewContext1 = new System.Windows.Forms.ContextMenuStrip(this.components);
-            this.MenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.testToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem1_Delete = new System.Windows.Forms.ToolStripMenuItem();
+            this.MenuItem2_Favorite = new System.Windows.Forms.ToolStripMenuItem();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.dummyControlOutsideTab = new MaterialSkin.Controls.MaterialButton();
             this.BtnOpenImages1 = new MaterialSkin.Controls.MaterialButton();
@@ -293,7 +293,7 @@ namespace GateHelper
             this.BtnConnect1.Name = "BtnConnect1";
             this.BtnConnect1.NoAccentTextColor = System.Drawing.Color.Empty;
             this.BtnConnect1.Size = new System.Drawing.Size(357, 41);
-            this.BtnConnect1.TabIndex = 12;
+            this.BtnConnect1.TabIndex = 99;
             this.BtnConnect1.Text = "Connect";
             this.BtnConnect1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.BtnConnect1.UseAccentColor = false;
@@ -421,7 +421,7 @@ namespace GateHelper
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(2);
             this.tabPage1.Size = new System.Drawing.Size(535, 351);
-            this.tabPage1.TabIndex = 0;
+            this.tabPage1.TabIndex = 98;
             this.tabPage1.Text = "SERVER";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
@@ -485,24 +485,25 @@ namespace GateHelper
             // ListViewContext1
             // 
             this.ListViewContext1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.MenuItem1,
-            this.testToolStripMenuItem});
+            this.MenuItem1_Delete,
+            this.MenuItem2_Favorite});
             this.ListViewContext1.Name = "contextMenuStrip1";
             this.ListViewContext1.ShowImageMargin = false;
-            this.ListViewContext1.Size = new System.Drawing.Size(84, 48);
+            this.ListViewContext1.Size = new System.Drawing.Size(156, 70);
             // 
-            // MenuItem1
+            // MenuItem1_Delete
             // 
-            this.MenuItem1.Name = "MenuItem1";
-            this.MenuItem1.Size = new System.Drawing.Size(83, 22);
-            this.MenuItem1.Text = "Delete";
-            this.MenuItem1.Click += new System.EventHandler(this.MenuItem1_Click);
+            this.MenuItem1_Delete.Name = "MenuItem1_Delete";
+            this.MenuItem1_Delete.Size = new System.Drawing.Size(155, 22);
+            this.MenuItem1_Delete.Text = "Delete";
+            this.MenuItem1_Delete.Click += new System.EventHandler(this.MenuItem1_Delete_Click);
             // 
-            // testToolStripMenuItem
+            // MenuItem2_Favorite
             // 
-            this.testToolStripMenuItem.Name = "testToolStripMenuItem";
-            this.testToolStripMenuItem.Size = new System.Drawing.Size(83, 22);
-            this.testToolStripMenuItem.Text = "Test";
+            this.MenuItem2_Favorite.Name = "MenuItem2_Favorite";
+            this.MenuItem2_Favorite.Size = new System.Drawing.Size(155, 22);
+            this.MenuItem2_Favorite.Text = "Favorite";
+            this.MenuItem2_Favorite.Click += new System.EventHandler(this.MenuItem2_Favorite_Click);
             // 
             // tabPage3
             // 
@@ -613,7 +614,7 @@ namespace GateHelper
             this.TabSelector1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TabSelector1.Name = "TabSelector1";
             this.TabSelector1.Size = new System.Drawing.Size(365, 32);
-            this.TabSelector1.TabIndex = 5;
+            this.TabSelector1.TabIndex = 97;
             this.TabSelector1.TabIndicatorHeight = 3;
             this.TabSelector1.Text = "TabSelector1";
             // 
@@ -665,7 +666,7 @@ namespace GateHelper
             this.groupShortCut1.Location = new System.Drawing.Point(598, 546);
             this.groupShortCut1.Name = "groupShortCut1";
             this.groupShortCut1.Size = new System.Drawing.Size(358, 142);
-            this.groupShortCut1.TabIndex = 7;
+            this.groupShortCut1.TabIndex = 96;
             this.groupShortCut1.TabStop = false;
             this.groupShortCut1.Text = "ShortCut";
             // 
@@ -697,7 +698,7 @@ namespace GateHelper
             this.PicBox_Question.Name = "PicBox_Question";
             this.PicBox_Question.Size = new System.Drawing.Size(35, 33);
             this.PicBox_Question.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.PicBox_Question.TabIndex = 21;
+            this.PicBox_Question.TabIndex = 95;
             this.PicBox_Question.TabStop = false;
             this.toolTip_Question1.SetToolTip(this.PicBox_Question, "C# Windows Forms based Selenium V 1.0 (2025.04.08)\r\n");
             this.PicBox_Question.Click += new System.EventHandler(this.PicBox_Question_Click);
@@ -982,8 +983,8 @@ namespace GateHelper
         private System.Windows.Forms.Label lblDriverStatus;
         private System.Windows.Forms.Label lblInternetStatus;
         private System.Windows.Forms.ContextMenuStrip ListViewContext1;
-        private System.Windows.Forms.ToolStripMenuItem MenuItem1;
-        private System.Windows.Forms.ToolStripMenuItem testToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem1_Delete;
+        private System.Windows.Forms.ToolStripMenuItem MenuItem2_Favorite;
         private MaterialSkin.Controls.MaterialButton BtnOption1;
         private System.Windows.Forms.Label lblPopupStatus;
     }

@@ -59,8 +59,7 @@ namespace GateHelper
                             LogMessage("접속 후 MainHandle: " + mainHandle, Level.Info);
 
                             // 접속 이력 추가
-                            string now = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                            Util_ServerList.AddServerToListView(listView, serverName, now, isDuplicateCheck);
+                            Util_ServerList.AddServerToListView(listView, serverName, DateTime.Now, isDuplicateCheck);
                             Util_ServerList.TrimHistoryList(listView, 30);
                             Util_ServerList.SaveServerDataToFile(listView);
 
