@@ -88,6 +88,7 @@ namespace GateHelper
             this.lblInternetStatus = new System.Windows.Forms.Label();
             this.BtnOption1 = new MaterialSkin.Controls.MaterialButton();
             this.lblPopupStatus = new System.Windows.Forms.Label();
+            this.txtMemoEditor = new System.Windows.Forms.TextBox();
             this.GroupConnect1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
             this.TabControl1.SuspendLayout();
@@ -427,6 +428,7 @@ namespace GateHelper
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.txtMemoEditor);
             this.tabPage4.Controls.Add(this.ListViewServer2);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Margin = new System.Windows.Forms.Padding(2);
@@ -489,19 +491,19 @@ namespace GateHelper
             this.MenuItem2_Favorite});
             this.ListViewContext1.Name = "contextMenuStrip1";
             this.ListViewContext1.ShowImageMargin = false;
-            this.ListViewContext1.Size = new System.Drawing.Size(156, 70);
+            this.ListViewContext1.Size = new System.Drawing.Size(92, 48);
             // 
             // MenuItem1_Delete
             // 
             this.MenuItem1_Delete.Name = "MenuItem1_Delete";
-            this.MenuItem1_Delete.Size = new System.Drawing.Size(155, 22);
+            this.MenuItem1_Delete.Size = new System.Drawing.Size(91, 22);
             this.MenuItem1_Delete.Text = "Delete";
             this.MenuItem1_Delete.Click += new System.EventHandler(this.MenuItem1_Delete_Click);
             // 
             // MenuItem2_Favorite
             // 
             this.MenuItem2_Favorite.Name = "MenuItem2_Favorite";
-            this.MenuItem2_Favorite.Size = new System.Drawing.Size(155, 22);
+            this.MenuItem2_Favorite.Size = new System.Drawing.Size(91, 22);
             this.MenuItem2_Favorite.Text = "Favorite";
             this.MenuItem2_Favorite.Click += new System.EventHandler(this.MenuItem2_Favorite_Click);
             // 
@@ -858,7 +860,7 @@ namespace GateHelper
             this.BtnOption1.Depth = 0;
             this.BtnOption1.HighEmphasis = true;
             this.BtnOption1.Icon = null;
-            this.BtnOption1.Location = new System.Drawing.Point(314, 599);
+            this.BtnOption1.Location = new System.Drawing.Point(314, 613);
             this.BtnOption1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnOption1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnOption1.Name = "BtnOption1";
@@ -879,6 +881,15 @@ namespace GateHelper
             this.lblPopupStatus.Size = new System.Drawing.Size(40, 12);
             this.lblPopupStatus.TabIndex = 45;
             this.lblPopupStatus.Text = "Detect";
+            // 
+            // txtMemoEditor
+            // 
+            this.txtMemoEditor.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtMemoEditor.Location = new System.Drawing.Point(414, 30);
+            this.txtMemoEditor.Name = "txtMemoEditor";
+            this.txtMemoEditor.Size = new System.Drawing.Size(100, 21);
+            this.txtMemoEditor.TabIndex = 98;
+            this.txtMemoEditor.Visible = false;
             // 
             // MainUI
             // 
@@ -917,6 +928,7 @@ namespace GateHelper
             this.TabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.tabPage4.ResumeLayout(false);
+            this.tabPage4.PerformLayout();
             this.ListViewContext1.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
             this.GroupRef2.ResumeLayout(false);
@@ -987,6 +999,7 @@ namespace GateHelper
         private System.Windows.Forms.ToolStripMenuItem MenuItem2_Favorite;
         private MaterialSkin.Controls.MaterialButton BtnOption1;
         private System.Windows.Forms.Label lblPopupStatus;
+        private System.Windows.Forms.TextBox txtMemoEditor;
     }
 }
 

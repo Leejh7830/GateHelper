@@ -30,36 +30,47 @@ namespace GateHelper
             control.Location = new Point(x, y);
         }
 
-        
 
-        public static void MovePictureBoxIcons(Form form, PictureBox pictureBoxA, PictureBox pictureBoxB, PictureBox pictureBoxC, Size formOriginalSize, bool isExpanded)
+
+        public static void MovePictureBoxIcons(Form form, PictureBox pictureBoxA, PictureBox pictureBoxB, PictureBox pictureBoxC, Control pictureBoxOption, Size formOriginalSize, bool isExpanded)
         {
             int iconSpacing = 10;
-            int xPos = 0;
+            int xPos;
+            int yPos;
 
             if (isExpanded)
             {
-                // 확장된 폼 크기에 맞춰 PictureBox 아이콘 A, B, C 위치 변경
-                xPos = 550 - pictureBoxC.Width - iconSpacing;
-                pictureBoxC.Location = new Point(xPos, 700 - pictureBoxC.Height - 10);
+                int formWidth = 550;
+                int formHeight = 700;
+
+                // C, B, A 순서로 오른쪽에서 왼쪽으로 정렬
+                xPos = formWidth - pictureBoxC.Width - iconSpacing;
+                yPos = formHeight - pictureBoxC.Height - 10;
+                pictureBoxC.Location = new Point(xPos, yPos);
 
                 xPos -= pictureBoxB.Width + iconSpacing;
-                pictureBoxB.Location = new Point(xPos, 700 - pictureBoxB.Height - 10);
+                pictureBoxB.Location = new Point(xPos, yPos);
 
                 xPos -= pictureBoxA.Width + iconSpacing;
-                pictureBoxA.Location = new Point(xPos, 700 - pictureBoxA.Height - 10);
+                pictureBoxA.Location = new Point(xPos, yPos);
+
+                // ⭐ B 아이콘 위에 Option 버튼을 정렬
+                pictureBoxOption.Location = new Point(pictureBoxB.Location.X + 10, pictureBoxB.Location.Y - pictureBoxOption.Height - iconSpacing);
             }
             else
             {
-                // 초기 폼 크기에 맞춰 PictureBox 아이콘 A, B, C 위치 복원
                 xPos = formOriginalSize.Width - pictureBoxC.Width - iconSpacing;
-                pictureBoxC.Location = new Point(xPos, formOriginalSize.Height - pictureBoxC.Height - 10);
+                yPos = formOriginalSize.Height - pictureBoxC.Height - 10;
+                pictureBoxC.Location = new Point(xPos, yPos);
 
                 xPos -= pictureBoxB.Width + iconSpacing;
-                pictureBoxB.Location = new Point(xPos, formOriginalSize.Height - pictureBoxB.Height - 10);
+                pictureBoxB.Location = new Point(xPos, yPos);
 
                 xPos -= pictureBoxA.Width + iconSpacing;
-                pictureBoxA.Location = new Point(xPos, formOriginalSize.Height - pictureBoxA.Height - 10);
+                pictureBoxA.Location = new Point(xPos, yPos);
+
+                // ⭐ B 아이콘 위에 Option 버튼을 정렬
+                pictureBoxOption.Location = new Point(pictureBoxB.Location.X + 10, pictureBoxB.Location.Y - pictureBoxOption.Height - iconSpacing);
             }
         }
 
@@ -84,6 +95,7 @@ namespace GateHelper
             PictureBox arrowPicBox,
             PictureBox settingPicBox,
             PictureBox questionPicBox,
+            Control BtnOption1,
             Size formOriginalSize,
             Size formExtendedSize,
             Control tabSelector,
@@ -105,7 +117,7 @@ namespace GateHelper
                 changeArrow = false;
 
                 // PictureBox 아이콘 위치 변경
-                MovePictureBoxIcons(form, arrowPicBox, settingPicBox, questionPicBox, formOriginalSize, true);
+                MovePictureBoxIcons(form, arrowPicBox, settingPicBox, questionPicBox, BtnOption1, formOriginalSize, true);
             }
             else
             {
@@ -117,7 +129,7 @@ namespace GateHelper
                 changeArrow = true;
 
                 // PictureBox 아이콘 위치 복원
-                MovePictureBoxIcons(form, arrowPicBox, settingPicBox, questionPicBox, formOriginalSize, false);
+                MovePictureBoxIcons(form, arrowPicBox, settingPicBox, questionPicBox, BtnOption1, formOriginalSize, false);
             }
         }
 
