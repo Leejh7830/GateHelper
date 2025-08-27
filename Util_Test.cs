@@ -49,7 +49,7 @@ namespace GateHelper
         }
 
         // ListView에 서버 접속 정보 추가 (일반 listview)
-        public static void SimulateServerConnect(Form form, ListView listView, ComboBox comboBox, bool testMode, bool isDuplicateCheck)
+        public static void SimulateServerConnect(Form form, ObjectListView listView, ComboBox comboBox, bool testMode, bool isDuplicateCheck)
         {
             try
             {

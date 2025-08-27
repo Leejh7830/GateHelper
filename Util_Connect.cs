@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using System.Threading;
 using static GateHelper.LogManager;
 using static GateHelper.Util_Element;
+using BrightIdeasSoftware;
 
 namespace GateHelper
 {
@@ -16,7 +17,7 @@ namespace GateHelper
             string mainHandle,
             Config config,
             string serverName,
-            ListView listView,
+            ObjectListView listView,
             bool isDuplicateCheck)
         {
             try
@@ -60,7 +61,6 @@ namespace GateHelper
 
                             // 접속 이력 추가
                             Util_ServerList.AddServerToListView(listView, serverName, DateTime.Now, isDuplicateCheck);
-                            Util_ServerList.TrimHistoryList(listView, 30);
                             Util_ServerList.SaveServerDataToFile(listView);
 
                             return true;

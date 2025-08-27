@@ -35,11 +35,6 @@ namespace GateHelper
             this.BtnGateOneLogin1 = new MaterialSkin.Controls.MaterialButton();
             this.TestBtn1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnSearch1 = new MaterialSkin.Controls.MaterialButton();
-            this.ListViewServer1 = new MaterialSkin.Controls.MaterialListView();
-            this.No = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.SVName = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.LastConnected = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.Memo = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.SearchTxt1 = new MaterialSkin.Controls.MaterialTextBox2();
             this.GroupConnect1 = new System.Windows.Forms.GroupBox();
             this.BtnLoadServers1 = new MaterialSkin.Controls.MaterialButton();
@@ -52,20 +47,27 @@ namespace GateHelper
             this.TabControl1 = new MaterialSkin.Controls.MaterialTabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage4 = new System.Windows.Forms.TabPage();
-            this.ListViewServer2 = new System.Windows.Forms.ListView();
-            this.No1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.SVName1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.LastConnected1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.Memo1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.ObjectListView1 = new BrightIdeasSoftware.ObjectListView();
+            this.No = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.ServerName = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.LastConnected = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.Memo = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.IsFavorite = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.ListViewContext1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.MenuItem1_Delete = new System.Windows.Forms.ToolStripMenuItem();
             this.MenuItem2_Favorite = new System.Windows.Forms.ToolStripMenuItem();
+            this.txtMemoEditor = new System.Windows.Forms.TextBox();
             this.tabPage3 = new System.Windows.Forms.TabPage();
             this.dummyControlOutsideTab = new MaterialSkin.Controls.MaterialButton();
             this.BtnOpenImages1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnReloadImages1 = new MaterialSkin.Controls.MaterialButton();
             this.GroupRef2 = new System.Windows.Forms.GroupBox();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
+            this.ListViewServer2 = new System.Windows.Forms.ListView();
+            this.No1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.SVName1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.LastConnected1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
+            this.Memo1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.TabSelector1 = new MaterialSkin.Controls.MaterialTabSelector();
             this.BtnStart2 = new MaterialSkin.Controls.MaterialButton();
             this.BtnOpenConfig1 = new MaterialSkin.Controls.MaterialButton();
@@ -79,21 +81,16 @@ namespace GateHelper
             this.BtnOpenLog1 = new MaterialSkin.Controls.MaterialButton();
             this.PicBox_Arrow = new System.Windows.Forms.PictureBox();
             this.PicBox_Setting = new System.Windows.Forms.PictureBox();
-            this.dataListView1 = new BrightIdeasSoftware.DataListView();
-            this.No2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
-            this.SVName2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
-            this.LastConnected2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
-            this.Memo2 = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.lblDriverStatus = new System.Windows.Forms.Label();
             this.lblInternetStatus = new System.Windows.Forms.Label();
             this.BtnOption1 = new MaterialSkin.Controls.MaterialButton();
             this.lblPopupStatus = new System.Windows.Forms.Label();
-            this.txtMemoEditor = new System.Windows.Forms.TextBox();
             this.GroupConnect1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
             this.TabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage4.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ObjectListView1)).BeginInit();
             this.ListViewContext1.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.GroupRef2.SuspendLayout();
@@ -101,7 +98,6 @@ namespace GateHelper
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Setting)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dataListView1)).BeginInit();
             this.SuspendLayout();
             // 
             // BtnGateOneLogin1
@@ -165,53 +161,6 @@ namespace GateHelper
             this.BtnSearch1.UseAccentColor = false;
             this.BtnSearch1.UseVisualStyleBackColor = true;
             this.BtnSearch1.Click += new System.EventHandler(this.BtnSearch1_Click);
-            // 
-            // ListViewServer1
-            // 
-            this.ListViewServer1.AutoSizeTable = false;
-            this.ListViewServer1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            this.ListViewServer1.BackgroundImageTiled = true;
-            this.ListViewServer1.BorderStyle = System.Windows.Forms.BorderStyle.None;
-            this.ListViewServer1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.No,
-            this.SVName,
-            this.LastConnected,
-            this.Memo});
-            this.ListViewServer1.Depth = 0;
-            this.ListViewServer1.FullRowSelect = true;
-            this.ListViewServer1.HideSelection = false;
-            this.ListViewServer1.LabelEdit = true;
-            this.ListViewServer1.Location = new System.Drawing.Point(598, 369);
-            this.ListViewServer1.Margin = new System.Windows.Forms.Padding(2);
-            this.ListViewServer1.MinimumSize = new System.Drawing.Size(140, 67);
-            this.ListViewServer1.MouseLocation = new System.Drawing.Point(-1, -1);
-            this.ListViewServer1.MouseState = MaterialSkin.MouseState.OUT;
-            this.ListViewServer1.Name = "ListViewServer1";
-            this.ListViewServer1.OwnerDraw = true;
-            this.ListViewServer1.Size = new System.Drawing.Size(486, 169);
-            this.ListViewServer1.TabIndex = 10;
-            this.ListViewServer1.UseCompatibleStateImageBehavior = false;
-            this.ListViewServer1.View = System.Windows.Forms.View.Details;
-            // 
-            // No
-            // 
-            this.No.Text = "No";
-            this.No.Width = 50;
-            // 
-            // SVName
-            // 
-            this.SVName.Text = "Name";
-            this.SVName.Width = 170;
-            // 
-            // LastConnected
-            // 
-            this.LastConnected.Text = "Last Connected";
-            this.LastConnected.Width = 180;
-            // 
-            // Memo
-            // 
-            this.Memo.Text = "Memo";
-            this.Memo.Width = 220;
             // 
             // SearchTxt1
             // 
@@ -428,8 +377,8 @@ namespace GateHelper
             // 
             // tabPage4
             // 
+            this.tabPage4.Controls.Add(this.ObjectListView1);
             this.tabPage4.Controls.Add(this.txtMemoEditor);
-            this.tabPage4.Controls.Add(this.ListViewServer2);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage4.Name = "tabPage4";
@@ -439,50 +388,73 @@ namespace GateHelper
             this.tabPage4.Text = "HISTORY";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
-            // ListViewServer2
+            // ObjectListView1
             // 
-            this.ListViewServer2.BackColor = System.Drawing.SystemColors.Info;
-            this.ListViewServer2.CheckBoxes = true;
-            this.ListViewServer2.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.No1,
-            this.SVName1,
-            this.LastConnected1,
-            this.Memo1});
-            this.ListViewServer2.ContextMenuStrip = this.ListViewContext1;
-            this.ListViewServer2.Font = new System.Drawing.Font("휴먼옛체", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.ListViewServer2.FullRowSelect = true;
-            this.ListViewServer2.GridLines = true;
-            this.ListViewServer2.HideSelection = false;
-            this.ListViewServer2.HoverSelection = true;
-            this.ListViewServer2.Location = new System.Drawing.Point(2, 2);
-            this.ListViewServer2.Margin = new System.Windows.Forms.Padding(2);
-            this.ListViewServer2.MinimumSize = new System.Drawing.Size(141, 68);
-            this.ListViewServer2.Name = "ListViewServer2";
-            this.ListViewServer2.Size = new System.Drawing.Size(535, 349);
-            this.ListViewServer2.TabIndex = 28;
-            this.ListViewServer2.UseCompatibleStateImageBehavior = false;
-            this.ListViewServer2.View = System.Windows.Forms.View.Details;
-            this.ListViewServer2.DoubleClick += new System.EventHandler(this.ListViewServer2_DoubleClick);
+            this.ObjectListView1.AllColumns.Add(this.No);
+            this.ObjectListView1.AllColumns.Add(this.ServerName);
+            this.ObjectListView1.AllColumns.Add(this.LastConnected);
+            this.ObjectListView1.AllColumns.Add(this.Memo);
+            this.ObjectListView1.AllColumns.Add(this.IsFavorite);
+            this.ObjectListView1.CellEditActivation = BrightIdeasSoftware.ObjectListView.CellEditActivateMode.DoubleClick;
+            this.ObjectListView1.CellEditUseWholeCell = false;
+            this.ObjectListView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.No,
+            this.ServerName,
+            this.LastConnected,
+            this.Memo});
+            this.ObjectListView1.ContextMenuStrip = this.ListViewContext1;
+            this.ObjectListView1.Cursor = System.Windows.Forms.Cursors.Default;
+            this.ObjectListView1.EmptyListMsg = "NO DATA";
+            this.ObjectListView1.EmptyListMsgFont = new System.Drawing.Font("굴림", 36F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.ObjectListView1.FullRowSelect = true;
+            this.ObjectListView1.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.ObjectListView1.HideSelection = false;
+            this.ObjectListView1.Location = new System.Drawing.Point(0, 1);
+            this.ObjectListView1.MultiSelect = false;
+            this.ObjectListView1.Name = "ObjectListView1";
+            this.ObjectListView1.ShowGroups = false;
+            this.ObjectListView1.Size = new System.Drawing.Size(530, 347);
+            this.ObjectListView1.TabIndex = 98;
+            this.ObjectListView1.UseCompatibleStateImageBehavior = false;
+            this.ObjectListView1.View = System.Windows.Forms.View.Details;
+            this.ObjectListView1.CellEditFinished += new BrightIdeasSoftware.CellEditEventHandler(this.ObjectListView1_CellEditFinished);
+            this.ObjectListView1.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.ObjectListView1_FormatRow);
+            this.ObjectListView1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.ObjectListView1_MouseDoubleClick);
             // 
-            // No1
+            // No
             // 
-            this.No1.Text = "No";
-            this.No1.Width = 50;
+            this.No.AspectName = "#";
+            this.No.IsEditable = false;
+            this.No.Text = "No";
             // 
-            // SVName1
+            // ServerName
             // 
-            this.SVName1.Text = "Name";
-            this.SVName1.Width = 180;
+            this.ServerName.AspectName = "ServerName";
+            this.ServerName.IsEditable = false;
+            this.ServerName.Text = "Name";
+            this.ServerName.Width = 180;
             // 
-            // LastConnected1
+            // LastConnected
             // 
-            this.LastConnected1.Text = "Last Connected";
-            this.LastConnected1.Width = 180;
+            this.LastConnected.AspectName = "LastConnected";
+            this.LastConnected.IsEditable = false;
+            this.LastConnected.Text = "LastConneted";
+            this.LastConnected.Width = 180;
             // 
-            // Memo1
+            // Memo
             // 
-            this.Memo1.Text = "Memo";
-            this.Memo1.Width = 220;
+            this.Memo.AspectName = "Memo";
+            this.Memo.Text = "Memo";
+            this.Memo.Width = 100;
+            // 
+            // IsFavorite
+            // 
+            this.IsFavorite.AspectName = "IsFavorite";
+            this.IsFavorite.DisplayIndex = 4;
+            this.IsFavorite.IsEditable = false;
+            this.IsFavorite.IsVisible = false;
+            this.IsFavorite.Text = "Fav";
+            this.IsFavorite.Width = 122;
             // 
             // ListViewContext1
             // 
@@ -506,6 +478,15 @@ namespace GateHelper
             this.MenuItem2_Favorite.Size = new System.Drawing.Size(91, 22);
             this.MenuItem2_Favorite.Text = "Favorite";
             this.MenuItem2_Favorite.Click += new System.EventHandler(this.MenuItem2_Favorite_Click);
+            // 
+            // txtMemoEditor
+            // 
+            this.txtMemoEditor.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtMemoEditor.Location = new System.Drawing.Point(414, 30);
+            this.txtMemoEditor.Name = "txtMemoEditor";
+            this.txtMemoEditor.Size = new System.Drawing.Size(100, 21);
+            this.txtMemoEditor.TabIndex = 98;
+            this.txtMemoEditor.Visible = false;
             // 
             // tabPage3
             // 
@@ -603,6 +584,49 @@ namespace GateHelper
             this.flowLayoutPanel1.Padding = new System.Windows.Forms.Padding(3);
             this.flowLayoutPanel1.Size = new System.Drawing.Size(380, 281);
             this.flowLayoutPanel1.TabIndex = 29;
+            // 
+            // ListViewServer2
+            // 
+            this.ListViewServer2.BackColor = System.Drawing.SystemColors.Info;
+            this.ListViewServer2.CheckBoxes = true;
+            this.ListViewServer2.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.No1,
+            this.SVName1,
+            this.LastConnected1,
+            this.Memo1});
+            this.ListViewServer2.Font = new System.Drawing.Font("휴먼옛체", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.ListViewServer2.FullRowSelect = true;
+            this.ListViewServer2.GridLines = true;
+            this.ListViewServer2.HideSelection = false;
+            this.ListViewServer2.HoverSelection = true;
+            this.ListViewServer2.Location = new System.Drawing.Point(575, 190);
+            this.ListViewServer2.Margin = new System.Windows.Forms.Padding(2);
+            this.ListViewServer2.MinimumSize = new System.Drawing.Size(141, 68);
+            this.ListViewServer2.Name = "ListViewServer2";
+            this.ListViewServer2.Size = new System.Drawing.Size(535, 349);
+            this.ListViewServer2.TabIndex = 28;
+            this.ListViewServer2.UseCompatibleStateImageBehavior = false;
+            this.ListViewServer2.View = System.Windows.Forms.View.Details;
+            // 
+            // No1
+            // 
+            this.No1.Text = "No";
+            this.No1.Width = 50;
+            // 
+            // SVName1
+            // 
+            this.SVName1.Text = "Name";
+            this.SVName1.Width = 180;
+            // 
+            // LastConnected1
+            // 
+            this.LastConnected1.Text = "Last Connected";
+            this.LastConnected1.Width = 180;
+            // 
+            // Memo1
+            // 
+            this.Memo1.Text = "Memo";
+            this.Memo1.Width = 220;
             // 
             // TabSelector1
             // 
@@ -791,49 +815,6 @@ namespace GateHelper
             this.PicBox_Setting.TabStop = false;
             this.PicBox_Setting.Click += new System.EventHandler(this.PicBox_Setting_Click);
             // 
-            // dataListView1
-            // 
-            this.dataListView1.AllColumns.Add(this.No2);
-            this.dataListView1.AllColumns.Add(this.SVName2);
-            this.dataListView1.AllColumns.Add(this.LastConnected2);
-            this.dataListView1.AllColumns.Add(this.Memo2);
-            this.dataListView1.CellEditUseWholeCell = false;
-            this.dataListView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.No2,
-            this.SVName2,
-            this.LastConnected2,
-            this.Memo2});
-            this.dataListView1.Cursor = System.Windows.Forms.Cursors.Default;
-            this.dataListView1.DataSource = null;
-            this.dataListView1.GridLines = true;
-            this.dataListView1.HideSelection = false;
-            this.dataListView1.Location = new System.Drawing.Point(598, 209);
-            this.dataListView1.Margin = new System.Windows.Forms.Padding(2);
-            this.dataListView1.Name = "dataListView1";
-            this.dataListView1.Size = new System.Drawing.Size(487, 151);
-            this.dataListView1.TabIndex = 28;
-            this.dataListView1.UseCompatibleStateImageBehavior = false;
-            this.dataListView1.View = System.Windows.Forms.View.Details;
-            // 
-            // No2
-            // 
-            this.No2.Text = "No";
-            // 
-            // SVName2
-            // 
-            this.SVName2.Text = "Name";
-            this.SVName2.Width = 150;
-            // 
-            // LastConnected2
-            // 
-            this.LastConnected2.Text = "Last Connected";
-            this.LastConnected2.Width = 150;
-            // 
-            // Memo2
-            // 
-            this.Memo2.Text = "Memo";
-            this.Memo2.Width = 150;
-            // 
             // lblDriverStatus
             // 
             this.lblDriverStatus.AutoSize = true;
@@ -882,27 +863,17 @@ namespace GateHelper
             this.lblPopupStatus.TabIndex = 45;
             this.lblPopupStatus.Text = "Detect";
             // 
-            // txtMemoEditor
-            // 
-            this.txtMemoEditor.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtMemoEditor.Location = new System.Drawing.Point(414, 30);
-            this.txtMemoEditor.Name = "txtMemoEditor";
-            this.txtMemoEditor.Size = new System.Drawing.Size(100, 21);
-            this.txtMemoEditor.TabIndex = 98;
-            this.txtMemoEditor.Visible = false;
-            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1114, 714);
+            this.Controls.Add(this.ListViewServer2);
             this.Controls.Add(this.lblPopupStatus);
             this.Controls.Add(this.BtnOption1);
             this.Controls.Add(this.lblInternetStatus);
             this.Controls.Add(this.lblDriverStatus);
-            this.Controls.Add(this.dataListView1);
-            this.Controls.Add(this.ListViewServer1);
             this.Controls.Add(this.PicBox_Arrow);
             this.Controls.Add(this.PicBox_Setting);
             this.Controls.Add(this.BtnOpenLog1);
@@ -929,6 +900,7 @@ namespace GateHelper
             this.tabPage1.ResumeLayout(false);
             this.tabPage4.ResumeLayout(false);
             this.tabPage4.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.ObjectListView1)).EndInit();
             this.ListViewContext1.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
             this.GroupRef2.ResumeLayout(false);
@@ -936,7 +908,6 @@ namespace GateHelper
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Setting)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.dataListView1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -950,10 +921,6 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialTabControl TabControl1;
         private System.Windows.Forms.TabPage tabPage1;
         private MaterialSkin.Controls.MaterialTabSelector TabSelector1;
-        private MaterialSkin.Controls.MaterialListView ListViewServer1;
-        private System.Windows.Forms.ColumnHeader No;
-        private System.Windows.Forms.ColumnHeader SVName;
-        private System.Windows.Forms.ColumnHeader LastConnected;
         private MaterialSkin.Controls.MaterialButton BtnConnect1;
         private MaterialSkin.Controls.MaterialTextBox2 SearchTxt1;
         private MaterialSkin.Controls.MaterialComboBox ComboBoxServerList1;
@@ -975,17 +942,11 @@ namespace GateHelper
         private System.Windows.Forms.PictureBox PicBox_Setting;
         private System.Windows.Forms.PictureBox PicBox_Arrow;
         private System.Windows.Forms.TabPage tabPage3;
-        private System.Windows.Forms.ColumnHeader Memo;
         private System.Windows.Forms.ColumnHeader No1;
         private System.Windows.Forms.ColumnHeader SVName1;
         private System.Windows.Forms.ColumnHeader LastConnected1;
         private System.Windows.Forms.ColumnHeader Memo1;
         private System.Windows.Forms.ListView ListViewServer2;
-        private BrightIdeasSoftware.DataListView dataListView1;
-        private BrightIdeasSoftware.OLVColumn No2;
-        private BrightIdeasSoftware.OLVColumn SVName2;
-        private BrightIdeasSoftware.OLVColumn LastConnected2;
-        private BrightIdeasSoftware.OLVColumn Memo2;
         private System.Windows.Forms.TabPage tabPage4;
         private System.Windows.Forms.GroupBox GroupRef2;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
@@ -1000,6 +961,12 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton BtnOption1;
         private System.Windows.Forms.Label lblPopupStatus;
         private System.Windows.Forms.TextBox txtMemoEditor;
+        private BrightIdeasSoftware.ObjectListView ObjectListView1;
+        private BrightIdeasSoftware.OLVColumn LastConnected;
+        private BrightIdeasSoftware.OLVColumn Memo;
+        private BrightIdeasSoftware.OLVColumn IsFavorite;
+        private BrightIdeasSoftware.OLVColumn No;
+        private BrightIdeasSoftware.OLVColumn ServerName;
     }
 }
 

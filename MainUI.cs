@@ -12,6 +12,7 @@ using System.Configuration;
 using System.IO;
 using System.Linq;
 using static GateHelper.LogManager;
+using BrightIdeasSoftware;
 
 namespace GateHelper
 {
@@ -323,8 +324,8 @@ namespace GateHelper
             // ✅ 테스트 모드일 때는 드라이버 체크 건너뜀
             if (_appSettings.TestMode)
             {
-                Util_Test.SimulateServerConnect(this, ListViewServer2, ComboBoxServerList1, _appSettings.TestMode, _appSettings.RemoveDuplicates);
-                Util_ServerList.SaveServerDataToFile(ListViewServer2);
+                Util_Test.SimulateServerConnect(this, ObjectListView1, ComboBoxServerList1, _appSettings.TestMode, _appSettings.RemoveDuplicates);
+                Util_ServerList.SaveServerDataToFile(ObjectListView1);
                 return;
             }
 
@@ -343,7 +344,7 @@ namespace GateHelper
             string selectedServer = ComboBoxServerList1.SelectedItem.ToString();
             LogMessage("접속 서버 명: " + selectedServer, Level.Info);
 
-            Util_Connect.ConnectToServer(_driver, mainHandle, _config, selectedServer, ListViewServer2, _appSettings.RemoveDuplicates);
+            Util_Connect.ConnectToServer(_driver, mainHandle, _config, selectedServer, ObjectListView1, _appSettings.RemoveDuplicates);
         }
 
 
@@ -484,20 +485,32 @@ namespace GateHelper
             }
         }
 
-        private void ListViewServer2_DoubleClick(object sender, EventArgs e)
+
+
+        private void ObjectListView1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
-            if (!_appSettings.ServerClickConnect || ListViewServer2.SelectedItems.Count == 0)
+            var hit = ObjectListView1.OlvHitTest(e.X, e.Y);
+
+            if (hit.Column == Memo)  // 메모 열이면
+            {
+                if (hit.Item != null) 
+                    ObjectListView1.StartCellEdit(hit.Item, hit.ColumnIndex);
+                return;
+            }
+
+            if (!_appSettings.ServerClickConnect || ObjectListView1.SelectedObjects.Count == 0)
                 return;
 
-            string serverName = ListViewServer2.SelectedItems[0].SubItems[1].Text;
+            var selectedServerInfo = ObjectListView1.SelectedObject as Util_ServerList.ServerInfo;
+            string serverName = selectedServerInfo?.ServerName;
+            if (string.IsNullOrEmpty(serverName))
+                return;
 
-            LogMessage("ListView 더블클릭 접속 시도: " + serverName, Level.Info);
+            LogMessage($"ListView 더블클릭 접속 시도: {serverName}", Level.Info);
 
-            // 검색 실행
             SearchTxt1.Text = serverName;
             BtnSearch1_Click(null, null);
 
-            // 검색 결과 로딩 대기 (서버 리스트 안에 해당 서버 이름이 뜰 때까지)
             try
             {
                 WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
@@ -513,13 +526,12 @@ namespace GateHelper
                 return;
             }
 
-            // 접속 시도
-            Util_Connect.ConnectToServer(_driver, mainHandle, _config, serverName, ListViewServer2, _appSettings.RemoveDuplicates);
+            Util_Connect.ConnectToServer(_driver, mainHandle, _config, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
         }
 
         //////////////////////////////////////////////////////////////////////////////// 옵션 전용 끝
 
-        
+
 
         private void PicBox_Setting_Click(object sender, EventArgs e)
         {
@@ -548,7 +560,7 @@ namespace GateHelper
             Util_ImageLoader.EnsureReferenceImagesFolderExists(); // ReferenceImages Folder Check
             Util_ImageLoader.LoadReferenceImages(flowLayoutPanel1); // Images Load
 
-            Util_ServerList.LoadServerDataFromFile(ListViewServer2); // ServerData Load
+            Util_ServerList.LoadServerDataFromFile(ObjectListView1); // ServerData Load
         }
 
 
@@ -588,20 +600,24 @@ namespace GateHelper
 
         private void MenuItem1_Delete_Click(object sender, EventArgs e)
         {
-            if (ListViewServer2.SelectedItems.Count > 0)
+            var selectedObject = this.ObjectListView1.SelectedObject;
+
+            if (selectedObject != null)
             {
-                // 선택된 항목을 가져옵니다.
-                ListViewItem selectedItem = ListViewServer2.SelectedItems[0];
-                string serverName = selectedItem.SubItems[1].Text;
+                // ServerInfo 객체에서 서버 이름을 직접 가져옵니다.
+                string serverName = (selectedObject as Util_ServerList.ServerInfo)?.ServerName;
 
                 DialogResult dialogResult = MessageBox.Show($"'{serverName}' 항목을 삭제하시겠습니까?", "항목 삭제 확인", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
 
                 if (dialogResult == DialogResult.Yes)
                 {
-                    ListViewServer2.Items.Remove(selectedItem); // 삭제
+                    // ObjectListView의 RemoveObject 메서드를 사용하여 객체를 직접 삭제합니다.
+                    this.ObjectListView1.RemoveObject(selectedObject);
 
-                    Util_ServerList.ReorderListViewItems(ListViewServer2); // 재정렬
-                    Util_ServerList.SaveServerDataToFile(ListViewServer2); // 저장
+                    // ObjectListView는 객체가 제거되면 자동으로 재정렬되므로, 
+                    // ReorderListViewItems 호출은 필요 없습니다.
+
+                    Util_ServerList.SaveServerDataToFile(this.ObjectListView1);
 
                     LogMessage($"Server entry '{serverName}' has been removed from the list.", Level.Info);
                 }
@@ -610,37 +626,62 @@ namespace GateHelper
 
         private void MenuItem2_Favorite_Click(object sender, EventArgs e)
         {
-            if (ListViewServer2.SelectedItems.Count > 0)
+            var selectedObject = this.ObjectListView1.SelectedObject as Util_ServerList.ServerInfo;
+
+            if (selectedObject != null)
             {
-                var selectedItem = ListViewServer2.SelectedItems[0];
-                if (selectedItem.Tag is Util_ServerList.ServerInfo serverInfo)
+                selectedObject.IsFavorite = !selectedObject.IsFavorite;
+
+                // ⭐ 이 메서드가 FormatRow 이벤트를 자동으로 발생시킵니다.
+                this.ObjectListView1.RefreshObject(selectedObject);
+
+                Util_ServerList.SaveServerDataToFile(this.ObjectListView1);
+
+                string logMessage;
+                if (selectedObject.IsFavorite)
                 {
-                    serverInfo.IsFavorite = !serverInfo.IsFavorite;
+                    logMessage = $"Server '{selectedObject.ServerName}' Favorited!";
+                }
+                else
+                {
+                    logMessage = $"Server '{selectedObject.ServerName}' Unfavorited!";
+                }
 
-                    if (serverInfo.IsFavorite)
-                    {
-                        selectedItem.Font = new Font(selectedItem.Font, FontStyle.Bold);
-                    }
-                    else
-                    {
-                        selectedItem.Font = new Font(selectedItem.Font, FontStyle.Regular);
-                    }
+                LogMessage(logMessage, Level.Info);
+            }
+        }
 
-                    Util_ServerList.SaveServerDataToFile(ListViewServer2);
+        private void ObjectListView1_FormatRow(object sender, BrightIdeasSoftware.FormatRowEventArgs e)
+        {
+            var serverInfo = e.Model as Util_ServerList.ServerInfo;
+            if (serverInfo != null && serverInfo.IsFavorite)
+            {
+                // 즐겨찾기 상태일 때만 폰트를 굵게 만듭니다.
+                e.Item.Font = new Font(this.Font, FontStyle.Bold);
+            }
+            else
+            {
+                // 즐겨찾기 상태가 아니면 폰트를 원래대로 되돌립니다.
+                e.Item.Font = new Font(this.Font, FontStyle.Regular);
+            }
+        }
+        
+        private void ObjectListView1_CellEditFinished(object sender, BrightIdeasSoftware.CellEditEventArgs e)
+        {
+            if (e.Column != Memo) return;
 
-                    string logMessage;
-                    if (serverInfo.IsFavorite)
-                    {
-                        logMessage = $"Server '{serverInfo.ServerName}' Favorited!";
-                    }
-                    else
-                    {
-                        logMessage = $"Server '{serverInfo.ServerName}' Unfavorited!";
-                    }
-
-                    LogMessage(logMessage, Level.Info);
+            // (선택) 자동반영이 안 되는 설정이라면 수동 반영
+            if (e.RowObject is Util_ServerList.ServerInfo si && e.NewValue != null)
+            {
+                var newText = e.NewValue.ToString();
+                if (!string.Equals(si.Memo ?? "", newText ?? "", StringComparison.Ordinal))
+                {
+                    si.Memo = newText;
+                    ObjectListView1.RefreshObject(si); // 화면 즉시 반영
                 }
             }
+
+            Util_ServerList.SaveServerDataToFile(ObjectListView1);
         }
     }
 }
