@@ -111,7 +111,7 @@ namespace GateHelper
                 form.Size = formExtendedSize;
 
                 // 탭 컨트롤 크기를 기준으로 그룹 박스 및 TabSelector 크기 계산
-                tabSelector.Size = new Size(tabControlSize.Width - 30, 30);
+                tabSelector.Size = new Size(tabControlSize.Width - 40, 30);
                 groupConnect.Size = new Size(tabControlSize.Width - 10, tabControlSize.Height - 10);
 
                 changeArrow = false;

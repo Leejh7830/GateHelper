@@ -17,78 +17,118 @@ namespace GateHelper
         {
             bool wasHandled = false;
 
-            // 팝업 창 처리 (새 창 핸들을 가진 팝업)
-            List<string> windowHandles = new List<string>(driver.WindowHandles);
-            foreach (string handle in windowHandles)
-            {
-                if (handle != mainHandle)
-                {
-                    try
-                    {
-                        LogMessage("Popup Window Detected", Level.Info);
-                        driver.SwitchTo().Window(handle);
-                        await Task.Delay(3000);
-                        driver.Close();
-                        LogMessage("Closed Popup Window", Level.Info);
-                        wasHandled = true;
-                    }
-                    catch (Exception ex)
-                    {
-                        LogException(ex, Level.Error);
-                    }
-                }
-            }
-
-            // 모달 창 처리 (HTML 요소 기반의 팝업)
-            if (IsModalPresent(driver))
-            {
-                try
-                {
-                    LogMessage("Lock screen Modal Detected", Level.Error);
-                    await Task.Delay(3000);
-
-                    // 비밀번호 입력 및 확인 버튼 클릭 로직을 시도
-                    bool passwordEntered = await EnterModalPassword(driver, config);
-
-                    // 자동화가 성공했는지 여부와 상관없이,
-                    // 모달창이 더 이상 보이지 않으면 성공으로 간주
-                    if (!IsModalPresent(driver))
-                    {
-                        LogMessage("Lock screen Modal Closed successfully.", Level.Info);
-                        wasHandled = true;
-                    }
-                    else
-                    {
-                        LogMessage("Lock screen Modal remains visible after processing attempt.", Level.Critical);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogException(ex, Level.Error);
-                }
-            }
-
-            // 경고창 처리 (브라우저 자체의 Alert)
+            // 1) 팝업 처리
             try
             {
-                IAlert alert = driver.SwitchTo().Alert();
-                string alertText = alert.Text;
-                alert.Accept();
-                LogMessage($"Closed Alert: '{alertText}'", Level.Info);
-                wasHandled = true;
+                var windowHandles = new List<string>(driver.WindowHandles);
+
+                foreach (var handle in windowHandles)
+                {
+                    if (handle == mainHandle) continue;
+
+                    LogMessage("Detected a new browser window (popup).", Level.Info);
+
+                    try { driver.SwitchTo().Window(handle); }
+                    catch (WebDriverException ex)
+                    {
+                        LogMessage($"Popup disappeared before switch. Skip. ({ex.Message})", Level.Info);
+                        continue;
+                    }
+
+                    try
+                    {
+                        // await Task.Delay(200); // 필요 시
+                        driver.Close(); // 현재(팝업)만 닫음
+                        LogMessage("Closed the new browser window.", Level.Info);
+                        wasHandled = true;
+                    }
+                    catch (WebDriverException ex)
+                    {
+                        LogMessage($"Popup disappeared while closing. Skip. ({ex.Message})", Level.Info);
+                    }
+                }
             }
-            catch (NoAlertPresentException)
+            catch (WebDriverException ex)
             {
-                // 경고창이 없는 경우
+                LogMessage($"Popup enumeration skipped: {ex.Message}", Level.Info);
             }
             catch (Exception ex)
             {
                 LogException(ex, Level.Error);
             }
-            // driver.SwitchTo().Window(mainHandle);
+
+            // 2) 모달 처리
+            try
+            {
+                if (IsModalPresent(driver))
+                {
+                    LogMessage("Detected a Lock screen Modal.", Level.Info);
+                    bool ok = await EnterModalPassword(driver, config);
+
+                    wasHandled |= ok; // 성공했을 때만 handled 처리
+
+                    if (ok) LogMessage("Lock screen Modal was handled successfully.", Level.Info);
+                    else LogMessage("Lock screen Modal remains visible after processing attempt.", Level.Error);
+                }
+            }
+            catch (WebDriverException ex)
+            {
+                LogMessage($"Modal handling skipped: {ex.Message}", Level.Info);
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error);
+            }
+
+            // 3) 알림 처리
+            try
+            {
+                var alert = driver.SwitchTo().Alert();
+                string text = alert.Text;
+                alert.Accept();
+                LogMessage($"Closed Alert: '{text}'", Level.Info);
+                wasHandled = true;
+            }
+            catch (NoAlertPresentException) { }
+            catch (WebDriverException ex)
+            {
+                LogMessage($"Alert handling skipped: {ex.Message}", Level.Info);
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error);
+            }
+
+            // 4) 복귀 정책
+            try
+            {
+                if (!wasHandled)
+                {
+                    // 아무작업도 안했을 때
+                    return false;
+                }
+
+                // 무언가 처리했을 때만 메인으로 복귀 (실패시 치명적 오류)
+                var handles = driver.WindowHandles;
+                if (handles == null || !handles.Contains(mainHandle))
+                {
+                    LogMessage("FATAL: Main window handle is missing.", Level.Critical);
+                    throw new NoSuchWindowException("Main window not found (fatal).");
+                }
+
+                // 이미 메인이라면 전환 생략
+                if (driver.CurrentWindowHandle != mainHandle)
+                    driver.SwitchTo().Window(mainHandle);
+            }
+            catch (WebDriverException ex)
+            {
+                LogMessage($"FATAL: Failed to restore window. {ex.Message}", Level.Critical);
+                throw; // 호출부에서 Driver OFF 처리
+            }
 
             return wasHandled;
         }
+
 
         private static bool IsModalPresent(IWebDriver driver)
         {

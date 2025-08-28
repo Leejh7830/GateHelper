@@ -16,11 +16,11 @@ namespace GateHelper
 
         public AppSettings() // 옵션 변수들
         {
-            RemoveDuplicates = false;
+            RemoveDuplicates = true;
             AutoLogin = false;
             DisablePopup = false;
             TestMode = false;
-            ServerClickConnect = false;
+            ServerClickConnect = true;
         }
     }
 }

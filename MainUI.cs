@@ -145,11 +145,26 @@ namespace GateHelper
                 try
                 {
                     bool popupHandled = await Util_Option.HandleWindows(_driver, mainHandle, _config);
+
+                    // ✅ 호출 후 메인 핸들 최신값으로 갱신 (안전)
+                    mainHandle = _driver.CurrentWindowHandle;
+
                     if (popupHandled)
                     {
                         _popupCount++;
                         LogMessage($"팝업 처리 횟수 : {_popupCount}회", Level.Info);
                     }
+                }
+                catch (NoSuchWindowException ex)
+                {
+                    // ✅ 메인 창 복귀 실패는 치명적
+                    LogMessage($"FATAL: 메인 창 복귀 실패: {ex.Message}", Level.Critical);
+                    driverOn = false;
+                    return;
+                }
+                catch (WebDriverException ex)
+                {
+                    LogMessage($"HandleWindows 중 WebDriver 오류: {ex.Message}", Level.Error);
                 }
                 catch (Exception ex)
                 {
@@ -425,7 +440,7 @@ namespace GateHelper
                 _appSettings = optionForm.AppSettings; // 새로운 값 업데이트
                 bool newIsDarkMode = optionForm.IsDarkModeEnabled;
 
-                _themeManager.SetTheme(newIsDarkMode, PicBox_Setting);
+                _themeManager.SetTheme(newIsDarkMode, PicBox_Setting, ObjectListView1);
 
 
                 if (oldTestMode != _appSettings.TestMode)
@@ -433,7 +448,7 @@ namespace GateHelper
                     ApplyTestMode(_appSettings.TestMode);
                 }
 
-                LogMessage("Options updated.", Level.Info);
+                LogMessage("Options Save Click", Level.Info);
 
                 if (oldDisablePopup != _appSettings.DisablePopup)
                 {
@@ -442,7 +457,7 @@ namespace GateHelper
             }
             else
             {
-                LogMessage("No option changes were made.", Level.Info);
+                LogMessage("Options Cancel Click", Level.Info);
             }
         }
 
@@ -535,7 +550,7 @@ namespace GateHelper
 
         private void PicBox_Setting_Click(object sender, EventArgs e)
         {
-            _themeManager.SetTheme(!_themeManager.IsDarkMode, PicBox_Setting);
+            _themeManager.SetTheme(!_themeManager.IsDarkMode, PicBox_Setting, ObjectListView1);
         }
 
         private void PicBox_Arrow_Click(object sender, EventArgs e)
@@ -617,7 +632,7 @@ namespace GateHelper
                     // ObjectListView는 객체가 제거되면 자동으로 재정렬되므로, 
                     // ReorderListViewItems 호출은 필요 없습니다.
 
-                    Util_ServerList.SaveServerDataToFile(this.ObjectListView1);
+                    Util_ServerList.SaveServerDataToFile(ObjectListView1);
 
                     LogMessage($"Server entry '{serverName}' has been removed from the list.", Level.Info);
                 }
@@ -635,7 +650,7 @@ namespace GateHelper
                 // ⭐ 이 메서드가 FormatRow 이벤트를 자동으로 발생시킵니다.
                 this.ObjectListView1.RefreshObject(selectedObject);
 
-                Util_ServerList.SaveServerDataToFile(this.ObjectListView1);
+                Util_ServerList.SaveServerDataToFile(ObjectListView1);
 
                 string logMessage;
                 if (selectedObject.IsFavorite)

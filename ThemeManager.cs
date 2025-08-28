@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 using GateHelper;
+using BrightIdeasSoftware;
 
 public class ThemeManager
 {
@@ -18,8 +19,7 @@ public class ThemeManager
 
     public bool IsDarkMode => _isDarkMode; // 외부에서 테마 상태를 확인할 수 있는 속성
 
-    // ⭐ SetTheme 메서드만 남겨두고 ToggleTheme은 삭제
-    public void SetTheme(bool newIsDarkMode, PictureBox settingPictureBox)
+    public void SetTheme(bool newIsDarkMode, PictureBox settingPictureBox, ObjectListView OLV)
     {
         _isDarkMode = newIsDarkMode;
 
@@ -35,6 +35,27 @@ public class ThemeManager
         }
 
         ApplyContextMenuStripTheme(); // 컨텍스트 메뉴 테마 변경
+        ForceRedrawObjectListView(OLV); // OLV 테마 변경
+    }
+
+    private void ForceRedrawObjectListView(ObjectListView ovl)
+    {
+        if (ovl == null) return;
+        ovl.BeginUpdate();
+
+        // 컬럼 헤더/행 전체 무효화
+        ovl.HeaderControl?.Invalidate();
+        ovl.Invalidate(true); // 컨트롤 전체 무효화
+
+        // 모든 행/서브아이템 강제 그리기
+        if (ovl.Items.Count > 0)
+            ovl.RedrawItems(0, ovl.Items.Count - 1, true);
+
+        // 내부 리스트 재빌드(필요 시)
+        ovl.BuildList(true);
+
+        ovl.EndUpdate();
+        ovl.Refresh();
     }
 
     // ⭐ private 메서드로 변경하여 내부에서만 호출
