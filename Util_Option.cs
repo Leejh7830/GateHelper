@@ -17,7 +17,7 @@ namespace GateHelper
         {
             bool wasHandled = false;
 
-            // 1) 팝업 처리
+            // 1) 팝업 처리.
             try
             {
                 var windowHandles = new List<string>(driver.WindowHandles);
