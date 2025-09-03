@@ -37,7 +37,6 @@ namespace GateHelper
 
                     try
                     {
-                        // await Task.Delay(200); // 필요 시
                         driver.Close(); // 현재(팝업)만 닫음
                         LogMessage("Closed the new browser window.", Level.Info);
                         wasHandled = true;
