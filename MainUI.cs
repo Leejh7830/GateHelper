@@ -44,6 +44,8 @@ namespace GateHelper
         private string _lastDriverStatus = "";
         private string _lastInternetStatus = "";
         private string _lastPopupStatus = "";
+        private bool _isStatusTickRunning = false; // 타이머 겹침 방지, 진행중인지
+        private DateTime _lastTickAtUtc = DateTime.MinValue; // 타이머 겹침 방지
 
         // Control 관리용
         public static readonly Size FormOriginalSize = new Size(400, 700);
@@ -99,77 +101,109 @@ namespace GateHelper
 
         private async void TimerStatusChecker_Tick(object sender, EventArgs e)
         {
-            Color onColor = ColorTranslator.FromHtml("#4CAF50"); // Green 500
-            Color offColor = ColorTranslator.FromHtml("#F44336"); // Red 500
-            Color whiteColor = Color.White;
+            timer1.Stop(); // 밀린 틱 방지: 일단 멈추고 들어간다
 
-            // 🔍 Driver 상태
-            bool driverOn = (_driver != null && chromeDriverManager.IsDriverAlive(_driver));
-            string newDriverStatus = driverOn ? "ON" : "OFF";
-            lblDriverStatus.Text = $"Driver {newDriverStatus}";
-            lblDriverStatus.BackColor = driverOn ? onColor : offColor;
-            lblDriverStatus.ForeColor = Color.White;
-            if (_lastDriverStatus != newDriverStatus)
+            if (_isStatusTickRunning) // 재진입 가드
             {
-                LogMessage($"[Status Change] Driver {newDriverStatus}", driverOn ? Level.Info : Level.Error);
-                _lastDriverStatus = newDriverStatus;
+                LogMessage("[Tick] Re-entrancy blocked", Level.Info);
+                timer1.Start();
+                return;
             }
+            _isStatusTickRunning = true;
 
-            // 🔍 Network 상태
-            bool netOn = chromeDriverManager.IsInternetAvailable();
-            string newNetStatus = netOn ? "ON" : "OFF";
-            lblInternetStatus.Text = $"Network {newNetStatus}";
-            lblInternetStatus.BackColor = netOn ? onColor : offColor;
-            lblInternetStatus.ForeColor = Color.White;
-            if (_lastInternetStatus != newNetStatus)
+            try
             {
-                LogMessage($"[Status Change] Network {newNetStatus}", netOn ? Level.Info : Level.Error);
-                _lastInternetStatus = newNetStatus;
-            }
-
-            // 🔍 팝업 감지 상태 추가
-            bool popupFeatureOn = _appSettings.DisablePopup;
-            string newPopupStatus = popupFeatureOn ? "ON" : "OFF";
-            lblPopupStatus.Text = $"Detect {newPopupStatus} ({_popupCount})";
-            lblPopupStatus.BackColor = popupFeatureOn ? onColor : offColor;
-            lblPopupStatus.ForeColor = whiteColor;
-
-            if (_lastPopupStatus != newPopupStatus)
-            {
-                LogMessage($"[Status Change] Popup {newPopupStatus}", Level.Info);
-                _lastPopupStatus = newPopupStatus;
-            }
-
-            if (driverOn && popupFeatureOn)
-            {
-                try
+                // 실제 틱 간격 로깅(확인용)
+                var now = DateTime.UtcNow;
+                if (_lastTickAtUtc != DateTime.MinValue)
                 {
-                    bool popupHandled = await Util_Option.HandleWindows(_driver, mainHandle, _config);
+                    var deltaMs = (now - _lastTickAtUtc).TotalMilliseconds;
+                    LogMessage($"[Tick Δ] {deltaMs:F0} ms", Level.Info);
+                }
+                _lastTickAtUtc = now;
 
-                    // ✅ 호출 후 메인 핸들 최신값으로 갱신 (안전)
-                    mainHandle = _driver.CurrentWindowHandle;
+                Color onColor = ColorTranslator.FromHtml("#4CAF50"); // Green 500
+                Color offColor = ColorTranslator.FromHtml("#F44336"); // Red 500
+                Color whiteColor = Color.White;
 
-                    if (popupHandled)
+                // 🔍 Driver 상태
+                bool driverOn = (_driver != null && chromeDriverManager.IsDriverAlive(_driver));
+                string newDriverStatus = driverOn ? "ON" : "OFF";
+                lblDriverStatus.Text = $"Driver {newDriverStatus}";
+                lblDriverStatus.BackColor = driverOn ? onColor : offColor;
+                lblDriverStatus.ForeColor = Color.White;
+                if (_lastDriverStatus != newDriverStatus)
+                {
+                    LogMessage($"[Status Change] Driver {newDriverStatus}", driverOn ? Level.Info : Level.Error);
+                    _lastDriverStatus = newDriverStatus;
+                }
+
+                // 🔍 Network 상태
+                bool netOn = chromeDriverManager.IsInternetAvailable();
+                string newNetStatus = netOn ? "ON" : "OFF";
+                lblInternetStatus.Text = $"Network {newNetStatus}";
+                lblInternetStatus.BackColor = netOn ? onColor : offColor;
+                lblInternetStatus.ForeColor = Color.White;
+                if (_lastInternetStatus != newNetStatus)
+                {
+                    LogMessage($"[Status Change] Network {newNetStatus}", netOn ? Level.Info : Level.Error);
+                    _lastInternetStatus = newNetStatus;
+                }
+
+                // 🔍 팝업 감지 상태 추가
+                bool popupFeatureOn = _appSettings.DisablePopup; // 현재 로직 유지
+                string newPopupStatus = popupFeatureOn ? "ON" : "OFF";
+                lblPopupStatus.Text = $"Detect {newPopupStatus} ({_popupCount})";
+                lblPopupStatus.BackColor = popupFeatureOn ? onColor : offColor;
+                lblPopupStatus.ForeColor = whiteColor;
+
+                if (_lastPopupStatus != newPopupStatus)
+                {
+                    LogMessage($"[Status Change] Popup Detect {newPopupStatus}", Level.Info);
+                    _lastPopupStatus = newPopupStatus;
+                }
+
+                // 팝업 감지/모달 처리
+                if (driverOn && popupFeatureOn)
+                {
+                    try
                     {
-                        _popupCount++;
-                        LogMessage($"팝업 처리 횟수 : {_popupCount}회", Level.Info);
+                        bool popupHandled = await Util_Option.HandleWindows(_driver, mainHandle, _config);
+
+                        // 메인 핸들 최신화(예외 무시)
+                        try { mainHandle = _driver.CurrentWindowHandle; }
+                        catch (WebDriverException ex)
+                        {
+                            LogMessage($"Update mainHandle skipped: {ex.Message}", Level.Info);
+                        }
+
+                        if (popupHandled)
+                        {
+                            _popupCount++;
+                            LogMessage($"팝업 처리 횟수 : {_popupCount}회", Level.Info);
+                        }
+                    }
+                    catch (NoSuchWindowException ex)
+                    {
+                        LogMessage($"FATAL: 메인 창 복귀 실패: {ex.Message}", Level.Critical);
+                        // UI 표시만 OFF로
+                        driverOn = false;
+                        return; // finally에서 가드/타이머 복구됨
+                    }
+                    catch (WebDriverException ex)
+                    {
+                        LogMessage($"HandleWindows 중 WebDriver 오류: {ex.Message}", Level.Error);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogException(ex, Level.Error);
                     }
                 }
-                catch (NoSuchWindowException ex)
-                {
-                    // ✅ 메인 창 복귀 실패는 치명적
-                    LogMessage($"FATAL: 메인 창 복귀 실패: {ex.Message}", Level.Critical);
-                    driverOn = false;
-                    return;
-                }
-                catch (WebDriverException ex)
-                {
-                    LogMessage($"HandleWindows 중 WebDriver 오류: {ex.Message}", Level.Error);
-                }
-                catch (Exception ex)
-                {
-                    LogException(ex, Level.Error);
-                }
+            }
+            finally
+            {
+                _isStatusTickRunning = false;
+                timer1.Start(); // 밀린 틱 방지: 여기서 다시 시작
             }
         }
 

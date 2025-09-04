@@ -11,6 +11,10 @@ namespace GateHelper
 {
     public class ChromeDriverManager // ChromeDriver에 관련된 메서드
     {
+        private int _aliveConsecutiveFails = 0;          // 연속 실패 횟수
+        private const int AliveFailThreshold = 2;        // 이 횟수 이상 연속 실패해야 OFF로 간주
+        private DateTime _lastAliveSuccessUtc = DateTime.MinValue;
+
         // ChromeDriver 초기화 메소드
         public static IWebDriver InitializeDriver(Config config)
         {
@@ -71,25 +75,73 @@ namespace GateHelper
             options.AddArgument("--start-maximized");
             options.AddArgument("--disable-notifications");
 
-            // 사용자 데이터 디렉토리 및 프로필 제거 (지금 필요 없음)
-            // options.AddArgument($"--user-data-dir={userDataDir}");
-            // options.AddArgument("--profile-directory=Profile 1");
-
-            // Add the remote debugging port argument
+            // 디버깅 포트
             options.AddArgument("--remote-debugging-port=9222");
 
-            // Optional: If Chrome is crashing, disable sandbox mode
+            // 크래시 방지 옵션
             options.AddArgument("--no-sandbox");
             options.AddArgument("--disable-dev-shm-usage");
 
+            // JS alert 자동 닫힘 방지: 닫지 말고 예외만 던지게
+            options.UnhandledPromptBehavior = UnhandledPromptBehavior.Ignore;
+
             return options;
-        } 
+        }
 
         // Driver 체크용
         public bool IsDriverAlive(IWebDriver _driver)
         {
-            try { var title = _driver.Title; return true; }
-            catch { return false; }
+            if (_driver == null) return false;
+
+            // // 1) 알림(Alert) 존재 시 '살아있음'으로 간주 (확인/닫기 누르지 않음)
+            try
+            {
+                var _ = _driver.SwitchTo().Alert();
+                ResetAliveFails();
+                return true;
+            }
+            catch (NoAlertPresentException)
+            {
+                // 알림 없음 → 다음 체크 진행
+            }
+            catch (WebDriverException)
+            {
+                // 드문 환경에서 Alert 조회가 WebDriverException을 던질 수 있음 → 다음 체크 진행
+            }
+
+            // // 2) 윈도우 핸들 조회로 세션 생존 확인
+            try
+            {
+                var handles = _driver.WindowHandles;
+                if (handles != null && handles.Count > 0)
+                {
+                    ResetAliveFails();
+                    return true;
+                }
+            }
+            catch (WebDriverException)
+            {
+                // 일시 예외 가능 → 연속 실패 카운트로 완화 처리
+            }
+
+            // // 3) 여기까지 왔으면 이번 회차는 '실패 1회'로 카운트
+            _aliveConsecutiveFails++;
+
+            // // 연속 실패가 임계치 미만이면 '일시 오류'로 보고 여전히 Alive 취급
+            if (_aliveConsecutiveFails < AliveFailThreshold)
+            {
+                return true;
+            }
+
+            // // 연속으로 충분히 실패했을 때만 OFF 판정
+            return false;
+        }
+
+        // // Alive 성공 시 카운터 리셋
+        private void ResetAliveFails()
+        {
+            _aliveConsecutiveFails = 0;
+            _lastAliveSuccessUtc = DateTime.UtcNow;
         }
 
         // Network 체크용

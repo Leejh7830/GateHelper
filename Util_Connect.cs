@@ -57,7 +57,7 @@ namespace GateHelper
                             EnterCredentials(driver, config.GateID, config.GatePW);
 
                             Util.SwitchToMainHandle(driver, mainHandle);
-                            LogMessage("접속 후 MainHandle: " + mainHandle, Level.Info);
+                            LogMessage("접속 완료, 접속 후 MainHandle: " + mainHandle, Level.Info);
 
                             // 접속 이력 추가
                             Util_ServerList.AddServerToListView(listView, serverName, DateTime.Now, isDuplicateCheck);
