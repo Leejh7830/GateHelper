@@ -45,7 +45,7 @@ namespace GateHelper
         private string _lastInternetStatus = "";
         private string _lastPopupStatus = "";
         private bool _isStatusTickRunning = false; // 타이머 겹침 방지, 진행중인지
-        private DateTime _lastTickAtUtc = DateTime.MinValue; // 타이머 겹침 방지
+        private DateTime _lastTickAtUtc = DateTime.MinValue; // 타이머 겹침 방지, 시간체크용
 
         // Control 관리용
         public static readonly Size FormOriginalSize = new Size(400, 700);
@@ -95,6 +95,7 @@ namespace GateHelper
             timer1.Start();
 
             _appSettings = new AppSettings(); // 옵션 변수
+            Util_Option.SetPopupGraceMs(_appSettings.PopupGraceMs);
 
             LogMessage("프로그램 초기화 완료", Level.Info);
         }
@@ -473,9 +474,8 @@ namespace GateHelper
             {
                 _appSettings = optionForm.AppSettings; // 새로운 값 업데이트
                 bool newIsDarkMode = optionForm.IsDarkModeEnabled;
-
                 _themeManager.SetTheme(newIsDarkMode, PicBox_Setting, ObjectListView1);
-
+                Util_Option.SetPopupGraceMs(_appSettings.PopupGraceMs);
 
                 if (oldTestMode != _appSettings.TestMode)
                 {

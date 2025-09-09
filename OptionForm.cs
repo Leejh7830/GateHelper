@@ -48,6 +48,8 @@ namespace GateHelper
             Focus();
         }
 
+
+
         private void BtnOK_Click(object sender, EventArgs e)
         {
             // ⭐ UI의 변경사항을 AppSettings 객체에 다시 저장
@@ -59,6 +61,11 @@ namespace GateHelper
 
             this.DialogResult = DialogResult.OK;
             this.Close();
+        }
+
+        private void ComboBoxGraceMs1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }
