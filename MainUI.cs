@@ -119,7 +119,7 @@ namespace GateHelper
                 if (_lastTickAtUtc != DateTime.MinValue)
                 {
                     var deltaMs = (now - _lastTickAtUtc).TotalMilliseconds;
-                    LogMessage($"[Tick Δ] {deltaMs:F0} ms", Level.Info);
+                    ///////////////////   LogMessage($"[Tick Δ] {deltaMs:F0} ms", Level.Info);
                 }
                 _lastTickAtUtc = now;
 
@@ -212,7 +212,6 @@ namespace GateHelper
 
         protected async void BtnStart1_Click(object sender, EventArgs e)
         {
-
             LogMessage("BtnStart1 Click", Level.Info);
             try
             {
@@ -246,10 +245,11 @@ namespace GateHelper
 
         private void BtnGateOneLogin1_Click(object sender, EventArgs e)
         {
+            LogMessage("BtnGateOneLogin1_Click", Level.Info);
+
             if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
 
-            LogMessage("BtnGateOneLogin1_Click", Level.Info);
             Util_Connect.AutoConnect_2_Step(_driver, _config, mainHandle);
             // Util_Connect.AutoConnect_3_Step(_driver);
             
@@ -257,10 +257,11 @@ namespace GateHelper
 
         private async void BtnSearch1_Click(object sender, EventArgs e)
         {
+            LogMessage("BtnSearch1 Click", Level.Info);
+
             if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
 
-            LogMessage("BtnSearch1 Click", Level.Info);
             Util.SwitchToMainHandle(_driver, mainHandle);
 
             try

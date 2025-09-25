@@ -1,13 +1,15 @@
-﻿v1.0.0 (25.03.03)
+﻿v1.0.0 (25.03.03~)
 - Initial Release
 
 
 [기능추가예정]
 
-ListView 메모 기능
 오류(알람) UI 창
 옵션 상태 저장하기 (프로그램을 껐다가 다시 켜도 기존 옵션 상태 유지)
 ListView 고정 옵션 추가 (사용자가 원하는 리스트를 고정하여 항상 상단에 표시)
+Grace Time 옵션에서 변경하기 (현재 UI만있고 값 저장안됨)
+Tick Time 로그에 남기기 (옵션으로 On/Off)
+Listview 컨텍스트 메뉴 색상 반전
 
 
 
@@ -21,7 +23,8 @@ ListView 고정 옵션 추가 (사용자가 원하는 리스트를 고정하여 
 25.03.20 ListView(서버목록) 기능
 25.03.24 FlowLayoutList(이미지 보기/저장) 기능
 25.03.27 Driver/Network 상태 표시, Search Server 기능
-25.03.28 ListView 클릭 접속 기능(Opt)
+25.03.28 ListView 클릭 접속 기능(Option)
 25.08.18 Popup/Modal 해제 기능 (30분마다 Gateone 비밀번호 알림창)
 25.08.19 ListView 중복 제거 기능(Opt)
 25.08.20 옵션전용폼 추가 및 옵션변수 이동
+25.09.04 ListView 메모 기능

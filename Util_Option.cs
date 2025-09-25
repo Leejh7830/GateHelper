@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static GateHelper.LogManager;
@@ -26,7 +27,7 @@ namespace GateHelper
 
         // 그레이스 타임 (ms), 첫감지후 알림간격
         //private const int GRACE_MS = 5500;
-        private static int POPUP_GRACE_MS = 5500; // 기본값
+        private static int POPUP_GRACE_MS = 10500; // 기본값
 
         /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -260,7 +261,7 @@ namespace GateHelper
                 return false;
             }
 
-            // 비밀번호 입력
+            // 비밀번호 입력 / 정상 True, 비정상 False 반환
             if (!Util_Element.SendKeysToElement(driver, "//*[@id='lock_passwd']", config.EnportalPW))
             {
                 return false;
@@ -269,6 +270,7 @@ namespace GateHelper
             // 비밀번호 입력창에 직접 엔터 키를 입력
             try
             {
+                Thread.Sleep(1000);
                 var passwordElement = driver.FindElement(By.XPath("//*[@id='lock_passwd']"));
                 passwordElement.SendKeys(OpenQA.Selenium.Keys.Enter);
                 // LogMessage("비밀번호 입력 후 엔터 키 입력 성공.", Level.Info);

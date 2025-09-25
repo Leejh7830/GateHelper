@@ -50,7 +50,7 @@ namespace GateHelper
         {
             try
             {
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(7));
                 var element = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath(xpath)));
 
                 element.Clear();
@@ -59,7 +59,7 @@ namespace GateHelper
             }
             catch (WebDriverTimeoutException ex)
             {
-                // 5초 안에 요소를 찾지 못했거나 보이지 않는 경우
+                // 설정시간안에 요소를 찾지 못했거나 보이지 않는 경우
                 LogException(ex, Level.Error, $"키 입력 오류: XPath '{xpath}' - 요소를 찾지 못했습니다.");
                 return false;
             }
