@@ -65,7 +65,9 @@ namespace GateHelper
 
         private void ComboBoxGraceMs1_SelectedIndexChanged(object sender, EventArgs e)
         {
-
+            string selectedItemString = ComboBoxGraceMs1.SelectedItem?.ToString();
+            int resultInMs = (int.Parse(selectedItemString)) * 1000;
+            AppSettings.PopupGraceMs = resultInMs;
         }
     }
 }

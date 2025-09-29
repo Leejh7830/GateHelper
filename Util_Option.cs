@@ -26,8 +26,7 @@ namespace GateHelper
         private static bool _alertNotified = false;
 
         // 그레이스 타임 (ms), 첫감지후 알림간격
-        //private const int GRACE_MS = 5500;
-        private static int POPUP_GRACE_MS = 10500; // 기본값
+        private static AppSettings _appSettings = new AppSettings();
 
         /////////////////////////////////////////////////////////////////////////////////////////
 
@@ -58,19 +57,19 @@ namespace GateHelper
                         else
                         {
                             var info = _seenWindows[h];
-                            if (!info.Notified && (now - info.FirstSeenUtc).TotalMilliseconds >= POPUP_GRACE_MS)
+                            if (!info.Notified && (now - info.FirstSeenUtc).TotalMilliseconds >= _appSettings.PopupGraceMs)
                             {
                                 try
                                 {
-                                    var sec = ToPrettySeconds(POPUP_GRACE_MS);
+                                    var sec = ToPrettySeconds(_appSettings.PopupGraceMs);
                                     MessageBox.Show($"팝업창이 {sec}초 이상 떠 있습니다.",
                                                     "알림", MessageBoxButtons.OK, MessageBoxIcon.Information,
                                                     MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
-                                    LogMessage($"MessageBox shown: popup alive >= {POPUP_GRACE_MS} ms ({sec}s)", Level.Info);
+                                    LogMessage($"MessageBox shown: popup alive >= {_appSettings.PopupGraceMs} ms ({sec}s)", Level.Info);
                                 }
                                 catch (Exception ex)
                                 {
-                                    LogMessage($"MessageBox error (popup >= {POPUP_GRACE_MS} ms): {ex.Message}", Level.Error);
+                                    LogMessage($"MessageBox error (popup >= {_appSettings.PopupGraceMs} ms): {ex.Message}", Level.Error);
                                 }
                                 info.Notified = true;
                             }
@@ -146,7 +145,7 @@ namespace GateHelper
                     }
                     else
                     {
-                        if (!_alertNotified && (now - _alertFirstSeenUtc.Value).TotalMilliseconds >= POPUP_GRACE_MS)
+                        if (!_alertNotified && (now - _alertFirstSeenUtc.Value).TotalMilliseconds >= _appSettings.PopupGraceMs)
                         {
                             try
                             {
@@ -308,8 +307,8 @@ namespace GateHelper
 
         public static void SetPopupGraceMs(int ms)
         {
-            POPUP_GRACE_MS = ms < 0 ? 0 : ms;
-            LogMessage($"Popup grace set: {POPUP_GRACE_MS} ms", Level.Info);
+            _appSettings.PopupGraceMs = ms < 0 ? 0 : ms;
+            LogMessage($"Popup grace set: {_appSettings.PopupGraceMs} ms", Level.Info);
         }
 
         private static string ToPrettySeconds(int ms)

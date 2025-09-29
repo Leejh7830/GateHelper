@@ -13,7 +13,7 @@ namespace GateHelper
         public bool DisablePopup { get; set; }
         public bool TestMode { get; set; }
         public bool ServerClickConnect { get; set; }
-        public int PopupGraceMs { get; set; } = 5000;
+        public int PopupGraceMs { get; set; }
         
 
         public AppSettings() // 옵션 변수들
@@ -23,6 +23,7 @@ namespace GateHelper
             DisablePopup = false;
             TestMode = false;
             ServerClickConnect = true;
+            PopupGraceMs = 5000;
         }
     }
 }
