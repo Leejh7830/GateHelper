@@ -24,7 +24,8 @@ Listview 컨텍스트 메뉴 색상 반전
 25.03.24 FlowLayoutList(이미지 보기/저장) 기능
 25.03.27 Driver/Network 상태 표시, Search Server 기능
 25.03.28 ListView 클릭 접속 기능(Option)
-25.08.18 Popup/Modal 해제 기능 (30분마다 Gateone 비밀번호 알림창)
+25.08.18 OP) Popup/Modal 해제 기능 (30분마다 Gateone 비밀번호 알림창)
 25.08.19 ListView 중복 제거 기능(Opt)
-25.08.20 옵션전용폼 추가 및 옵션변수 이동
+25.08.20 OP) 옵션전용폼 추가 및 옵션변수 이동
 25.09.04 ListView 메모 기능
+25.09.25 OP) GraceTime 기능 (해당시간마다 팝업창 체크, 기본 5초 인터넷환경 고려)

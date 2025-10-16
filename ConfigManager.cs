@@ -34,16 +34,24 @@ namespace GateHelper
                     string defaultAppSettings = $@"<?xml version=""1.0"" encoding=""utf-8"" ?>
 <configuration>
   <appSettings>
+    <!-- GateOne 접속 URL -->
     <add key=""Url"" value="""" />
+
+    <!-- 자동로그인 및 팝업제어용 EnPortal ID/PW -->
     <add key=""EnportalID"" value="""" />
     <add key=""EnportalPW"" value="""" />
+    
+    <!-- VM접속용 ID/PW -->
     <add key=""GateID"" value="""" />
     <add key=""GatePW"" value="""" />
-    <add key=""ChromePath"" value=""C:\Program Files\Google\Chrome\Application\chrome.exe"" />
+        
+    <!-- Favorite은 해당 값으로 검색 -->
     <add key=""Favorite1"" value=""Fav1"" />
     <add key=""Favorite2"" value=""Fav2"" />
     <add key=""Favorite3"" value=""Fav3"" />
-    <!-- Favorite 으로 검색합니다. -->
+
+    <!-- Chrome 설치경로 -->
+    <add key=""ChromePath"" value=""C:\Program Files\Google\Chrome\Application\chrome.exe"" />
   </appSettings>
 </configuration>";
 

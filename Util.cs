@@ -33,7 +33,7 @@ namespace GateHelper
         public static void OpenReleaseNotes()
         {
             string metaFolderPath = CreateMetaFolderAndGetPath();
-            string releaseNotesPath = Path.Combine(metaFolderPath, "ReleaseNotes.txt");
+            string releaseNotesPath = Path.Combine(Application.StartupPath, "ReleaseNotes.txt");
 
             try
             {
