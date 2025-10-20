@@ -398,9 +398,32 @@ namespace GateHelper
         }
 
 
-        private void BtnFav1_Click(object sender, EventArgs e)
+        private async void BtnFav1_Click(object sender, EventArgs e)
         {
-            Util.ClickFavBtn(_driver, _config, 1, () => BtnLoadServers1_Click(null, EventArgs.Empty), chromeDriverManager);
+            LogMessage("BtnFav1 Click", Level.Info);
+
+            if (!chromeDriverManager.IsDriverReady(_driver))
+                return;
+
+            // 1) 검색 수행하고 서버이름을 받음
+            string serverName = Util.ClickFavBtnAndGetServerName(_driver, _config, 1, chromeDriverManager);
+
+            // 2) UI(콤보박스) 갱신: 기존 동작 유지(비동기 로드)
+            await LoadServersIntoComboBoxAsync();
+
+            // 3) 옵션이 켜져 있으면 바로 연결
+            if (!string.IsNullOrEmpty(serverName) && _appSettings.FavOneClickConnect)
+            {
+                try
+                {
+                    Util_Connect.ConnectToServer(_driver, mainHandle, _config, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
+                }
+                catch (Exception ex)
+                {
+                    LogException(ex, Level.Error);
+                    MessageBox.Show("즐겨찾기 바로접속 중 오류가 발생했습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
         private void BtnFav2_Click(object sender, EventArgs e)
@@ -615,13 +638,6 @@ namespace GateHelper
 
         
 
-
-
-
-
-        
-
-
         private void SearchTxt1_KeyDown(object sender, KeyEventArgs e)
         {
             if (e.KeyCode == System.Windows.Forms.Keys.Enter)
@@ -732,5 +748,7 @@ namespace GateHelper
 
             Util_ServerList.SaveServerDataToFile(ObjectListView1);
         }
+
+        
     }
 }

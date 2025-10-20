@@ -14,7 +14,9 @@ namespace GateHelper
         public bool TestMode { get; set; }
         public bool ServerClickConnect { get; set; }
         public int PopupGraceMs { get; set; }
-        
+
+        // 새 옵션: 즐겨찾기 클릭 시 바로 접속
+        public bool FavOneClickConnect { get; set; }
 
         public AppSettings() // 옵션 변수들
         {
@@ -24,6 +26,7 @@ namespace GateHelper
             TestMode = false;
             ServerClickConnect = true;
             PopupGraceMs = 5000;
+            FavOneClickConnect = false;
         }
     }
 }

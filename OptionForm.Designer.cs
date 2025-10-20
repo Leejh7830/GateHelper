@@ -128,7 +128,6 @@ namespace GateHelper
             // 
             this.CBox_FavOneClickConnect.AutoSize = true;
             this.CBox_FavOneClickConnect.Depth = 0;
-            this.CBox_FavOneClickConnect.Enabled = false;
             this.CBox_FavOneClickConnect.Location = new System.Drawing.Point(17, 219);
             this.CBox_FavOneClickConnect.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_FavOneClickConnect.MouseLocation = new System.Drawing.Point(-1, -1);

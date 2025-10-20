@@ -138,53 +138,7 @@ Listview 컨텍스트 메뉴 색상 반전
             }
         }
 
-        public static void ClickFavBtn(IWebDriver _driver, Config config, int favIndex, Action serverListLoadAction, ChromeDriverManager chromeDriverManager)
-        {
-            if (!chromeDriverManager.IsDriverReady(_driver))
-                return;
-
-            try
-            {
-                string favKey = $"Fav{favIndex}";
-                LogMessage($"BtnFav{favIndex} Click", Level.Info);
-                string serverName, serverIP;
-                ValidateServerInfo(config.GetType().GetProperty(favKey).GetValue(config).ToString(), out serverName, out serverIP);
-
-                if (!string.IsNullOrEmpty(serverIP))
-                {
-                    // IP 주소인 경우
-                    SendKeysToElement(_driver, "//*[@id='id_IPADDR']", serverIP);
-                    SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", "");
-                }
-                else if (!string.IsNullOrEmpty(serverName))
-                {
-                    // 서버 이름인 경우
-                    SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", serverName);
-                    SendKeysToElement(_driver, "//*[@id='id_IPADDR']", "");
-                }
-
-                ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
-
-                WaitForElementLoadByXPath(_driver, "//*[@id=\'seltable\']/tbody[1]/tr/td[4]", 10);
-
-                serverListLoadAction?.Invoke(); // 서버리스트 로드
-            }
-            catch (ArgumentException ex)
-            {
-                LogException(ex, Level.Error);
-                MessageBox.Show(ex.Message, "알림");
-            }
-            catch (NoSuchElementException ex)
-            {
-                LogException(ex, Level.Error);
-                MessageBox.Show("요소를 찾을 수 없습니다.", "오류");
-            }
-            catch (Exception ex)
-            {
-                LogException(ex, Level.Critical);
-                MessageBox.Show("예상치 못한 오류가 발생했습니다.", "오류");
-            }
-        }
+        
 
 
         public static void InputKeys(string keys, int intervalMilliseconds = 1000)
@@ -275,9 +229,99 @@ Listview 컨텍스트 메뉴 색상 반전
             }
         }
 
-        
+        // 새로운 FAV : 검색 동작 수행하고 서버 이름(또는 빈 문자열)을 반환
+        public static string ClickFavBtnAndGetServerName(IWebDriver _driver, Config config, int favIndex, ChromeDriverManager chromeDriverManager)
+        {
+            if (!chromeDriverManager.IsDriverReady(_driver))
+                return string.Empty;
 
-        
+            try
+            {
+                string favKey = $"Fav{favIndex}";
+                LogMessage($"BtnFav{favIndex} Click (search-only)", Level.Info);
+
+                string favValue = config.GetType().GetProperty(favKey).GetValue(config)?.ToString() ?? string.Empty;
+                string serverName, serverIP;
+                ValidateServerInfo(favValue, out serverName, out serverIP);
+
+                if (!string.IsNullOrEmpty(serverIP))
+                {
+                    // IP 주소인 경우
+                    SendKeysToElement(_driver, "//*[@id='id_IPADDR']", serverIP);
+                    SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", "");
+                }
+                else if (!string.IsNullOrEmpty(serverName))
+                {
+                    // 서버 이름인 경우
+                    SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", serverName);
+                    SendKeysToElement(_driver, "//*[@id='id_IPADDR']", "");
+                }
+
+                ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
+
+                // 페이지상에 결과가 로드될 때까지 대기
+                WaitForElementLoadByXPath(_driver, "//*[@id='seltable']/tbody[1]/tr/td[4]", 10);
+
+                // 반환: 서버 이름(연결 시 사용)
+                return serverName;
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error);
+                return string.Empty;
+            }
+        }
+
+        // 이전 FAV
+        public static void ClickFavBtn(IWebDriver _driver, Config config, int favIndex, Action serverListLoadAction, ChromeDriverManager chromeDriverManager)
+        {
+            if (!chromeDriverManager.IsDriverReady(_driver))
+                return;
+
+            try
+            {
+                string favKey = $"Fav{favIndex}";
+                LogMessage($"BtnFav{favIndex} Click", Level.Info);
+                string serverName, serverIP;
+                ValidateServerInfo(config.GetType().GetProperty(favKey).GetValue(config).ToString(), out serverName, out serverIP);
+
+                if (!string.IsNullOrEmpty(serverIP))
+                {
+                    // IP 주소인 경우
+                    SendKeysToElement(_driver, "//*[@id='id_IPADDR']", serverIP);
+                    SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", "");
+                }
+                else if (!string.IsNullOrEmpty(serverName))
+                {
+                    // 서버 이름인 경우
+                    SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", serverName);
+                    SendKeysToElement(_driver, "//*[@id='id_IPADDR']", "");
+                }
+
+                ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
+
+                WaitForElementLoadByXPath(_driver, "//*[@id=\'seltable\']/tbody[1]/tr/td[4]", 10);
+
+                serverListLoadAction?.Invoke(); // 서버리스트 로드
+            }
+            catch (ArgumentException ex)
+            {
+                LogException(ex, Level.Error);
+                MessageBox.Show(ex.Message, "알림");
+            }
+            catch (NoSuchElementException ex)
+            {
+                LogException(ex, Level.Error);
+                MessageBox.Show("요소를 찾을 수 없습니다.", "오류");
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Critical);
+                MessageBox.Show("예상치 못한 오류가 발생했습니다.", "오류");
+            }
+        }
+
+
 
 
 
