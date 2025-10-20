@@ -48,7 +48,7 @@ namespace GateHelper
         private DateTime _lastTickAtUtc = DateTime.MinValue; // 타이머 겹침 방지, 시간체크용
 
         // Control 관리용
-        public static readonly Size FormOriginalSize = new Size(400, 700);
+        public static readonly Size FormOriginalSize = new Size(405, 700);
         public static readonly Size FormExtendedSize = new Size(550, 700);
         public static readonly Size TestFormExtendedSize = new Size(1100, 700);
         private Size groupConnect1OriginalSize;

@@ -37,6 +37,9 @@ namespace GateHelper
             this.BtnSearch1 = new MaterialSkin.Controls.MaterialButton();
             this.SearchTxt1 = new MaterialSkin.Controls.MaterialTextBox2();
             this.GroupConnect1 = new System.Windows.Forms.GroupBox();
+            this.GroupPreset1 = new System.Windows.Forms.GroupBox();
+            this.BtnPreset1 = new MaterialSkin.Controls.MaterialButton();
+            this.BtnPreset2 = new MaterialSkin.Controls.MaterialButton();
             this.BtnLoadServers1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnConnect1 = new MaterialSkin.Controls.MaterialButton();
             this.ComboBoxServerList1 = new MaterialSkin.Controls.MaterialComboBox();
@@ -86,6 +89,7 @@ namespace GateHelper
             this.BtnOption1 = new MaterialSkin.Controls.MaterialButton();
             this.lblPopupStatus = new System.Windows.Forms.Label();
             this.GroupConnect1.SuspendLayout();
+            this.GroupPreset1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
             this.TabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
@@ -195,6 +199,7 @@ namespace GateHelper
             // 
             // GroupConnect1
             // 
+            this.GroupConnect1.Controls.Add(this.GroupPreset1);
             this.GroupConnect1.Controls.Add(this.BtnLoadServers1);
             this.GroupConnect1.Controls.Add(this.BtnConnect1);
             this.GroupConnect1.Controls.Add(this.ComboBoxServerList1);
@@ -203,10 +208,61 @@ namespace GateHelper
             this.GroupConnect1.Controls.Add(this.SearchTxt1);
             this.GroupConnect1.Location = new System.Drawing.Point(3, 3);
             this.GroupConnect1.Name = "GroupConnect1";
-            this.GroupConnect1.Size = new System.Drawing.Size(388, 303);
+            this.GroupConnect1.Size = new System.Drawing.Size(388, 345);
             this.GroupConnect1.TabIndex = 7;
             this.GroupConnect1.TabStop = false;
             this.GroupConnect1.Text = "Server Info";
+            // 
+            // GroupPreset1
+            // 
+            this.GroupPreset1.Controls.Add(this.BtnPreset1);
+            this.GroupPreset1.Controls.Add(this.BtnPreset2);
+            this.GroupPreset1.Location = new System.Drawing.Point(13, 258);
+            this.GroupPreset1.Name = "GroupPreset1";
+            this.GroupPreset1.Size = new System.Drawing.Size(357, 79);
+            this.GroupPreset1.TabIndex = 100;
+            this.GroupPreset1.TabStop = false;
+            this.GroupPreset1.Text = "ID/PW Preset";
+            // 
+            // BtnPreset1
+            // 
+            this.BtnPreset1.AutoSize = false;
+            this.BtnPreset1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnPreset1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnPreset1.Depth = 0;
+            this.BtnPreset1.HighEmphasis = true;
+            this.BtnPreset1.Icon = null;
+            this.BtnPreset1.Location = new System.Drawing.Point(19, 23);
+            this.BtnPreset1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnPreset1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnPreset1.Name = "BtnPreset1";
+            this.BtnPreset1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnPreset1.Size = new System.Drawing.Size(100, 40);
+            this.BtnPreset1.TabIndex = 14;
+            this.BtnPreset1.Text = "Preset1";
+            this.BtnPreset1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnPreset1.UseAccentColor = false;
+            this.BtnPreset1.UseVisualStyleBackColor = true;
+            // 
+            // BtnPreset2
+            // 
+            this.BtnPreset2.AutoSize = false;
+            this.BtnPreset2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnPreset2.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnPreset2.Depth = 0;
+            this.BtnPreset2.HighEmphasis = true;
+            this.BtnPreset2.Icon = null;
+            this.BtnPreset2.Location = new System.Drawing.Point(127, 23);
+            this.BtnPreset2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnPreset2.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnPreset2.Name = "BtnPreset2";
+            this.BtnPreset2.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnPreset2.Size = new System.Drawing.Size(100, 40);
+            this.BtnPreset2.TabIndex = 15;
+            this.BtnPreset2.Text = "Preset2";
+            this.BtnPreset2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnPreset2.UseAccentColor = false;
+            this.BtnPreset2.UseVisualStyleBackColor = true;
             // 
             // BtnLoadServers1
             // 
@@ -278,7 +334,7 @@ namespace GateHelper
             this.GroupFav1.Controls.Add(this.BtnFav1);
             this.GroupFav1.Controls.Add(this.BtnFav2);
             this.GroupFav1.Controls.Add(this.BtnFav3);
-            this.GroupFav1.Location = new System.Drawing.Point(13, 179);
+            this.GroupFav1.Location = new System.Drawing.Point(13, 177);
             this.GroupFav1.Name = "GroupFav1";
             this.GroupFav1.Size = new System.Drawing.Size(357, 80);
             this.GroupFav1.TabIndex = 19;
@@ -293,7 +349,7 @@ namespace GateHelper
             this.BtnFav1.Depth = 0;
             this.BtnFav1.HighEmphasis = true;
             this.BtnFav1.Icon = null;
-            this.BtnFav1.Location = new System.Drawing.Point(7, 23);
+            this.BtnFav1.Location = new System.Drawing.Point(19, 23);
             this.BtnFav1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnFav1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnFav1.Name = "BtnFav1";
@@ -314,7 +370,7 @@ namespace GateHelper
             this.BtnFav2.Depth = 0;
             this.BtnFav2.HighEmphasis = true;
             this.BtnFav2.Icon = null;
-            this.BtnFav2.Location = new System.Drawing.Point(115, 23);
+            this.BtnFav2.Location = new System.Drawing.Point(127, 23);
             this.BtnFav2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnFav2.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnFav2.Name = "BtnFav2";
@@ -335,7 +391,7 @@ namespace GateHelper
             this.BtnFav3.Depth = 0;
             this.BtnFav3.HighEmphasis = true;
             this.BtnFav3.Icon = null;
-            this.BtnFav3.Location = new System.Drawing.Point(223, 23);
+            this.BtnFav3.Location = new System.Drawing.Point(235, 23);
             this.BtnFav3.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnFav3.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnFav3.Name = "BtnFav3";
@@ -895,6 +951,7 @@ namespace GateHelper
             this.Text = "GATE HELPER";
             this.Load += new System.EventHandler(this.MainUI_Load);
             this.GroupConnect1.ResumeLayout(false);
+            this.GroupPreset1.ResumeLayout(false);
             this.GroupFav1.ResumeLayout(false);
             this.TabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
@@ -967,6 +1024,9 @@ namespace GateHelper
         private BrightIdeasSoftware.OLVColumn IsFavorite;
         private BrightIdeasSoftware.OLVColumn No;
         private BrightIdeasSoftware.OLVColumn ServerName;
+        private System.Windows.Forms.GroupBox GroupPreset1;
+        private MaterialSkin.Controls.MaterialButton BtnPreset1;
+        private MaterialSkin.Controls.MaterialButton BtnPreset2;
     }
 }
 

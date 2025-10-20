@@ -1,16 +1,13 @@
 ﻿using OpenQA.Selenium;
-using System.IO.Compression;
-using System.Text.Json;
-using System.Text;
 using System;
+using System.Diagnostics;
 using System.IO;
-using System.Windows.Forms;
-using System.Threading;
+using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Windows.Forms;
 using static GateHelper.LogManager;
 using static GateHelper.Util_Element;
-using System.Diagnostics;
-using System.Linq;
 
 namespace GateHelper
 {
@@ -76,9 +73,9 @@ namespace GateHelper
 
                 // 제공된 릴리즈 노트 내용을 여기서 직접 작성
                 string content =
-@"v2.0.0
+@"v2.0.2
 - Initial Release
-- leejh7830@lgespartner.com
+- Leejh7830@lgespartner.com
 
 
 [기능추가예정]
@@ -86,14 +83,15 @@ namespace GateHelper
 오류(알람) UI 창
 옵션 상태 저장하기 (프로그램을 껐다가 다시 켜도 기존 옵션 상태 유지)
 ListView 고정 옵션 추가 (사용자가 원하는 리스트를 고정하여 항상 상단에 표시)
-Grace Time 옵션에서 변경하기 (현재 UI만있고 값 저장안됨)
 Tick Time 로그에 남기기 (옵션으로 On/Off)
 Listview 컨텍스트 메뉴 색상 반전
+Gate ID/PW 저장 프리셋 여러개 추가
 
 
 
 [완료]
 
+v1.0.0
 25.03.04 서버자동접속(ID/PW 입력) 기능
 25.03.06 즐겨찾기 버튼 및 클릭 기능
 25.03.09 서버리스트 기능
@@ -103,12 +101,14 @@ Listview 컨텍스트 메뉴 색상 반전
 25.03.24 FlowLayoutList(이미지 보기/저장) 기능
 25.03.27 Driver/Network 상태 표시, Search Server 기능
 25.03.28 ListView 클릭 접속 기능(Option)
-25.08.18 v2.0.0 OP) Popup/Modal 해제 기능 (30분마다 Gateone 비밀번호 알림창)
-25.08.19 ListView 중복 제거 기능(Opt)
+
+v2.0.0
+25.08.18 OP) Popup/Modal 해제 기능 (30분마다 Gateone 비밀번호 알림창)
+25.08.19 OP) ListView 중복 제거 기능
 25.08.20 OP) 옵션전용폼 추가 및 옵션변수 이동
 25.09.04 ListView 메모 기능
 25.09.25 OP) GraceTime 기능 (해당시간마다 팝업창 체크, 기본 5초 인터넷환경 고려)
-25.10.20 OP) 옵션설명 라벨 추가 / _meta 폴더 이동 기능 강화
+25.10.20 OP) 옵션설명 라벨 추가 / _meta 폴더 이동 기능 강화 / OP) FAV OneClick 접속 기능 추가
 ";
 
                 File.WriteAllText(metaNotesPath, content, System.Text.Encoding.UTF8);
@@ -138,8 +138,6 @@ Listview 컨텍스트 메뉴 색상 반전
             }
         }
 
-        
-
 
         public static void InputKeys(string keys, int intervalMilliseconds = 1000)
         {
@@ -154,11 +152,11 @@ Listview 컨텍스트 메뉴 색상 반전
 
                     if (trimmedKey.StartsWith("{") && trimmedKey.EndsWith("}"))
                     {
-                                SendKeys.SendWait(trimmedKey);
+                        SendKeys.SendWait(trimmedKey);
                     }
                     else if (trimmedKey.ToUpper() == "SPACE")
                     {
-                         SendKeys.SendWait(" ");
+                        SendKeys.SendWait(" ");
                     }
                     else
                     {
@@ -174,14 +172,14 @@ Listview 컨텍스트 메뉴 색상 반전
                 LogException(ex, Level.Error);
             }
         }
-        
+
 
         public static void SwitchToMainHandle(IWebDriver _driver, string mainHandle)
         {
             _driver.SwitchTo().Window(mainHandle);
         }
 
-        
+
 
         public static void ValidateServerInfo(string inputText, out string serverName, out string serverIP)
         {
