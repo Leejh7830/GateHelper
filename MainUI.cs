@@ -69,7 +69,6 @@ namespace GateHelper
             InitializeComponent();
 
             configManager.ReloadConfig(); // 설정 파일 로드
-            Util.CreateFolder_Resource(); // 리소스 폴더 생성
             this.FormClosing += MainUI_FormClosing; // 폼 닫기 이벤트 연결
 
             // Material Skin 적용

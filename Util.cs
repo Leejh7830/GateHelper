@@ -1,6 +1,7 @@
 ﻿using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
-using OpenQA.Selenium.Support.UI;
+using System.IO.Compression;
+using System.Text.Json;
+using System.Text;
 using System;
 using System.IO;
 using System.Windows.Forms;
@@ -9,13 +10,12 @@ using System.Text.RegularExpressions;
 using static GateHelper.LogManager;
 using static GateHelper.Util_Element;
 using System.Diagnostics;
+using System.Linq;
 
 namespace GateHelper
 {
     public static class Util // 공통 유틸리티
     {
-
-        
 
         public static string CreateMetaFolderAndGetPath()
         {
@@ -30,17 +30,110 @@ namespace GateHelper
             return metaPath;
         }
 
-        public static void OpenReleaseNotes()
+        // 중앙화된 _meta 경로 접근
+        public static string MetaFolder => CreateMetaFolderAndGetPath();
+
+        public static string GetMetaPath(params string[] parts)
         {
-            string metaFolderPath = CreateMetaFolderAndGetPath();
-            string releaseNotesPath = Path.Combine(Application.StartupPath, "ReleaseNotes.txt");
+            string basePath = MetaFolder;
+            if (parts == null || parts.Length == 0) return basePath;
+            return Path.Combine(new[] { basePath }.Concat(parts).ToArray());
+        }
+
+        private static string EnsureReleaseNotesInMeta()
+        {
+            string metaNotesPath = GetMetaPath("ReleaseNotes.txt");
+            string rootNotesPath = Path.Combine(Application.StartupPath, "ReleaseNotes.txt");
 
             try
             {
-                Process.Start(new ProcessStartInfo(releaseNotesPath) { UseShellExecute = true });
+                if (File.Exists(metaNotesPath))
+                    return metaNotesPath;
+
+                if (File.Exists(rootNotesPath))
+                {
+                    try
+                    {
+                        File.Move(rootNotesPath, metaNotesPath);
+                        LogMessage("Moved ReleaseNotes.txt to _meta folder", Level.Info);
+                        return metaNotesPath;
+                    }
+                    catch (Exception exMove)
+                    {
+                        LogException(exMove, Level.Error);
+                        try
+                        {
+                            File.Copy(rootNotesPath, metaNotesPath);
+                            try { File.Delete(rootNotesPath); } catch { }
+                            return metaNotesPath;
+                        }
+                        catch (Exception exCopy)
+                        {
+                            LogException(exCopy, Level.Error);
+                        }
+                    }
+                }
+
+                // 제공된 릴리즈 노트 내용을 여기서 직접 작성
+                string content =
+@"v2.0.0
+- Initial Release
+- leejh7830@lgespartner.com
+
+
+[기능추가예정]
+
+오류(알람) UI 창
+옵션 상태 저장하기 (프로그램을 껐다가 다시 켜도 기존 옵션 상태 유지)
+ListView 고정 옵션 추가 (사용자가 원하는 리스트를 고정하여 항상 상단에 표시)
+Grace Time 옵션에서 변경하기 (현재 UI만있고 값 저장안됨)
+Tick Time 로그에 남기기 (옵션으로 On/Off)
+Listview 컨텍스트 메뉴 색상 반전
+
+
+
+[완료]
+
+25.03.04 서버자동접속(ID/PW 입력) 기능
+25.03.06 즐겨찾기 버튼 및 클릭 기능
+25.03.09 서버리스트 기능
+25.03.14 DriverManager.cs 추가
+25.03.17 Log(읽기/쓰기) 기능
+25.03.20 ListView(서버목록) 기능
+25.03.24 FlowLayoutList(이미지 보기/저장) 기능
+25.03.27 Driver/Network 상태 표시, Search Server 기능
+25.03.28 ListView 클릭 접속 기능(Option)
+25.08.18 v2.0.0 OP) Popup/Modal 해제 기능 (30분마다 Gateone 비밀번호 알림창)
+25.08.19 ListView 중복 제거 기능(Opt)
+25.08.20 OP) 옵션전용폼 추가 및 옵션변수 이동
+25.09.04 ListView 메모 기능
+25.09.25 OP) GraceTime 기능 (해당시간마다 팝업창 체크, 기본 5초 인터넷환경 고려)
+25.10.20 OP) 옵션설명 라벨 추가 / _meta 폴더 이동 기능 강화
+";
+
+                File.WriteAllText(metaNotesPath, content, System.Text.Encoding.UTF8);
+                LogMessage("Created _meta/ReleaseNotes.txt content", Level.Info);
+                return metaNotesPath;
             }
             catch (Exception ex)
             {
+                LogException(ex, Level.Error);
+                return metaNotesPath;
+            }
+        }
+
+        public static void OpenReleaseNotes()
+        {
+            // 먼저 _meta내 파일을 보장하도록 처리
+            string metaNotesPath = EnsureReleaseNotesInMeta();
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(metaNotesPath) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error);
                 MessageBox.Show($"An error occurred while opening the release notes: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -160,30 +253,29 @@ namespace GateHelper
             }
         }
 
+        // 현재 미사용
         public static bool CreateFolder_Resource()
         {
-            string folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resource");
+            string metaFolder = CreateMetaFolderAndGetPath();
+            string folderPath = Path.Combine(metaFolder, "Resource");
             try
             {
-                // 폴더가 없으면 생성
                 if (!Directory.Exists(folderPath))
                 {
                     Directory.CreateDirectory(folderPath);
                     LogMessage($"{Path.GetFileName(folderPath)} 폴더 생성", Level.Info);
-                    return true;
                 }
-                else
-                {
-                    return true; // 이미 존재함
-                }
+                return true;
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"폴더 생성 오류: {ex.Message}");
                 LogException(ex, Level.Error);
-                return false; // 실패
+                return false;
             }
         }
+
+        
 
         
 

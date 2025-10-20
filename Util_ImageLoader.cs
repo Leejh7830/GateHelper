@@ -17,7 +17,9 @@ namespace GateHelper
         // 25.08.25 Relaod 수정
         public static void LoadReferenceImages(FlowLayoutPanel panel)
         {
-            string folderPath = Path.Combine(Application.StartupPath, "ReferenceImages");
+            string folderPath = Util.GetMetaPath("ReferenceImages");
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
 
             // 1. 기존 PictureBox와 이미지 리소스 해제
             foreach (Control control in panel.Controls)
@@ -75,7 +77,7 @@ namespace GateHelper
         // 25.03.23 Added - Create ReferenceImages folder if not exists
         public static void EnsureReferenceImagesFolderExists()
         {
-            string folderPath = Path.Combine(Application.StartupPath, "ReferenceImages");
+            string folderPath = Util.GetMetaPath("ReferenceImages");
 
             if (!Directory.Exists(folderPath))
             {
@@ -87,13 +89,8 @@ namespace GateHelper
         // 25.03.23 Added - Open ReferenceImages folder
         public static void OpenReferenceImagesFolder()
         {
-            string folderPath = Path.Combine(Application.StartupPath, "ReferenceImages");
-
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-
+            string folderPath = Util.GetMetaPath("ReferenceImages");
+            if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
             Process.Start("explorer.exe", folderPath);
         }
         
@@ -124,18 +121,15 @@ namespace GateHelper
             pic.ImageLocation = imgPath;
 
             // 기본적인 PictureBox 속성 설정
-            pic.SizeMode = PictureBoxSizeMode.Zoom;
-            pic.Width = 10; // 줌 애니메이션을 위해 초기 크기를 작게 설정
-            pic.Height = 10;
+            pic.SizeMode = PictureBoxSizeMode.StretchImage;
             pic.Margin = new Padding(5);
             pic.Cursor = Cursors.Hand;
             pic.AllowDrop = true;
 
             // 드래그 앤 드롭 이벤트 핸들러를 연결
-            string folderPath = Path.Combine(Application.StartupPath, "ReferenceImages");
             HandleDragAndDrop(pic, panel);
 
-            // 마우스 오른쪽 클릭 시 이미지 미리보기를 띄웁니다.
+            // 마우스 오른쪽 클릭 시 이미지 미리보기를 띄움
             pic.MouseClick += (s, e) =>
             {
                 if (e.Button == MouseButtons.Right)
@@ -144,10 +138,10 @@ namespace GateHelper
                 }
             };
 
-            // PictureBox를 FlowLayoutPanel에 추가합니다.
+            // PictureBox를 FlowLayoutPanel에 추가
             panel.Controls.Add(pic);
 
-            // 줌 애니메이션을 적용합니다.
+            // 줌 애니메이션 적용
             ApplyZoomAnimation(pic);
         }
 
@@ -172,23 +166,23 @@ namespace GateHelper
 
                 if (source != null && target != null && source != target)
                 {
-                    // 1. 드롭 타겟의 인덱스를 기억해둡니다.
+                    // 드롭 타겟의 인덱스를 기억해둡니다.
                     int targetIndex = panel.Controls.GetChildIndex(target);
 
-                    // 2. 패널에서 드래그된 컨트롤을 제거합니다.
+                    // 패널에서 드래그된 컨트롤을 제거합니다.
                     panel.Controls.Remove(source);
 
-                    // 3. 드래그된 컨트롤을 원하는 위치에 다시 삽입합니다.
-                    // 이 코드가 가장 안정적입니다.
+                    // 드래그된 컨트롤을 원하는 위치에 다시 삽입합니다.
                     panel.Controls.Add(source);
                     panel.Controls.SetChildIndex(source, targetIndex);
 
-                    // 4. 변경된 순서를 저장합니다.
+                    // 변경된 순서를 저장합니다.
                     SaveImageOrder(panel);
                 }
             };
         }
 
+        // 미리보기 상태
         private static void ShowImagePreview(string imgPath)
         {
             Form preview = new Form
@@ -217,10 +211,11 @@ namespace GateHelper
             preview.ShowDialog();
         }
 
+        // 이미지 리로드(or 최초로드) 할 때
         private static void ApplyZoomAnimation(PictureBox pic)
         {
             Timer growTimer = new Timer();
-            growTimer.Interval = 15;
+            growTimer.Interval = 10;
             growTimer.Tick += (s, e) =>
             {
                 if (pic.Width < 100)
@@ -241,8 +236,7 @@ namespace GateHelper
 
         public static List<string> LoadImageOrder(string imageFolder)
         {
-            string metaFolder = Util.CreateMetaFolderAndGetPath();
-            string orderPath = Path.Combine(metaFolder, "image_order.dat");
+            string orderPath = Util.GetMetaPath("image_order.dat");
 
             if (!File.Exists(orderPath))
                 return null;
@@ -258,17 +252,16 @@ namespace GateHelper
 
         public static void SaveImageOrder(FlowLayoutPanel panel)
         {
-            string metaFolder = Util.CreateMetaFolderAndGetPath();
-            if (!Directory.Exists(metaFolder))
-                Directory.CreateDirectory(metaFolder);
-
-            string orderPath = Path.Combine(metaFolder, "image_order.dat");
+            string orderPath = Util.GetMetaPath("image_order.dat");
+            string orderDir = Path.GetDirectoryName(orderPath);
+            if (!Directory.Exists(orderDir))
+                Directory.CreateDirectory(orderDir);
 
             var fileNames = panel.Controls.OfType<PictureBox>()
-                                     .Select(pb => Path.GetFileName(pb.ImageLocation))
-                                     .Where(name => !string.IsNullOrWhiteSpace(name))
-                                     .Distinct() // 중복제거
-                                     .ToList();
+                             .Select(pb => Path.GetFileName(pb.ImageLocation))
+                             .Where(name => !string.IsNullOrWhiteSpace(name))
+                             .Distinct()
+                             .ToList();
 
             File.WriteAllLines(orderPath, fileNames);
         }

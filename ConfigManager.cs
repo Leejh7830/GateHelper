@@ -9,14 +9,43 @@ namespace GateHelper
 {
     internal class ConfigManager
     {
-        private readonly string _configFilePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.config");
+        private readonly string _configFilePath;
         public Config LoadedConfig { get; private set; }
 
         public ConfigManager()
         {
             try
             {
-                CreateConfigFiles(); // Create
+                // _meta 폴더 생성 및 경로 지정
+                _configFilePath = Util.GetMetaPath("settings.config");
+
+                // 루트에 설정 파일이 있고 meta에 없으면 이동(또는 복사) 시도
+                string rootConfigPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "settings.config");
+                if (File.Exists(rootConfigPath) && !File.Exists(_configFilePath))
+                {
+                    try
+                    {
+                        File.Move(rootConfigPath, _configFilePath);
+                        LogManager.LogMessage($"Moved root settings.config to {_configFilePath}", Level.Info);
+                    }
+                    catch (Exception exMove)
+                    {
+                        LogManager.LogException(exMove, Level.Error, "Move root settings.config to _meta failed. Trying copy.");
+                        try
+                        {
+                            File.Copy(rootConfigPath, _configFilePath);
+                            try { File.Delete(rootConfigPath); } catch { /* 무시 */ }
+                            LogManager.LogMessage($"Copied root settings.config to {_configFilePath}", Level.Info);
+                        }
+                        catch (Exception exCopy)
+                        {
+                            LogManager.LogException(exCopy, Level.Error, "Copy root settings.config to _meta failed.");
+                            // 최종적으로는 계속해서 CreateConfigFiles()가 _configFilePath 위치에 파일을 생성하게 함
+                        }
+                    }
+                }
+
+                CreateConfigFiles(); // Create 또는 Exist 확인
             }
             catch (Exception ex)
             {
@@ -118,12 +147,16 @@ namespace GateHelper
 
                 if (missingFields.Length > 0)
                 {
-                    string errorMessage = $"The following required items are missing from the configuration file:\n{missingFields}\n\nDo you want to open the configuration file to edit?";
+                    // 한글 메시지로 변경
+                    string missingList = missingFields.ToString().Trim();
+                    string errorMessage = $"설정 파일에 다음 필수 항목이 비어있습니다:\n{missingList}\n\n설정 파일을 열어 수정하시겠습니까?";
                     LogManager.LogMessage(errorMessage, Level.Error);
-                    if (MessageBox.Show(errorMessage, "Error", MessageBoxButtons.YesNo, MessageBoxIcon.Error) == DialogResult.Yes)
+
+                    if (MessageBox.Show(errorMessage, "설정 파일 오류", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
                     {
-                        OpenConfigFile(); // 25.03.12 설정 파일 열기
+                        OpenConfigFile(); // 설정 파일 열기
                     }
+
                     LoadedConfig = null;
                     return;
                 }
@@ -146,13 +179,13 @@ namespace GateHelper
             catch (ConfigurationErrorsException ex)
             {
                 LogManager.LogException(ex, Level.Error, $"Configuration file load error: {_configFilePath}");
-                MessageBox.Show($"Configuration file load error. Check the configuration file. \n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"설정 파일 로드 중 오류가 발생했습니다. 설정 파일을 확인하세요.\n{ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Environment.Exit(1);
             }
             catch (Exception ex)
             {
                 LogManager.LogException(ex, Level.Error, $"An unexpected error occurred while loading the configuration file: {_configFilePath}");
-                MessageBox.Show($"An unexpected error occurred while loading the configuration file. \n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"설정 파일을 불러오는 중 예상치 못한 오류가 발생했습니다.\n{ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 Environment.Exit(1);
             }
         }

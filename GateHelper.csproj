@@ -217,9 +217,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <Content Include="ReleaseNotes.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="Resource_TEMP\Spinner.gif" />
   </ItemGroup>
   <ItemGroup>

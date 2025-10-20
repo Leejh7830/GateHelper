@@ -54,9 +54,9 @@ namespace GateHelper
             this.CBox_RemoveDuplicate.Name = "CBox_RemoveDuplicate";
             this.CBox_RemoveDuplicate.ReadOnly = false;
             this.CBox_RemoveDuplicate.Ripple = true;
-            this.CBox_RemoveDuplicate.Size = new System.Drawing.Size(163, 37);
+            this.CBox_RemoveDuplicate.Size = new System.Drawing.Size(241, 37);
             this.CBox_RemoveDuplicate.TabIndex = 1;
-            this.CBox_RemoveDuplicate.Text = "Remove Duplicate";
+            this.CBox_RemoveDuplicate.Text = "Server List Remove Duplicate";
             this.CBox_RemoveDuplicate.UseVisualStyleBackColor = true;
             // 
             // CBox_AutoLogin
@@ -64,7 +64,7 @@ namespace GateHelper
             this.CBox_AutoLogin.AutoSize = true;
             this.CBox_AutoLogin.Depth = 0;
             this.CBox_AutoLogin.Enabled = false;
-            this.CBox_AutoLogin.Location = new System.Drawing.Point(17, 187);
+            this.CBox_AutoLogin.Location = new System.Drawing.Point(17, 190);
             this.CBox_AutoLogin.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_AutoLogin.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_AutoLogin.MouseState = MaterialSkin.MouseState.HOVER;
@@ -80,23 +80,23 @@ namespace GateHelper
             // 
             this.CBox_ServerClickConnect.AutoSize = true;
             this.CBox_ServerClickConnect.Depth = 0;
-            this.CBox_ServerClickConnect.Location = new System.Drawing.Point(17, 130);
+            this.CBox_ServerClickConnect.Location = new System.Drawing.Point(17, 103);
             this.CBox_ServerClickConnect.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_ServerClickConnect.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_ServerClickConnect.MouseState = MaterialSkin.MouseState.HOVER;
             this.CBox_ServerClickConnect.Name = "CBox_ServerClickConnect";
             this.CBox_ServerClickConnect.ReadOnly = false;
             this.CBox_ServerClickConnect.Ripple = true;
-            this.CBox_ServerClickConnect.Size = new System.Drawing.Size(179, 37);
-            this.CBox_ServerClickConnect.TabIndex = 3;
-            this.CBox_ServerClickConnect.Text = "Server Click Connect";
+            this.CBox_ServerClickConnect.Size = new System.Drawing.Size(209, 37);
+            this.CBox_ServerClickConnect.TabIndex = 2;
+            this.CBox_ServerClickConnect.Text = "Server List Click Connect";
             this.CBox_ServerClickConnect.UseVisualStyleBackColor = true;
             // 
             // CBox_TestMode
             // 
             this.CBox_TestMode.AutoSize = true;
             this.CBox_TestMode.Depth = 0;
-            this.CBox_TestMode.Location = new System.Drawing.Point(17, 159);
+            this.CBox_TestMode.Location = new System.Drawing.Point(17, 161);
             this.CBox_TestMode.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_TestMode.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_TestMode.MouseState = MaterialSkin.MouseState.HOVER;
@@ -112,16 +112,16 @@ namespace GateHelper
             // 
             this.CBox_DisablePopup.AutoSize = true;
             this.CBox_DisablePopup.Depth = 0;
-            this.CBox_DisablePopup.Location = new System.Drawing.Point(17, 102);
+            this.CBox_DisablePopup.Location = new System.Drawing.Point(17, 132);
             this.CBox_DisablePopup.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_DisablePopup.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_DisablePopup.MouseState = MaterialSkin.MouseState.HOVER;
             this.CBox_DisablePopup.Name = "CBox_DisablePopup";
             this.CBox_DisablePopup.ReadOnly = false;
             this.CBox_DisablePopup.Ripple = true;
-            this.CBox_DisablePopup.Size = new System.Drawing.Size(157, 37);
-            this.CBox_DisablePopup.TabIndex = 2;
-            this.CBox_DisablePopup.Text = "DISABLE POP-UP";
+            this.CBox_DisablePopup.Size = new System.Drawing.Size(147, 37);
+            this.CBox_DisablePopup.TabIndex = 3;
+            this.CBox_DisablePopup.Text = "Disable POP-UP";
             this.CBox_DisablePopup.UseVisualStyleBackColor = true;
             // 
             // CBox_FavOneClickConnect
@@ -129,7 +129,7 @@ namespace GateHelper
             this.CBox_FavOneClickConnect.AutoSize = true;
             this.CBox_FavOneClickConnect.Depth = 0;
             this.CBox_FavOneClickConnect.Enabled = false;
-            this.CBox_FavOneClickConnect.Location = new System.Drawing.Point(17, 216);
+            this.CBox_FavOneClickConnect.Location = new System.Drawing.Point(17, 219);
             this.CBox_FavOneClickConnect.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_FavOneClickConnect.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_FavOneClickConnect.MouseState = MaterialSkin.MouseState.HOVER;
@@ -246,19 +246,19 @@ namespace GateHelper
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(325, 398);
+            this.ClientSize = new System.Drawing.Size(341, 437);
+            this.Controls.Add(this.CBox_RemoveDuplicate);
+            this.Controls.Add(this.CBox_ServerClickConnect);
+            this.Controls.Add(this.CBox_DisablePopup);
+            this.Controls.Add(this.CBox_TestMode);
+            this.Controls.Add(this.CBox_AutoLogin);
+            this.Controls.Add(this.CBox_FavOneClickConnect);
             this.Controls.Add(this.materialLabel2);
             this.Controls.Add(this.materialLabel1);
             this.Controls.Add(this.ComboBoxGraceMs1);
             this.Controls.Add(this.materialButton2);
             this.Controls.Add(this.materialButton1);
             this.Controls.Add(this.textBox1);
-            this.Controls.Add(this.CBox_AutoLogin);
-            this.Controls.Add(this.CBox_ServerClickConnect);
-            this.Controls.Add(this.CBox_TestMode);
-            this.Controls.Add(this.CBox_DisablePopup);
-            this.Controls.Add(this.CBox_FavOneClickConnect);
-            this.Controls.Add(this.CBox_RemoveDuplicate);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MaximizeBox = false;
             this.MinimizeBox = false;
