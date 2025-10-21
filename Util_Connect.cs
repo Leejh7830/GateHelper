@@ -15,18 +15,26 @@ namespace GateHelper
         public static bool ConnectToServer(
             IWebDriver driver,
             string mainHandle,
-            Config config,
+            string GateID,
+            string GatePW,
             string serverName,
             ObjectListView listView,
             bool isDuplicateCheck)
         {
+            if (string.IsNullOrEmpty(GateID) || string.IsNullOrEmpty(GatePW))
+            {
+                MessageBox.Show("GateID/PW NOT Selected.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                LogMessage("GateID/PW NOT Selected.", Level.Critical);
+                return false;
+            }
+
             try
             {
                 int tbodyIndex = 1;
 
                 while (true)
                 {
-                    string serverNameXpath = $"//*[@id='seltable']/tbody[{tbodyIndex}]/tr/td[4]";
+                    string serverNameXpath = $"//*[@id='seltable']/tbody[{tbodyIndex}]/tr/td";
                     var serverNameElements = driver.FindElements(By.XPath(serverNameXpath));
 
                     if (serverNameElements == null || serverNameElements.Count == 0)
@@ -36,7 +44,7 @@ namespace GateHelper
                     {
                         if (element.Text == serverName)
                         {
-                            string spanXpath = $"//*[@id='seltable']/tbody[{tbodyIndex}]/tr/td[5]/span[contains(@id, 'rdp')]";
+                            string spanXpath = $"//*[@id='seltable']/tbody[{tbodyIndex}]/tr/td/span[contains(@id, 'rdp')]";
                             var spanElement = driver.FindElement(By.XPath(spanXpath));
                             var aElement = spanElement.FindElement(By.TagName("a"));
                             aElement.Click();
@@ -44,7 +52,7 @@ namespace GateHelper
                             Thread.Sleep(1000);
 
                             try
-                             {
+                            {
                                 var alert = driver.SwitchTo().Alert();
                                 alert.Accept();
                             }
@@ -54,7 +62,7 @@ namespace GateHelper
                             }
 
                             // 로그인 정보 입력
-                            EnterCredentials(driver, config.GateID, config.GatePW);
+                            EnterCredentials(driver, GateID, GatePW);
 
                             Util.SwitchToMainHandle(driver, mainHandle);
                             LogMessage("접속 완료, 접속 후 MainHandle: " + mainHandle, Level.Info);

@@ -54,6 +54,7 @@ namespace GateHelper
         }
 
         // 25.08.15 Added - Enportal ID/PW 추가
+        // 25.10.21 Added - Gate Preset(A/B) 추가
         private void CreateConfigFiles()
         {
             try
@@ -71,9 +72,15 @@ namespace GateHelper
     <add key=""EnportalID"" value="""" />
     <add key=""EnportalPW"" value="""" />
     
-    <!-- VM접속용 ID/PW -->
-    <add key=""GateID"" value="""" />
-    <add key=""GatePW"" value="""" />
+    <!-- VM접속용 ID/PW Preset A -->
+    <add key=""GateName_A"" value="""" />
+    <add key=""GateID_A"" value="""" />
+    <add key=""GatePW_A"" value="""" />
+
+    <!-- VM접속용 ID/PW Preset B (선택) -->
+    <add key=""GateName_B"" value="""" />
+    <add key=""GateID_B"" value="""" />
+    <add key=""GatePW_B"" value="""" />
         
     <!-- Favorite 해당 값으로 검색 -->
     <add key=""Favorite1"" value=""Fav1"" />
@@ -142,8 +149,12 @@ namespace GateHelper
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["Url"].Value)) missingFields.AppendLine("URL");
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["EnportalID"].Value)) missingFields.AppendLine("EnportalID");
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["EnportalPW"].Value)) missingFields.AppendLine("EnportalPW");
-                if (string.IsNullOrEmpty(config.AppSettings.Settings["GateID"].Value)) missingFields.AppendLine("GateID");
-                if (string.IsNullOrEmpty(config.AppSettings.Settings["GatePW"].Value)) missingFields.AppendLine("GatePW");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["GateName_A"].Value)) missingFields.AppendLine("GateName_A");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["GateID_A"].Value)) missingFields.AppendLine("GateID_A");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["GatePW_A"].Value)) missingFields.AppendLine("GatePW_A");
+                // if (string.IsNullOrEmpty(config.AppSettings.Settings["GateName_B"].Value)) missingFields.AppendLine("GateName_B");
+                // if (string.IsNullOrEmpty(config.AppSettings.Settings["GateID_B"].Value)) missingFields.AppendLine("GateID_B");
+                // if (string.IsNullOrEmpty(config.AppSettings.Settings["GatePW_B"].Value)) missingFields.AppendLine("GatePW_B");
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["ChromePath"].Value)) missingFields.AppendLine("ChromePath");
 
                 if (missingFields.Length > 0)
@@ -167,8 +178,12 @@ namespace GateHelper
                     Url = config.AppSettings.Settings["Url"].Value,
                     EnportalID = config.AppSettings.Settings["EnportalID"].Value,
                     EnportalPW = config.AppSettings.Settings["EnportalPW"].Value,
-                    GateID = config.AppSettings.Settings["GateID"].Value,
-                    GatePW = config.AppSettings.Settings["GatePW"].Value,
+                    GateName_A = config.AppSettings.Settings["GateName_A"].Value,
+                    GateID_A = config.AppSettings.Settings["GateID_A"].Value,
+                    GatePW_A = config.AppSettings.Settings["GatePW_A"].Value,
+                    GateName_B = config.AppSettings.Settings["GateName_B"].Value,
+                    GateID_B = config.AppSettings.Settings["GateID_B"].Value,
+                    GatePW_B = config.AppSettings.Settings["GatePW_B"].Value,
                     ChromePath = config.AppSettings.Settings["ChromePath"].Value,
                     Fav1 = config.AppSettings.Settings["Favorite1"]?.Value,
                     Fav2 = config.AppSettings.Settings["Favorite2"]?.Value,

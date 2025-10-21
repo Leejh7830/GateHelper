@@ -29,6 +29,9 @@ namespace GateHelper
         private string serverName;
         private string serverIP;
 
+        private string GateID;
+        private string GatePW;
+
         private string mainHandle;
         private ThemeManager _themeManager;
         private bool changeArrow = true;
@@ -215,6 +218,7 @@ namespace GateHelper
             try
             {
                 BtnReConfig1_Click(sender, e);
+                BtnPreset1_Click(sender, e); // 기본 프리셋 A 적용
                 _driver = await Task.Run(() => ChromeDriverManager.InitializeDriver(_config)); // 비동기로 드라이버 초기화
 
 
@@ -394,7 +398,7 @@ namespace GateHelper
             string selectedServer = ComboBoxServerList1.SelectedItem.ToString();
             LogMessage("접속 서버 명: " + selectedServer, Level.Info);
 
-            Util_Connect.ConnectToServer(_driver, mainHandle, _config, selectedServer, ObjectListView1, _appSettings.RemoveDuplicates);
+            Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, selectedServer, ObjectListView1, _appSettings.RemoveDuplicates);
         }
 
 
@@ -416,7 +420,7 @@ namespace GateHelper
             {
                 try
                 {
-                    Util_Connect.ConnectToServer(_driver, mainHandle, _config, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
+                    Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
                 }
                 catch (Exception ex)
                 {
@@ -441,7 +445,7 @@ namespace GateHelper
             {
                 try
                 {
-                    Util_Connect.ConnectToServer(_driver, mainHandle, _config, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
+                    Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
                 }
                 catch (Exception ex)
                 {
@@ -466,7 +470,7 @@ namespace GateHelper
             {
                 try
                 {
-                    Util_Connect.ConnectToServer(_driver, mainHandle, _config, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
+                    Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
                 }
                 catch (Exception ex)
                 {
@@ -487,9 +491,13 @@ namespace GateHelper
                 if (_config != null)
                 {
                     // 즐겨찾기 버튼 텍스트 설정
-                    BtnFav1.Text = string.IsNullOrEmpty(_config.Fav1) ? "즐겨찾기 1" : _config.Fav1;
-                    BtnFav2.Text = string.IsNullOrEmpty(_config.Fav2) ? "즐겨찾기 2" : _config.Fav2;
-                    BtnFav3.Text = string.IsNullOrEmpty(_config.Fav3) ? "즐겨찾기 3" : _config.Fav3;
+                    BtnFav1.Text = string.IsNullOrEmpty(_config.Fav1) ? "Fav1" : _config.Fav1;
+                    BtnFav2.Text = string.IsNullOrEmpty(_config.Fav2) ? "Fav2" : _config.Fav2;
+                    BtnFav3.Text = string.IsNullOrEmpty(_config.Fav3) ? "Fav3" : _config.Fav3;
+
+                    // 프리셋 버튼 텍스트 설정
+                    BtnPreset1.Text = string.IsNullOrEmpty(_config.GateName_A) ? "Preset1" : _config.GateName_A;
+                    BtnPreset2.Text = string.IsNullOrEmpty(_config.GateName_B) ? "Preset2" : _config.GateName_B;
                 }
                 else
                 {
@@ -638,7 +646,7 @@ namespace GateHelper
                 return;
             }
 
-            Util_Connect.ConnectToServer(_driver, mainHandle, _config, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
+            Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
         }
 
         //////////////////////////////////////////////////////////////////////////////// 옵션 전용 끝
@@ -789,6 +797,18 @@ namespace GateHelper
             Util_ServerList.SaveServerDataToFile(ObjectListView1);
         }
 
-        
+        private void BtnPreset1_Click(object sender, EventArgs e)
+        {
+            GateID = _config.GateID_A;
+            GatePW = _config.GatePW_A;
+            LogMessage("GateID/PW A set.", Level.Info);
+        }
+
+        private void BtnPreset2_Click(object sender, EventArgs e)
+        {
+            GateID = _config.GateID_B;
+            GatePW = _config.GatePW_B;
+            LogMessage("GateID/PW B set.", Level.Info);
+        }
     }
 }
