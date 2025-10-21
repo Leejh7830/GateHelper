@@ -49,6 +49,8 @@ namespace GateHelper
             };
         }
 
+
+        // 옵션설명라벨
         private void InitializeTooltipsAndDescription()
         {
             _descriptions = new Dictionary<Control, string>
@@ -58,10 +60,10 @@ namespace GateHelper
                 { CBox_DisablePopup, "팝업을 닫습니다.\n30분 간격으로 팝업되는 비밀번호창 자동 입력." },
                 { CBox_TestMode, "테스트 모드" },
                 { CBox_AutoLogin, "Config 정보로 자동 로그인합니다. 미구현" },
-                { CBox_FavOneClickConnect, "즐겨찾기 클릭 시 해당 서버로 바로 연결합니다. 미구현" }
+                { CBox_FavOneClickConnect, "즐겨찾기 클릭 시 해당 서버로 바로 연결합니다." }
             };
 
-            // 설명 라벨을 동적으로 생성하여 폼 하단에 표시 (한 번만)
+            // 설명 라벨을 동적으로 생성하여 폼 하단에 표시
             if (_descriptionLabel == null)
             {
                 _descriptionLabel = new MaterialLabel
@@ -102,7 +104,7 @@ namespace GateHelper
             }
         }
 
-        // 중앙 처리 함수 추가
+        // 옵션설명라벨(중앙 처리 함수 추가)
         private void UpdateDescriptionFromScreenPoint(Point screenPt)
         {
             if (_descriptionLabel == null || _descriptions == null) return;
@@ -148,6 +150,7 @@ namespace GateHelper
                 CBox_DisablePopup.Checked = AppSettings.DisablePopup;
                 CBox_TestMode.Checked = AppSettings.TestMode;
                 CBox_ServerClickConnect.Checked = AppSettings.ServerClickConnect;
+                CBox_FavOneClickConnect.Checked = AppSettings.FavOneClickConnect;
             }
 
             Focus();
@@ -157,12 +160,13 @@ namespace GateHelper
         {
             if (AppSettings != null)
             {
-                // ⭐ UI의 변경사항을 AppSettings 객체에 다시 저장
+                // ⭐ UI의 변경사항을 AppSettings 객체에 저장
                 AppSettings.RemoveDuplicates = CBox_RemoveDuplicate.Checked;
                 AppSettings.AutoLogin = CBox_AutoLogin.Checked;
                 AppSettings.DisablePopup = CBox_DisablePopup.Checked;
                 AppSettings.TestMode = CBox_TestMode.Checked;
                 AppSettings.ServerClickConnect = CBox_ServerClickConnect.Checked;
+                AppSettings.FavOneClickConnect = CBox_FavOneClickConnect.Checked;
             }
 
             this.DialogResult = DialogResult.OK;

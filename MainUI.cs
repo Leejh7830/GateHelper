@@ -426,14 +426,54 @@ namespace GateHelper
             }
         }
 
-        private void BtnFav2_Click(object sender, EventArgs e)
+        private async void BtnFav2_Click(object sender, EventArgs e)
         {
-            Util.ClickFavBtn(_driver, _config, 2, () => BtnLoadServers1_Click(null, EventArgs.Empty), chromeDriverManager);
+            LogMessage("BtnFav2 Click", Level.Info);
+
+            if (!chromeDriverManager.IsDriverReady(_driver))
+                return;
+
+            string serverName = Util.ClickFavBtnAndGetServerName(_driver, _config, 2, chromeDriverManager);
+
+            await LoadServersIntoComboBoxAsync();
+
+            if (!string.IsNullOrEmpty(serverName) && _appSettings.FavOneClickConnect)
+            {
+                try
+                {
+                    Util_Connect.ConnectToServer(_driver, mainHandle, _config, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
+                }
+                catch (Exception ex)
+                {
+                    LogException(ex, Level.Error);
+                    MessageBox.Show("즐겨찾기 바로접속 중 오류가 발생했습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
-        private void BtnTFav3_Click(object sender, EventArgs e)
+        private async void BtnTFav3_Click(object sender, EventArgs e)
         {
-            Util.ClickFavBtn(_driver, _config, 3, () => BtnLoadServers1_Click(null, EventArgs.Empty), chromeDriverManager);
+            LogMessage("BtnFav3 Click", Level.Info);
+
+            if (!chromeDriverManager.IsDriverReady(_driver))
+                return;
+
+            string serverName = Util.ClickFavBtnAndGetServerName(_driver, _config, 3, chromeDriverManager);
+
+            await LoadServersIntoComboBoxAsync();
+
+            if (!string.IsNullOrEmpty(serverName) && _appSettings.FavOneClickConnect)
+            {
+                try
+                {
+                    Util_Connect.ConnectToServer(_driver, mainHandle, _config, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
+                }
+                catch (Exception ex)
+                {
+                    LogException(ex, Level.Error);
+                    MessageBox.Show("즐겨찾기 바로접속 중 오류가 발생했습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
         }
 
         private void BtnReConfig1_Click(object sender, EventArgs e)

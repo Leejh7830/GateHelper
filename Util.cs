@@ -74,7 +74,7 @@ namespace GateHelper
                 // 제공된 릴리즈 노트 내용을 여기서 직접 작성
                 string content =
 @"v2.0.2
-- Initial Release
+- 2025.03.03 Initial Release
 - Leejh7830@lgespartner.com
 
 
@@ -86,6 +86,7 @@ ListView 고정 옵션 추가 (사용자가 원하는 리스트를 고정하여 
 Tick Time 로그에 남기기 (옵션으로 On/Off)
 Listview 컨텍스트 메뉴 색상 반전
 Gate ID/PW 저장 프리셋 여러개 추가
+
 
 
 

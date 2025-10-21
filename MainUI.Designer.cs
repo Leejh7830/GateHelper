@@ -230,6 +230,7 @@ namespace GateHelper
             this.BtnPreset1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BtnPreset1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.BtnPreset1.Depth = 0;
+            this.BtnPreset1.Enabled = false;
             this.BtnPreset1.HighEmphasis = true;
             this.BtnPreset1.Icon = null;
             this.BtnPreset1.Location = new System.Drawing.Point(19, 23);
@@ -250,6 +251,7 @@ namespace GateHelper
             this.BtnPreset2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BtnPreset2.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.BtnPreset2.Depth = 0;
+            this.BtnPreset2.Enabled = false;
             this.BtnPreset2.HighEmphasis = true;
             this.BtnPreset2.Icon = null;
             this.BtnPreset2.Location = new System.Drawing.Point(127, 23);
