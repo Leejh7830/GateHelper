@@ -71,7 +71,8 @@ namespace GateHelper
             LogMessage("========== Initialize ==========", Level.Info);
             InitializeComponent();
 
-            configManager.ReloadConfig(); // 설정 파일 로드
+            _config = configManager.LoadedConfig;
+
             this.FormClosing += MainUI_FormClosing; // 폼 닫기 이벤트 연결
 
             // Material Skin 적용
@@ -799,6 +800,12 @@ namespace GateHelper
 
         private void BtnPreset1_Click(object sender, EventArgs e)
         {
+            if (_config == null || string.IsNullOrEmpty(_config.GateID_A) || string.IsNullOrEmpty(_config.GatePW_A))
+            {
+                MessageBox.Show("Preset A가 설정되지 않았습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             GateID = _config.GateID_A;
             GatePW = _config.GatePW_A;
             LogMessage("GateID/PW A set.", Level.Info);
@@ -806,6 +813,12 @@ namespace GateHelper
 
         private void BtnPreset2_Click(object sender, EventArgs e)
         {
+            if (_config == null || string.IsNullOrEmpty(_config.GateID_B) || string.IsNullOrEmpty(_config.GatePW_B))
+            {
+                MessageBox.Show("Preset B가 설정되지 않았습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
             GateID = _config.GateID_B;
             GatePW = _config.GatePW_B;
             LogMessage("GateID/PW B set.", Level.Info);

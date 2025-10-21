@@ -101,6 +101,7 @@
     <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.2.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Runtime.CompilerServices.Unsafe.6.1.1\lib\net462\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
+    <Reference Include="System.Security" />
     <Reference Include="System.Security.AccessControl, Version=6.0.0.1, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
       <HintPath>packages\System.Security.AccessControl.6.0.1\lib\net461\System.Security.AccessControl.dll</HintPath>
     </Reference>
@@ -153,8 +154,9 @@
     <Compile Include="TransparentPictureBox.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Util_Connect.cs" />
-    <Compile Include="Util_ImageLoader.cs" />
+    <Compile Include="Utils\CredentialHelper.cs" />
+    <Compile Include="Utils\Util_Connect.cs" />
+    <Compile Include="Utils\Util_ImageLoader.cs" />
     <Compile Include="LogManager.cs" />
     <Compile Include="MainUI.cs">
       <SubType>Form</SubType>
@@ -170,12 +172,12 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Unused.cs" />
-    <Compile Include="Util.cs" />
-    <Compile Include="Util_Control.cs" />
-    <Compile Include="Util_Element.cs" />
-    <Compile Include="Util_Option.cs" />
-    <Compile Include="Util_ServerList.cs" />
-    <Compile Include="Util_Test.cs" />
+    <Compile Include="Utils\Util.cs" />
+    <Compile Include="Utils\Util_Control.cs" />
+    <Compile Include="Utils\Util_Element.cs" />
+    <Compile Include="Utils\Util_Option.cs" />
+    <Compile Include="Utils\Util_ServerList.cs" />
+    <Compile Include="Utils\Util_Test.cs" />
     <EmbeddedResource Include="MainUI.resx">
       <DependentUpon>MainUI.cs</DependentUpon>
     </EmbeddedResource>
