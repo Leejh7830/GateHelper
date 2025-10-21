@@ -61,7 +61,8 @@ namespace GateHelper
         private ContextMenuStrip contextMenuStrip;
 
 
-
+        private enum PresetSelection { None, A, B }
+        private PresetManager.Preset _selectedPreset = PresetManager.Preset.None;
 
 
 
@@ -219,9 +220,17 @@ namespace GateHelper
             try
             {
                 BtnReConfig1_Click(sender, e);
-                BtnPreset1_Click(sender, e); // 기본 프리셋 A 적용
-                _driver = await Task.Run(() => ChromeDriverManager.InitializeDriver(_config)); // 비동기로 드라이버 초기화
 
+                // Start 경로에서는 드라이버 아직 없음 -> preset 클릭 핸들러 호출하지 말고
+                // PresetManager에 skipDriverCheck=true로 직접 적용(알림 발생 방지)
+                if (PresetManager.TryApplyPreset(_config, chromeDriverManager, _driver, PresetManager.Preset.A, BtnPreset1, BtnPreset2, out var id, out var pw, true))
+                {
+                    GateID = id;
+                    GatePW = pw;
+                    _selectedPreset = PresetManager.Preset.A;
+                }
+
+                _driver = await Task.Run(() => ChromeDriverManager.InitializeDriver(_config)); // 비동기로 드라이버 초기화
 
                 _driver.Navigate().GoToUrl(_config.Url); // 입력한 사이트로 이동
                 mainHandle = _driver.CurrentWindowHandle; // MainHandle 저장
@@ -308,45 +317,21 @@ namespace GateHelper
             await LoadServersIntoComboBoxAsync();
         }
 
+        // 서버 목록을 로드하여 콤보박스에 채우기
         private async Task LoadServersIntoComboBoxAsync()
         {
             try
             {
-                WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
-                wait.Until(ExpectedConditions.PresenceOfAllElementsLocatedBy(By.XPath("//*[@id='seltable']//tr")));
-
-                List<string> serverList = new List<string>();
-                int tbodyIndex = 1;
-
-                while (true)
-                {
-                    string xpath = $"//*[@id=\'seltable\']/tbody[{tbodyIndex}]/tr/td[4]";
-                    IReadOnlyCollection<IWebElement> serverListElements = _driver.FindElements(By.XPath(xpath));
-
-                    if (serverListElements == null || serverListElements.Count == 0)
-                    {
-                        break;
-                    }
-
-                    foreach (IWebElement element in serverListElements)
-                    {
-                        serverList.Add(element.Text);
-                    }
-                    tbodyIndex++;
-                }
+                // 서버 추출은 별도 유틸에서 수행 (UI 스레드 차단 방지)
+                var serverList = await Task.Run(() => ServerLoader.GetServers(_driver));
 
                 // UI 업데이트는 메인 스레드에서
-                await Task.Run(() =>
+                Invoke(new Action(() =>
                 {
-                    Invoke(new Action(() =>
-                    {
-                        ComboBoxServerList1.Items.Clear();
-                        foreach (string serverName in serverList)
-                        {
-                            ComboBoxServerList1.Items.Add(serverName);
-                        }
-                    }));
-                });
+                    ComboBoxServerList1.Items.Clear();
+                    foreach (string serverName in serverList)
+                        ComboBoxServerList1.Items.Add(serverName);
+                }));
 
                 this.Activate();
 
@@ -800,28 +785,24 @@ namespace GateHelper
 
         private void BtnPreset1_Click(object sender, EventArgs e)
         {
-            if (_config == null || string.IsNullOrEmpty(_config.GateID_A) || string.IsNullOrEmpty(_config.GatePW_A))
+            if (PresetManager.TryApplyPreset(_config, chromeDriverManager, _driver, PresetManager.Preset.A, BtnPreset1, BtnPreset2, out var id, out var pw))
             {
-                MessageBox.Show("Preset A가 설정되지 않았습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                GateID = id;
+                GatePW = pw;
+                _selectedPreset = PresetManager.Preset.A;
             }
-
-            GateID = _config.GateID_A;
-            GatePW = _config.GatePW_A;
-            LogMessage("GateID/PW A set.", Level.Info);
         }
 
         private void BtnPreset2_Click(object sender, EventArgs e)
         {
-            if (_config == null || string.IsNullOrEmpty(_config.GateID_B) || string.IsNullOrEmpty(_config.GatePW_B))
+            if (PresetManager.TryApplyPreset(_config, chromeDriverManager, _driver, PresetManager.Preset.B, BtnPreset1, BtnPreset2, out var id, out var pw))
             {
-                MessageBox.Show("Preset B가 설정되지 않았습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
+                GateID = id;
+                GatePW = pw;
+                _selectedPreset = PresetManager.Preset.B;
             }
-
-            GateID = _config.GateID_B;
-            GatePW = _config.GatePW_B;
-            LogMessage("GateID/PW B set.", Level.Info);
         }
+
+        
     }
 }

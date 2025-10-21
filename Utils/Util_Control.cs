@@ -226,6 +226,32 @@ namespace GateHelper
 
         
 
+        // Preset 버튼 상태(색상 + 활성/비활성) 적용
+        public static void ApplyPresetSelection(Control btnA, Control btnB, bool isASelected, bool isBSelected)
+        {
+            // 기본 리셋
+            try
+            {
+                btnA.Enabled = true;
+                btnB.Enabled = true;
+                btnA.BackColor = SystemColors.Control;
+                btnB.BackColor = SystemColors.Control;
+                btnA.ForeColor = SystemColors.ControlText;
+                btnB.ForeColor = SystemColors.ControlText;
+            }
+            catch { }
 
+            // 선택된 버튼에 하이라이트(녹색) 및 비활성화 표시
+            if (isASelected)
+            {
+                try { btnA.BackColor = ColorTranslator.FromHtml("#4CAF50"); btnA.ForeColor = Color.White; } catch { }
+                btnA.Enabled = false;
+            }
+            else if (isBSelected)
+            {
+                try { btnB.BackColor = ColorTranslator.FromHtml("#4CAF50"); btnB.ForeColor = Color.White; } catch { }
+                btnB.Enabled = false;
+            }
+        }
     }
 }

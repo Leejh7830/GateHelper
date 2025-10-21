@@ -155,6 +155,8 @@
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="Utils\CredentialHelper.cs" />
+    <Compile Include="Utils\PresetManager.cs" />
+    <Compile Include="Utils\ServerLoader.cs" />
     <Compile Include="Utils\Util_Connect.cs" />
     <Compile Include="Utils\Util_ImageLoader.cs" />
     <Compile Include="LogManager.cs" />
