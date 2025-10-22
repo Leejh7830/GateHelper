@@ -85,9 +85,6 @@ namespace GateHelper
 ListView 고정 옵션 추가 (사용자가 원하는 리스트를 고정하여 항상 상단에 표시)
 Tick Time 로그에 남기기 (옵션으로 On/Off)
 Listview 컨텍스트 메뉴 색상 반전
-Gate ID/PW 저장 프리셋 여러개 추가
-
-
 
 
 [완료]
@@ -110,6 +107,7 @@ v2.0.0
 25.09.04 ListView 메모 기능
 25.09.25 OP) GraceTime 기능 (해당시간마다 팝업창 체크, 기본 5초 인터넷환경 고려)
 25.10.20 OP) 옵션설명 라벨 추가 / _meta 폴더 이동 기능 강화 / OP) FAV OneClick 접속 기능 추가
+25.10.21 Preset 기능 추가
 ";
 
                 File.WriteAllText(metaNotesPath, content, System.Text.Encoding.UTF8);

@@ -68,9 +68,9 @@ namespace GateHelper
     <!-- GateOne 접속 URL -->
     <add key=""Url"" value="""" />
 
-    <!-- 자동로그인 및 팝업제어용 EnPortal ID/PW -->
-    <add key=""EnportalID"" value="""" />
-    <add key=""EnportalPW"" value="""" />
+    <!-- 자동로그인 및 팝업제어용 GATEONE ID/PW -->
+    <add key=""UserID"" value="""" />
+    <add key=""UserPW"" value="""" />
     
     <!-- VM접속용 ID/PW Preset A -->
     <add key=""GateName_A"" value="""" />
@@ -147,8 +147,8 @@ namespace GateHelper
                 var missingFields = new System.Text.StringBuilder(); // 25.03.12 필수 항목 검증
 
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["Url"].Value)) missingFields.AppendLine("URL");
-                if (string.IsNullOrEmpty(config.AppSettings.Settings["EnportalID"].Value)) missingFields.AppendLine("EnportalID");
-                if (string.IsNullOrEmpty(config.AppSettings.Settings["EnportalPW"].Value)) missingFields.AppendLine("EnportalPW");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["UserID"].Value)) missingFields.AppendLine("UserID");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["UserPW"].Value)) missingFields.AppendLine("UserPW");
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["GateName_A"].Value)) missingFields.AppendLine("GateName_A");
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["GateID_A"].Value)) missingFields.AppendLine("GateID_A");
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["GatePW_A"].Value)) missingFields.AppendLine("GatePW_A");
@@ -176,8 +176,8 @@ namespace GateHelper
                 LoadedConfig = new Config
                 {
                     Url = config.AppSettings.Settings["Url"].Value,
-                    EnportalID = config.AppSettings.Settings["EnportalID"].Value,
-                    EnportalPW = config.AppSettings.Settings["EnportalPW"].Value,
+                    UserID = config.AppSettings.Settings["UserID"].Value,
+                    UserPW = config.AppSettings.Settings["UserPW"].Value,
                     GateName_A = config.AppSettings.Settings["GateName_A"].Value,
                     GateID_A = config.AppSettings.Settings["GateID_A"].Value,
                     GatePW_A = config.AppSettings.Settings["GatePW_A"].Value,

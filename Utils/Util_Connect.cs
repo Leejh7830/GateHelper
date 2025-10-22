@@ -181,9 +181,9 @@ namespace GateHelper
                 //Util_Control.SendKeysToElement(driver, "//*[@id='PASSWD']", _config.EnportalPW);
                 //Util.InputKeys("{ENTER}", 100);
 
-                Util.InputKeys(_config.EnportalID, 200);
+                Util.InputKeys(_config.UserID, 200);
                 Util.InputKeys("{TAB}", 200);
-                Util.InputKeys(_config.EnportalPW, 200);
+                Util.InputKeys(_config.UserPW, 200);
                 Util.InputKeys("{ENTER}", 200);
             }
             catch (Exception ex)

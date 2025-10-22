@@ -254,14 +254,14 @@ namespace GateHelper
 
         private static async Task<bool> EnterModalPassword(IWebDriver driver, Config config)
         {
-            if (config == null || string.IsNullOrEmpty(config.EnportalPW))
+            if (config == null || string.IsNullOrEmpty(config.UserPW))
             {
                 LogMessage("Enportal 값 오류", Level.Error);
                 return false;
             }
 
             // 비밀번호 입력 / 정상 True, 비정상 False 반환
-            if (!Util_Element.SendKeysToElement(driver, "//*[@id='lock_passwd']", config.EnportalPW))
+            if (!Util_Element.SendKeysToElement(driver, "//*[@id='lock_passwd']", config.UserPW))
             {
                 return false;
             }
