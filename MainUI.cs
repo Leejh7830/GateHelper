@@ -62,7 +62,6 @@ namespace GateHelper
 
 
         private enum PresetSelection { None, A, B }
-        private PresetManager.Preset _selectedPreset = PresetManager.Preset.None;
 
 
 
@@ -223,11 +222,10 @@ namespace GateHelper
 
                 // Start 경로에서는 드라이버 아직 없음 -> preset 클릭 핸들러 호출하지 말고
                 // PresetManager에 skipDriverCheck=true로 직접 적용(알림 발생 방지)
-                if (PresetManager.TryApplyPreset(_config, chromeDriverManager, _driver, PresetManager.Preset.A, BtnPreset1, BtnPreset2, out var id, out var pw, true))
+                if (PresetManager.TryApplyPreset(_config, PresetManager.Preset.A, BtnPreset1, BtnPreset2, out var id, out var pw))
                 {
                     GateID = id;
                     GatePW = pw;
-                    _selectedPreset = PresetManager.Preset.A;
                 }
 
                 _driver = await Task.Run(() => ChromeDriverManager.InitializeDriver(_config)); // 비동기로 드라이버 초기화
@@ -785,21 +783,19 @@ namespace GateHelper
 
         private void BtnPreset1_Click(object sender, EventArgs e)
         {
-            if (PresetManager.TryApplyPreset(_config, chromeDriverManager, _driver, PresetManager.Preset.A, BtnPreset1, BtnPreset2, out var id, out var pw))
+            if (PresetManager.TryApplyPreset(_config, PresetManager.Preset.A, BtnPreset1, BtnPreset2, out var id, out var pw))
             {
                 GateID = id;
                 GatePW = pw;
-                _selectedPreset = PresetManager.Preset.A;
             }
         }
 
         private void BtnPreset2_Click(object sender, EventArgs e)
         {
-            if (PresetManager.TryApplyPreset(_config, chromeDriverManager, _driver, PresetManager.Preset.B, BtnPreset1, BtnPreset2, out var id, out var pw))
+            if (PresetManager.TryApplyPreset(_config, PresetManager.Preset.B, BtnPreset1, BtnPreset2, out var id, out var pw))
             {
                 GateID = id;
                 GatePW = pw;
-                _selectedPreset = PresetManager.Preset.B;
             }
         }
 
