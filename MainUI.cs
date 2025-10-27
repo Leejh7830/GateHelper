@@ -67,6 +67,10 @@ namespace GateHelper
 
         public MainUI()
         {
+            // 릴리즈노트 파일만 생성(열지 않음)
+            GateHelper.Util.EnsureReleaseNotesInMeta();
+
+            // 이하 기존 코드
             InitializeLogFile();
             LogMessage("========== Initialize ==========", Level.Info);
             InitializeComponent();

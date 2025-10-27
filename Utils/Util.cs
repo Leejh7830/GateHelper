@@ -37,55 +37,25 @@ namespace GateHelper
             return Path.Combine(new[] { basePath }.Concat(parts).ToArray());
         }
 
-        private static string EnsureReleaseNotesInMeta()
+        public static string EnsureReleaseNotesInMeta()
         {
             string metaNotesPath = GetMetaPath("ReleaseNotes.txt");
-            string rootNotesPath = Path.Combine(Application.StartupPath, "ReleaseNotes.txt");
-
-            try
-            {
-                if (File.Exists(metaNotesPath))
-                    return metaNotesPath;
-
-                if (File.Exists(rootNotesPath))
-                {
-                    try
-                    {
-                        File.Move(rootNotesPath, metaNotesPath);
-                        LogMessage("Moved ReleaseNotes.txt to _meta folder", Level.Info);
-                        return metaNotesPath;
-                    }
-                    catch (Exception exMove)
-                    {
-                        LogException(exMove, Level.Error);
-                        try
-                        {
-                            File.Copy(rootNotesPath, metaNotesPath);
-                            try { File.Delete(rootNotesPath); } catch { }
-                            return metaNotesPath;
-                        }
-                        catch (Exception exCopy)
-                        {
-                            LogException(exCopy, Level.Error);
-                        }
-                    }
-                }
-
-                // 제공된 릴리즈 노트 내용을 여기서 직접 작성
-                string content =
+            string content =
 @"v2.0.2
 - Initial Release
 
 
 [기능추가 및 개선 예정]
 
-오류(알람) UI 창
-옵션 상태 저장하기 (프로그램을 껐다가 다시 켜도 기존 옵션 상태 유지)
-ListView 고정 옵션 추가 (사용자가 원하는 리스트를 고정하여 항상 상단에 표시)
-Tick Time 로그에 남기기 (옵션으로 On/Off)
-Listview 컨텍스트 메뉴 색상 반전
-통합모니터링 웹 접속 및 제어
-FAV One Click Connect 오류 개선 (검색은 되지만 접속 시 찾을 수 없음)
+신규/오류(알람) UI 창
+신규/옵션 상태 저장하기 (프로그램을 껐다가 다시 켜도 기존 옵션 상태 유지)
+신규/ListView 고정 옵션 추가 (사용자가 원하는 리스트를 고정하여 항상 상단에 표시)
+신규/Tick Time 로그에 남기기 (옵션으로 On/Off)
+개선/Listview 컨텍스트 메뉴 색상 반전 (현재 색상모드와 불일치)
+신규/통합모니터링 웹 접속 및 제어
+개선/FAV One Click Connect 오류 (검색은 되지만 접속 시 찾을 수 없음)
+신규/Error,Critical 로그 카운트
+신규/ChromeDriver 사용자 버전에 맞게 자동 다운로드 및 업데이트
 
 
 [완료]
@@ -111,8 +81,11 @@ v2.0.0
 25.10.21 Preset 기능 추가
 ";
 
+            try
+            {
+                // 항상 덮어쓰기
                 File.WriteAllText(metaNotesPath, content, System.Text.Encoding.UTF8);
-                LogMessage("Created _meta/ReleaseNotes.txt content", Level.Info);
+                LogMessage("Updated _meta/ReleaseNotes.txt content", Level.Info);
                 return metaNotesPath;
             }
             catch (Exception ex)

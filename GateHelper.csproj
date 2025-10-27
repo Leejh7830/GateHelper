@@ -154,6 +154,7 @@
     <Compile Include="TransparentPictureBox.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Util.cs" />
     <Compile Include="Utils\CredentialHelper.cs" />
     <Compile Include="Utils\PresetManager.cs" />
     <Compile Include="Utils\ServerLoader.cs" />

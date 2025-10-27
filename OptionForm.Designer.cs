@@ -128,6 +128,7 @@ namespace GateHelper
             // 
             this.CBox_FavOneClickConnect.AutoSize = true;
             this.CBox_FavOneClickConnect.Depth = 0;
+            this.CBox_FavOneClickConnect.Enabled = false;
             this.CBox_FavOneClickConnect.Location = new System.Drawing.Point(17, 219);
             this.CBox_FavOneClickConnect.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_FavOneClickConnect.MouseLocation = new System.Drawing.Point(-1, -1);
@@ -245,7 +246,7 @@ namespace GateHelper
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(357, 476);
+            this.ClientSize = new System.Drawing.Size(373, 515);
             this.Controls.Add(this.CBox_RemoveDuplicate);
             this.Controls.Add(this.CBox_ServerClickConnect);
             this.Controls.Add(this.CBox_DisablePopup);
