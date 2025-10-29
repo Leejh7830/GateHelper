@@ -11,6 +11,8 @@ using WebDriverManager;
 using WebDriverManager.DriverConfigs.Impl;
 using static GateHelper.LogManager;
 using System.Management;
+using System.Drawing;
+using System.Text.RegularExpressions; // 상단 using 추가
 
 namespace GateHelper
 {
@@ -20,7 +22,161 @@ namespace GateHelper
         private const int AliveFailThreshold = 2;        // 이 횟수 이상 연속 실패해야 OFF로 간주
         private DateTime _lastAliveSuccessUtc = DateTime.MinValue;
 
-        
+        #region Ver3. Selenium Manager 사용
+        public static IWebDriver InitializeDriverWithSeleniumManager(Config config)
+        {
+            try
+            {
+                // 1) Chrome 실행 경로 확인
+                string chromePath = config.ChromePath;
+                if (string.IsNullOrEmpty(chromePath) || !File.Exists(chromePath))
+                {
+                    chromePath = @"C:\Program Files\Google\Chrome\Application\chrome.exe";
+                    if (!File.Exists(chromePath))
+                        chromePath = @"C:\Program Files (x86)\Google\Chrome\Application\chrome.exe";
+                    if (!File.Exists(chromePath))
+                        chromePath = Path.Combine(
+                            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                            @"Google\Chrome\Application\chrome.exe");
+                }
+                if (!File.Exists(chromePath))
+                    throw new Exception($"Chrome 실행 파일을 찾을 수 없습니다.\n경로: {chromePath}");
+
+                // 2) (선택) 진단 로그
+                // Environment.SetEnvironmentVariable("SE_MANAGER_DIAGNOSTICS", "1");
+                // Environment.SetEnvironmentVariable("SE_DOWNLOAD_PATH", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "selenium"));
+
+                // 2.1) Chrome 버전 로깅
+                var chromeFvi = FileVersionInfo.GetVersionInfo(chromePath);
+                var chromeVersion = chromeFvi?.FileVersion ?? "unknown";
+                LogMessage($"Chrome detected. Path={chromePath}, Version={chromeVersion}", Level.Info);
+
+                // 3) 옵션 생성
+                ChromeOptions options = ChromeDriverOptionSet(chromePath);
+
+                // 4) Selenium Manager만 사용: 서비스 경로 지정하지 않음
+                var service = ChromeDriverService.CreateDefaultService();
+                service.HideCommandPromptWindow = true;
+                service.SuppressInitialDiagnosticInformation = true;
+
+                // 5) 드라이버 생성 -> Selenium Manager가 자동 해석/다운로드/캐시 사용
+                var driver = new ChromeDriver(service, options, TimeSpan.FromSeconds(120));
+
+                // 6) 드라이버 실제 경로 탐색(재시도 + WMI 폴백)
+                string resolvedPath = null;
+                for (int i = 0; i < 3 && string.IsNullOrEmpty(resolvedPath); i++)
+                {
+                    resolvedPath = TryGetRunningChromeDriverPath()
+                                   ?? TryGetRunningChromeDriverPathViaWmi()
+                                   ?? TryLocateChromeDriver();
+                    if (string.IsNullOrEmpty(resolvedPath))
+                        Thread.Sleep(300);
+                }
+
+                if (!string.IsNullOrEmpty(resolvedPath) && File.Exists(resolvedPath))
+                {
+                    // (로그 부분) FileVersionInfo 대신 보강된 버전 추출 사용
+                    var driverVersion = TryGetDriverVersion(resolvedPath);
+                    var source = DescribeDriverSource(resolvedPath);
+                    var lastWriteUtc = File.GetLastWriteTimeUtc(resolvedPath);
+                    var isFresh = (DateTime.UtcNow - lastWriteUtc) <= TimeSpan.FromMinutes(5);
+
+                    LogMessage($"Driver resolved. DriverVersion={driverVersion}, Path={resolvedPath}, Source={source}", Level.Info);
+                    LogMessage(isFresh ? "NEW Driver downloaded." : "Driver reused from cache.", Level.Info);
+                }
+                else
+                {
+                    LogMessage("Driver path not resolved by probes. Selenium Manager may still be managing it internally.", Level.Info);
+                }
+
+                return driver;
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error);
+                throw;
+            }
+        }
+
+        // 드라이버 파일 경로로 캐시 출처 설명
+        private static string DescribeDriverSource(string path)
+        {
+            try
+            {
+                string p = path.Replace('/', '\\').ToLowerInvariant();
+                string baseDir = AppDomain.CurrentDomain.BaseDirectory.Replace('/', '\\').ToLowerInvariant();
+                string localApp = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)
+                                   .Replace('/', '\\').ToLowerInvariant();
+                string userProfile = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)
+                                     .Replace('/', '\\').ToLowerInvariant();
+
+                if (p.Contains("\\.wdm\\")) return "WebDriverManager cache";
+                if (p.StartsWith(Path.Combine(localApp, "selenium").ToLowerInvariant())) return "Selenium Manager cache";
+                if (p.StartsWith(Path.Combine(userProfile, ".cache", "selenium").ToLowerInvariant())) return "Selenium Manager cache (.cache)";
+                if (p.StartsWith(baseDir)) return "App base directory";
+
+                var pathEnv = (Environment.GetEnvironmentVariable("PATH") ?? string.Empty)
+                              .Split(new[] { ';' }, StringSplitOptions.RemoveEmptyEntries)
+                              .Select(d => d.Trim().Replace('/', '\\').ToLowerInvariant());
+                if (pathEnv.Any(d => p.StartsWith(d))) return "PATH folder";
+
+                return "Unknown";
+            }
+            catch
+            {
+                return "Unknown";
+            }
+        }
+
+        // 드라이버 파일에서 버전을 최대한 정확히 추출
+        private static string TryGetDriverVersion(string driverPath)
+        {
+            try
+            {
+                // 1) 파일 메타데이터 시도
+                var fvi = FileVersionInfo.GetVersionInfo(driverPath);
+                var v = !string.IsNullOrWhiteSpace(fvi?.FileVersion) ? fvi.FileVersion : fvi?.ProductVersion;
+                if (!string.IsNullOrWhiteSpace(v)) return v;
+
+                // 2) 경로(폴더명)에서 추출: ...\123.0.6312.122\chromedriver.exe
+                var dir = Path.GetDirectoryName(driverPath);
+                var m = Regex.Match(dir ?? "", @"\d+\.\d+\.\d+\.\d+");
+                if (m.Success) return m.Value;
+
+                // 3) 실행 결과에서 추출: "ChromeDriver 123.0.6312.122 (..)"
+                var psi = new ProcessStartInfo
+                {
+                    FileName = driverPath,
+                    Arguments = "--version",
+                    RedirectStandardOutput = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+                using (var proc = Process.Start(psi))
+                {
+                    var output = proc.StandardOutput.ReadToEnd();
+                    proc.WaitForExit(3000);
+                    var m2 = Regex.Match(output ?? "", @"\d+\.\d+\.\d+\.\d+");
+                    if (m2.Success) return m2.Value;
+                }
+            }
+            catch { /* 무시하고 아래로 */ }
+            return "unknown";
+        }
+
+        #endregion Ver3. Selenium Manager 사용
+
+
+
+
+
+
+
+
+
+
+        #region Ver2. WebDriverManager 사용 / 대체 Selenium Manager
+        /*
         // WebDriverManager를 사용하는 새로운 초기화 메서드
         public static IWebDriver InitializeDriverWithWebDriverManager(Config config)
         {
@@ -108,6 +264,8 @@ namespace GateHelper
                 throw;
             }
         }
+        */
+        #endregion Ver2. WebDriverManager 사용
 
         private static string TryGetRunningChromeDriverPath()
         {
@@ -215,6 +373,9 @@ namespace GateHelper
             return null;
         }
 
+
+
+        #region Ver1. 기존 초기화 메서드
         /*
         // ChromeDriver 초기화 메소드
         public static IWebDriver InitializeDriver(Config config)
@@ -269,6 +430,8 @@ namespace GateHelper
             }
         }
         */
+        #endregion Ver1. 기존 초기화 메서드
+
 
         public static ChromeOptions ChromeDriverOptionSet(string chromePath)
         {

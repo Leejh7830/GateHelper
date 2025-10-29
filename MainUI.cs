@@ -234,7 +234,7 @@ namespace GateHelper
 
                 ////////////////////////WebDriverManager 사용여부//////////////////////////////// 
                 // _driver = await Task.Run(() => ChromeDriverManager.InitializeDriver(_config)); // 비동기로 드라이버 초기화
-                _driver = await Task.Run(() => ChromeDriverManager.InitializeDriverWithWebDriverManager(_config)); // 비동기로 드라이버 초기화
+                _driver = await Task.Run(() => ChromeDriverManager.InitializeDriverWithSeleniumManager(_config)); // 비동기로 드라이버 초기화
 
                 _driver.Navigate().GoToUrl(_config.Url); // 입력한 사이트로 이동
                 mainHandle = _driver.CurrentWindowHandle; // MainHandle 저장
