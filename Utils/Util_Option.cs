@@ -251,14 +251,94 @@ namespace GateHelper
             }
         }
 
-
         private static async Task<bool> EnterModalPassword(IWebDriver driver, Config config)
         {
             if (config == null || string.IsNullOrEmpty(config.UserPW))
             {
-                LogMessage("Enportal 값 오류", Level.Error);
+                LogMessage("Config Value is Null", Level.Error);
                 return false;
             }
+
+            var byPwd = By.XPath("//*[@id='lock_passwd']");
+            var wait = new OpenQA.Selenium.Support.UI.WebDriverWait(driver, TimeSpan.FromSeconds(20));
+
+            // 페이지 안정화(선택)
+            try
+            {
+                var js = driver as IJavaScriptExecutor;
+                wait.Until(d => (js?.ExecuteScript("return document.readyState") as string) == "complete");
+            }
+            catch { /* 무시: 일부 페이지는 readyState 확인이 불가 */ }
+
+            try
+            {
+                // 입력 박스가 보이고 상호작용 가능한 상태가 될 때까지 대기
+                var input = wait.Until(SeleniumExtras.WaitHelpers.ExpectedConditions.ElementToBeClickable(byPwd));
+
+                // 천천히, 확실히 입력
+                input.Click();
+                await Task.Delay(200);
+                input.Clear();
+                await Task.Delay(200);
+
+                const int maxAttempts = 3;
+                for (int attempt = 1; attempt <= maxAttempts; attempt++)
+                {
+                    input.SendKeys(config.UserPW);
+                    await Task.Delay(300);
+
+                    // 입력 검증(비밀번호 필드는 value 조회가 제한될 수 있음 → 길이로만 점검)
+                    try
+                    {
+                        var val = input.GetAttribute("value") ?? string.Empty;
+                        if (val.Length >= Math.Min(1, config.UserPW.Length))
+                            break; // 충분히 입력됨
+                    }
+                    catch { /* 일부 브라우저/보안설정에서 value 접근 불가 */ }
+
+                    if (attempt < maxAttempts)
+                    {
+                        input.Clear();
+                        await Task.Delay(250);
+                    }
+                }
+
+                // Enter 전 소폭 대기 후 전송
+                await Task.Delay(300);
+                input.SendKeys(OpenQA.Selenium.Keys.Enter);
+
+                // 모달이 사라질 때까지 대기(정확성 우선)
+                bool closed = wait.Until(d =>
+                {
+                    var els = d.FindElements(byPwd);
+                    if (els.Count == 0) return true;
+                    try { return !els[0].Displayed; } catch { return true; }
+                });
+
+                return closed;
+            }
+            catch (WebDriverTimeoutException ex)
+            {
+                LogException(ex, Level.Error, "잠금 모달 처리 타임아웃");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error, "잠금 모달 처리 오류");
+                return false;
+            }
+        }
+
+        /* 기존 코드
+        private static async Task<bool> EnterModalPassword(IWebDriver driver, Config config)
+        {
+            if (config == null || string.IsNullOrEmpty(config.UserPW))
+            {
+                LogMessage("Config Value is Null", Level.Error);
+                return false;
+            }
+
+            Thread.Sleep(1000);
 
             // 비밀번호 입력 / 정상 True, 비정상 False 반환
             if (!Util_Element.SendKeysToElement(driver, "//*[@id='lock_passwd']", config.UserPW))
@@ -269,10 +349,9 @@ namespace GateHelper
             // 비밀번호 입력창에 직접 엔터 키를 입력
             try
             {
-                Thread.Sleep(1000);
+                Thread.Sleep(2000);
                 var passwordElement = driver.FindElement(By.XPath("//*[@id='lock_passwd']"));
                 passwordElement.SendKeys(OpenQA.Selenium.Keys.Enter);
-                // LogMessage("비밀번호 입력 후 엔터 키 입력 성공.", Level.Info);
             }
             catch (Exception ex)
             {
@@ -283,6 +362,9 @@ namespace GateHelper
             await Task.Delay(1000); // 엔터 키 처리 대기
             return true;
         }
+        */
+
+
 
         private static bool IsAlertPresent(IWebDriver driver, out string alertText)
         {
