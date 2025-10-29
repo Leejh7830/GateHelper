@@ -55,9 +55,9 @@ namespace GateHelper
 신규/통합모니터링 웹 접속 및 제어
 개선/FAV One Click Connect 오류 (검색은 되지만 접속 시 찾을 수 없음)
 신규/Error,Critical 로그 카운트
-개선/WebDriverManager - Driver폴더 오픈 버튼 추가, 오래된 버전 삭제용
 신규/Excel, PPT 파일 바로가기 기능
 개선/드라이버종료되면 팝업옵션 끄기
+개선/날짜별로그확인 기능
 
 
 

@@ -804,7 +804,5 @@ namespace GateHelper
                 GatePW = pw;
             }
         }
-
-        
     }
 }

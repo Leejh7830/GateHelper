@@ -24,7 +24,7 @@ namespace GateHelper
             DisablePopup = false;
             TestMode = false;
             ServerClickConnect = true;
-            PopupGraceMs = 5000;
+            PopupGraceMs = 10000;
             FavOneClickConnect = false;
         }
     }

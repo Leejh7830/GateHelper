@@ -365,7 +365,6 @@ namespace GateHelper
         */
 
 
-
         private static bool IsAlertPresent(IWebDriver driver, out string alertText)
         {
             alertText = string.Empty;

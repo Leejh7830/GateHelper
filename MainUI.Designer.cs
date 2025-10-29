@@ -412,7 +412,7 @@ namespace GateHelper
             this.TabControl1.Controls.Add(this.tabPage4);
             this.TabControl1.Controls.Add(this.tabPage3);
             this.TabControl1.Depth = 0;
-            this.TabControl1.Location = new System.Drawing.Point(6, 169);
+            this.TabControl1.Location = new System.Drawing.Point(6, 174);
             this.TabControl1.Margin = new System.Windows.Forms.Padding(2);
             this.TabControl1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TabControl1.Multiline = true;
@@ -693,12 +693,12 @@ namespace GateHelper
             this.TabSelector1.Depth = 0;
             this.TabSelector1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
             this.TabSelector1.ForeColor = System.Drawing.SystemColors.Control;
-            this.TabSelector1.Location = new System.Drawing.Point(19, 135);
+            this.TabSelector1.Location = new System.Drawing.Point(20, 135);
             this.TabSelector1.Margin = new System.Windows.Forms.Padding(2);
             this.TabSelector1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TabSelector1.Name = "TabSelector1";
-            this.TabSelector1.Size = new System.Drawing.Size(365, 32);
-            this.TabSelector1.TabIndex = 97;
+            this.TabSelector1.Size = new System.Drawing.Size(365, 30);
+            this.TabSelector1.TabIndex = 33;
             this.TabSelector1.TabIndicatorHeight = 3;
             this.TabSelector1.Text = "TabSelector1";
             // 
