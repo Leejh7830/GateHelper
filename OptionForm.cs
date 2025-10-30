@@ -153,9 +153,6 @@ namespace GateHelper
                 CBox_FavOneClickConnect.Checked = AppSettings.FavOneClickConnect;
             }
 
-            if (ComboBoxGraceMs1.Items.Contains("10"))
-                ComboBoxGraceMs1.SelectedItem = "10";
-
             Focus();
         }
 

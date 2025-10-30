@@ -204,8 +204,6 @@ namespace GateHelper
             this.ComboBoxGraceMs1.IntegralHeight = false;
             this.ComboBoxGraceMs1.ItemHeight = 43;
             this.ComboBoxGraceMs1.Items.AddRange(new object[] {
-            "5",
-            "7",
             "10",
             "30",
             "60"});
