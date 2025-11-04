@@ -523,6 +523,23 @@ namespace GateHelper
             OpenLogFile();
         }
 
+        
+
+        private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            if (_driver != null)
+            {
+                ChromeDriverManager.CloseDriver(_driver);
+                _driver = null;  // 드라이버 객체 해제
+            }
+            // 프로그램 완전 종료'
+            LogMessage("프로그램 종료", Level.Info);
+            Environment.Exit(0);
+        }
+
+
+        //////////////////////////////////////////////////////////////////////////////// 옵션 전용 시작
+
         private void BtnOption1_Click(object sender, EventArgs e)
         {
             bool oldTestMode = _appSettings.TestMode; // 기존 값 저장
@@ -555,21 +572,6 @@ namespace GateHelper
                 LogMessage("Options Cancel Click", Level.Info);
             }
         }
-
-        private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            if (_driver != null)
-            {
-                ChromeDriverManager.CloseDriver(_driver);
-                _driver = null;  // 드라이버 객체 해제
-            }
-            // 프로그램 완전 종료'
-            LogMessage("프로그램 종료", Level.Info);
-            Environment.Exit(0);
-        }
-
-
-        //////////////////////////////////////////////////////////////////////////////// 옵션 전용 시작
 
         private void ApplyTestMode(bool isEnabled)
         {
