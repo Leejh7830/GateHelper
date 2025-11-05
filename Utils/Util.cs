@@ -41,14 +41,12 @@ namespace GateHelper
         {
             string metaNotesPath = GetMetaPath("ReleaseNotes.txt");
             string content =
-@"v2.1.0
+@"
 - Initial Release
 - leejh7830@lgespartner.com
 
 •	본 프로그램은 비영리 목적으로 제작한 유틸리티입니다.
-•	관리자 권한이나 특별한 시스템 권한을 요구하지 않으며, 사용자의 시스템/네트워크를 침해하지 않습니다.
-•	본 프로그램의 기능은 사용자가 직접 실행한 범위에서만 동작합니다. 무단으로 데이터를 전송하지 않습니다.
-•	회사/조직의 보안 정책에 따라 사용 전 사내 정책 준수를 확인해 주세요.
+•	본 프로그램은 무단으로 데이터를 전송하지 않습니다.
 
 
 [ 신규 사항 ] 진행중 : 
@@ -62,13 +60,12 @@ namespace GateHelper
 신규 / 전체 서버를 리스트에 저장하는 기능
 
 
-[ 개선 사항 ] 진행중 : 5
+[ 개선 사항 ] 진행중 : 
 1. 개선 / Listview 컨텍스트 메뉴 색상 반전 (현재 색상모드와 불일치)
 2. 개선 / FAV One Click Connect 오류 (검색은 되지만 접속 시 찾을 수 없음)
 3. 개선 / 드라이버종료되면 팝업옵션 끄기
 4. 개선 / 날짜별로그확인 기능
-5. 개선 / 현재열려있는 웹페이지에 접속하려는 서버가 있으면 바로 접속
-6. 개선 / 접속할때 웹페이지가 접속목록이 아닌 다른 페이지에 있으면 접속목록 페이지로 이동
+5. 개선 / 접속할때 웹페이지가 접속목록이 아닌 다른 페이지에 있으면 접속목록 페이지로 이동
 
 
 [완료]
@@ -93,8 +90,9 @@ v2.0.0
 25.10.20 OP) 옵션설명 라벨 추가 / _meta 폴더 이동 기능 강화 / OP) FAV OneClick 접속 기능 추가
 25.10.21 Preset 기능 추가
 
-v2.1.0
-25.10.29 DriverManager 개선 및 ChromeDriver 자동업데이트 기능 추가 (ChromeDriverManager.cs)
+
+v2.1.0 / 25.10.29 DriverManager 개선 및 ChromeDriver 자동업데이트 기능 추가 (ChromeDriverManager.cs)
+v2.1.1 / 25.11.05 GetServerListFromWebPage 추가 (웹페이지에 접속서버가 있으면 재검색 안하고 바로 접속)
          
 ";
 
