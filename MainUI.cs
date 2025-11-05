@@ -598,7 +598,7 @@ namespace GateHelper
         }
 
 
-
+        // ✦ ListView 더블클릭 접속
         private void ObjectListView1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             var hit = ObjectListView1.OlvHitTest(e.X, e.Y);
@@ -620,25 +620,41 @@ namespace GateHelper
 
             LogMessage($"ListView 더블클릭 접속 시도: {serverName}", Level.Info);
 
-            SearchTxt1.Text = serverName;
-            BtnSearch1_Click(null, null);
+            // 현재 웹페이지에서 서버목록 가져오기
+            var serverList = Util_ServerList.GetServerListFromWebPage(_driver);
+            bool exists = serverList.Any(s =>
+            string.Equals(s.ServerName, serverName, StringComparison.OrdinalIgnoreCase));
 
-            try
+            if (exists) // 서버가 현재 페이지에 있으면
             {
-                WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
-                wait.Until(driver =>
+                LogMessage($"현재 화면에 [{serverName}] 존재 - 바로 접속 시도", Level.Info);
+                Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
+            }
+            else // 없으면 검색 후 접속
+            {
+                LogMessage($"현재 화면에 [{serverName}] 없음 - 검색 후 접속 시도", Level.Info);
+
+                // 검색 동작 수행
+                SearchTxt1.Text = serverName;
+                BtnSearch1_Click(null, null);
+
+                try
                 {
-                    var elements = driver.FindElements(By.XPath("//*[@id='seltable']//td[4]"));
-                    return elements.Any(el => el.Text == serverName);
-                });
-            }
-            catch (WebDriverTimeoutException)
-            {
-                MessageBox.Show("검색 결과가 로딩되지 않았습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
+                    WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
+                    wait.Until(driver =>
+                    {
+                        var elements = driver.FindElements(By.XPath("//*[@id='seltable']//td[4]"));
+                        return elements.Any(el => el.Text == serverName);
+                    });
+                }
+                catch (WebDriverTimeoutException)
+                {
+                    MessageBox.Show("검색 결과가 로딩되지 않았습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
 
-            Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
+                Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
+            }
         }
 
         //////////////////////////////////////////////////////////////////////////////// 옵션 전용 끝

@@ -11,6 +11,7 @@ using System.Text.Json;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using OpenQA.Selenium;
 
 namespace GateHelper
 {
@@ -181,6 +182,30 @@ namespace GateHelper
             {
                 LogMessage($"Failed to load Server Data: {ex.Message}", Level.Error);
             }
+        }
+
+        // 현재 로딩된 웹페이지에서 Server Name/IP 목록을 가져오고 메모리 저장
+        public static List<(string ServerName, string ServerIP)> GetServerListFromWebPage(IWebDriver driver)
+        {
+            var serverList = new List<(string ServerName, string ServerIP)>();
+
+            // 모든 tbody 순회
+            var tbodys = driver.FindElements(By.XPath("//*[@id='seltable']/tbody"));
+            foreach (var tbody in tbodys)
+            {
+                var rows = tbody.FindElements(By.TagName("tr"));
+                foreach (var row in rows)
+                {
+                    var cells = row.FindElements(By.TagName("td"));
+                    if (cells.Count >= 6)
+                    {
+                        string serverName = cells[3].Text.Trim(); // 4번째 td (index 3) = ServerName
+                        string serverIP = cells[5].Text.Trim();   // 6번째 td (index 5) = ServerIP
+                        serverList.Add((serverName, serverIP));
+                    }
+                }
+            }
+            return serverList;
         }
 
     }

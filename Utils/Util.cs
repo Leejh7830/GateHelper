@@ -45,9 +45,9 @@ namespace GateHelper
 - Initial Release
 - leejh7830@lgespartner.com
 
-•	본 프로그램은 개인이 비영리 목적으로 제작한 유틸리티입니다.
+•	본 프로그램은 비영리 목적으로 제작한 유틸리티입니다.
 •	관리자 권한이나 특별한 시스템 권한을 요구하지 않으며, 사용자의 시스템/네트워크를 침해하지 않습니다.
-•	본 프로그램의 기능은 사용자가 직접 실행한 범위에서만 동작합니다. 무단 데이터 전송은 없습니다.
+•	본 프로그램의 기능은 사용자가 직접 실행한 범위에서만 동작합니다. 무단으로 데이터를 전송하지 않습니다.
 •	회사/조직의 보안 정책에 따라 사용 전 사내 정책 준수를 확인해 주세요.
 
 
@@ -195,27 +195,6 @@ v2.1.0
             }
         }
 
-        // 현재 미사용
-        public static bool CreateFolder_Resource()
-        {
-            string metaFolder = CreateMetaFolderAndGetPath();
-            string folderPath = Path.Combine(metaFolder, "Resource");
-            try
-            {
-                if (!Directory.Exists(folderPath))
-                {
-                    Directory.CreateDirectory(folderPath);
-                    LogMessage($"{Path.GetFileName(folderPath)} 폴더 생성", Level.Info);
-                }
-                return true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"폴더 생성 오류: {ex.Message}");
-                LogException(ex, Level.Error);
-                return false;
-            }
-        }
 
         // 새로운 FAV : 검색 동작 수행하고 서버 이름(또는 빈 문자열)을 반환
         public static string ClickFavBtnAndGetServerName(IWebDriver _driver, Config config, int favIndex, ChromeDriverManager chromeDriverManager)
@@ -260,55 +239,7 @@ v2.1.0
             }
         }
 
-        // 이전 FAV
-        public static void ClickFavBtn(IWebDriver _driver, Config config, int favIndex, Action serverListLoadAction, ChromeDriverManager chromeDriverManager)
-        {
-            if (!chromeDriverManager.IsDriverReady(_driver))
-                return;
-
-            try
-            {
-                string favKey = $"Fav{favIndex}";
-                LogMessage($"BtnFav{favIndex} Click", Level.Info);
-                string serverName, serverIP;
-                ValidateServerInfo(config.GetType().GetProperty(favKey).GetValue(config).ToString(), out serverName, out serverIP);
-
-                if (!string.IsNullOrEmpty(serverIP))
-                {
-                    // IP 주소인 경우
-                    SendKeysToElement(_driver, "//*[@id='id_IPADDR']", serverIP);
-                    SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", "");
-                }
-                else if (!string.IsNullOrEmpty(serverName))
-                {
-                    // 서버 이름인 경우
-                    SendKeysToElement(_driver, "//*[@id='id_DEVNAME']", serverName);
-                    SendKeysToElement(_driver, "//*[@id='id_IPADDR']", "");
-                }
-
-                ClickElementByXPath(_driver, "//*[@id='access_control']/table/tbody/tr[2]/td/a");
-
-                WaitForElementLoadByXPath(_driver, "//*[@id=\'seltable\']/tbody[1]/tr/td[4]", 10);
-
-                serverListLoadAction?.Invoke(); // 서버리스트 로드
-            }
-            catch (ArgumentException ex)
-            {
-                LogException(ex, Level.Error);
-                MessageBox.Show(ex.Message, "알림");
-            }
-            catch (NoSuchElementException ex)
-            {
-                LogException(ex, Level.Error);
-                MessageBox.Show("요소를 찾을 수 없습니다.", "오류");
-            }
-            catch (Exception ex)
-            {
-                LogException(ex, Level.Critical);
-                MessageBox.Show("예상치 못한 오류가 발생했습니다.", "오류");
-            }
-        }
-
+        
 
 
 
