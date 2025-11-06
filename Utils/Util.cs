@@ -44,9 +44,7 @@ namespace GateHelper
 @"
 - Initial Release
 - leejh7830@lgespartner.com
-
-•	본 프로그램은 비영리 목적으로 제작한 유틸리티입니다.
-•	본 프로그램은 무단으로 데이터를 전송하지 않습니다.
+- 본 프로그램은 비영리 목적으로 제작한 유틸리티입니다.
 
 
 [ 신규 사항 ] 진행중 : 
@@ -56,7 +54,7 @@ namespace GateHelper
 신규 / 통합모니터링 웹 접속 및 제어
 신규 / Error,Critical 로그 카운트
 신규 / Excel, PPT 파일 바로가기 기능
-신규 / 현재접속서버 사용자 공유 시스템 (RDP감지/GateOne Log API 활용)
+신규 / 현재접속서버 사용자 공유 시스템 (RDP감지/GateOne Log API 활용/UDP BroadCast)
 신규 / 전체 서버를 리스트에 저장하는 기능
 
 
