@@ -132,7 +132,7 @@ namespace GateHelper
             this.TestBtn1.Depth = 0;
             this.TestBtn1.HighEmphasis = true;
             this.TestBtn1.Icon = null;
-            this.TestBtn1.Location = new System.Drawing.Point(855, 73);
+            this.TestBtn1.Location = new System.Drawing.Point(396, 77);
             this.TestBtn1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.TestBtn1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TestBtn1.Name = "TestBtn1";

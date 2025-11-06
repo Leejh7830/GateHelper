@@ -170,7 +170,7 @@ namespace GateHelper
 
                 string jsonString = File.ReadAllText(_serverFilePath);
                 List<ServerInfo> serverList = JsonSerializer.Deserialize<List<ServerInfo>>(jsonString);
-
+                
                 listView.Items.Clear();
 
                 listView.SetObjects(serverList);

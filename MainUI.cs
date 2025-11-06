@@ -714,9 +714,7 @@ namespace GateHelper
 
         private void TestBtn1_Click(object sender, EventArgs e)
         {
-            System.Threading.Thread.Sleep(5000);
-            // Util_Element.FindAndAlertAlert(_driver);
-            Util_Element.FindAllXPaths(_driver);
+            Util_Rdp.ShowRdpStatus();
         }
 
         private void MenuItem1_Delete_Click(object sender, EventArgs e)
