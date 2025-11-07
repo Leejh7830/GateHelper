@@ -33,7 +33,7 @@ namespace GateHelper
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainUI));
             this.BtnGateOneLogin1 = new MaterialSkin.Controls.MaterialButton();
-            this.TestBtn1 = new MaterialSkin.Controls.MaterialButton();
+            this.BtnRDP1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnSearch1 = new MaterialSkin.Controls.MaterialButton();
             this.SearchTxt1 = new MaterialSkin.Controls.MaterialTextBox2();
             this.GroupConnect1 = new System.Windows.Forms.GroupBox();
@@ -88,6 +88,8 @@ namespace GateHelper
             this.lblInternetStatus = new System.Windows.Forms.Label();
             this.BtnOption1 = new MaterialSkin.Controls.MaterialButton();
             this.lblPopupStatus = new System.Windows.Forms.Label();
+            this.BtnSend1 = new MaterialSkin.Controls.MaterialButton();
+            this.BtnRec1 = new MaterialSkin.Controls.MaterialButton();
             this.GroupConnect1.SuspendLayout();
             this.GroupPreset1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
@@ -125,25 +127,25 @@ namespace GateHelper
             this.BtnGateOneLogin1.UseVisualStyleBackColor = true;
             this.BtnGateOneLogin1.Click += new System.EventHandler(this.BtnGateOneLogin1_Click);
             // 
-            // TestBtn1
+            // BtnRDP1
             // 
-            this.TestBtn1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.TestBtn1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.TestBtn1.Depth = 0;
-            this.TestBtn1.HighEmphasis = true;
-            this.TestBtn1.Icon = null;
-            this.TestBtn1.Location = new System.Drawing.Point(396, 77);
-            this.TestBtn1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.TestBtn1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.TestBtn1.Name = "TestBtn1";
-            this.TestBtn1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.TestBtn1.Size = new System.Drawing.Size(98, 36);
-            this.TestBtn1.TabIndex = 5;
-            this.TestBtn1.Text = "Func Test";
-            this.TestBtn1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.TestBtn1.UseAccentColor = false;
-            this.TestBtn1.UseVisualStyleBackColor = true;
-            this.TestBtn1.Click += new System.EventHandler(this.TestBtn1_Click);
+            this.BtnRDP1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnRDP1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnRDP1.Depth = 0;
+            this.BtnRDP1.HighEmphasis = true;
+            this.BtnRDP1.Icon = null;
+            this.BtnRDP1.Location = new System.Drawing.Point(415, 73);
+            this.BtnRDP1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnRDP1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnRDP1.Name = "BtnRDP1";
+            this.BtnRDP1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnRDP1.Size = new System.Drawing.Size(101, 36);
+            this.BtnRDP1.TabIndex = 5;
+            this.BtnRDP1.Text = "RDP Check";
+            this.BtnRDP1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnRDP1.UseAccentColor = false;
+            this.BtnRDP1.UseVisualStyleBackColor = true;
+            this.BtnRDP1.Click += new System.EventHandler(this.TestBtn1_Click);
             // 
             // BtnSearch1
             // 
@@ -921,12 +923,54 @@ namespace GateHelper
             this.lblPopupStatus.TabIndex = 45;
             this.lblPopupStatus.Text = "Detect";
             // 
+            // BtnSend1
+            // 
+            this.BtnSend1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnSend1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnSend1.Depth = 0;
+            this.BtnSend1.HighEmphasis = true;
+            this.BtnSend1.Icon = null;
+            this.BtnSend1.Location = new System.Drawing.Point(391, 114);
+            this.BtnSend1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnSend1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnSend1.Name = "BtnSend1";
+            this.BtnSend1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnSend1.Size = new System.Drawing.Size(81, 36);
+            this.BtnSend1.TabIndex = 97;
+            this.BtnSend1.Text = "BC Send";
+            this.BtnSend1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnSend1.UseAccentColor = false;
+            this.BtnSend1.UseVisualStyleBackColor = true;
+            this.BtnSend1.Click += new System.EventHandler(this.BtnSend1_Click);
+            // 
+            // BtnRec1
+            // 
+            this.BtnRec1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnRec1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnRec1.Depth = 0;
+            this.BtnRec1.HighEmphasis = true;
+            this.BtnRec1.Icon = null;
+            this.BtnRec1.Location = new System.Drawing.Point(391, 152);
+            this.BtnRec1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnRec1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnRec1.Name = "BtnRec1";
+            this.BtnRec1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnRec1.Size = new System.Drawing.Size(81, 36);
+            this.BtnRec1.TabIndex = 98;
+            this.BtnRec1.Text = "BC Rec";
+            this.BtnRec1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnRec1.UseAccentColor = false;
+            this.BtnRec1.UseVisualStyleBackColor = true;
+            this.BtnRec1.Click += new System.EventHandler(this.BtnRec1_Click);
+            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1114, 714);
+            this.Controls.Add(this.BtnRec1);
+            this.Controls.Add(this.BtnSend1);
             this.Controls.Add(this.ListViewServer2);
             this.Controls.Add(this.lblPopupStatus);
             this.Controls.Add(this.BtnOption1);
@@ -944,7 +988,7 @@ namespace GateHelper
             this.Controls.Add(this.TabSelector1);
             this.Controls.Add(this.TabControl1);
             this.Controls.Add(this.BtnGateOneLogin1);
-            this.Controls.Add(this.TestBtn1);
+            this.Controls.Add(this.BtnRDP1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainUI";
@@ -974,7 +1018,7 @@ namespace GateHelper
 
         #endregion
         private MaterialSkin.Controls.MaterialButton BtnGateOneLogin1;
-        private MaterialSkin.Controls.MaterialButton TestBtn1;
+        private MaterialSkin.Controls.MaterialButton BtnRDP1;
         private MaterialSkin.Controls.MaterialButton BtnSearch1;
         private System.Windows.Forms.GroupBox GroupConnect1;
         private MaterialSkin.Controls.MaterialTabControl TabControl1;
@@ -1029,6 +1073,8 @@ namespace GateHelper
         private System.Windows.Forms.GroupBox GroupPreset1;
         private MaterialSkin.Controls.MaterialButton BtnPreset1;
         private MaterialSkin.Controls.MaterialButton BtnPreset2;
+        private MaterialSkin.Controls.MaterialButton BtnSend1;
+        private MaterialSkin.Controls.MaterialButton BtnRec1;
     }
 }
 

@@ -712,10 +712,7 @@ namespace GateHelper
             Util_ImageLoader.LoadReferenceImages(flowLayoutPanel1);
         }
 
-        private void TestBtn1_Click(object sender, EventArgs e)
-        {
-            Util_Rdp.ShowRdpStatus();
-        }
+
 
         private void MenuItem1_Delete_Click(object sender, EventArgs e)
         {
@@ -820,5 +817,27 @@ namespace GateHelper
                 GatePW = pw;
             }
         }
+
+        private void TestBtn1_Click(object sender, EventArgs e)
+        {
+            Util_Rdp.ShowRdpStatus();
+        }
+
+        private void BtnSend1_Click(object sender, EventArgs e)
+        {
+            // 예시: 현재 사용자명, 서버명, 시간 포함
+            string userName = Environment.UserName;
+            string serverName = "UnknownServer";
+            string time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            string message = $"{userName}:{serverName}:{time}";
+
+            Util_Rdp.BroadcastSend(message);
+        }
+
+        private void BtnRec1_Click(object sender, EventArgs e)
+        {
+            Util_Rdp.BroadcastReceiveOnceAsync();
+        }
+
     }
 }

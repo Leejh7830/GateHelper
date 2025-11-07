@@ -54,8 +54,9 @@ namespace GateHelper
 4. 신규 / 통합모니터링 웹 접속 및 제어
 5. 신규 / Error,Critical 로그 카운트
 6. 신규 / Excel, PPT 파일 바로가기 기능
-7. 신규 / 현재접속서버 사용자 공유 시스템 (RDP감지/GateOne Log API 활용/UDP BroadCast)
+7. 신규 / 현재접속서버 사용자 공유 시스템 (RDP감지/GateOne Log API 활용/UDP BroadCast) / 안되면 접속했던 기록이라도 공유
 8. 신규 / 전체 서버를 리스트에 저장하는 기능
+9. 신규 / 마우스 감지 및 일정 시간(사용자 비활성) 후 자동 마우스 움직임 기능 추가
 
 
 [ 개선 사항 ] 진행중 : 
