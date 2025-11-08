@@ -14,8 +14,8 @@ namespace GateHelper
         public bool TestMode { get; set; }
         public bool ServerClickConnect { get; set; }
         public int PopupGraceMs { get; set; }
-
         public bool FavOneClickConnect { get; set; }
+        public bool UseUDP { get; set; }
 
         public AppSettings() // 옵션 변수들
         {
@@ -26,6 +26,7 @@ namespace GateHelper
             ServerClickConnect = true;
             PopupGraceMs = 10000;
             FavOneClickConnect = false;
+            UseUDP = false;
         }
     }
 }

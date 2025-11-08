@@ -158,6 +158,9 @@ namespace GateHelper
                     _lastInternetStatus = newNetStatus;
                 }
 
+                // 🔍 UDP 상태
+                Util_Rdp.UpdateUDPStatusLabel(Util_Rdp.IsUdpReceiving);
+
                 // 🔍 팝업 감지 상태 추가
                 bool popupFeatureOn = _appSettings.DisablePopup; // 현재 로직 유지
                 string newPopupStatus = popupFeatureOn ? "ON" : "OFF";
@@ -388,6 +391,9 @@ namespace GateHelper
             string selectedServer = ComboBoxServerList1.SelectedItem.ToString();
             LogMessage("접속 서버 명: " + selectedServer, Level.Info);
 
+            // UDP 접속 정보 송신
+            StartRdpDetect(serverName);
+
             Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, selectedServer, ObjectListView1, _appSettings.RemoveDuplicates);
         }
 
@@ -410,6 +416,7 @@ namespace GateHelper
             {
                 try
                 {
+                    StartRdpDetect(serverName);
                     Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
                 }
                 catch (Exception ex)
@@ -435,6 +442,7 @@ namespace GateHelper
             {
                 try
                 {
+                    StartRdpDetect(serverName);
                     Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
                 }
                 catch (Exception ex)
@@ -460,6 +468,7 @@ namespace GateHelper
             {
                 try
                 {
+                    StartRdpDetect(serverName);
                     Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
                 }
                 catch (Exception ex)
@@ -525,17 +534,7 @@ namespace GateHelper
 
         
 
-        private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            if (_driver != null)
-            {
-                ChromeDriverManager.CloseDriver(_driver);
-                _driver = null;  // 드라이버 객체 해제
-            }
-            // 프로그램 완전 종료'
-            LogMessage("프로그램 종료", Level.Info);
-            Environment.Exit(0);
-        }
+        
 
 
         //////////////////////////////////////////////////////////////////////////////// 옵션 전용 시작
@@ -544,6 +543,7 @@ namespace GateHelper
         {
             bool oldTestMode = _appSettings.TestMode; // 기존 값 저장
             bool oldDisablePopup = _appSettings.DisablePopup;
+            bool oldUseUdpReceive = _appSettings.UseUDP;
 
             OptionForm optionForm = new OptionForm(_appSettings, _themeManager.IsDarkMode);
             DialogResult result = optionForm.ShowDialog();
@@ -560,12 +560,20 @@ namespace GateHelper
                     ApplyTestMode(_appSettings.TestMode);
                 }
 
-                LogMessage("Options Save Click", Level.Info);
-
                 if (oldDisablePopup != _appSettings.DisablePopup)
                 {
                     Util_Option.UpdatePopupStatus(lblPopupStatus, !_appSettings.DisablePopup, _popupCount);
                 }
+
+                if (oldUseUdpReceive != _appSettings.UseUDP)
+                {
+                    if (_appSettings.UseUDP)
+                        Util_Rdp.StartBroadcastReceiveLoop(OnUdpMessageReceived);
+                    else
+                        Util_Rdp.StopBroadcastReceiveLoop();
+                }
+
+                LogMessage("Options Save Click", Level.Info);
             }
             else
             {
@@ -628,6 +636,10 @@ namespace GateHelper
             if (exists) // 서버가 현재 페이지에 있으면
             {
                 LogMessage($"현재 화면에 [{serverName}] 존재 - 바로 접속 시도", Level.Info);
+
+                // UDP 접속 정보 송신
+                StartRdpDetect(serverName);
+
                 Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
             }
             else // 없으면 검색 후 접속
@@ -652,6 +664,9 @@ namespace GateHelper
                     MessageBox.Show("검색 결과가 로딩되지 않았습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
+
+                // UDP 접속 정보 송신
+                StartRdpDetect(serverName);
 
                 Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
             }
@@ -689,10 +704,26 @@ namespace GateHelper
             Util_ImageLoader.LoadReferenceImages(flowLayoutPanel1); // Images Load
 
             Util_ServerList.LoadServerDataFromFile(ObjectListView1); // ServerData Load
+
+            string version = Util.GetCurrentVersionFromReleaseNotes();
+            lblVersion.Text = $"{version}";
         }
 
+        private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            Util_Rdp.StopBroadcastReceiveLoop(); // RDP 수신 루프 종료
 
-        
+            if (_driver != null)
+            {
+                ChromeDriverManager.CloseDriver(_driver);
+                _driver = null;  // 드라이버 객체 해제
+            }
+
+            // 프로그램 완전 종료'
+            LogMessage("프로그램 종료", Level.Info);
+            Environment.Exit(0);
+        }
+
 
         private void SearchTxt1_KeyDown(object sender, KeyEventArgs e)
         {
@@ -818,26 +849,48 @@ namespace GateHelper
             }
         }
 
+        private void OnUdpMessageReceived(string msg)
+        {
+            // 메시지 파싱 (userId / serverName / time)
+            var parts = msg.Split(new[] { " / " }, StringSplitOptions.None);
+            if (parts.Length < 3) return;
+            string userId = parts[0].Trim();
+            string serverName = parts[1].Trim();
+            string time = parts[2].Trim();
+
+            // ObjectListView에서 서버 이름으로만 비교
+            foreach (var item in ObjectListView1.Objects)
+            {
+                var serverInfo = item as Util_ServerList.ServerInfo;
+                if (serverInfo == null) continue;
+
+                if (serverInfo.ServerName == serverName)
+                {
+                    serverInfo.IsInUse = true; // 사용 중 표시
+                    //serverInfo.InUseBy = userId;
+                    //serverInfo.InUseTime = time;
+                    ObjectListView1.RefreshObject(serverInfo);
+                }
+            }
+        }
+
+
+        private void StartRdpDetect(string serverName)
+        {
+            Util_Rdp.BroadcastSend(_config, serverName);
+        }
+
+
+
+
+
+
         private void TestBtn1_Click(object sender, EventArgs e)
         {
             Util_Rdp.ShowRdpStatus();
         }
 
-        private void BtnSend1_Click(object sender, EventArgs e)
-        {
-            // 예시: 현재 사용자명, 서버명, 시간 포함
-            string userName = Environment.UserName;
-            string serverName = "UnknownServer";
-            string time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            string message = $"{userName}:{serverName}:{time}";
 
-            Util_Rdp.BroadcastSend(message);
-        }
-
-        private void BtnRec1_Click(object sender, EventArgs e)
-        {
-            Util_Rdp.BroadcastReceiveOnceAsync();
-        }
 
     }
 }

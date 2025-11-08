@@ -51,7 +51,7 @@ namespace GateHelper
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.ObjectListView1 = new BrightIdeasSoftware.ObjectListView();
-            this.No = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.IsInUse = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.ServerName = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.LastConnected = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.Memo = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
@@ -90,6 +90,8 @@ namespace GateHelper
             this.lblPopupStatus = new System.Windows.Forms.Label();
             this.BtnSend1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnRec1 = new MaterialSkin.Controls.MaterialButton();
+            this.lblUDPStatus = new System.Windows.Forms.Label();
+            this.lblVersion = new System.Windows.Forms.Label();
             this.GroupConnect1.SuspendLayout();
             this.GroupPreset1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
@@ -450,7 +452,7 @@ namespace GateHelper
             // 
             // ObjectListView1
             // 
-            this.ObjectListView1.AllColumns.Add(this.No);
+            this.ObjectListView1.AllColumns.Add(this.IsInUse);
             this.ObjectListView1.AllColumns.Add(this.ServerName);
             this.ObjectListView1.AllColumns.Add(this.LastConnected);
             this.ObjectListView1.AllColumns.Add(this.Memo);
@@ -458,7 +460,7 @@ namespace GateHelper
             this.ObjectListView1.CellEditActivation = BrightIdeasSoftware.ObjectListView.CellEditActivateMode.DoubleClick;
             this.ObjectListView1.CellEditUseWholeCell = false;
             this.ObjectListView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.No,
+            this.IsInUse,
             this.ServerName,
             this.LastConnected,
             this.Memo});
@@ -481,11 +483,11 @@ namespace GateHelper
             this.ObjectListView1.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.ObjectListView1_FormatRow);
             this.ObjectListView1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.ObjectListView1_MouseDoubleClick);
             // 
-            // No
+            // IsInUse
             // 
-            this.No.AspectName = "#";
-            this.No.IsEditable = false;
-            this.No.Text = "No";
+            this.IsInUse.AspectName = "IsInUse";
+            this.IsInUse.IsEditable = false;
+            this.IsInUse.Text = "InUse";
             // 
             // ServerName
             // 
@@ -878,7 +880,7 @@ namespace GateHelper
             // lblDriverStatus
             // 
             this.lblDriverStatus.AutoSize = true;
-            this.lblDriverStatus.Location = new System.Drawing.Point(24, 634);
+            this.lblDriverStatus.Location = new System.Drawing.Point(24, 613);
             this.lblDriverStatus.Name = "lblDriverStatus";
             this.lblDriverStatus.Size = new System.Drawing.Size(37, 12);
             this.lblDriverStatus.TabIndex = 29;
@@ -887,7 +889,7 @@ namespace GateHelper
             // lblInternetStatus
             // 
             this.lblInternetStatus.AutoSize = true;
-            this.lblInternetStatus.Location = new System.Drawing.Point(23, 604);
+            this.lblInternetStatus.Location = new System.Drawing.Point(23, 583);
             this.lblInternetStatus.Name = "lblInternetStatus";
             this.lblInternetStatus.Size = new System.Drawing.Size(46, 12);
             this.lblInternetStatus.TabIndex = 30;
@@ -917,7 +919,7 @@ namespace GateHelper
             // lblPopupStatus
             // 
             this.lblPopupStatus.AutoSize = true;
-            this.lblPopupStatus.Location = new System.Drawing.Point(24, 664);
+            this.lblPopupStatus.Location = new System.Drawing.Point(24, 643);
             this.lblPopupStatus.Name = "lblPopupStatus";
             this.lblPopupStatus.Size = new System.Drawing.Size(40, 12);
             this.lblPopupStatus.TabIndex = 45;
@@ -941,7 +943,6 @@ namespace GateHelper
             this.BtnSend1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.BtnSend1.UseAccentColor = false;
             this.BtnSend1.UseVisualStyleBackColor = true;
-            this.BtnSend1.Click += new System.EventHandler(this.BtnSend1_Click);
             // 
             // BtnRec1
             // 
@@ -955,13 +956,30 @@ namespace GateHelper
             this.BtnRec1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnRec1.Name = "BtnRec1";
             this.BtnRec1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnRec1.Size = new System.Drawing.Size(81, 36);
+            this.BtnRec1.Size = new System.Drawing.Size(71, 36);
             this.BtnRec1.TabIndex = 98;
             this.BtnRec1.Text = "BC Rec";
             this.BtnRec1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.BtnRec1.UseAccentColor = false;
             this.BtnRec1.UseVisualStyleBackColor = true;
-            this.BtnRec1.Click += new System.EventHandler(this.BtnRec1_Click);
+            // 
+            // lblUDPStatus
+            // 
+            this.lblUDPStatus.AutoSize = true;
+            this.lblUDPStatus.Location = new System.Drawing.Point(24, 672);
+            this.lblUDPStatus.Name = "lblUDPStatus";
+            this.lblUDPStatus.Size = new System.Drawing.Size(29, 12);
+            this.lblUDPStatus.TabIndex = 99;
+            this.lblUDPStatus.Text = "UDP";
+            // 
+            // lblVersion
+            // 
+            this.lblVersion.AutoSize = true;
+            this.lblVersion.Location = new System.Drawing.Point(4, 3);
+            this.lblVersion.Name = "lblVersion";
+            this.lblVersion.Size = new System.Drawing.Size(48, 12);
+            this.lblVersion.TabIndex = 100;
+            this.lblVersion.Text = "Version";
             // 
             // MainUI
             // 
@@ -969,6 +987,8 @@ namespace GateHelper
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1114, 714);
+            this.Controls.Add(this.lblVersion);
+            this.Controls.Add(this.lblUDPStatus);
             this.Controls.Add(this.BtnRec1);
             this.Controls.Add(this.BtnSend1);
             this.Controls.Add(this.ListViewServer2);
@@ -1068,13 +1088,15 @@ namespace GateHelper
         private BrightIdeasSoftware.OLVColumn LastConnected;
         private BrightIdeasSoftware.OLVColumn Memo;
         private BrightIdeasSoftware.OLVColumn IsFavorite;
-        private BrightIdeasSoftware.OLVColumn No;
+        private BrightIdeasSoftware.OLVColumn IsInUse;
         private BrightIdeasSoftware.OLVColumn ServerName;
         private System.Windows.Forms.GroupBox GroupPreset1;
         private MaterialSkin.Controls.MaterialButton BtnPreset1;
         private MaterialSkin.Controls.MaterialButton BtnPreset2;
         private MaterialSkin.Controls.MaterialButton BtnSend1;
         private MaterialSkin.Controls.MaterialButton BtnRec1;
+        private System.Windows.Forms.Label lblUDPStatus;
+        private System.Windows.Forms.Label lblVersion;
     }
 }
 

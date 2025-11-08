@@ -41,6 +41,7 @@ namespace GateHelper
             this.ComboBoxGraceMs1 = new MaterialSkin.Controls.MaterialComboBox();
             this.materialLabel1 = new MaterialSkin.Controls.MaterialLabel();
             this.materialLabel2 = new MaterialSkin.Controls.MaterialLabel();
+            this.CBox_UseUDP = new MaterialSkin.Controls.MaterialCheckbox();
             this.SuspendLayout();
             // 
             // CBox_RemoveDuplicate
@@ -149,13 +150,13 @@ namespace GateHelper
             this.materialButton1.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.materialButton1.HighEmphasis = true;
             this.materialButton1.Icon = null;
-            this.materialButton1.Location = new System.Drawing.Point(153, 342);
+            this.materialButton1.Location = new System.Drawing.Point(153, 379);
             this.materialButton1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.materialButton1.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialButton1.Name = "materialButton1";
             this.materialButton1.NoAccentTextColor = System.Drawing.Color.Empty;
             this.materialButton1.Size = new System.Drawing.Size(64, 36);
-            this.materialButton1.TabIndex = 7;
+            this.materialButton1.TabIndex = 98;
             this.materialButton1.Text = "SAVE";
             this.materialButton1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.materialButton1.UseAccentColor = false;
@@ -170,13 +171,13 @@ namespace GateHelper
             this.materialButton2.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.materialButton2.HighEmphasis = true;
             this.materialButton2.Icon = null;
-            this.materialButton2.Location = new System.Drawing.Point(225, 342);
+            this.materialButton2.Location = new System.Drawing.Point(225, 379);
             this.materialButton2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.materialButton2.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialButton2.Name = "materialButton2";
             this.materialButton2.NoAccentTextColor = System.Drawing.Color.Empty;
             this.materialButton2.Size = new System.Drawing.Size(77, 36);
-            this.materialButton2.TabIndex = 8;
+            this.materialButton2.TabIndex = 99;
             this.materialButton2.Text = "CANCEL";
             this.materialButton2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.materialButton2.UseAccentColor = false;
@@ -207,7 +208,7 @@ namespace GateHelper
             "10",
             "30",
             "60"});
-            this.ComboBoxGraceMs1.Location = new System.Drawing.Point(147, 256);
+            this.ComboBoxGraceMs1.Location = new System.Drawing.Point(147, 293);
             this.ComboBoxGraceMs1.MaxDropDownItems = 4;
             this.ComboBoxGraceMs1.MouseState = MaterialSkin.MouseState.OUT;
             this.ComboBoxGraceMs1.Name = "ComboBoxGraceMs1";
@@ -221,7 +222,7 @@ namespace GateHelper
             this.materialLabel1.AutoSize = true;
             this.materialLabel1.Depth = 0;
             this.materialLabel1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel1.Location = new System.Drawing.Point(37, 286);
+            this.materialLabel1.Location = new System.Drawing.Point(37, 323);
             this.materialLabel1.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialLabel1.Name = "materialLabel1";
             this.materialLabel1.Size = new System.Drawing.Size(83, 19);
@@ -233,18 +234,35 @@ namespace GateHelper
             this.materialLabel2.AutoSize = true;
             this.materialLabel2.Depth = 0;
             this.materialLabel2.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel2.Location = new System.Drawing.Point(17, 261);
+            this.materialLabel2.Location = new System.Drawing.Point(17, 298);
             this.materialLabel2.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialLabel2.Name = "materialLabel2";
             this.materialLabel2.Size = new System.Drawing.Size(124, 19);
             this.materialLabel2.TabIndex = 11;
             this.materialLabel2.Text = "Detection interval";
             // 
+            // CBox_UseUDP
+            // 
+            this.CBox_UseUDP.AutoSize = true;
+            this.CBox_UseUDP.Depth = 0;
+            this.CBox_UseUDP.Location = new System.Drawing.Point(17, 250);
+            this.CBox_UseUDP.Margin = new System.Windows.Forms.Padding(0);
+            this.CBox_UseUDP.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.CBox_UseUDP.MouseState = MaterialSkin.MouseState.HOVER;
+            this.CBox_UseUDP.Name = "CBox_UseUDP";
+            this.CBox_UseUDP.ReadOnly = false;
+            this.CBox_UseUDP.Ripple = true;
+            this.CBox_UseUDP.Size = new System.Drawing.Size(118, 37);
+            this.CBox_UseUDP.TabIndex = 7;
+            this.CBox_UseUDP.Text = "Enable UDP";
+            this.CBox_UseUDP.UseVisualStyleBackColor = true;
+            // 
             // OptionForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(373, 515);
+            this.ClientSize = new System.Drawing.Size(356, 500);
+            this.Controls.Add(this.CBox_UseUDP);
             this.Controls.Add(this.CBox_RemoveDuplicate);
             this.Controls.Add(this.CBox_ServerClickConnect);
             this.Controls.Add(this.CBox_DisablePopup);
@@ -283,5 +301,6 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialComboBox ComboBoxGraceMs1;
         private MaterialSkin.Controls.MaterialLabel materialLabel1;
         private MaterialSkin.Controls.MaterialLabel materialLabel2;
+        private MaterialSkin.Controls.MaterialCheckbox CBox_UseUDP;
     }
 }

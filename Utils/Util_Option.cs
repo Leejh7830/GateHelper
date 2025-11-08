@@ -34,7 +34,7 @@ namespace GateHelper
         {
             bool wasHandled = false;
 
-            // 1) 팝업 처리: 즉시 닫지 않고 감지 후 5초 이상 지속 시에만 알림
+            // 1) 팝업 처리: 즉시 닫지 않고 감지 후 설정 초 이상 지속 시에만 알림
             try
             {
                 var handles = driver.WindowHandles;
@@ -129,7 +129,7 @@ namespace GateHelper
                 LogException(ex, Level.Error);
             }
 
-            // 3) 알림 처리: 존재만 감지, 5초 이상 지속 시에만 알림 (확인 누르지 않음)
+            // 3) 알림 처리: 존재만 감지, 설정 초 이상 지속 시에만 알림 (확인 누르지 않음)
             try
             {
                 try
@@ -149,12 +149,14 @@ namespace GateHelper
                         {
                             try
                             {
-                                MessageBox.Show("알림창이 5초 이상 떠 있습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
-                                LogMessage("MessageBox shown: alert alive >= 5s", Level.Info);
+                                var sec = ToPrettySeconds(_appSettings.PopupGraceMs);
+                                MessageBox.Show($"알림창이 {sec}초 이상 떠 있습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly);
+                                LogMessage($"MessageBox shown: alert alive >= {_appSettings.PopupGraceMs} ms ({sec}s)", Level.Info);
+
                             }
                             catch (Exception ex)
                             {
-                                LogMessage($"MessageBox error (alert >=5s): {ex.Message}", Level.Error);
+                                LogMessage($"MessageBox error (alert >= {_appSettings.PopupGraceMs} ms): {ex.Message}", Level.Error);
                             }
                             _alertNotified = true;
                         }

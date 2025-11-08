@@ -60,7 +60,8 @@ namespace GateHelper
                 { CBox_DisablePopup, "팝업을 닫습니다.\n30분 간격으로 팝업되는 비밀번호창 자동 입력." },
                 { CBox_TestMode, "테스트 모드" },
                 { CBox_AutoLogin, "Config 정보로 자동 로그인합니다. 미구현" },
-                { CBox_FavOneClickConnect, "즐겨찾기 클릭 시 해당 서버로 바로 연결합니다." }
+                { CBox_FavOneClickConnect, "즐겨찾기 클릭 시 해당 서버로 바로 연결합니다." },
+                { CBox_UseUDP, "사용자 간 서버접속현황을 송신/수신 합니다." }
             };
 
             // 설명 라벨을 동적으로 생성하여 폼 하단에 표시
@@ -151,7 +152,12 @@ namespace GateHelper
                 CBox_TestMode.Checked = AppSettings.TestMode;
                 CBox_ServerClickConnect.Checked = AppSettings.ServerClickConnect;
                 CBox_FavOneClickConnect.Checked = AppSettings.FavOneClickConnect;
+                CBox_UseUDP.Checked = AppSettings.UseUDP;
             }
+            // ms → 초 단위로 변환 후 ComboBox에 반영
+            string graceSec = (AppSettings.PopupGraceMs / 1000).ToString();
+            if (ComboBoxGraceMs1.Items.Contains(graceSec))
+                ComboBoxGraceMs1.SelectedItem = graceSec;
 
             Focus();
         }
@@ -167,6 +173,7 @@ namespace GateHelper
                 AppSettings.TestMode = CBox_TestMode.Checked;
                 AppSettings.ServerClickConnect = CBox_ServerClickConnect.Checked;
                 AppSettings.FavOneClickConnect = CBox_FavOneClickConnect.Checked;
+                AppSettings.UseUDP = CBox_UseUDP.Checked;
             }
 
             this.DialogResult = DialogResult.OK;

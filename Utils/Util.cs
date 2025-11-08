@@ -42,7 +42,8 @@ namespace GateHelper
             string metaNotesPath = GetMetaPath("ReleaseNotes.txt");
             string content =
 @"
-- Initial Release
+v2.1.1 / 25.11.05
+- Release
 - leejh7830@lgespartner.com
 - 본 프로그램은 비영리 목적으로 제작한 유틸리티입니다.
 
@@ -55,6 +56,7 @@ namespace GateHelper
 5. 신규 / Error,Critical 로그 카운트
 6. 신규 / Excel, PPT 파일 바로가기 기능
 7. 신규 / 현재접속서버 사용자 공유 시스템 (RDP감지/GateOne Log API 활용/UDP BroadCast) / 안되면 접속했던 기록이라도 공유
+ - OBJ No열 수정 / 송신시 로그 / 프로그램종료할때 현재서버접속정보 송신
 8. 신규 / 전체 서버를 리스트에 저장하는 기능
 9. 신규 / 마우스 감지 및 일정 시간(사용자 비활성) 후 자동 마우스 움직임 기능 추가
 
@@ -236,7 +238,34 @@ v2.1.1 / 25.11.05 GetServerListFromWebPage 추가 (웹페이지에 접속서버�
             }
         }
 
-        
+        // 릴리즈노트 버전 당겨오기
+        public static string GetCurrentVersionFromReleaseNotes()
+        {
+            string metaNotesPath = Util.GetMetaPath("ReleaseNotes.txt");
+            if (!System.IO.File.Exists(metaNotesPath))
+                return "Unknown";
+
+            try
+            {
+                using (var reader = new System.IO.StreamReader(metaNotesPath))
+                {
+                    while (!reader.EndOfStream)
+                    {
+                        string line = reader.ReadLine();
+                        if (!string.IsNullOrWhiteSpace(line))
+                        {
+                            // 첫 번째 비어있지 않은 줄을 버전으로 간주
+                            return line.Trim();
+                        }
+                    }
+                }
+            }
+            catch
+            {
+                // 예외 발생 시 Unknown 반환
+            }
+            return "Unknown";
+        }
 
 
 
