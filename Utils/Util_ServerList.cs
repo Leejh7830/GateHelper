@@ -20,7 +20,6 @@ namespace GateHelper
         // _meta 내부의 serverData.json 경로를 선언부에서 초기화
         private static readonly string _serverFilePath = Util.GetMetaPath("serverData.json");
 
-
         [Serializable]
         public class ServerInfo
         {
@@ -29,9 +28,10 @@ namespace GateHelper
             public DateTime LastConnected { get; set; }
             public string Memo { get; set; }
             public bool IsFavorite { get; set; }
+            public string LastBroadcastMessage { get; set; }
 
             // --- 추가: UDP 접속 현황 표시용 ---
-            public bool IsInUse { get; set; }         // 사용 중 여부
+            public bool IsInUse { get; set; }         // 사용 기록
             // public string InUseBy { get; set; }       // 사용 중인 사용자
             // public string InUseTime { get; set; }     // 접속 시간
         }

@@ -18,13 +18,6 @@ namespace GateHelper
             return Process.GetProcessesByName("mstsc").Any();
         }
 
-        // FUNC TEST 버튼 클릭 시 호출: RDP 실행 여부 메시지 안내
-        public static void ShowRdpStatus()
-        {
-            bool isRunning = IsRdpClientRunning();
-            string msg = isRunning ? "RDP(원격 데스크톱)가 실행 중." : "RDP(원격 데스크톱) 없음.";
-            MessageBox.Show(msg, "RDP 감지 결과", MessageBoxButtons.OK, MessageBoxIcon.Information);
-        }
 
         public static void BroadcastSend(Config config, string serverName, int port = 9876)
         {

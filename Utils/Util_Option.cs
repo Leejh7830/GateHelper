@@ -331,41 +331,6 @@ namespace GateHelper
             }
         }
 
-        /* 기존 코드
-        private static async Task<bool> EnterModalPassword(IWebDriver driver, Config config)
-        {
-            if (config == null || string.IsNullOrEmpty(config.UserPW))
-            {
-                LogMessage("Config Value is Null", Level.Error);
-                return false;
-            }
-
-            Thread.Sleep(1000);
-
-            // 비밀번호 입력 / 정상 True, 비정상 False 반환
-            if (!Util_Element.SendKeysToElement(driver, "//*[@id='lock_passwd']", config.UserPW))
-            {
-                return false;
-            }
-
-            // 비밀번호 입력창에 직접 엔터 키를 입력
-            try
-            {
-                Thread.Sleep(2000);
-                var passwordElement = driver.FindElement(By.XPath("//*[@id='lock_passwd']"));
-                passwordElement.SendKeys(OpenQA.Selenium.Keys.Enter);
-            }
-            catch (Exception ex)
-            {
-                LogException(ex, Level.Error, "엔터 키 입력 오류: 요소를 찾을 수 없거나 상호작용할 수 없습니다.");
-                return false;
-            }
-
-            await Task.Delay(1000); // 엔터 키 처리 대기
-            return true;
-        }
-        */
-
 
         private static bool IsAlertPresent(IWebDriver driver, out string alertText)
         {
@@ -399,6 +364,7 @@ namespace GateHelper
             return (ms % 1000 == 0) ? (ms / 1000).ToString() : (ms / 1000.0).ToString("0.###");
         }
 
+        // 팝업 감지 상태 라벨 업데이트
         public static void UpdatePopupStatus(Label popupStatusLabel, bool isPopupEnabled, int popupCount)
         {
             string newPopupStatus = isPopupEnabled ? "ON" : "OFF";

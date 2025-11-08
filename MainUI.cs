@@ -63,6 +63,9 @@ namespace GateHelper
 
         private enum PresetSelection { None, A, B }
 
+        // UDP 기록용
+        private ToolTip _toolTip = new ToolTip();
+
 
 
         public MainUI()
@@ -609,6 +612,9 @@ namespace GateHelper
         // ✦ ListView 더블클릭 접속
         private void ObjectListView1_MouseDoubleClick(object sender, MouseEventArgs e)
         {
+            if (!chromeDriverManager.IsDriverReady(_driver))
+                return;
+
             var hit = ObjectListView1.OlvHitTest(e.X, e.Y);
 
             if (hit.Column == Memo)  // 메모 열이면
@@ -704,6 +710,10 @@ namespace GateHelper
             Util_ImageLoader.LoadReferenceImages(flowLayoutPanel1); // Images Load
 
             Util_ServerList.LoadServerDataFromFile(ObjectListView1); // ServerData Load
+
+            // [UDP] OBJ 컬럼 이모지 설정
+            IsInUse.AspectGetter = rowObj => "🔍";
+            this.IsInUse.Name = "IsInUse";
 
             string version = Util.GetCurrentVersionFromReleaseNotes();
             lblVersion.Text = $"{version}";
@@ -849,28 +859,57 @@ namespace GateHelper
             }
         }
 
+        // [UDP] 메시지 수신
         private void OnUdpMessageReceived(string msg)
         {
-            // 메시지 파싱 (userId / serverName / time)
             var parts = msg.Split(new[] { " / " }, StringSplitOptions.None);
             if (parts.Length < 3) return;
             string userId = parts[0].Trim();
             string serverName = parts[1].Trim();
             string time = parts[2].Trim();
 
-            // ObjectListView에서 서버 이름으로만 비교
+            if (ObjectListView1.InvokeRequired)
+            {
+                ObjectListView1.Invoke(new Action(() => OnUdpMessageReceived(msg)));
+                return;
+            }
+
             foreach (var item in ObjectListView1.Objects)
             {
                 var serverInfo = item as Util_ServerList.ServerInfo;
                 if (serverInfo == null) continue;
 
-                if (serverInfo.ServerName == serverName)
+                if (string.Equals(serverInfo.ServerName, serverName, StringComparison.OrdinalIgnoreCase))
                 {
-                    serverInfo.IsInUse = true; // 사용 중 표시
-                    //serverInfo.InUseBy = userId;
-                    //serverInfo.InUseTime = time;
+                    serverInfo.IsInUse = true;
+                    serverInfo.LastBroadcastMessage = msg;
+
+                    // 브로드캐스트 시간도 LastConnected에 반영
+                    DateTime parsed;
+                    if (DateTime.TryParse(time, out parsed))
+                    {
+                        // 기존 LastConnected보다 최신이면 갱신
+                        if (serverInfo.LastConnected == null || parsed > serverInfo.LastConnected)
+                            serverInfo.LastConnected = parsed;
+                    }
+
                     ObjectListView1.RefreshObject(serverInfo);
                 }
+            }
+        }
+
+        // [UDP] 툴팁 표시
+        private void ObjectListView1_CellToolTipShowing(object sender, BrightIdeasSoftware.ToolTipShowingEventArgs e)
+        {
+            if (e.Column != null && e.Column.Name == "IsInUse" && e.Model is Util_ServerList.ServerInfo info)
+            {
+                e.Text = string.IsNullOrEmpty(info.LastBroadcastMessage)
+                    ? "최근 접속 이력 없음"
+                    : info.LastBroadcastMessage;
+            }
+            else
+            {
+                e.Text = null; // 툴팁 없음
             }
         }
 
@@ -880,14 +919,9 @@ namespace GateHelper
             Util_Rdp.BroadcastSend(_config, serverName);
         }
 
-
-
-
-
-
         private void TestBtn1_Click(object sender, EventArgs e)
         {
-            Util_Rdp.ShowRdpStatus();
+
         }
 
 

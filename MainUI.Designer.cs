@@ -480,14 +480,16 @@ namespace GateHelper
             this.ObjectListView1.UseCompatibleStateImageBehavior = false;
             this.ObjectListView1.View = System.Windows.Forms.View.Details;
             this.ObjectListView1.CellEditFinished += new BrightIdeasSoftware.CellEditEventHandler(this.ObjectListView1_CellEditFinished);
+            this.ObjectListView1.CellToolTipShowing += new System.EventHandler<BrightIdeasSoftware.ToolTipShowingEventArgs>(this.ObjectListView1_CellToolTipShowing);
             this.ObjectListView1.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.ObjectListView1_FormatRow);
             this.ObjectListView1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.ObjectListView1_MouseDoubleClick);
             // 
             // IsInUse
             // 
-            this.IsInUse.AspectName = "IsInUse";
+            this.IsInUse.AspectName = "InUseIcon";
             this.IsInUse.IsEditable = false;
-            this.IsInUse.Text = "InUse";
+            this.IsInUse.Text = "Use";
+            this.IsInUse.Width = 40;
             // 
             // ServerName
             // 
