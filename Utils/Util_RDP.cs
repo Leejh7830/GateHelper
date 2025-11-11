@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -12,10 +13,28 @@ namespace GateHelper
 {
     public static class Util_Rdp
     {
-        // 현재 PC에서 RDP 클라이언트(mstsc.exe) 실행 여부 반환
-        public static bool IsRdpClientRunning()
+        private static readonly object udpLogLock = new object();
+
+        public static void WriteUdpReceiveLog(string msg)
         {
-            return Process.GetProcessesByName("mstsc").Any();
+            try
+            {
+                string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
+                if (!Directory.Exists(logDir))
+                    Directory.CreateDirectory(logDir);
+
+                string logPath = Path.Combine(logDir, $"UdpReceiveLog_{DateTime.Now:yyyyMMdd}.txt");
+                string logLine = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {msg}";
+
+                lock (udpLogLock)
+                {
+                    File.AppendAllText(logPath, logLine + Environment.NewLine);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogMessage($"[UDP 로그 기록 오류] {ex.Message}", LogManager.Level.Error);
+            }
         }
 
 
@@ -63,26 +82,45 @@ namespace GateHelper
             keepReceiving = true;
             receiveThread = new Thread(() =>
             {
-                using (UdpClient udpClient = new UdpClient(port))
+                try
                 {
-                    udpClient.EnableBroadcast = true;
-                    IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, port);
-                    while (keepReceiving)
+                    using (UdpClient udpClient = new UdpClient(port))
                     {
-                        try
+                        udpClient.EnableBroadcast = true;
+                        IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, port);
+                        while (keepReceiving)
                         {
-                            byte[] data = udpClient.Receive(ref remoteEP);
-                            string msg = Encoding.UTF8.GetString(data);
+                            try
+                            {
+                                byte[] data = udpClient.Receive(ref remoteEP);
+                                string msg = Encoding.UTF8.GetString(data);
 
-                            LogManager.LogMessage($"[UDP 수신] {msg}", LogManager.Level.Info);
+                                LogManager.LogMessage($"[UDP 수신] {msg}", LogManager.Level.Info);
 
-                            // 메시지 처리 콜백 호출
-                            onMessageReceived?.Invoke(msg);
-                        }
-                        catch
-                        {
+                                // 메시지 처리 콜백 호출
+                                onMessageReceived?.Invoke(msg);
+                            }
+                            catch (SocketException ex)
+                            {
+                                // 포트가 이미 사용 중이거나, 네트워크 오류 등
+                                LogManager.LogMessage($"[UDP 수신] SocketException: {ex.Message}", LogManager.Level.Error);
+                                break;
+                            }
+                            catch (ObjectDisposedException)
+                            {
+                                // udpClient가 Dispose된 경우 루프 종료
+                                break;
+                            }
+                            catch (Exception ex)
+                            {
+                                LogManager.LogMessage($"[UDP 수신] 예외: {ex.Message}", LogManager.Level.Error);
+                            }
                         }
                     }
+                }
+                catch (Exception ex)
+                {
+                    LogManager.LogMessage($"[UDP 수신 시작] 예외: {ex.Message}", LogManager.Level.Critical);
                 }
             });
             receiveThread.IsBackground = true;
@@ -93,6 +131,18 @@ namespace GateHelper
         public static void StopBroadcastReceiveLoop()
         {
             keepReceiving = false;
+            if (receiveThread != null && receiveThread.IsAlive)
+            {
+                try
+                {
+                    receiveThread.Join(500); // 최대 0.5초 대기
+                }
+                catch (Exception ex)
+                {
+                    LogManager.LogMessage($"[UDP 수신 종료] 예외: {ex.Message}", LogManager.Level.Error);
+                }
+                receiveThread = null;
+            }
             // 라벨 갱신은 Tick에서 처리
         }
 

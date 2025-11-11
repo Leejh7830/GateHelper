@@ -28,12 +28,13 @@ namespace GateHelper
             public DateTime LastConnected { get; set; }
             public string Memo { get; set; }
             public bool IsFavorite { get; set; }
-            public string LastBroadcastMessage { get; set; }
+            
 
-            // --- 추가: UDP 접속 현황 표시용 ---
+            // --- 추가: UDP 접속용 ---
             public bool IsInUse { get; set; }         // 사용 기록
             // public string InUseBy { get; set; }       // 사용 중인 사용자
             // public string InUseTime { get; set; }     // 접속 시간
+            public string LastBroadcastMessage { get; set; } // 마지막 브로드캐스트 메시지
         }
 
         public static void AddServerToListView(

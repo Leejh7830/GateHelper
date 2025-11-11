@@ -110,6 +110,7 @@ namespace GateHelper
             LogMessage("프로그램 초기화 완료", Level.Info);
         }
 
+        // ✦ TimerTick : Driver/Network/Popup/UDP Status Check
         private async void TimerStatusChecker_Tick(object sender, EventArgs e)
         {
             timer1.Stop(); // 밀린 틱 방지: 일단 멈추고 들어간다
@@ -147,6 +148,14 @@ namespace GateHelper
                 {
                     LogMessage($"[Status Change] Driver {newDriverStatus}", driverOn ? Level.Info : Level.Error);
                     _lastDriverStatus = newDriverStatus;
+                }
+
+                // Driver OFF 감지 시 UDP 수신 중지
+                if (!driverOn && Util_Rdp.IsUdpReceiving)
+                {
+                    Util_Rdp.StopBroadcastReceiveLoop();
+                    Util_Rdp.UpdateUDPStatusLabel(false);
+                    LogMessage("[자동] 드라이버 OFF 감지, UDP 수신 중지", Level.Info);
                 }
 
                 // 🔍 Network 상태
@@ -862,6 +871,8 @@ namespace GateHelper
         // [UDP] 메시지 수신
         private void OnUdpMessageReceived(string msg)
         {
+            Util_Rdp.WriteUdpReceiveLog(msg); // UDP 수신 로그 기록
+
             var parts = msg.Split(new[] { " / " }, StringSplitOptions.None);
             if (parts.Length < 3) return;
             string userId = parts[0].Trim();
