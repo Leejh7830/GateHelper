@@ -136,7 +136,7 @@ namespace GateHelper
             this.BtnRDP1.Depth = 0;
             this.BtnRDP1.HighEmphasis = true;
             this.BtnRDP1.Icon = null;
-            this.BtnRDP1.Location = new System.Drawing.Point(415, 73);
+            this.BtnRDP1.Location = new System.Drawing.Point(733, 75);
             this.BtnRDP1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnRDP1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnRDP1.Name = "BtnRDP1";
@@ -934,7 +934,7 @@ namespace GateHelper
             this.BtnSend1.Depth = 0;
             this.BtnSend1.HighEmphasis = true;
             this.BtnSend1.Icon = null;
-            this.BtnSend1.Location = new System.Drawing.Point(391, 114);
+            this.BtnSend1.Location = new System.Drawing.Point(842, 77);
             this.BtnSend1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnSend1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnSend1.Name = "BtnSend1";
@@ -953,7 +953,7 @@ namespace GateHelper
             this.BtnRec1.Depth = 0;
             this.BtnRec1.HighEmphasis = true;
             this.BtnRec1.Icon = null;
-            this.BtnRec1.Location = new System.Drawing.Point(391, 152);
+            this.BtnRec1.Location = new System.Drawing.Point(842, 118);
             this.BtnRec1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnRec1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnRec1.Name = "BtnRec1";
