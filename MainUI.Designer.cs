@@ -92,6 +92,7 @@ namespace GateHelper
             this.BtnRec1 = new MaterialSkin.Controls.MaterialButton();
             this.lblUDPStatus = new System.Windows.Forms.Label();
             this.lblVersion = new System.Windows.Forms.Label();
+            this.BtnOpenLog2 = new MaterialSkin.Controls.MaterialButton();
             this.GroupConnect1.SuspendLayout();
             this.GroupPreset1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
@@ -983,12 +984,34 @@ namespace GateHelper
             this.lblVersion.TabIndex = 100;
             this.lblVersion.Text = "Version";
             // 
+            // BtnOpenLog2
+            // 
+            this.BtnOpenLog2.AutoSize = false;
+            this.BtnOpenLog2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnOpenLog2.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnOpenLog2.Depth = 0;
+            this.BtnOpenLog2.HighEmphasis = true;
+            this.BtnOpenLog2.Icon = null;
+            this.BtnOpenLog2.Location = new System.Drawing.Point(89, 662);
+            this.BtnOpenLog2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnOpenLog2.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnOpenLog2.Name = "BtnOpenLog2";
+            this.BtnOpenLog2.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnOpenLog2.Size = new System.Drawing.Size(56, 26);
+            this.BtnOpenLog2.TabIndex = 101;
+            this.BtnOpenLog2.Text = "Log";
+            this.BtnOpenLog2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnOpenLog2.UseAccentColor = false;
+            this.BtnOpenLog2.UseVisualStyleBackColor = true;
+            this.BtnOpenLog2.Click += new System.EventHandler(this.BtnOpenLog2_Click);
+            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1114, 714);
+            this.Controls.Add(this.BtnOpenLog2);
             this.Controls.Add(this.lblVersion);
             this.Controls.Add(this.lblUDPStatus);
             this.Controls.Add(this.BtnRec1);
@@ -1099,6 +1122,7 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton BtnRec1;
         private System.Windows.Forms.Label lblUDPStatus;
         private System.Windows.Forms.Label lblVersion;
+        private MaterialSkin.Controls.MaterialButton BtnOpenLog2;
     }
 }
 

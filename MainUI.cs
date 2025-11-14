@@ -1,18 +1,19 @@
-﻿using System;
-using System.Threading.Tasks;
-using OpenQA.Selenium;
-using MaterialSkin.Controls;
+﻿using BrightIdeasSoftware;
 using MaterialSkin;
-using System.Drawing;
-using System.Windows.Forms;
-using System.Collections.Generic;
+using MaterialSkin.Controls;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
+using System;
+using System.Collections.Generic;
 using System.Configuration;
+using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 using static GateHelper.LogManager;
-using BrightIdeasSoftware;
 
 namespace GateHelper
 {
@@ -63,11 +64,6 @@ namespace GateHelper
 
         private enum PresetSelection { None, A, B }
 
-        // UDP 기록용
-        private ToolTip _toolTip = new ToolTip();
-
-
-
         public MainUI()
         {
             // 릴리즈노트 파일만 생성(열지 않음)
@@ -106,6 +102,12 @@ namespace GateHelper
 
             _appSettings = new AppSettings(); // 옵션 변수
             Util_Option.SetPopupGraceMs(_appSettings.PopupGraceMs);
+
+            // UDP 기능이 처음 켜질 때 접속 송신
+            if (_appSettings.UseUDP)
+            {
+                Util_Rdp.SendInitialConnect(_config);
+            }
 
             LogMessage("프로그램 초기화 완료", Level.Info);
         }
@@ -580,9 +582,14 @@ namespace GateHelper
                 if (oldUseUdpReceive != _appSettings.UseUDP)
                 {
                     if (_appSettings.UseUDP)
+                    {
+                        Util_Rdp.SendInitialConnect(_config);
                         Util_Rdp.StartBroadcastReceiveLoop(OnUdpMessageReceived);
+                    }
                     else
+                    {
                         Util_Rdp.StopBroadcastReceiveLoop();
+                    }
                 }
 
                 LogMessage("Options Save Click", Level.Info);
@@ -730,6 +737,8 @@ namespace GateHelper
 
         private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
         {
+            Util_Rdp.SendExitMessage(_config); // 종료 메시지 송신
+
             Util_Rdp.StopBroadcastReceiveLoop(); // RDP 수신 루프 종료
 
             if (_driver != null)
@@ -873,11 +882,23 @@ namespace GateHelper
         {
             Util_Rdp.WriteUdpReceiveLog(msg); // UDP 수신 로그 기록
 
+            // 메시지 파싱
             var parts = msg.Split(new[] { " / " }, StringSplitOptions.None);
             if (parts.Length < 3) return;
             string userId = parts[0].Trim();
             string serverName = parts[1].Trim();
-            string time = parts[2].Trim();
+            string timeWithUtc = parts[2].Trim(); // "yyyy-MM-dd HH:mm:ss [UTC]"
+            // UTC 시간 파싱
+            string timeStr = timeWithUtc.Replace(" [UTC]", "");
+            DateTime utcTime;
+            if (DateTime.TryParse(timeStr, out utcTime))
+            {
+                DateTime localTime = utcTime.ToLocalTime();
+
+                // 로그/툴팁에 현지 시간으로 표시
+                string display = $"{userId} / {serverName} / {localTime:yyyy-MM-dd HH:mm:ss} (Local)";
+                // 예: 툴팁, 로그, UI 등에 display 사용
+            }
 
             if (ObjectListView1.InvokeRequired)
             {
@@ -897,7 +918,7 @@ namespace GateHelper
 
                     // 브로드캐스트 시간도 LastConnected에 반영
                     DateTime parsed;
-                    if (DateTime.TryParse(time, out parsed))
+                    if (DateTime.TryParse(timeStr, out parsed))
                     {
                         // 기존 LastConnected보다 최신이면 갱신
                         if (serverInfo.LastConnected == null || parsed > serverInfo.LastConnected)
@@ -927,7 +948,7 @@ namespace GateHelper
 
         private void StartRdpDetect(string serverName)
         {
-            Util_Rdp.BroadcastSend(_config, serverName);
+            Util_Rdp.BroadcastSend(_config, serverName, false);
         }
 
         private void TestBtn1_Click(object sender, EventArgs e)
@@ -935,7 +956,27 @@ namespace GateHelper
 
         }
 
+        // UDP 로그 파일 열기
+        private void BtnOpenLog2_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string logDir = Path.Combine(Application.StartupPath, "Log");
+                string logPath = Path.Combine(logDir, $"UdpReceiveLog_{DateTime.Now:yyyyMMdd}.txt");
 
+                if (!File.Exists(logPath))
+                {
+                    MessageBox.Show("Today's UDP receive log file does not exist.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
 
+                Process.Start(new ProcessStartInfo(logPath) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error);
+                MessageBox.Show($"An error occurred while opening the log file:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
     }
 }

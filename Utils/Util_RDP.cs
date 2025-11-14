@@ -8,26 +8,45 @@ using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
+using System.Text.RegularExpressions;
 
 namespace GateHelper
 {
     public static class Util_Rdp
     {
         private static readonly object udpLogLock = new object();
+        private static string lastUdpLogMsg = null; // 최근 기록한 메시지
+        private static bool _initialConnectSent = false; // 접속 시 송신
 
         public static void WriteUdpReceiveLog(string msg)
         {
             try
             {
-                string logDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
-                if (!Directory.Exists(logDir))
-                    Directory.CreateDirectory(logDir);
-
-                string logPath = Path.Combine(logDir, $"UdpReceiveLog_{DateTime.Now:yyyyMMdd}.txt");
-                string logLine = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} | {msg}";
-
                 lock (udpLogLock)
                 {
+                    // 최근 메시지와 동일하면 기록하지 않음
+                    if (msg == lastUdpLogMsg)
+                        return;
+                    lastUdpLogMsg = msg;
+
+                    string logPath = Path.Combine(Application.StartupPath, "Log");
+                    if (!Directory.Exists(logPath))
+                    {
+                        Directory.CreateDirectory(logPath);
+                    }
+
+                    logPath = Path.Combine(logPath, $"UdpReceiveLog_{DateTime.Now:yyyyMMdd}.txt");
+
+                    string logLine;
+                    if (Regex.IsMatch(msg, @"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \|"))
+                    {
+                        logLine = msg;
+                    }
+                    else
+                    {
+                        logLine = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} (Local) | {msg}";
+                    }
+
                     File.AppendAllText(logPath, logLine + Environment.NewLine);
                 }
             }
@@ -37,10 +56,41 @@ namespace GateHelper
             }
         }
 
-
+        // 표준 메시지 송신
         public static void BroadcastSend(Config config, string serverName, int port = 9876)
         {
             string message = CreateBroadcastMessage(config, serverName);
+            try
+            {
+                using (UdpClient udpClient = new UdpClient())
+                {
+                    udpClient.EnableBroadcast = true;
+                    byte[] data = Encoding.UTF8.GetBytes(message);
+                    IPEndPoint endPoint = new IPEndPoint(IPAddress.Broadcast, port);
+                    udpClient.Send(data, data.Length, endPoint);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogMessage($"브로드캐스트 송신 오류: {ex.Message}", LogManager.Level.Error);
+            }
+        }
+
+        // 일반 메시지 또는 RAW 메시지 송신 (OVERLOAD)
+        public static void BroadcastSend(Config config, string serverNameOrMessage, bool raw = false, int port = 9876)
+        {
+            string message;
+            if (raw)
+            {
+                message = serverNameOrMessage;
+            }
+            else
+            {
+                string userId = config.UserID ?? "UnknownUser";
+                string utcNow = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " [UTC]";
+                message = $"{userId} / {serverNameOrMessage} / {utcNow}";
+            }
+
             try
             {
                 using (UdpClient udpClient = new UdpClient())
@@ -61,8 +111,8 @@ namespace GateHelper
         {
             string userId = config?.UserID ?? "UnknownUser";
             string name = serverName ?? "UnknownServer";
-            string time = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-            return $"{userId} / {name} / {time}";
+            string time = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"); // UTC로 송수신
+            return $"{userId} / {name} / {time} [UTC]";
         }
 
 
@@ -95,10 +145,10 @@ namespace GateHelper
                                 byte[] data = udpClient.Receive(ref remoteEP);
                                 string msg = Encoding.UTF8.GetString(data);
 
+                                // StartBroadcastReceiveLoop 내에서만 로그 기록, 콜백에서는 기록하지 않도록
                                 LogManager.LogMessage($"[UDP 수신] {msg}", LogManager.Level.Info);
-
-                                // 메시지 처리 콜백 호출
-                                onMessageReceived?.Invoke(msg);
+                                WriteUdpReceiveLog(msg); // 여기서만 기록
+                                onMessageReceived?.Invoke(msg); // 콜백에서는 로그 기록하지 않음
                             }
                             catch (SocketException ex)
                             {
@@ -173,9 +223,23 @@ namespace GateHelper
                 }
             }
         }
-
-
-
+        // [UDP] 유저 접속 메시지 송신
+        public static void SendInitialConnect(Config config)
+        {
+            if (!_initialConnectSent)
+            {
+                BroadcastSend(config, "INITIAL_CONNECT", false);
+                _initialConnectSent = true;
+            }
+        }
+        // [UDP] 유저 종료 메시지 송신
+        public static void SendExitMessage(Config config)
+        {
+            string userId = config.UserID ?? "UnknownUser";
+            string utcNow = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " [UTC]";
+            string message = $"{userId} / EXIT / {utcNow}";
+            BroadcastSend(config, message, raw: true);
+        }
 
     }
 }
