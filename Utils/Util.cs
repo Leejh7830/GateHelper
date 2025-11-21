@@ -42,7 +42,7 @@ namespace GateHelper
             string metaNotesPath = GetMetaPath("ReleaseNotes.txt");
             string content =
 @"
-v2.1.2 / 25.11.10 / Test Version
+v2.1.3 / 25.11.15 / Test Version
 - Release
 - leejh7830@lgespartner.com
 - 본 프로그램은 비영리 목적으로 제작한 유틸리티입니다.
@@ -59,7 +59,7 @@ v2.1.2 / 25.11.10 / Test Version
 8. 신규 / 마우스 감지 및 일정 시간(사용자 비활성) 후 자동 마우스 움직임 기능 추가
 
 
-[ 개선 사항 ] 진행중 : 
+[ 개선 사항 ] 진행중 : 8
 1. 개선 / Listview 컨텍스트 메뉴 색상 반전 (현재 색상모드와 불일치)
 2. 개선 / FAV One Click Connect 오류 (검색은 되지만 접속 시 찾을 수 없음)
 3. 개선 / 드라이버종료되면 팝업옵션 끄기
@@ -68,7 +68,7 @@ v2.1.2 / 25.11.10 / Test Version
 6. 개선 / [UDP] Port 변경 옵션 추가
 7. 개선 / [UDP] RDP 감지 추가
 8. 개선 / [UDP] 현재 접속자 확인 기능
-9. 개선 / [UDP] Log 버튼 추가
+
 
 
 [완료]
@@ -97,6 +97,7 @@ v2.0.0
 v2.1.0 / 25.10.29 DriverManager 개선 및 ChromeDriver 자동업데이트 기능 추가 (ChromeDriverManager.cs)
 v2.1.1 / 25.11.05 GetServerListFromWebPage 추가 (웹페이지에 접속서버가 있으면 재검색 안하고 바로 접속)
 v2.1.2 / 25.11.10 [UDP] BroadCast 수신 기능 추가 (Util_RDP.cs) - 접속서버 공유 시스템
+v2.1.3 / 25.11.15 [UDP] 접속/종료 시 송신
          
 ";
 
