@@ -42,7 +42,7 @@ namespace GateHelper
             string metaNotesPath = GetMetaPath("ReleaseNotes.txt");
             string content =
 @"
-v2.1.3 / 25.11.15 / Test Version
+v2.1.4 / 25.12.16 / Test Version
 - Release
 - leejh7830@lgespartner.com
 - 본 프로그램은 비영리 목적으로 제작한 유틸리티입니다.
@@ -68,7 +68,6 @@ v2.1.3 / 25.11.15 / Test Version
 6. 개선 / [UDP] Port 변경 옵션 추가
 7. 개선 / [UDP] RDP 감지 추가
 8. 개선 / [UDP] 현재 접속자 확인 기능
-9. 개선 / 서버목록화면에 접속하려는 서버가 안보이면 접속 안됨?
 
 
 
@@ -99,6 +98,7 @@ v2.1.0 / 25.10.29 DriverManager 개선 및 ChromeDriver 자동업데이트 기�
 v2.1.1 / 25.11.05 GetServerListFromWebPage 추가 (웹페이지에 접속서버가 있으면 재검색 안하고 바로 접속)
 v2.1.2 / 25.11.10 [UDP] BroadCast 수신 기능 추가 (Util_RDP.cs) - 접속서버 공유 시스템
 v2.1.3 / 25.11.15 [UDP] 접속/종료 시 송신
+v2.1.4 / 25.12.16 현재 화면의 서버목록에 접속하려는 서버가 없으면 스크롤하여 검색하도록 개선
          
 ";
 

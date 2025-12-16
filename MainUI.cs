@@ -588,6 +588,7 @@ namespace GateHelper
                     }
                     else
                     {
+                        Util_Rdp.SendExitMessage(_config); // UDP 기능을 끌 때 EXIT 송신
                         Util_Rdp.StopBroadcastReceiveLoop();
                     }
                 }
@@ -737,7 +738,7 @@ namespace GateHelper
 
         private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Util_Rdp.SendExitMessage(_config); // 종료 메시지 송신
+            Util_Rdp.SendExitMessage(_config); // 프로그램 종료 시 메시지 송신
 
             Util_Rdp.StopBroadcastReceiveLoop(); // RDP 수신 루프 종료
 
@@ -891,13 +892,17 @@ namespace GateHelper
             // UTC 시간 파싱
             string timeStr = timeWithUtc.Replace(" [UTC]", "");
             DateTime utcTime;
-            if (DateTime.TryParse(timeStr, out utcTime))
+            if (DateTime.TryParseExact(
+                    timeStr,
+                    "yyyy-MM-dd HH:mm:ss",
+                    System.Globalization.CultureInfo.InvariantCulture,
+                    System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal,
+                    out utcTime))
             {
-                DateTime localTime = utcTime.ToLocalTime();
-
-                // 로그/툴팁에 현지 시간으로 표시
+                // 로컬 표시용(툴팁 등)
+                DateTime localTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, TimeZoneInfo.Local);
                 string display = $"{userId} / {serverName} / {localTime:yyyy-MM-dd HH:mm:ss} (Local)";
-                // 예: 툴팁, 로그, UI 등에 display 사용
+                // 예: 툴팁, 로그, UI 등에 display 사용 가능
             }
 
             if (ObjectListView1.InvokeRequired)
@@ -916,13 +921,20 @@ namespace GateHelper
                     serverInfo.IsInUse = true;
                     serverInfo.LastBroadcastMessage = msg;
 
-                    // 브로드캐스트 시간도 LastConnected에 반영
-                    DateTime parsed;
-                    if (DateTime.TryParse(timeStr, out parsed))
+                    // 브로드캐스트 시간도 LastConnected에 반영 (UTC -> Local 변환)
+                    DateTime parsedUtc;
+                    if (DateTime.TryParseExact(
+                            timeStr,
+                            "yyyy-MM-dd HH:mm:ss",
+                            System.Globalization.CultureInfo.InvariantCulture,
+                            System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal,
+                            out parsedUtc))
                     {
+                        var parsedLocal = TimeZoneInfo.ConvertTimeFromUtc(parsedUtc, TimeZoneInfo.Local);
+
                         // 기존 LastConnected보다 최신이면 갱신
-                        if (serverInfo.LastConnected == null || parsed > serverInfo.LastConnected)
-                            serverInfo.LastConnected = parsed;
+                        if (serverInfo.LastConnected == null || parsedLocal > serverInfo.LastConnected)
+                            serverInfo.LastConnected = parsedLocal;
                     }
 
                     ObjectListView1.RefreshObject(serverInfo);
@@ -930,14 +942,71 @@ namespace GateHelper
             }
         }
 
-        // [UDP] 툴팁 표시
+        // [UDP] 툴팁 표시, 사용자의 로컬 시간대로 변환하여 표시
         private void ObjectListView1_CellToolTipShowing(object sender, BrightIdeasSoftware.ToolTipShowingEventArgs e)
         {
             if (e.Column != null && e.Column.Name == "IsInUse" && e.Model is Util_ServerList.ServerInfo info)
             {
-                e.Text = string.IsNullOrEmpty(info.LastBroadcastMessage)
-                    ? "최근 접속 이력 없음"
-                    : info.LastBroadcastMessage;
+                if (string.IsNullOrEmpty(info.LastBroadcastMessage))
+                {
+                    e.Text = "최근 접속 이력 없음";
+                    return;
+                }
+
+                string msg = info.LastBroadcastMessage;
+
+                try
+                {
+                    // 예상 포맷: "userId / serverName / yyyy-MM-dd HH:mm:ss [UTC]"
+                    var parts = msg.Split(new[] { " / " }, StringSplitOptions.None);
+                    if (parts.Length >= 3)
+                    {
+                        string userId = parts[0].Trim();
+                        string serverName = parts[1].Trim();
+                        string timeToken = parts[2].Trim(); // "yyyy-MM-dd HH:mm:ss [UTC]"
+                        string timeStr = timeToken.Replace(" [UTC]", "");
+
+                        DateTime utc;
+                        // UTC 가정하여 엄격 파싱
+                        if (!DateTime.TryParseExact(
+                                timeStr,
+                                "yyyy-MM-dd HH:mm:ss",
+                                System.Globalization.CultureInfo.InvariantCulture,
+                                System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal,
+                                out utc))
+                        {
+                            // 폴백: 일반 파싱 후 UTC Kind 지정
+                            if (!DateTime.TryParse(timeStr, out utc))
+                            {
+                                e.Text = msg; // 파싱 실패 시 원문 표시
+                                return;
+                            }
+                            if (utc.Kind != DateTimeKind.Utc)
+                                utc = DateTime.SpecifyKind(utc, DateTimeKind.Utc);
+                        }
+
+                        // 클라이언트(실행 PC)의 시간대로 변환
+                        var localTz = TimeZoneInfo.Local;
+                        var localTime = TimeZoneInfo.ConvertTimeFromUtc(utc, localTz);
+
+                        // 시간대 약어 생성 (예: "Korea Standard Time" -> KST, "Eastern Daylight Time" -> EDDT -> EDT)
+                        string tzBaseName = localTz.IsDaylightSavingTime(localTime) ? localTz.DaylightName : localTz.StandardName;
+                        string tzAbbrev = new string(tzBaseName
+                            .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                            .Select(w => char.ToUpperInvariant(w[0]))
+                            .ToArray());
+
+                        e.Text = $"{userId} / {serverName} / {localTime:yyyy-MM-dd HH:mm:ss} ({tzAbbrev})";
+                    }
+                    else
+                    {
+                        e.Text = msg; // 포맷 불일치 시 원문
+                    }
+                }
+                catch
+                {
+                    e.Text = msg; // 예외 시 원문
+                }
             }
             else
             {

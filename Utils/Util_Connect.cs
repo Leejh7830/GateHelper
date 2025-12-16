@@ -30,24 +30,73 @@ namespace GateHelper
 
             try
             {
-                int tbodyIndex = 1;
+                var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+                wait.Until(ExpectedConditions.ElementExists(By.Id("seltable")));
 
-                while (true)
+                // 페이지 최상단으로 이동
+                try { ((IJavaScriptExecutor)driver).ExecuteScript("window.scrollTo(0, 0);"); } catch { }
+
+                bool foundAndConnected = false;
+                bool scrollActivatedLogged = false; // 스크롤 로직 최초 발동 로깅 플래그
+
+                // 스크롤하며 모든 표시 영역 탐색 (가상화/지연 로드 대응)
+                long lastHeight = -1;
+                for (int attempt = 0; attempt < 20; attempt++) // 최대 시도 제한
                 {
-                    string serverNameXpath = $"//*[@id='seltable']/tbody[{tbodyIndex}]/tr/td";
-                    var serverNameElements = driver.FindElements(By.XPath(serverNameXpath));
-
-                    if (serverNameElements == null || serverNameElements.Count == 0)
-                        break;
-
-                    foreach (var element in serverNameElements)
+                    // 현재 표시된 tbody/행에서 서버명 검색, rdp 버튼 클릭
+                    int tbodyIndex = 1;
+                    while (true)
                     {
-                        if (element.Text == serverName)
+                        string rowXpath = $"//*[@id='seltable']/tbody[{tbodyIndex}]/tr";
+                        var rows = driver.FindElements(By.XPath(rowXpath));
+                        if (rows == null || rows.Count == 0) break;
+
+                        foreach (var row in rows)
                         {
-                            string spanXpath = $"//*[@id='seltable']/tbody[{tbodyIndex}]/tr/td/span[contains(@id, 'rdp')]";
-                            var spanElement = driver.FindElement(By.XPath(spanXpath));
-                            var aElement = spanElement.FindElement(By.TagName("a"));
-                            aElement.Click();
+                            var tds = row.FindElements(By.TagName("td"));
+                            bool match = false;
+                            foreach (var td in tds)
+                            {
+                                if (string.Equals(td.Text?.Trim(), serverName, StringComparison.Ordinal))
+                                {
+                                    match = true;
+                                    break;
+                                }
+                            }
+                            if (!match) continue;
+
+                            // 같은 행의 rdp 버튼 찾기
+                            IWebElement aElement = null;
+                            try
+                            {
+                                var spanElement = row.FindElement(By.XPath(".//td/span[contains(@id, 'rdp')]"));
+                                aElement = spanElement.FindElement(By.TagName("a"));
+                            }
+                            catch (NoSuchElementException)
+                            {
+                                continue;
+                            }
+
+                            // 버튼을 뷰포트로 스크롤 및 클릭 가능 대기
+                            try { ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView(true);", aElement); } catch { }
+
+                            try
+                            {
+                                wait.Until(ExpectedConditions.ElementToBeClickable(aElement));
+                                aElement.Click();
+                            }
+                            catch (WebDriverException)
+                            {
+                                try
+                                {
+                                    ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].click();", aElement);
+                                }
+                                catch (Exception ex)
+                                {
+                                    LogException(ex, Level.Error);
+                                    continue;
+                                }
+                            }
 
                             Thread.Sleep(1000);
 
@@ -71,11 +120,43 @@ namespace GateHelper
                             Util_ServerList.AddServerToListView(listView, serverName, DateTime.Now, isDuplicateCheck);
                             Util_ServerList.SaveServerDataToFile(listView);
 
-                            return true;
+                            foundAndConnected = true;
+                            break;
                         }
+
+                        if (foundAndConnected) break;
+                        tbodyIndex++;
                     }
 
-                    tbodyIndex++;
+                    if (foundAndConnected) return true;
+
+                    // 더 스크롤할 수 있으면 아래로 계속 스크롤
+                    try
+                    {
+                        // 스크롤 블록 진입 로깅 (최초 1회)
+                        if (!scrollActivatedLogged)
+                        {
+                            LogMessage($"서버 '{serverName}' 화면에 없음. 스크롤 탐색 루프 진입.", Level.Info);
+                            scrollActivatedLogged = true;
+                        }
+
+                        var heightObj = ((IJavaScriptExecutor)driver).ExecuteScript("return document.body.scrollHeight");
+                        long newHeight = Convert.ToInt64(heightObj);
+
+                        if (newHeight == lastHeight)
+                            break;
+
+                        LogMessage($"스크롤 수행 (attempt={attempt}, scrollHeight={newHeight}).", Level.Info);
+
+                        ((IJavaScriptExecutor)driver).ExecuteScript("window.scrollTo(0, arguments[0]);", newHeight);
+                        lastHeight = newHeight;
+                        Thread.Sleep(500);
+                    }
+                    catch (Exception ex)
+                    {
+                        LogException(ex, Level.Error);
+                        break;
+                    }
                 }
 
                 MessageBox.Show($"서버 '{serverName}'를 찾을 수 없습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Warning);

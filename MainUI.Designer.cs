@@ -66,16 +66,9 @@ namespace GateHelper
             this.BtnReloadImages1 = new MaterialSkin.Controls.MaterialButton();
             this.GroupRef2 = new System.Windows.Forms.GroupBox();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
-            this.ListViewServer2 = new System.Windows.Forms.ListView();
-            this.No1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.SVName1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.LastConnected1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
-            this.Memo1 = ((System.Windows.Forms.ColumnHeader)(new System.Windows.Forms.ColumnHeader()));
             this.TabSelector1 = new MaterialSkin.Controls.MaterialTabSelector();
             this.BtnStart2 = new MaterialSkin.Controls.MaterialButton();
             this.BtnOpenConfig1 = new MaterialSkin.Controls.MaterialButton();
-            this.groupShortCut1 = new System.Windows.Forms.GroupBox();
-            this.BtnShortCut1 = new MaterialSkin.Controls.MaterialButton();
             this.toolTip_Question1 = new System.Windows.Forms.ToolTip(this.components);
             this.PicBox_Question = new System.Windows.Forms.PictureBox();
             this.toolTip_FavOneClickConnect1 = new System.Windows.Forms.ToolTip(this.components);
@@ -103,7 +96,6 @@ namespace GateHelper
             this.ListViewContext1.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.GroupRef2.SuspendLayout();
-            this.groupShortCut1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Setting)).BeginInit();
@@ -137,7 +129,7 @@ namespace GateHelper
             this.BtnRDP1.Depth = 0;
             this.BtnRDP1.HighEmphasis = true;
             this.BtnRDP1.Icon = null;
-            this.BtnRDP1.Location = new System.Drawing.Point(733, 75);
+            this.BtnRDP1.Location = new System.Drawing.Point(591, 116);
             this.BtnRDP1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnRDP1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnRDP1.Name = "BtnRDP1";
@@ -423,7 +415,7 @@ namespace GateHelper
             this.TabControl1.Multiline = true;
             this.TabControl1.Name = "TabControl1";
             this.TabControl1.SelectedIndex = 0;
-            this.TabControl1.Size = new System.Drawing.Size(543, 377);
+            this.TabControl1.Size = new System.Drawing.Size(589, 377);
             this.TabControl1.TabIndex = 8;
             // 
             // tabPage1
@@ -433,7 +425,7 @@ namespace GateHelper
             this.tabPage1.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(2);
-            this.tabPage1.Size = new System.Drawing.Size(535, 351);
+            this.tabPage1.Size = new System.Drawing.Size(581, 351);
             this.tabPage1.TabIndex = 98;
             this.tabPage1.Text = "SERVER";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -446,7 +438,7 @@ namespace GateHelper
             this.tabPage4.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage4.Name = "tabPage4";
             this.tabPage4.Padding = new System.Windows.Forms.Padding(2);
-            this.tabPage4.Size = new System.Drawing.Size(535, 351);
+            this.tabPage4.Size = new System.Drawing.Size(581, 351);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "HISTORY";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -476,7 +468,7 @@ namespace GateHelper
             this.ObjectListView1.MultiSelect = false;
             this.ObjectListView1.Name = "ObjectListView1";
             this.ObjectListView1.ShowGroups = false;
-            this.ObjectListView1.Size = new System.Drawing.Size(530, 347);
+            this.ObjectListView1.Size = new System.Drawing.Size(576, 347);
             this.ObjectListView1.TabIndex = 98;
             this.ObjectListView1.UseCompatibleStateImageBehavior = false;
             this.ObjectListView1.View = System.Windows.Forms.View.Details;
@@ -510,7 +502,7 @@ namespace GateHelper
             // 
             this.Memo.AspectName = "Memo";
             this.Memo.Text = "Memo";
-            this.Memo.Width = 100;
+            this.Memo.Width = 150;
             // 
             // IsFavorite
             // 
@@ -563,7 +555,7 @@ namespace GateHelper
             this.tabPage3.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage3.Name = "tabPage3";
             this.tabPage3.Padding = new System.Windows.Forms.Padding(2);
-            this.tabPage3.Size = new System.Drawing.Size(535, 351);
+            this.tabPage3.Size = new System.Drawing.Size(581, 351);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "REFERENCE";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -650,49 +642,6 @@ namespace GateHelper
             this.flowLayoutPanel1.Size = new System.Drawing.Size(380, 281);
             this.flowLayoutPanel1.TabIndex = 29;
             // 
-            // ListViewServer2
-            // 
-            this.ListViewServer2.BackColor = System.Drawing.SystemColors.Info;
-            this.ListViewServer2.CheckBoxes = true;
-            this.ListViewServer2.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
-            this.No1,
-            this.SVName1,
-            this.LastConnected1,
-            this.Memo1});
-            this.ListViewServer2.Font = new System.Drawing.Font("휴먼옛체", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.ListViewServer2.FullRowSelect = true;
-            this.ListViewServer2.GridLines = true;
-            this.ListViewServer2.HideSelection = false;
-            this.ListViewServer2.HoverSelection = true;
-            this.ListViewServer2.Location = new System.Drawing.Point(575, 190);
-            this.ListViewServer2.Margin = new System.Windows.Forms.Padding(2);
-            this.ListViewServer2.MinimumSize = new System.Drawing.Size(141, 68);
-            this.ListViewServer2.Name = "ListViewServer2";
-            this.ListViewServer2.Size = new System.Drawing.Size(535, 349);
-            this.ListViewServer2.TabIndex = 28;
-            this.ListViewServer2.UseCompatibleStateImageBehavior = false;
-            this.ListViewServer2.View = System.Windows.Forms.View.Details;
-            // 
-            // No1
-            // 
-            this.No1.Text = "No";
-            this.No1.Width = 50;
-            // 
-            // SVName1
-            // 
-            this.SVName1.Text = "Name";
-            this.SVName1.Width = 180;
-            // 
-            // LastConnected1
-            // 
-            this.LastConnected1.Text = "Last Connected";
-            this.LastConnected1.Width = 180;
-            // 
-            // Memo1
-            // 
-            this.Memo1.Text = "Memo";
-            this.Memo1.Width = 220;
-            // 
             // TabSelector1
             // 
             this.TabSelector1.BaseTabControl = this.TabControl1;
@@ -717,14 +666,14 @@ namespace GateHelper
             this.BtnStart2.Depth = 0;
             this.BtnStart2.HighEmphasis = true;
             this.BtnStart2.Icon = null;
-            this.BtnStart2.Location = new System.Drawing.Point(961, 73);
+            this.BtnStart2.Location = new System.Drawing.Point(591, 73);
             this.BtnStart2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnStart2.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnStart2.Name = "BtnStart2";
             this.BtnStart2.NoAccentTextColor = System.Drawing.Color.Empty;
             this.BtnStart2.Size = new System.Drawing.Size(147, 40);
             this.BtnStart2.TabIndex = 17;
-            this.BtnStart2.Text = "Start2";
+            this.BtnStart2.Text = "원래사이즈 543/377";
             this.BtnStart2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.BtnStart2.UseAccentColor = false;
             this.BtnStart2.UseVisualStyleBackColor = true;
@@ -750,37 +699,6 @@ namespace GateHelper
             this.BtnOpenConfig1.UseAccentColor = false;
             this.BtnOpenConfig1.UseVisualStyleBackColor = true;
             this.BtnOpenConfig1.Click += new System.EventHandler(this.BtnOpenConfig1_Click);
-            // 
-            // groupShortCut1
-            // 
-            this.groupShortCut1.Controls.Add(this.BtnShortCut1);
-            this.groupShortCut1.Location = new System.Drawing.Point(598, 546);
-            this.groupShortCut1.Name = "groupShortCut1";
-            this.groupShortCut1.Size = new System.Drawing.Size(358, 142);
-            this.groupShortCut1.TabIndex = 96;
-            this.groupShortCut1.TabStop = false;
-            this.groupShortCut1.Text = "ShortCut";
-            // 
-            // BtnShortCut1
-            // 
-            this.BtnShortCut1.AutoSize = false;
-            this.BtnShortCut1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnShortCut1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnShortCut1.Depth = 0;
-            this.BtnShortCut1.Enabled = false;
-            this.BtnShortCut1.HighEmphasis = true;
-            this.BtnShortCut1.Icon = null;
-            this.BtnShortCut1.Location = new System.Drawing.Point(7, 23);
-            this.BtnShortCut1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.BtnShortCut1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnShortCut1.Name = "BtnShortCut1";
-            this.BtnShortCut1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnShortCut1.Size = new System.Drawing.Size(70, 33);
-            this.BtnShortCut1.TabIndex = 18;
-            this.BtnShortCut1.Text = "ShortCut1";
-            this.BtnShortCut1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnShortCut1.UseAccentColor = false;
-            this.BtnShortCut1.UseVisualStyleBackColor = true;
             // 
             // PicBox_Question
             // 
@@ -935,7 +853,7 @@ namespace GateHelper
             this.BtnSend1.Depth = 0;
             this.BtnSend1.HighEmphasis = true;
             this.BtnSend1.Icon = null;
-            this.BtnSend1.Location = new System.Drawing.Point(842, 77);
+            this.BtnSend1.Location = new System.Drawing.Point(753, 116);
             this.BtnSend1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnSend1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnSend1.Name = "BtnSend1";
@@ -992,7 +910,7 @@ namespace GateHelper
             this.BtnOpenLog2.Depth = 0;
             this.BtnOpenLog2.HighEmphasis = true;
             this.BtnOpenLog2.Icon = null;
-            this.BtnOpenLog2.Location = new System.Drawing.Point(89, 662);
+            this.BtnOpenLog2.Location = new System.Drawing.Point(92, 668);
             this.BtnOpenLog2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnOpenLog2.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnOpenLog2.Name = "BtnOpenLog2";
@@ -1016,7 +934,6 @@ namespace GateHelper
             this.Controls.Add(this.lblUDPStatus);
             this.Controls.Add(this.BtnRec1);
             this.Controls.Add(this.BtnSend1);
-            this.Controls.Add(this.ListViewServer2);
             this.Controls.Add(this.lblPopupStatus);
             this.Controls.Add(this.BtnOption1);
             this.Controls.Add(this.lblInternetStatus);
@@ -1027,7 +944,6 @@ namespace GateHelper
             this.Controls.Add(this.BtnReConfig1);
             this.Controls.Add(this.BtnStart1);
             this.Controls.Add(this.PicBox_Question);
-            this.Controls.Add(this.groupShortCut1);
             this.Controls.Add(this.BtnOpenConfig1);
             this.Controls.Add(this.BtnStart2);
             this.Controls.Add(this.TabSelector1);
@@ -1038,7 +954,6 @@ namespace GateHelper
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainUI";
             this.Padding = new System.Windows.Forms.Padding(2, 43, 2, 2);
-            this.Sizable = false;
             this.Text = "GATE HELPER";
             this.Load += new System.EventHandler(this.MainUI_Load);
             this.GroupConnect1.ResumeLayout(false);
@@ -1052,7 +967,6 @@ namespace GateHelper
             this.ListViewContext1.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
             this.GroupRef2.ResumeLayout(false);
-            this.groupShortCut1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Setting)).EndInit();
@@ -1079,8 +993,6 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton BtnStart2;
         private System.Windows.Forms.GroupBox GroupFav1;
         private MaterialSkin.Controls.MaterialButton BtnOpenConfig1;
-        private System.Windows.Forms.GroupBox groupShortCut1;
-        private MaterialSkin.Controls.MaterialButton BtnShortCut1;
         private System.Windows.Forms.ToolTip toolTip_Question1;
         private System.Windows.Forms.PictureBox PicBox_Question;
         private System.Windows.Forms.ToolTip toolTip_FavOneClickConnect1;
@@ -1090,11 +1002,6 @@ namespace GateHelper
         private System.Windows.Forms.PictureBox PicBox_Setting;
         private System.Windows.Forms.PictureBox PicBox_Arrow;
         private System.Windows.Forms.TabPage tabPage3;
-        private System.Windows.Forms.ColumnHeader No1;
-        private System.Windows.Forms.ColumnHeader SVName1;
-        private System.Windows.Forms.ColumnHeader LastConnected1;
-        private System.Windows.Forms.ColumnHeader Memo1;
-        private System.Windows.Forms.ListView ListViewServer2;
         private System.Windows.Forms.TabPage tabPage4;
         private System.Windows.Forms.GroupBox GroupRef2;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;

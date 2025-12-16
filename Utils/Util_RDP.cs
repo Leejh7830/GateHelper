@@ -24,27 +24,75 @@ namespace GateHelper
             {
                 lock (udpLogLock)
                 {
-                    // 최근 메시지와 동일하면 기록하지 않음
                     if (msg == lastUdpLogMsg)
                         return;
                     lastUdpLogMsg = msg;
 
                     string logPath = Path.Combine(Application.StartupPath, "Log");
                     if (!Directory.Exists(logPath))
-                    {
                         Directory.CreateDirectory(logPath);
-                    }
 
                     logPath = Path.Combine(logPath, $"UdpReceiveLog_{DateTime.Now:yyyyMMdd}.txt");
 
                     string logLine;
+
+                    // 메시지 포맷: "userId / serverName / yyyy-MM-dd HH:mm:ss [UTC]"
+                    string convertedMsg = null;
+                    try
+                    {
+                        var parts = msg.Split(new[] { " / " }, StringSplitOptions.None);
+                        if (parts.Length >= 3)
+                        {
+                            string userId = parts[0].Trim();
+                            string serverName = parts[1].Trim();
+                            string timeToken = parts[2].Trim(); // "yyyy-MM-dd HH:mm:ss [UTC]"
+                            string timeStr = timeToken.Replace(" [UTC]", "");
+
+                            DateTime utc;
+                            if (!DateTime.TryParseExact(
+                                    timeStr,
+                                    "yyyy-MM-dd HH:mm:ss",
+                                    System.Globalization.CultureInfo.InvariantCulture,
+                                    System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal,
+                                    out utc))
+                            {
+                                if (DateTime.TryParse(timeStr, out utc))
+                                {
+                                    if (utc.Kind != DateTimeKind.Utc)
+                                        utc = DateTime.SpecifyKind(utc, DateTimeKind.Utc);
+                                }
+                                else
+                                {
+                                    utc = DateTime.UtcNow; // 최후 폴백
+                                }
+                            }
+
+                            // 로컬 시간대로 변환 (본문에는 시간만 표시, 시간대 표기 없음)
+                            var localTz = TimeZoneInfo.Local;
+                            var localTime = TimeZoneInfo.ConvertTimeFromUtc(utc, localTz);
+
+                            convertedMsg = $"{userId} / {serverName} / {localTime:yyyy-MM-dd HH:mm:ss}";
+                        }
+                    }
+                    catch
+                    {
+                        // 변환 실패 시 convertedMsg는 null 유지
+                    }
+
+                    // 로그 헤더(현재 시각) 로컬 타임존 전체 이름 표시
+                    var nowLocal = DateTime.Now;
+                    var tzDisplayName = TimeZoneInfo.Local.IsDaylightSavingTime(nowLocal)
+                        ? TimeZoneInfo.Local.DaylightName   // 예: "동부 일광 절약 시간"
+                        : TimeZoneInfo.Local.StandardName;  // 예: "동부 표준시"
+
                     if (Regex.IsMatch(msg, @"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \|"))
                     {
-                        logLine = msg;
+                        logLine = msg; // 이미 헤더 형식이면 원문 유지
                     }
                     else
                     {
-                        logLine = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss} (Local) | {msg}";
+                        // 헤더: 로컬 시각 + (전체 시간대 이름), 본문: 변환된 메시지 또는 원문
+                        logLine = $"{nowLocal:yyyy-MM-dd HH:mm:ss} ({tzDisplayName}) | {(convertedMsg ?? msg)}";
                     }
 
                     File.AppendAllText(logPath, logLine + Environment.NewLine);
@@ -235,6 +283,10 @@ namespace GateHelper
         // [UDP] 유저 종료 메시지 송신
         public static void SendExitMessage(Config config)
         {
+            // UDP OFF이면 종료 메시지 보내지 않음
+            if (!IsUdpReceiving)
+                return;
+
             string userId = config.UserID ?? "UnknownUser";
             string utcNow = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " [UTC]";
             string message = $"{userId} / EXIT / {utcNow}";
