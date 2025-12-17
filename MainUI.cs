@@ -53,7 +53,7 @@ namespace GateHelper
 
         // Control 관리용
         public static readonly Size FormOriginalSize = new Size(405, 700);
-        public static readonly Size FormExtendedSize = new Size(550, 700);
+        public static readonly Size FormExtendedSize = new Size(590, 700);
         public static readonly Size TestFormExtendedSize = new Size(1100, 700);
         private Size groupConnect1OriginalSize;
         private Size tabSelector1OriginalSize;
@@ -84,13 +84,20 @@ namespace GateHelper
             materialSkinManager.Theme = MaterialSkinManager.Themes.DARK;
 
             // ContextMenuStrip 초기화 및 테마 동기화
-            contextMenuStrip = new ContextMenuStrip();
-            contextMenuStrip.Items.Add(new ToolStripMenuItem("Delete", null, MenuItem1_Delete_Click));
-            // contextMenuStrip.Items.Add(new ToolStripMenuItem("메모 편집", null, EditMemo_Click)); // 새로운 메뉴 아이템 추가 시
+            contextMenuStrip = ObjectListView1.ContextMenuStrip ?? new ContextMenuStrip();
+            ObjectListView1.ContextMenuStrip = contextMenuStrip;
 
-            _themeManager = new ThemeManager(materialSkinManager, contextMenuStrip);
-            _themeManager.ApplyContextMenuStripTheme(contextMenuStrip);
-            materialSkinManager.ThemeChanged += (sender) => _themeManager.ApplyContextMenuStripTheme(contextMenuStrip);
+            // 필요 시 항목이 없을 때만 추가(디자이너에서 이미 있으면 추가하지 않음)
+            if (contextMenuStrip.Items.Count == 0)
+            {
+                contextMenuStrip.Items.Add(new ToolStripMenuItem("Delete", null, MenuItem1_Delete_Click));
+                contextMenuStrip.Items.Add(new ToolStripMenuItem("Favorite", null, MenuItem2_Favorite_Click));
+            }
+
+            // 실제 표시되는 메뉴 인스턴스에 테마 적용
+            _themeManager = new ThemeManager(materialSkinManager, ObjectListView1.ContextMenuStrip);
+            _themeManager.ApplyContextMenuStripTheme(ObjectListView1.ContextMenuStrip);
+            materialSkinManager.ThemeChanged += (sender) => _themeManager.ApplyContextMenuStripTheme(ObjectListView1.ContextMenuStrip);
 
             this.MaximizeBox = false;
             this.Size = FormOriginalSize;
@@ -906,25 +913,10 @@ namespace GateHelper
 
             // 메시지 파싱
             var parts = msg.Split(new[] { " / " }, StringSplitOptions.None);
-            if (parts.Length < 3) return;
+            if (parts.Length < 2) return;
+
             string userId = parts[0].Trim();
-            string serverName = parts[1].Trim();
-            string timeWithUtc = parts[2].Trim(); // "yyyy-MM-dd HH:mm:ss [UTC]"
-            // UTC 시간 파싱
-            string timeStr = timeWithUtc.Replace(" [UTC]", "");
-            DateTime utcTime;
-            if (DateTime.TryParseExact(
-                    timeStr,
-                    "yyyy-MM-dd HH:mm:ss",
-                    System.Globalization.CultureInfo.InvariantCulture,
-                    System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal,
-                    out utcTime))
-            {
-                // 로컬 표시용(툴팁 등)
-                DateTime localTime = TimeZoneInfo.ConvertTimeFromUtc(utcTime, TimeZoneInfo.Local);
-                string display = $"{userId} / {serverName} / {localTime:yyyy-MM-dd HH:mm:ss} (Local)";
-                // 예: 툴팁, 로그, UI 등에 display 사용 가능
-            }
+            string serverNameOrToken = parts[1].Trim();
 
             if (ObjectListView1.InvokeRequired)
             {
@@ -937,26 +929,20 @@ namespace GateHelper
                 var serverInfo = item as Util_ServerList.ServerInfo;
                 if (serverInfo == null) continue;
 
-                if (string.Equals(serverInfo.ServerName, serverName, StringComparison.OrdinalIgnoreCase))
+                // INITIAL_CONNECT/EXIT는 서버명이 아니므로 제외, 서버명인 경우에만 반영
+                bool isServerEvent = 
+                    !string.Equals(serverNameOrToken, "INITIAL_CONNECT", StringComparison.OrdinalIgnoreCase) &&
+                    !string.Equals(serverNameOrToken, "EXIT", StringComparison.OrdinalIgnoreCase);
+
+                if (isServerEvent && string.Equals(serverInfo.ServerName, serverNameOrToken, StringComparison.OrdinalIgnoreCase))
                 {
                     serverInfo.IsInUse = true;
                     serverInfo.LastBroadcastMessage = msg;
 
-                    // 브로드캐스트 시간도 LastConnected에 반영 (UTC -> Local 변환)
-                    DateTime parsedUtc;
-                    if (DateTime.TryParseExact(
-                            timeStr,
-                            "yyyy-MM-dd HH:mm:ss",
-                            System.Globalization.CultureInfo.InvariantCulture,
-                            System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal,
-                            out parsedUtc))
-                    {
-                        var parsedLocal = TimeZoneInfo.ConvertTimeFromUtc(parsedUtc, TimeZoneInfo.Local);
-
-                        // 기존 LastConnected보다 최신이면 갱신
-                        if (serverInfo.LastConnected == null || parsedLocal > serverInfo.LastConnected)
-                            serverInfo.LastConnected = parsedLocal;
-                    }
+                    // ✦ 통일 기준: 로컬 수신 시각(DateTime.Now)을 LastConnected에 기록
+                    DateTime receivedLocal = DateTime.Now;
+                    if (serverInfo.LastConnected == null || receivedLocal > serverInfo.LastConnected)
+                        serverInfo.LastConnected = receivedLocal;
 
                     ObjectListView1.RefreshObject(serverInfo);
                 }

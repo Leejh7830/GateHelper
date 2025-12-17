@@ -954,6 +954,7 @@ namespace GateHelper
             this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainUI";
             this.Padding = new System.Windows.Forms.Padding(2, 43, 2, 2);
+            this.Sizable = false;
             this.Text = "GATE HELPER";
             this.Load += new System.EventHandler(this.MainUI_Load);
             this.GroupConnect1.ResumeLayout(false);

@@ -122,6 +122,8 @@ namespace GateHelper
                 }
                 receiveThread = null;
             }
+            // 다음 UDP ON 때 INITIAL_CONNECT 재전송/로그를 위해 플래그 리셋
+            _initialConnectSent = false;
             // 라벨 갱신은 Tick에서 처리
         }
 
@@ -149,6 +151,9 @@ namespace GateHelper
             string utcNow = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " [UTC]";
             string message = $"{userId} / EXIT / {utcNow}";
             BroadcastSend(config, message, raw: true);
+
+            // EXIT 후 다시 LOGIN 대비 플래그 리셋
+            _initialConnectSent = false;
         }
 
         // 5) 송신 관련
@@ -212,6 +217,7 @@ namespace GateHelper
         }
 
         // 6) 로깅 관련
+        // UDP 수신 로그 기록 (고정폭 포맷)
         public static void WriteUdpReceiveLog(string msg)
         {
             try
@@ -222,74 +228,70 @@ namespace GateHelper
                         return;
                     lastUdpLogMsg = msg;
 
-                    string logPath = Path.Combine(Application.StartupPath, "Log");
-                    if (!Directory.Exists(logPath))
-                        Directory.CreateDirectory(logPath);
+                    string logDir = Path.Combine(Application.StartupPath, "Log");
+                    if (!Directory.Exists(logDir))
+                        Directory.CreateDirectory(logDir);
 
-                    logPath = Path.Combine(logPath, $"UdpReceiveLog_{DateTime.Now:yyyyMMdd}.txt");
+                    string logPath = Path.Combine(logDir, $"UdpReceiveLog_{DateTime.Now:yyyyMMdd}.txt");
 
-                    string logLine;
-
-                    // 메시지 포맷: "userId / serverName / yyyy-MM-dd HH:mm:ss [UTC]"
-                    string convertedMsg = null;
+                    // 파싱: "userId / token [/ utcTime [UTC]]"
+                    string userId = null;
+                    string token = null;
+                    string tag = ""; // [LOGIN] / [EXIT] / [CONNECT]
                     try
                     {
                         var parts = msg.Split(new[] { " / " }, StringSplitOptions.None);
-                        if (parts.Length >= 3)
+                        if (parts.Length >= 2)
                         {
-                            string userId = parts[0].Trim();
-                            string serverName = parts[1].Trim();
-                            string timeToken = parts[2].Trim(); // "yyyy-MM-dd HH:mm:ss [UTC]"
-                            string timeStr = timeToken.Replace(" [UTC]", "");
+                            userId = parts[0].Trim();
+                            token  = parts[1].Trim();
 
-                            DateTime utc;
-                            if (!DateTime.TryParseExact(
-                                    timeStr,
-                                    "yyyy-MM-dd HH:mm:ss",
-                                    System.Globalization.CultureInfo.InvariantCulture,
-                                    System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal,
-                                    out utc))
-                            {
-                                if (DateTime.TryParse(timeStr, out utc))
-                                {
-                                    if (utc.Kind != DateTimeKind.Utc)
-                                        utc = DateTime.SpecifyKind(utc, DateTimeKind.Utc);
-                                }
-                                else
-                                {
-                                    utc = DateTime.UtcNow; // 최후 폴백
-                                }
-                            }
-
-                            // 로컬 시간대로 변환 (본문에는 시간만 표시, 시간대 표기 없음)
-                            var localTz = TimeZoneInfo.Local;
-                            var localTime = TimeZoneInfo.ConvertTimeFromUtc(utc, localTz);
-
-                            convertedMsg = $"{userId} / {serverName} / {localTime:yyyy-MM-dd HH:mm:ss}";
+                            if (string.Equals(token, "INITIAL_CONNECT", StringComparison.OrdinalIgnoreCase))
+                                tag = "[LOGIN]";
+                            else if (string.Equals(token, "EXIT", StringComparison.OrdinalIgnoreCase))
+                                tag = "[EXIT]";
+                            else
+                                tag = "[CONNECT]"; // 서버명 등 일반 접속
                         }
                     }
                     catch
                     {
-                        // 변환 실패 시 convertedMsg는 null 유지
+                        // 파싱 실패 시 원문 그대로 기록(아래 body에 넣음)
                     }
 
-                    // 로그 헤더(현재 시각) 로컬 타임존 전체 이름 표시
                     var nowLocal = DateTime.Now;
                     var tzDisplayName = TimeZoneInfo.Local.IsDaylightSavingTime(nowLocal)
                         ? TimeZoneInfo.Local.DaylightName
                         : TimeZoneInfo.Local.StandardName;
 
-                    if (Regex.IsMatch(msg, @"^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} \|"))
+                    // 고정폭 포맷: 시간(19) TZ(8) TAG(12) USER(14) TOKEN(4)
+                    // 예) 2025-12-17 09:00:05  대한민국 표준시           [LOGIN]  AA               INITIAL_CONNECT
+                    string line;
+                    if (!string.IsNullOrEmpty(userId) && !string.IsNullOrEmpty(token))
                     {
-                        logLine = msg; // 이미 헤더 형식이면 원문 유지
+                        line = string.Format(
+                            "{0,-19} {1,-8} {2,-12} {3,-14} {4}",
+                            nowLocal.ToString("yyyy-MM-dd HH:mm:ss"),
+                            tzDisplayName ?? "",
+                            tag ?? "",
+                            userId ?? "",
+                            token ?? ""
+                        );
                     }
                     else
                     {
-                        // 헤더: 로컬 시각 + (전체 시간대 이름), 본문: 변환된 메시지 또는 원문
-                        logLine = $"{nowLocal:yyyy-MM-dd HH:mm:ss} ({tzDisplayName}) | {(convertedMsg ?? msg)}";
+                        // 파싱 실패 시 원문을 TOKEN 위치에 출력
+                        line = string.Format(
+                            "{0,-19} {1,-8} {2,-12} {3,-14} {4}",
+                            nowLocal.ToString("yyyy-MM-dd HH:mm:ss"),
+                            tzDisplayName ?? "",
+                            "",
+                            "",
+                            msg
+                        );
                     }
 
-                    File.AppendAllText(logPath, logLine + Environment.NewLine);
+                    File.AppendAllText(logPath, line + Environment.NewLine);
                 }
             }
             catch (Exception ex)
@@ -298,13 +300,12 @@ namespace GateHelper
             }
         }
 
-        // 로그인(UDP 기능 ON) 이벤트를 UDP 로그에 남김
+        // 로그인(UDP 기능 ON) 이벤트 로컬 기록 (고정폭 포맷)
         private static void WriteUdpLoginLog(Config config)
         {
             try
             {
                 string userId = config?.UserID ?? "UnknownUser";
-                string utcStamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " [UTC]";
 
                 string logDir = Path.Combine(Application.StartupPath, "Log");
                 if (!Directory.Exists(logDir))
@@ -317,8 +318,16 @@ namespace GateHelper
                     ? TimeZoneInfo.Local.DaylightName
                     : TimeZoneInfo.Local.StandardName;
 
-                // 수신 로그와 동일 포맷 헤더 + [LOGIN] 태그
-                string line = $"{nowLocal:yyyy-MM-dd HH:mm:ss} ({tzDisplayName}) | [LOGIN] {userId} / INITIAL_CONNECT / {utcStamp}";
+                // 고정폭 동일 포맷 사용, TOKEN은 INITIAL_CONNECT
+                string line = string.Format(
+                    "{0,-19} {1,-8} {2,-12} {3,-14} {4}",
+                    nowLocal.ToString("yyyy-MM-dd HH:mm:ss"),
+                    tzDisplayName ?? "",
+                    "[LOGIN]",
+                    userId ?? "",
+                    "INITIAL_CONNECT"
+                );
+
                 File.AppendAllText(logPath, line + Environment.NewLine);
             }
             catch (Exception ex)
