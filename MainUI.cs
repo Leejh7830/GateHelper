@@ -546,9 +546,9 @@ namespace GateHelper
             OpenLogFile();
         }
 
-        
 
-        
+
+
 
 
         //////////////////////////////////////////////////////////////////////////////// 옵션 전용 시작
@@ -583,13 +583,34 @@ namespace GateHelper
                 {
                     if (_appSettings.UseUDP)
                     {
-                        Util_Rdp.SendInitialConnect(_config);
-                        Util_Rdp.StartBroadcastReceiveLoop(OnUdpMessageReceived);
+                        // ✅ 드라이버 가드: 드라이버가 OFF면 UDP를 켤 수 없도록 안내
+                        bool driverOn = (_driver != null && chromeDriverManager.IsDriverAlive(_driver));
+                        if (!driverOn)
+                        {
+                            _appSettings.UseUDP = false; // 되돌림
+                            Util_Rdp.UpdateUDPStatusLabel(false);
+                            LogMessage("[UDP] 드라이버 OFF 상태에서 UDP ON 시도 차단", Level.Error);
+                            MessageBox.Show(
+                                "ChromeDriver가 실행 중이 아닙니다.\nUDP 기능을 사용하려면 먼저 드라이버를 시작하세요.",
+                                "UDP 알림",
+                                MessageBoxButtons.OK,
+                                MessageBoxIcon.Warning
+                            );
+                        }
+                        else
+                        {
+                            Util_Rdp.SendInitialConnect(_config);
+                            Util_Rdp.StartBroadcastReceiveLoop(OnUdpMessageReceived);
+                            Util_Rdp.UpdateUDPStatusLabel(true);
+                            LogMessage("[UDP] 수신 시작", Level.Info);
+                        }
                     }
                     else
                     {
                         Util_Rdp.SendExitMessage(_config); // UDP 기능을 끌 때 EXIT 송신
                         Util_Rdp.StopBroadcastReceiveLoop();
+                        Util_Rdp.UpdateUDPStatusLabel(false);
+                        LogMessage("[UDP] 수신 종료", Level.Info);
                     }
                 }
 

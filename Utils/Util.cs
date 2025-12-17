@@ -43,9 +43,8 @@ namespace GateHelper
             string content =
 @"
 v2.1.4 / 25.12.16 / Test Version
-- Release
 - leejh7830@lgespartner.com
-- 본 프로그램은 비영리 목적으로 제작한 유틸리티입니다.
+- 비영리 목적으로 제작한 유틸리티입니다.
 
 
 [ 신규 사항 ] 진행중 : 
@@ -68,6 +67,8 @@ v2.1.4 / 25.12.16 / Test Version
 6. 개선 / [UDP] Port 변경 옵션 추가
 7. 개선 / [UDP] RDP 감지 추가
 8. 개선 / [UDP] 현재 접속자 확인 기능
+9. 개선 / [UDP] 접속자 목록 UI 추가
+10. 개선 / [UDP] 드라이버없을 때 UDP옵션 켜면 에러 발생, 드라이버 켜라는 메시지 필요
 
 
 
