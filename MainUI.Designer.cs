@@ -35,7 +35,7 @@ namespace GateHelper
             this.BtnGateOneLogin1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnRDP1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnSearch1 = new MaterialSkin.Controls.MaterialButton();
-            this.SearchTxt1 = new MaterialSkin.Controls.MaterialTextBox2();
+            this.TxtSearch1 = new MaterialSkin.Controls.MaterialTextBox2();
             this.GroupConnect1 = new System.Windows.Forms.GroupBox();
             this.GroupPreset1 = new System.Windows.Forms.GroupBox();
             this.BtnPreset1 = new MaterialSkin.Controls.MaterialButton();
@@ -50,7 +50,7 @@ namespace GateHelper
             this.TabControl1 = new MaterialSkin.Controls.MaterialTabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.tabPage4 = new System.Windows.Forms.TabPage();
-            this.ObjectListView1 = new BrightIdeasSoftware.ObjectListView();
+            this.OlvServerList = new BrightIdeasSoftware.ObjectListView();
             this.IsInUse = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.ServerName = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.LastConnected = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
@@ -61,6 +61,7 @@ namespace GateHelper
             this.MenuItem2_Favorite = new System.Windows.Forms.ToolStripMenuItem();
             this.txtMemoEditor = new System.Windows.Forms.TextBox();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.BtnWorkLog1 = new MaterialSkin.Controls.MaterialButton();
             this.dummyControlOutsideTab = new MaterialSkin.Controls.MaterialButton();
             this.BtnOpenImages1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnReloadImages1 = new MaterialSkin.Controls.MaterialButton();
@@ -92,7 +93,7 @@ namespace GateHelper
             this.TabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             this.tabPage4.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.ObjectListView1)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.OlvServerList)).BeginInit();
             this.ListViewContext1.SuspendLayout();
             this.tabPage3.SuspendLayout();
             this.GroupRef2.SuspendLayout();
@@ -163,36 +164,36 @@ namespace GateHelper
             this.BtnSearch1.UseVisualStyleBackColor = true;
             this.BtnSearch1.Click += new System.EventHandler(this.BtnSearch1_Click);
             // 
-            // SearchTxt1
+            // TxtSearch1
             // 
-            this.SearchTxt1.AnimateReadOnly = false;
-            this.SearchTxt1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
-            this.SearchTxt1.CharacterCasing = System.Windows.Forms.CharacterCasing.Normal;
-            this.SearchTxt1.Depth = 0;
-            this.SearchTxt1.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.SearchTxt1.HideSelection = true;
-            this.SearchTxt1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
-            this.SearchTxt1.LeadingIcon = null;
-            this.SearchTxt1.Location = new System.Drawing.Point(5, 19);
-            this.SearchTxt1.Margin = new System.Windows.Forms.Padding(2);
-            this.SearchTxt1.MaxLength = 32767;
-            this.SearchTxt1.MouseState = MaterialSkin.MouseState.OUT;
-            this.SearchTxt1.Name = "SearchTxt1";
-            this.SearchTxt1.PasswordChar = '\0';
-            this.SearchTxt1.PrefixSuffixText = null;
-            this.SearchTxt1.ReadOnly = false;
-            this.SearchTxt1.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.SearchTxt1.SelectedText = "";
-            this.SearchTxt1.SelectionLength = 0;
-            this.SearchTxt1.SelectionStart = 0;
-            this.SearchTxt1.ShortcutsEnabled = true;
-            this.SearchTxt1.Size = new System.Drawing.Size(245, 48);
-            this.SearchTxt1.TabIndex = 13;
-            this.SearchTxt1.TabStop = false;
-            this.SearchTxt1.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
-            this.SearchTxt1.TrailingIcon = null;
-            this.SearchTxt1.UseSystemPasswordChar = false;
-            this.SearchTxt1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.SearchTxt1_KeyDown);
+            this.TxtSearch1.AnimateReadOnly = false;
+            this.TxtSearch1.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.TxtSearch1.CharacterCasing = System.Windows.Forms.CharacterCasing.Normal;
+            this.TxtSearch1.Depth = 0;
+            this.TxtSearch1.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.TxtSearch1.HideSelection = true;
+            this.TxtSearch1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.TxtSearch1.LeadingIcon = null;
+            this.TxtSearch1.Location = new System.Drawing.Point(5, 19);
+            this.TxtSearch1.Margin = new System.Windows.Forms.Padding(2);
+            this.TxtSearch1.MaxLength = 32767;
+            this.TxtSearch1.MouseState = MaterialSkin.MouseState.OUT;
+            this.TxtSearch1.Name = "TxtSearch1";
+            this.TxtSearch1.PasswordChar = '\0';
+            this.TxtSearch1.PrefixSuffixText = null;
+            this.TxtSearch1.ReadOnly = false;
+            this.TxtSearch1.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.TxtSearch1.SelectedText = "";
+            this.TxtSearch1.SelectionLength = 0;
+            this.TxtSearch1.SelectionStart = 0;
+            this.TxtSearch1.ShortcutsEnabled = true;
+            this.TxtSearch1.Size = new System.Drawing.Size(245, 48);
+            this.TxtSearch1.TabIndex = 13;
+            this.TxtSearch1.TabStop = false;
+            this.TxtSearch1.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.TxtSearch1.TrailingIcon = null;
+            this.TxtSearch1.UseSystemPasswordChar = false;
+            this.TxtSearch1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.SearchTxt1_KeyDown);
             // 
             // GroupConnect1
             // 
@@ -202,7 +203,7 @@ namespace GateHelper
             this.GroupConnect1.Controls.Add(this.ComboBoxServerList1);
             this.GroupConnect1.Controls.Add(this.GroupFav1);
             this.GroupConnect1.Controls.Add(this.BtnSearch1);
-            this.GroupConnect1.Controls.Add(this.SearchTxt1);
+            this.GroupConnect1.Controls.Add(this.TxtSearch1);
             this.GroupConnect1.Location = new System.Drawing.Point(3, 3);
             this.GroupConnect1.Name = "GroupConnect1";
             this.GroupConnect1.Size = new System.Drawing.Size(388, 345);
@@ -432,7 +433,7 @@ namespace GateHelper
             // 
             // tabPage4
             // 
-            this.tabPage4.Controls.Add(this.ObjectListView1);
+            this.tabPage4.Controls.Add(this.OlvServerList);
             this.tabPage4.Controls.Add(this.txtMemoEditor);
             this.tabPage4.Location = new System.Drawing.Point(4, 22);
             this.tabPage4.Margin = new System.Windows.Forms.Padding(2);
@@ -443,39 +444,39 @@ namespace GateHelper
             this.tabPage4.Text = "HISTORY";
             this.tabPage4.UseVisualStyleBackColor = true;
             // 
-            // ObjectListView1
+            // OlvServerList
             // 
-            this.ObjectListView1.AllColumns.Add(this.IsInUse);
-            this.ObjectListView1.AllColumns.Add(this.ServerName);
-            this.ObjectListView1.AllColumns.Add(this.LastConnected);
-            this.ObjectListView1.AllColumns.Add(this.Memo);
-            this.ObjectListView1.AllColumns.Add(this.IsFavorite);
-            this.ObjectListView1.CellEditActivation = BrightIdeasSoftware.ObjectListView.CellEditActivateMode.DoubleClick;
-            this.ObjectListView1.CellEditUseWholeCell = false;
-            this.ObjectListView1.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.OlvServerList.AllColumns.Add(this.IsInUse);
+            this.OlvServerList.AllColumns.Add(this.ServerName);
+            this.OlvServerList.AllColumns.Add(this.LastConnected);
+            this.OlvServerList.AllColumns.Add(this.Memo);
+            this.OlvServerList.AllColumns.Add(this.IsFavorite);
+            this.OlvServerList.CellEditActivation = BrightIdeasSoftware.ObjectListView.CellEditActivateMode.DoubleClick;
+            this.OlvServerList.CellEditUseWholeCell = false;
+            this.OlvServerList.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.IsInUse,
             this.ServerName,
             this.LastConnected,
             this.Memo});
-            this.ObjectListView1.ContextMenuStrip = this.ListViewContext1;
-            this.ObjectListView1.Cursor = System.Windows.Forms.Cursors.Default;
-            this.ObjectListView1.EmptyListMsg = "NO DATA";
-            this.ObjectListView1.EmptyListMsgFont = new System.Drawing.Font("굴림", 36F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.ObjectListView1.FullRowSelect = true;
-            this.ObjectListView1.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
-            this.ObjectListView1.HideSelection = false;
-            this.ObjectListView1.Location = new System.Drawing.Point(0, 1);
-            this.ObjectListView1.MultiSelect = false;
-            this.ObjectListView1.Name = "ObjectListView1";
-            this.ObjectListView1.ShowGroups = false;
-            this.ObjectListView1.Size = new System.Drawing.Size(576, 347);
-            this.ObjectListView1.TabIndex = 98;
-            this.ObjectListView1.UseCompatibleStateImageBehavior = false;
-            this.ObjectListView1.View = System.Windows.Forms.View.Details;
-            this.ObjectListView1.CellEditFinished += new BrightIdeasSoftware.CellEditEventHandler(this.ObjectListView1_CellEditFinished);
-            this.ObjectListView1.CellToolTipShowing += new System.EventHandler<BrightIdeasSoftware.ToolTipShowingEventArgs>(this.ObjectListView1_CellToolTipShowing);
-            this.ObjectListView1.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.ObjectListView1_FormatRow);
-            this.ObjectListView1.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.ObjectListView1_MouseDoubleClick);
+            this.OlvServerList.ContextMenuStrip = this.ListViewContext1;
+            this.OlvServerList.Cursor = System.Windows.Forms.Cursors.Default;
+            this.OlvServerList.EmptyListMsg = "NO DATA";
+            this.OlvServerList.EmptyListMsgFont = new System.Drawing.Font("굴림", 36F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.OlvServerList.FullRowSelect = true;
+            this.OlvServerList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
+            this.OlvServerList.HideSelection = false;
+            this.OlvServerList.Location = new System.Drawing.Point(0, 1);
+            this.OlvServerList.MultiSelect = false;
+            this.OlvServerList.Name = "OlvServerList";
+            this.OlvServerList.ShowGroups = false;
+            this.OlvServerList.Size = new System.Drawing.Size(576, 347);
+            this.OlvServerList.TabIndex = 98;
+            this.OlvServerList.UseCompatibleStateImageBehavior = false;
+            this.OlvServerList.View = System.Windows.Forms.View.Details;
+            this.OlvServerList.CellEditFinished += new BrightIdeasSoftware.CellEditEventHandler(this.ObjectListView1_CellEditFinished);
+            this.OlvServerList.CellToolTipShowing += new System.EventHandler<BrightIdeasSoftware.ToolTipShowingEventArgs>(this.ObjectListView1_CellToolTipShowing);
+            this.OlvServerList.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.ObjectListView1_FormatRow);
+            this.OlvServerList.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.ObjectListView1_MouseDoubleClick);
             // 
             // IsInUse
             // 
@@ -547,6 +548,7 @@ namespace GateHelper
             // 
             // tabPage3
             // 
+            this.tabPage3.Controls.Add(this.BtnWorkLog1);
             this.tabPage3.Controls.Add(this.dummyControlOutsideTab);
             this.tabPage3.Controls.Add(this.BtnOpenImages1);
             this.tabPage3.Controls.Add(this.BtnReloadImages1);
@@ -559,6 +561,26 @@ namespace GateHelper
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "REFERENCE";
             this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // BtnWorkLog1
+            // 
+            this.BtnWorkLog1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnWorkLog1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnWorkLog1.Depth = 0;
+            this.BtnWorkLog1.HighEmphasis = true;
+            this.BtnWorkLog1.Icon = null;
+            this.BtnWorkLog1.Location = new System.Drawing.Point(399, 8);
+            this.BtnWorkLog1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnWorkLog1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnWorkLog1.Name = "BtnWorkLog1";
+            this.BtnWorkLog1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnWorkLog1.Size = new System.Drawing.Size(95, 36);
+            this.BtnWorkLog1.TabIndex = 33;
+            this.BtnWorkLog1.Text = "Work Log";
+            this.BtnWorkLog1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnWorkLog1.UseAccentColor = false;
+            this.BtnWorkLog1.UseVisualStyleBackColor = true;
+            this.BtnWorkLog1.Click += new System.EventHandler(this.BtnWorkLog1_Click);
             // 
             // dummyControlOutsideTab
             // 
@@ -964,9 +986,10 @@ namespace GateHelper
             this.tabPage1.ResumeLayout(false);
             this.tabPage4.ResumeLayout(false);
             this.tabPage4.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.ObjectListView1)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.OlvServerList)).EndInit();
             this.ListViewContext1.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
+            this.tabPage3.PerformLayout();
             this.GroupRef2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).EndInit();
@@ -985,7 +1008,7 @@ namespace GateHelper
         private System.Windows.Forms.TabPage tabPage1;
         private MaterialSkin.Controls.MaterialTabSelector TabSelector1;
         private MaterialSkin.Controls.MaterialButton BtnConnect1;
-        private MaterialSkin.Controls.MaterialTextBox2 SearchTxt1;
+        private MaterialSkin.Controls.MaterialTextBox2 TxtSearch1;
         private MaterialSkin.Controls.MaterialComboBox ComboBoxServerList1;
         private MaterialSkin.Controls.MaterialButton BtnLoadServers1;
         private MaterialSkin.Controls.MaterialButton BtnFav1;
@@ -1017,7 +1040,7 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton BtnOption1;
         private System.Windows.Forms.Label lblPopupStatus;
         private System.Windows.Forms.TextBox txtMemoEditor;
-        private BrightIdeasSoftware.ObjectListView ObjectListView1;
+        private BrightIdeasSoftware.ObjectListView OlvServerList;
         private BrightIdeasSoftware.OLVColumn LastConnected;
         private BrightIdeasSoftware.OLVColumn Memo;
         private BrightIdeasSoftware.OLVColumn IsFavorite;
@@ -1031,6 +1054,7 @@ namespace GateHelper
         private System.Windows.Forms.Label lblUDPStatus;
         private System.Windows.Forms.Label lblVersion;
         private MaterialSkin.Controls.MaterialButton BtnOpenLog2;
+        private MaterialSkin.Controls.MaterialButton BtnWorkLog1;
     }
 }
 

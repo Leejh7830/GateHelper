@@ -59,7 +59,11 @@ namespace GateHelper
         private Size tabSelector1OriginalSize;
         private Size tabControl1OriginalSize;
 
+        // 컨텍스트메뉴 (우클릭)
         private ContextMenuStrip contextMenuStrip;
+
+        // Work Log 관리용
+        private WorkLogForm _workLogForm;
 
 
         private enum PresetSelection { None, A, B }
@@ -84,8 +88,8 @@ namespace GateHelper
             materialSkinManager.Theme = MaterialSkinManager.Themes.DARK;
 
             // ContextMenuStrip 초기화 및 테마 동기화
-            contextMenuStrip = ObjectListView1.ContextMenuStrip ?? new ContextMenuStrip();
-            ObjectListView1.ContextMenuStrip = contextMenuStrip;
+            contextMenuStrip = OlvServerList.ContextMenuStrip ?? new ContextMenuStrip();
+            OlvServerList.ContextMenuStrip = contextMenuStrip;
 
             // 필요 시 항목이 없을 때만 추가(디자이너에서 이미 있으면 추가하지 않음)
             if (contextMenuStrip.Items.Count == 0)
@@ -95,9 +99,9 @@ namespace GateHelper
             }
 
             // 실제 표시되는 메뉴 인스턴스에 테마 적용
-            _themeManager = new ThemeManager(materialSkinManager, ObjectListView1.ContextMenuStrip);
-            _themeManager.ApplyContextMenuStripTheme(ObjectListView1.ContextMenuStrip);
-            materialSkinManager.ThemeChanged += (sender) => _themeManager.ApplyContextMenuStripTheme(ObjectListView1.ContextMenuStrip);
+            _themeManager = new ThemeManager(materialSkinManager, OlvServerList.ContextMenuStrip);
+            _themeManager.ApplyContextMenuStripTheme(OlvServerList.ContextMenuStrip);
+            materialSkinManager.ThemeChanged += (sender) => _themeManager.ApplyContextMenuStripTheme(OlvServerList.ContextMenuStrip);
 
             this.MaximizeBox = false;
             this.Size = FormOriginalSize;
@@ -212,7 +216,7 @@ namespace GateHelper
                         if (popupHandled)
                         {
                             _popupCount++;
-                            LogMessage($"팝업 처리 횟수 : {_popupCount}회", Level.Info);
+                            LogMessage($"Closed Popups: {_popupCount}", Level.Info);
                         }
                     }
                     catch (NoSuchWindowException ex)
@@ -308,7 +312,7 @@ namespace GateHelper
             try
             {
                 // 입력된 형식 검사
-                Util.ValidateServerInfo(SearchTxt1.Text, out serverName, out serverIP);
+                Util.ValidateServerInfo(TxtSearch1.Text, out serverName, out serverIP);
 
                 // 필드 채우기
                 Util_Control.FillSearchFields(_driver, serverName, serverIP);
@@ -392,8 +396,8 @@ namespace GateHelper
             // ✅ 테스트 모드일 때는 드라이버 체크 건너뜀
             if (_appSettings.TestMode)
             {
-                Util_Test.SimulateServerConnect(this, ObjectListView1, ComboBoxServerList1, _appSettings.TestMode, _appSettings.RemoveDuplicates);
-                Util_ServerList.SaveServerDataToFile(ObjectListView1);
+                Util_Test.SimulateServerConnect(this, OlvServerList, ComboBoxServerList1, _appSettings.TestMode, _appSettings.RemoveDuplicates);
+                Util_ServerList.SaveServerDataToFile(OlvServerList);
                 return;
             }
 
@@ -415,7 +419,7 @@ namespace GateHelper
             // UDP 접속 정보 송신
             StartRdpDetect(serverName);
 
-            Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, selectedServer, ObjectListView1, _appSettings.RemoveDuplicates);
+            Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, selectedServer, OlvServerList, _appSettings.RemoveDuplicates);
         }
 
 
@@ -438,7 +442,7 @@ namespace GateHelper
                 try
                 {
                     StartRdpDetect(serverName);
-                    Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
+                    Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
                 }
                 catch (Exception ex)
                 {
@@ -464,7 +468,7 @@ namespace GateHelper
                 try
                 {
                     StartRdpDetect(serverName);
-                    Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
+                    Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
                 }
                 catch (Exception ex)
                 {
@@ -490,7 +494,7 @@ namespace GateHelper
                 try
                 {
                     StartRdpDetect(serverName);
-                    Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
+                    Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
                 }
                 catch (Exception ex)
                 {
@@ -573,7 +577,7 @@ namespace GateHelper
             {
                 _appSettings = optionForm.AppSettings; // 새로운 값 업데이트
                 bool newIsDarkMode = optionForm.IsDarkModeEnabled;
-                _themeManager.SetTheme(newIsDarkMode, PicBox_Setting, ObjectListView1);
+                _themeManager.SetTheme(newIsDarkMode, PicBox_Setting, OlvServerList);
                 Util_Option.SetPopupGraceMs(_appSettings.PopupGraceMs);
 
                 if (oldTestMode != _appSettings.TestMode)
@@ -660,19 +664,19 @@ namespace GateHelper
             if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
 
-            var hit = ObjectListView1.OlvHitTest(e.X, e.Y);
+            var hit = OlvServerList.OlvHitTest(e.X, e.Y);
 
             if (hit.Column == Memo)  // 메모 열이면
             {
                 if (hit.Item != null) 
-                    ObjectListView1.StartCellEdit(hit.Item, hit.ColumnIndex);
+                    OlvServerList.StartCellEdit(hit.Item, hit.ColumnIndex);
                 return;
             }
 
-            if (!_appSettings.ServerClickConnect || ObjectListView1.SelectedObjects.Count == 0)
+            if (!_appSettings.ServerClickConnect || OlvServerList.SelectedObjects.Count == 0)
                 return;
 
-            var selectedServerInfo = ObjectListView1.SelectedObject as Util_ServerList.ServerInfo;
+            var selectedServerInfo = OlvServerList.SelectedObject as Util_ServerList.ServerInfo;
             string serverName = selectedServerInfo?.ServerName;
             if (string.IsNullOrEmpty(serverName))
                 return;
@@ -691,14 +695,14 @@ namespace GateHelper
                 // UDP 접속 정보 송신
                 StartRdpDetect(serverName);
 
-                Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
+                Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
             }
             else // 없으면 검색 후 접속
             {
                 LogMessage($"현재 화면에 [{serverName}] 없음 - 검색 후 접속 시도", Level.Info);
 
                 // 검색 동작 수행
-                SearchTxt1.Text = serverName;
+                TxtSearch1.Text = serverName;
                 BtnSearch1_Click(null, null);
 
                 try
@@ -719,7 +723,7 @@ namespace GateHelper
                 // UDP 접속 정보 송신
                 StartRdpDetect(serverName);
 
-                Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, ObjectListView1, _appSettings.RemoveDuplicates);
+                Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
             }
         }
 
@@ -729,7 +733,7 @@ namespace GateHelper
 
         private void PicBox_Setting_Click(object sender, EventArgs e)
         {
-            _themeManager.SetTheme(!_themeManager.IsDarkMode, PicBox_Setting, ObjectListView1);
+            _themeManager.SetTheme(!_themeManager.IsDarkMode, PicBox_Setting, OlvServerList);
         }
 
         private void PicBox_Arrow_Click(object sender, EventArgs e)
@@ -754,7 +758,7 @@ namespace GateHelper
             Util_ImageLoader.EnsureReferenceImagesFolderExists(); // ReferenceImages Folder Check
             Util_ImageLoader.LoadReferenceImages(flowLayoutPanel1); // Images Load
 
-            Util_ServerList.LoadServerDataFromFile(ObjectListView1); // ServerData Load
+            Util_ServerList.LoadServerDataFromFile(OlvServerList); // ServerData Load
 
             // [UDP] OBJ 컬럼 이모지 설정
             IsInUse.AspectGetter = rowObj => "🔍";
@@ -804,7 +808,7 @@ namespace GateHelper
 
         private void MenuItem1_Delete_Click(object sender, EventArgs e)
         {
-            var selectedObject = this.ObjectListView1.SelectedObject;
+            var selectedObject = this.OlvServerList.SelectedObject;
 
             if (selectedObject != null)
             {
@@ -816,12 +820,12 @@ namespace GateHelper
                 if (dialogResult == DialogResult.Yes)
                 {
                     // ObjectListView의 RemoveObject 메서드를 사용하여 객체를 직접 삭제합니다.
-                    this.ObjectListView1.RemoveObject(selectedObject);
+                    this.OlvServerList.RemoveObject(selectedObject);
 
                     // ObjectListView는 객체가 제거되면 자동으로 재정렬되므로, 
                     // ReorderListViewItems 호출은 필요 없습니다.
 
-                    Util_ServerList.SaveServerDataToFile(ObjectListView1);
+                    Util_ServerList.SaveServerDataToFile(OlvServerList);
 
                     LogMessage($"Server entry '{serverName}' has been removed from the list.", Level.Info);
                 }
@@ -830,16 +834,16 @@ namespace GateHelper
 
         private void MenuItem2_Favorite_Click(object sender, EventArgs e)
         {
-            var selectedObject = this.ObjectListView1.SelectedObject as Util_ServerList.ServerInfo;
+            var selectedObject = this.OlvServerList.SelectedObject as Util_ServerList.ServerInfo;
 
             if (selectedObject != null)
             {
                 selectedObject.IsFavorite = !selectedObject.IsFavorite;
 
                 // ⭐ 이 메서드가 FormatRow 이벤트를 자동으로 발생시킵니다.
-                this.ObjectListView1.RefreshObject(selectedObject);
+                this.OlvServerList.RefreshObject(selectedObject);
 
-                Util_ServerList.SaveServerDataToFile(ObjectListView1);
+                Util_ServerList.SaveServerDataToFile(OlvServerList);
 
                 string logMessage;
                 if (selectedObject.IsFavorite)
@@ -881,11 +885,11 @@ namespace GateHelper
                 if (!string.Equals(si.Memo ?? "", newText ?? "", StringComparison.Ordinal))
                 {
                     si.Memo = newText;
-                    ObjectListView1.RefreshObject(si); // 화면 즉시 반영
+                    OlvServerList.RefreshObject(si); // 화면 즉시 반영
                 }
             }
 
-            Util_ServerList.SaveServerDataToFile(ObjectListView1);
+            Util_ServerList.SaveServerDataToFile(OlvServerList);
         }
 
         private void BtnPreset1_Click(object sender, EventArgs e)
@@ -918,13 +922,13 @@ namespace GateHelper
             string userId = parts[0].Trim();
             string serverNameOrToken = parts[1].Trim();
 
-            if (ObjectListView1.InvokeRequired)
+            if (OlvServerList.InvokeRequired)
             {
-                ObjectListView1.Invoke(new Action(() => OnUdpMessageReceived(msg)));
+                OlvServerList.Invoke(new Action(() => OnUdpMessageReceived(msg)));
                 return;
             }
 
-            foreach (var item in ObjectListView1.Objects)
+            foreach (var item in OlvServerList.Objects)
             {
                 var serverInfo = item as Util_ServerList.ServerInfo;
                 if (serverInfo == null) continue;
@@ -944,7 +948,7 @@ namespace GateHelper
                     if (serverInfo.LastConnected == null || receivedLocal > serverInfo.LastConnected)
                         serverInfo.LastConnected = receivedLocal;
 
-                    ObjectListView1.RefreshObject(serverInfo);
+                    OlvServerList.RefreshObject(serverInfo);
                 }
             }
         }
@@ -1032,7 +1036,7 @@ namespace GateHelper
 
         }
 
-        // UDP 로그 파일 열기
+        // Open UDP Receive Log
         private void BtnOpenLog2_Click(object sender, EventArgs e)
         {
             try
@@ -1052,6 +1056,39 @@ namespace GateHelper
             {
                 LogException(ex, Level.Error);
                 MessageBox.Show($"An error occurred while opening the log file:\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // Open Work Log
+        private void BtnWorkLog1_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                if (_workLogForm == null || _workLogForm.IsDisposed)
+                {
+                    _workLogForm = new WorkLogForm();
+                    _workLogForm.StartPosition = FormStartPosition.CenterParent;
+                    _workLogForm.FormClosed += (s, args) =>
+                    {
+                        try { _workLogForm.Dispose(); } catch { }
+                        _workLogForm = null;
+                    };
+                    _workLogForm.Show(this); // Non-modal
+                }
+                else
+                {
+                    if (_workLogForm.WindowState == FormWindowState.Minimized)
+                        _workLogForm.WindowState = FormWindowState.Normal;
+
+                    _workLogForm.BringToFront();
+                    _workLogForm.Activate();
+                }
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error);
+                MessageBox.Show(this, "An error occurred while opening the Work Log window.", "Error",
+                  MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
     }

@@ -1,0 +1,185 @@
+﻿namespace GateHelper
+{
+    partial class WorkLogForm
+    {
+        /// <summary>
+        /// Required designer variable.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary>
+        /// Clean up any resources being used.
+        /// </summary>
+        /// <param name="disposing">true if managed resources should be disposed; otherwise, false.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region Windows Form Designer generated code
+
+        /// <summary>
+        /// Required method for Designer support - do not modify
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.OlvWorkLog = new BrightIdeasSoftware.ObjectListView();
+            this.No = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.Date = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.Title = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.Content = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.Status = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.Tags = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.Memo = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.LastUpdated = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.TxtWorkLog = new MaterialSkin.Controls.MaterialTextBox();
+            this.BtnTemp1 = new MaterialSkin.Controls.MaterialButton();
+            ((System.ComponentModel.ISupportInitialize)(this.OlvWorkLog)).BeginInit();
+            this.SuspendLayout();
+            // 
+            // OlvWorkLog
+            // 
+            this.OlvWorkLog.AllColumns.Add(this.No);
+            this.OlvWorkLog.AllColumns.Add(this.Date);
+            this.OlvWorkLog.AllColumns.Add(this.Title);
+            this.OlvWorkLog.AllColumns.Add(this.Content);
+            this.OlvWorkLog.AllColumns.Add(this.Status);
+            this.OlvWorkLog.AllColumns.Add(this.Tags);
+            this.OlvWorkLog.AllColumns.Add(this.Memo);
+            this.OlvWorkLog.AllColumns.Add(this.LastUpdated);
+            this.OlvWorkLog.CellEditUseWholeCell = false;
+            this.OlvWorkLog.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
+            this.No,
+            this.Date,
+            this.Title,
+            this.Content,
+            this.Status,
+            this.Tags,
+            this.Memo,
+            this.LastUpdated});
+            this.OlvWorkLog.Cursor = System.Windows.Forms.Cursors.Default;
+            this.OlvWorkLog.HideSelection = false;
+            this.OlvWorkLog.Location = new System.Drawing.Point(12, 144);
+            this.OlvWorkLog.Name = "OlvWorkLog";
+            this.OlvWorkLog.Size = new System.Drawing.Size(1031, 430);
+            this.OlvWorkLog.TabIndex = 0;
+            this.OlvWorkLog.UseCompatibleStateImageBehavior = false;
+            this.OlvWorkLog.View = System.Windows.Forms.View.Details;
+            // 
+            // No
+            // 
+            this.No.AspectName = "No";
+            this.No.Text = "No";
+            // 
+            // Date
+            // 
+            this.Date.AspectName = "Date";
+            this.Date.Text = "Date";
+            this.Date.Width = 120;
+            // 
+            // Title
+            // 
+            this.Title.AspectName = "Title";
+            this.Title.Text = "Title";
+            // 
+            // Content
+            // 
+            this.Content.AspectName = "Content";
+            this.Content.Text = "Content";
+            this.Content.Width = 400;
+            // 
+            // Status
+            // 
+            this.Status.AspectName = "Status";
+            this.Status.Text = "Status";
+            this.Status.Width = 80;
+            // 
+            // Tags
+            // 
+            this.Tags.AspectName = "Tags";
+            this.Tags.Text = "Tags";
+            // 
+            // Memo
+            // 
+            this.Memo.AspectName = "Memo";
+            this.Memo.Text = "Memo";
+            this.Memo.Width = 120;
+            // 
+            // LastUpdated
+            // 
+            this.LastUpdated.AspectName = "LastUpdated";
+            this.LastUpdated.Text = "LastUpdated";
+            this.LastUpdated.Width = 120;
+            // 
+            // TxtWorkLog
+            // 
+            this.TxtWorkLog.AnimateReadOnly = false;
+            this.TxtWorkLog.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.TxtWorkLog.Depth = 0;
+            this.TxtWorkLog.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.TxtWorkLog.LeadingIcon = null;
+            this.TxtWorkLog.Location = new System.Drawing.Point(12, 88);
+            this.TxtWorkLog.MaxLength = 50;
+            this.TxtWorkLog.MouseState = MaterialSkin.MouseState.OUT;
+            this.TxtWorkLog.Multiline = false;
+            this.TxtWorkLog.Name = "TxtWorkLog";
+            this.TxtWorkLog.Size = new System.Drawing.Size(203, 50);
+            this.TxtWorkLog.TabIndex = 1;
+            this.TxtWorkLog.Text = "";
+            this.TxtWorkLog.TrailingIcon = null;
+            // 
+            // BtnTemp1
+            // 
+            this.BtnTemp1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnTemp1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnTemp1.Depth = 0;
+            this.BtnTemp1.HighEmphasis = true;
+            this.BtnTemp1.Icon = null;
+            this.BtnTemp1.Location = new System.Drawing.Point(12, 583);
+            this.BtnTemp1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnTemp1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnTemp1.Name = "BtnTemp1";
+            this.BtnTemp1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnTemp1.Size = new System.Drawing.Size(64, 36);
+            this.BtnTemp1.TabIndex = 2;
+            this.BtnTemp1.Text = "Temp";
+            this.BtnTemp1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnTemp1.UseAccentColor = false;
+            this.BtnTemp1.UseVisualStyleBackColor = true;
+            // 
+            // WorkLogForm
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(1049, 628);
+            this.Controls.Add(this.BtnTemp1);
+            this.Controls.Add(this.TxtWorkLog);
+            this.Controls.Add(this.OlvWorkLog);
+            this.Name = "WorkLogForm";
+            this.Text = "WorkLogForm";
+            ((System.ComponentModel.ISupportInitialize)(this.OlvWorkLog)).EndInit();
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
+        }
+
+        #endregion
+
+        private BrightIdeasSoftware.ObjectListView OlvWorkLog;
+        private BrightIdeasSoftware.OLVColumn Title;
+        private BrightIdeasSoftware.OLVColumn Content;
+        private BrightIdeasSoftware.OLVColumn Date;
+        private BrightIdeasSoftware.OLVColumn Tags;
+        private BrightIdeasSoftware.OLVColumn Memo;
+        private MaterialSkin.Controls.MaterialTextBox TxtWorkLog;
+        private MaterialSkin.Controls.MaterialButton BtnTemp1;
+        private BrightIdeasSoftware.OLVColumn No;
+        private BrightIdeasSoftware.OLVColumn Status;
+        private BrightIdeasSoftware.OLVColumn LastUpdated;
+    }
+}
