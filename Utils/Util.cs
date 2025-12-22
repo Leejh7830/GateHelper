@@ -42,20 +42,19 @@ namespace GateHelper
             string metaNotesPath = GetMetaPath("ReleaseNotes.txt");
             string content =
 @"
-v2.1.5 / 25.12.17 / Test Version
+v2.2.0 / 25.12.22 / Test Version
 - leejh7830@lgespartner.com
 - 비영리 목적으로 제작한 유틸리티입니다.
 
 
-[ 신규 사항 ] 진행중 : 6
+[ 신규 사항 ] 진행중 : 
 1. 신규 / 오류(알람) UI 창
 2. 신규 / 옵션 상태 저장하기 (프로그램을 껐다가 다시 켜도 기존 옵션 상태 유지)
 3. 신규 / ListView 고정 옵션 추가 (사용자가 원하는 리스트를 고정하여 항상 상단에 표시)
 4. 신규 / 통합모니터링 웹 접속 및 제어
 5. 신규 / Error,Critical 로그 카운트
-6. 신규 / Excel, PPT 파일 바로가기 기능 -> WorkLog 로 변경.
-7. 신규 / 전체 서버를 리스트에 저장하는 기능
-8. 신규 / 마우스 감지 및 일정 시간(사용자 비활성) 후 자동 마우스 움직임 기능 추가
+6. 신규 / 전체 서버를 리스트에 저장하는 기능
+7. 신규 / 마우스 감지 및 일정 시간(사용자 비활성) 후 자동 마우스 움직임 기능 추가
 
 
 [ 개선 사항 ] 진행중 : 
@@ -92,13 +91,14 @@ v2.0.0
 25.10.20 OP) 옵션설명 라벨 추가 / _meta 폴더 이동 기능 강화 / OP) FAV OneClick 접속 기능 추가
 25.10.21 Preset 기능 추가
 
-
 v2.1.0 / 25.10.29 DriverManager 개선 및 ChromeDriver 자동업데이트 기능 추가 (ChromeDriverManager.cs)
 v2.1.1 / 25.11.05 GetServerListFromWebPage 추가 (웹페이지에 접속서버가 있으면 재검색 안하고 바로 접속)
 v2.1.2 / 25.11.10 [UDP] BroadCast 수신 기능 추가 (Util_RDP.cs) - 접속서버 공유 시스템
 v2.1.3 / 25.11.15 [UDP] 접속/종료 시 송신
 v2.1.4 / 25.12.16 현재 화면의 서버목록에 접속하려는 서버가 없으면 스크롤하여 검색하도록 개선
 v2.1.5 / 25.12.17 개선 - Listview 컨텍스트 메뉴 색상 반전 (현재 색상모드와 불일치)
+
+v2.2.0 / 25.12.22 신규 - Work Log 추가 (작업 메모용, Reference 탭)
          
 ";
 

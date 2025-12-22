@@ -4,6 +4,7 @@ using MaterialSkin.Controls;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Linq; // ⬅ Max, Any 등을 위해 추가
 using System.Runtime.Serialization;
@@ -22,6 +23,9 @@ namespace GateHelper
 
         // 메모리 모델
         private List<WorkLogEntry> _items = new List<WorkLogEntry>();
+
+        // 현재 검색어 (부분 하이라이트를 그릴 때 사용)
+        private string _currentFilter = string.Empty;
 
         // 상태 선택 옵션
         private static readonly string[] StatusOptions = new[] { "Open", "ING..", "Done", "Blocked" };
@@ -61,6 +65,12 @@ namespace GateHelper
             OlvWorkLog.UseAlternatingBackColors = false;
             OlvWorkLog.MultiSelect = true;
 
+            // 필터링 활성화 (실시간 검색)
+            OlvWorkLog.UseFiltering = true;
+
+            // Owner-draw 활성화: 부분 텍스트를 Bold로 렌더링하기 위함
+            OlvWorkLog.OwnerDraw = true;
+
             // 헤더 테마 겹침 방지
             OlvWorkLog.HeaderUsesThemes = false;
 
@@ -68,7 +78,6 @@ namespace GateHelper
             OlvWorkLog.ShowItemToolTips = false;
             OlvWorkLog.CellToolTipGetter = null;
             OlvWorkLog.HeaderToolTipGetter = null;
-            OlvWorkLog.ToolTipControl.IsActive = false;
 
             foreach (var col in OlvWorkLog.AllColumns)
             {
@@ -89,7 +98,36 @@ namespace GateHelper
                 }
             }
 
-            
+            // ⭐ MaterialSkin의 폰트 강제 주입을 이겨내기 위한 BeginInvoke
+            this.BeginInvoke(new Action(() =>
+            {
+                try
+                {
+                    // 시스템에서 가장 안정적인 트루타입 폰트 생성
+                    Font malgunFont = new Font("맑은 고딕", 9f, FontStyle.Regular);
+
+                    // 1. 전체 리스트뷰 폰트 강제 설정
+                    OlvWorkLog.Font = malgunFont;
+
+                    // 2. 헤더 폰트 강제 설정 (HeaderStyle을 통한 접근) - 삭제
+                    // if (OlvWorkLog.HeaderStyle != null)
+                    //{
+                    //    // 별도의 HeaderFont 속성이 있다면 사용
+                    //   OlvWorkLog.HeaderMinimumHeight = 30; // 헤더가 잘리지 않게 높이 조절
+                    //}
+
+                    // 3. 모든 컬럼의 폰트를 순회하며 강제 지정
+                    foreach (OLVColumn col in OlvWorkLog.AllColumns)
+                    {
+                        // HeaderFont는 일부 버전에서 지원되지 않을 수 있으므로 체크하며 적용
+                        try { col.HeaderFont = malgunFont; } catch { }
+                    }
+
+                    OlvWorkLog.Refresh();
+                }
+                catch { /* 폰트 설정 중 오류 무시 */ }
+            }));
+
         }
 
         private void WireEvents()
@@ -109,10 +147,27 @@ namespace GateHelper
             TxtWorkLog.TextChanged -= TxtWorkLog_TextChanged;
             TxtWorkLog.TextChanged += TxtWorkLog_TextChanged;
 
+            // 커스텀 드로잉 핸들러
+            OlvWorkLog.DrawColumnHeader -= OlvWorkLog_DrawColumnHeader;
+            OlvWorkLog.DrawColumnHeader += OlvWorkLog_DrawColumnHeader;
+
+            OlvWorkLog.DrawItem -= OlvWorkLog_DrawItem;
+            OlvWorkLog.DrawItem += OlvWorkLog_DrawItem;
+
+            OlvWorkLog.DrawSubItem -= OlvWorkLog_DrawSubItem;
+            OlvWorkLog.DrawSubItem += OlvWorkLog_DrawSubItem;
+
+            // FormatCell: 셀 단위 포맷(부분 하이라이트가 동작하지 않을 때 전체 셀 Bold 처리 폴백)
+            OlvWorkLog.FormatCell -= OlvWorkLog_FormatCell;
+            OlvWorkLog.FormatCell += OlvWorkLog_FormatCell;
+
             // 폼이 닫힐 때 발생하는 이벤트 추가
             this.FormClosing -= WorkLogForm_FormClosing;
             this.FormClosing += WorkLogForm_FormClosing;
 
+            // 추가된 부분: 키 업 이벤트
+            TxtWorkLog.KeyUp -= TxtWorkLog_KeyUp;
+            TxtWorkLog.KeyUp += TxtWorkLog_KeyUp;
         }
 
         private void SetupContextMenu()
@@ -186,7 +241,7 @@ namespace GateHelper
                 {
                     DropDownStyle = ComboBoxStyle.DropDownList,
                     Bounds = e.CellBounds,
-                    Font = new System.Drawing.Font("맑은 고딕", 10f)
+                    Font = new System.Drawing.Font("Consolas", 10f)
                 };
                 cb.Items.AddRange(StatusOptions);
 
@@ -209,7 +264,7 @@ namespace GateHelper
                 var dtp = new DateTimePicker
                 {
                     Format = DateTimePickerFormat.Custom,
-                    CustomFormat = "yyyy-MM-dd",
+                    CustomFormat = "yyyy-MM-dd HH:mm:ss",
                     Value = e.Value is DateTime dt && dt != default(DateTime) ? dt : DateTime.Today,
                     // ⭐ 에디터의 위치와 크기를 현재 셀의 위치와 정확히 일치시킵니다.
                     Bounds = e.CellBounds
@@ -304,7 +359,7 @@ namespace GateHelper
                         entry.Status = e.NewValue.ToString();
                     else if (string.Equals(e.Column.AspectName, nameof(WorkLogEntry.Title), StringComparison.Ordinal))
                         entry.Title = e.NewValue.ToString();
-                    // ... 나머지 컬럼 ...
+                    // ... 나머지 컬umn ...
                 }
 
                 entry.Touch(); // LastUpdated 갱신
@@ -313,17 +368,97 @@ namespace GateHelper
             }
         }
 
+        // TxtWorkLog_TextChanged와 KeyUp에서 필터 설정 후 즉시 리빌드/리프레시
         private void TxtWorkLog_TextChanged(object sender, EventArgs e)
         {
             var q = TxtWorkLog.Text?.Trim() ?? string.Empty;
+
+            // 현재 검색어 저장
+            _currentFilter = q;
+
+            OlvWorkLog.BeginUpdate();
+            try
+            {
+                // 기존 TextMatchFilter 하이라이트를 비활성화하기 위해 수동으로 SetObjects를 사용
+                ApplyFilter(q);
+
+                // 필터 적용 즉시 리스트를 재구성
+                OlvWorkLog.BuildList(true);
+                OlvWorkLog.Refresh();
+            }
+            finally
+            {
+                OlvWorkLog.EndUpdate();
+            }
+        }
+
+        // 추가된 TxtWorkLog_KeyUp 핸들러도 동일하게 처리
+        private void TxtWorkLog_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Left || e.KeyCode == Keys.Right || e.KeyCode == Keys.Up || e.KeyCode == Keys.Down)
+                return;
+
+            var q = TxtWorkLog.Text?.Trim() ?? string.Empty;
+
+            // 현재 검색어 저장
+            _currentFilter = q;
+
+            OlvWorkLog.BeginUpdate();
+            try
+            {
+                ApplyFilter(q);
+
+                OlvWorkLog.BuildList(true);
+                OlvWorkLog.Refresh();
+            }
+            finally
+            {
+                OlvWorkLog.EndUpdate();
+            }
+        }
+
+        // 중앙화된 필터 적용: 하이라이트 색상(배경/전경)을 명시적으로 지정하여 가시성 향상
+        private void ApplyFilter(string q)
+        {
+            // 수동 필터링: TextMatchFilter를 사용하지 않고, 표시할 객체만 SetObjects로 전달합니다.
+            _currentFilter = q ?? string.Empty;
+
             if (string.IsNullOrEmpty(q))
             {
-                OlvWorkLog.ModelFilter = null;
+                OlvWorkLog.SetObjects(_items);
                 return;
             }
 
-            // 간단 부분일치 필터(모든 표시 텍스트 대상)
-            OlvWorkLog.ModelFilter = TextMatchFilter.Contains(OlvWorkLog, q);
+            var filtered = _items.Where(item => RowMatchesFilter(item, q)).ToList();
+            OlvWorkLog.SetObjects(filtered);
+        }
+
+        // WorkLogEntry에 대해 단순한 대소문자 무시 포함 검사
+        private bool RowMatchesFilter(WorkLogEntry entry, string q)
+        {
+            if (entry == null || string.IsNullOrEmpty(q)) return false;
+            string lower = q.ToLowerInvariant();
+
+            // 검사 대상 필드
+            if ((!string.IsNullOrEmpty(entry.Title) && entry.Title.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                (!string.IsNullOrEmpty(entry.Content) && entry.Content.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                (!string.IsNullOrEmpty(entry.Tags) && entry.Tags.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                (!string.IsNullOrEmpty(entry.Memo) && entry.Memo.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
+                (!string.IsNullOrEmpty(entry.Status) && entry.Status.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0))
+                return true;
+
+            // 숫자 및 날짜 검사
+            if (entry.No.ToString().IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+
+            if (entry.Date.ToString("yyyy-MM-dd HH:mm:ss").IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                entry.Date.ToString("yyyy-MM-dd").IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+
+            if (entry.LastUpdated.ToString("yyyy-MM-dd HH:mm").IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0)
+                return true;
+
+            return false;
         }
 
         private void CommitOlvEdit()
@@ -341,7 +476,7 @@ namespace GateHelper
                 var entry = new WorkLogEntry
                 {
                     No = nextNo,
-                    Date = DateTime.Today,
+                    Date = DateTime.Now,
                     Status = "Open",
                     LastUpdated = DateTime.Now
                 };
@@ -422,12 +557,13 @@ namespace GateHelper
         {
             try
             {
-                //-----------------폰트오류 방지용----------------
+                // 1. 레이아웃 및 툴팁 기능 중지
                 OlvWorkLog.SuspendLayout();
                 OlvWorkLog.ShowItemToolTips = false;
 
-                OlvWorkLog.CellToolTipGetter = null;
-                OlvWorkLog.HeaderToolTipGetter = null;
+                // 2. 중요: 부모 폼과의 관계를 먼저 끊습니다.
+                // 이렇게 하면 폼이 파괴될 때 OLV가 잘못된 시스템 폰트 핸들을 참조하는 것을 방지합니다.
+                OlvWorkLog.Parent = null;
 
                 this.FormClosing -= WorkLogForm_FormClosing;
 
@@ -435,17 +571,135 @@ namespace GateHelper
                 {
                     OlvWorkLog.Dispose();
                 }
-                //-----------------폰트오류 방지용----------------
+
+                OlvWorkLog.Visible = false;
+                OlvWorkLog.Parent = null; // 핸들 연결 해제
+            }
+            catch (Exception)
+            {
+                // 여기서 발생하는 '트루타입 글꼴' 예외는 무시해도 무방합니다. (종료 시점이므로)
+            }
+        }
+
+        protected override void WndProc(ref Message m)
+        {
+            try
+            {
+                base.WndProc(ref m);
+            }
+            catch (ArgumentException ex) when (ex.Message.Contains("트루타입") || ex.Message.Contains("TrueType"))
+            {
+                // 폰트 핸들 정리 중 발생하는 WinForms 고질적 버그이므로 로그만 남기고 무시
+                System.Diagnostics.Debug.WriteLine("폰트 예외 무시됨: " + ex.Message);
+            }
+        }
+
+        // ColumnHeader 기본 렌더링
+        private void OlvWorkLog_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
+        {
+            try
+            {
+                e.DrawBackground();
+                TextRenderer.DrawText(e.Graphics, e.Header.Text, e.Font, e.Bounds, e.ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
             }
             catch
             {
-                // 종료 시 발생하는 폰트 예외는 무시하도록 처리
+                // 무시
             }
         }
-    }
 
+        // Item 배경만 그리기 (SubItem에서 텍스트를 그림)
+        private void OlvWorkLog_DrawItem(object sender, DrawListViewItemEventArgs e)
+        {
+            try
+            {
+                e.DrawBackground();
+            }
+            catch
+            {
+            }
+        }
 
+        // SubItem 부분 문자열 Bold 렌더링
+        private void OlvWorkLog_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
+        {
+            try
+            {
+                e.DrawBackground();
 
+                string text = e.SubItem.Text ?? string.Empty;
+
+                // 검색어가 비어있으면 기본 그리기
+                if (string.IsNullOrEmpty(_currentFilter))
+                {
+                    TextRenderer.DrawText(e.Graphics, text, e.SubItem.Font ?? OlvWorkLog.Font, e.Bounds, e.SubItem.ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+                    return;
+                }
+
+                string lower = text.ToLowerInvariant();
+                string q = _currentFilter.ToLowerInvariant();
+
+                int start = 0;
+                int idx = lower.IndexOf(q, start, StringComparison.Ordinal);
+
+                // 좌측 패딩
+                int x = e.Bounds.X + 2;
+                int y = e.Bounds.Y;
+                int height = e.Bounds.Height;
+
+                Font normalFont = e.SubItem.Font ?? OlvWorkLog.Font;
+                using (Font boldFont = new Font(normalFont, FontStyle.Bold))
+                {
+                    var flags = TextFormatFlags.NoPadding | TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix;
+
+                    // 만약 셀에 필터 문자열이 포함되어 있으면 전체 텍스트를 Bold로 그려서 가시성을 보장합니다.
+                    if (idx >= 0)
+                    {
+                        // 전체 텍스트 Bold로 그리기 (부분 하이라이트가 보이지 않을 때의 확실한 대체)
+                        TextRenderer.DrawText(e.Graphics, text, boldFont, e.Bounds, e.SubItem.ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+                        return;
+                    }
+
+                    // (부분 렌더링 로직을 보류했습니다. 필요하면 되돌려 부분 굵게 처리 가능)
+                 }
+             }
+             catch
+             {
+                 // 실패 시 기본 그리기
+                 try { e.DrawText(); } catch { }
+             }
+         }
+
+        // FormatCell 핸들러: 셀 텍스트에 현재 필터가 포함되어 있으면 Bold 처리 (폴백)
+        private void OlvWorkLog_FormatCell(object sender, FormatCellEventArgs e)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(_currentFilter))
+                {
+                    // 원래 폰트로 복원
+                    e.SubItem.Font = OlvWorkLog.Font;
+                    return;
+                }
+
+                string cellText = e.SubItem.Text ?? string.Empty;
+                if (cellText.IndexOf(_currentFilter, StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    // Bold로 표시
+                    e.SubItem.Font = new Font(OlvWorkLog.Font, FontStyle.Bold);
+                }
+                else
+                {
+                    e.SubItem.Font = OlvWorkLog.Font;
+                }
+            }
+            catch
+            {
+                // 무시
+            }
+        }
+
+    } // 클래스 끝
 
     // Work Log 한 행을 표현하는 데이터 모델
     [DataContract]

@@ -63,6 +63,7 @@
             this.Memo,
             this.LastUpdated});
             this.OlvWorkLog.Cursor = System.Windows.Forms.Cursors.Default;
+            this.OlvWorkLog.Font = new System.Drawing.Font("Consolas", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.OlvWorkLog.HideSelection = false;
             this.OlvWorkLog.Location = new System.Drawing.Point(12, 144);
             this.OlvWorkLog.Name = "OlvWorkLog";
@@ -161,7 +162,7 @@
             this.Controls.Add(this.TxtWorkLog);
             this.Controls.Add(this.OlvWorkLog);
             this.Name = "WorkLogForm";
-            this.Text = "WorkLogForm";
+            this.Text = "Work Log";
             ((System.ComponentModel.ISupportInitialize)(this.OlvWorkLog)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
