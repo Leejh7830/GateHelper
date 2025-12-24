@@ -6,51 +6,38 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq; // ⬅ Max, Any 등을 위해 추가
+using System.Linq;
 using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using static GateHelper.LogManager;
-using static GateHelper.WorkLogEntry;
 
 namespace GateHelper
 {
     public partial class WorkLogForm : MaterialForm
     {
         private readonly MaterialSkinManager _materialSkinManager;
-
-        // 데이터 경로(_meta/worklog.json)
         private readonly string _dataPath = Util.GetMetaPath("WorkLog.json");
-
-        // 메모리 모델
         private List<WorkLogEntry> _items = new List<WorkLogEntry>();
-
-        // 현재 검색어 (부분 하이라이트를 그릴 때 사용)
         private string _currentFilter = string.Empty;
-
-        // 상태 선택 옵션
         private static readonly string[] StatusOptions = new[] { "OPEN", "ING..", "DONE", "FIXED" };
-
-        // 컨텍스트 메뉴
         private ContextMenuStrip _cms;
-
-        // Pont Size
-        private float _currentFontSize = 10f; // Default
-
+        private float _currentFontSize = 10f;
         private bool _isDatePickerDropDownOpen = false;
 
         public WorkLogForm()
         {
             InitializeComponent();
-
             _materialSkinManager = MaterialSkinManager.Instance;
             _materialSkinManager.AddFormToManage(this);
 
-            // 폼 로드 시 초기화
             this.Load -= WorkLogForm_Load;
             this.Load += WorkLogForm_Load;
         }
 
+        /// <summary>
+        /// 폼 로드 시 초기 UI 설정 및 데이터 로딩을 수행합니다.
+        /// </summary>
         private void WorkLogForm_Load(object sender, EventArgs e)
         {
             InitListView();
@@ -59,723 +46,395 @@ namespace GateHelper
             LoadData();
         }
 
-        // InitListView 안에 보완 설정 추가
+        /// <summary>
+        /// ObjectListView의 컬럼 속성, 편집 모드, 폰트 등을 초기화합니다.
+        /// </summary>
         private void InitListView()
         {
             OlvWorkLog.FullRowSelect = true;
             OlvWorkLog.ShowGroups = false;
             OlvWorkLog.CellEditActivation = ObjectListView.CellEditActivateMode.DoubleClick;
             OlvWorkLog.CellEditUseWholeCell = true;
-            OlvWorkLog.UseAlternatingBackColors = false;
-            OlvWorkLog.MultiSelect = true;
-
-            // 필터링 활성화 (실시간 검색)
             OlvWorkLog.UseFiltering = true;
-
-            // Owner-draw 활성화: 부분 텍스트를 Bold로 렌더링하기 위함
             OlvWorkLog.OwnerDraw = true;
-
-            // 헤더 테마 겹침 방지
             OlvWorkLog.HeaderUsesThemes = false;
-
-            // 툴팁 관련 기능을 완전히 무력화 (에러 방지)
             OlvWorkLog.ShowItemToolTips = false;
-            OlvWorkLog.CellToolTipGetter = null;
-            OlvWorkLog.HeaderToolTipGetter = null;
 
+            // 컬럼별 날짜 포맷 및 편집 가능 여부 설정
             foreach (var col in OlvWorkLog.AllColumns)
             {
                 var aspect = col.AspectName ?? string.Empty;
-                if (string.Equals(aspect, nameof(WorkLogEntry.Date), StringComparison.Ordinal) ||
-                    string.Equals(aspect, nameof(WorkLogEntry.LastUpdated), StringComparison.Ordinal))
+                if (aspect == nameof(WorkLogEntry.Date) || aspect == nameof(WorkLogEntry.LastUpdated))
                 {
-                    col.AspectToStringFormat = string.Equals(aspect, nameof(WorkLogEntry.LastUpdated), StringComparison.Ordinal)
-                        ? "{0:yyyy-MM-dd HH:mm}"
-                        : "{0:yyyy-MM-dd}";
+                    col.AspectToStringFormat = aspect == nameof(WorkLogEntry.LastUpdated) ? "{0:yyyy-MM-dd HH:mm}" : "{0:yyyy-MM-dd}";
                 }
-
-                // ⭐ Not editable columns 
-                if (string.Equals(aspect, nameof(WorkLogEntry.No), StringComparison.Ordinal) ||
-                    string.Equals(aspect, nameof(WorkLogEntry.LastUpdated), StringComparison.Ordinal))
+                if (aspect == nameof(WorkLogEntry.No) || aspect == nameof(WorkLogEntry.LastUpdated))
                 {
-                    col.IsEditable = false;
+                    col.IsEditable = false; // No와 수정시간은 자동관리되므로 편집 불가
                 }
             }
 
-            // ⭐ MaterialSkin의 폰트 강제 주입을 이겨내기 위한 BeginInvoke
+            // UI 스레드에서 폰트 적용
             this.BeginInvoke(new Action(() =>
             {
-                try
+                Font malgunFont = new Font("맑은 고딕", _currentFontSize, FontStyle.Regular);
+                OlvWorkLog.Font = malgunFont;
+                foreach (OLVColumn col in OlvWorkLog.AllColumns)
                 {
-                    // 시스템에서 가장 안정적인 트루타입 폰트 생성
-                    Font malgunFont = new Font("맑은 고딕", 10f, FontStyle.Regular);
-
-                    // 1. 전체 리스트뷰 폰트 강제 설정
-                    OlvWorkLog.Font = malgunFont;
-
-                    // 2. 헤더 폰트 강제 설정 (HeaderStyle을 통한 접근) - 삭제
-                    // if (OlvWorkLog.HeaderStyle != null)
-                    //{
-                    //    // 별도의 HeaderFont 속성이 있다면 사용
-                    //   OlvWorkLog.HeaderMinimumHeight = 30; // 헤더가 잘리지 않게 높이 조절
-                    //}
-
-                    // 3. 모든 컬럼의 폰트를 순회하며 강제 지정
-                    foreach (OLVColumn col in OlvWorkLog.AllColumns)
-                    {
-                        // HeaderFont는 일부 버전에서 지원되지 않을 수 있으므로 체크하며 적용
-                        try { col.HeaderFont = malgunFont; } catch { }
-                    }
-
-                    OlvWorkLog.Refresh();
+                    try { col.HeaderFont = malgunFont; } catch { }
                 }
-                catch { /* 폰트 설정 중 오류 무시 */ }
+                OlvWorkLog.Refresh();
             }));
-
         }
 
+        /// <summary>
+        /// 각종 컨트롤의 이벤트(편집, 검색, 이미지 처리, 휠 줌 등)를 연결합니다.
+        /// </summary>
         private void WireEvents()
         {
-            // 셀 편집(시작/종료)
-            OlvWorkLog.CellEditStarting -= OlvWorkLog_CellEditStarting;
             OlvWorkLog.CellEditStarting += OlvWorkLog_CellEditStarting;
-
-            // 편집 “종료 직전” 이벤트에서 달력 열림 상태면 종료 취소
-            OlvWorkLog.CellEditFinishing -= OlvWorkLog_CellEditFinishing;
             OlvWorkLog.CellEditFinishing += OlvWorkLog_CellEditFinishing;
-
-            OlvWorkLog.CellEditFinished -= OlvWorkLog_CellEditFinished;
             OlvWorkLog.CellEditFinished += OlvWorkLog_CellEditFinished;
-
-            // 검색 필터
-            TxtWorkLog.TextChanged -= TxtWorkLog_TextChanged;
             TxtWorkLog.TextChanged += TxtWorkLog_TextChanged;
-
-            // 커스텀 드로잉 핸들러
-            OlvWorkLog.DrawColumnHeader -= OlvWorkLog_DrawColumnHeader;
+            TxtWorkLog.KeyUp += TxtWorkLog_KeyUp;
             OlvWorkLog.DrawColumnHeader += OlvWorkLog_DrawColumnHeader;
-
-            OlvWorkLog.DrawItem -= OlvWorkLog_DrawItem;
             OlvWorkLog.DrawItem += OlvWorkLog_DrawItem;
-
-            OlvWorkLog.DrawSubItem -= OlvWorkLog_DrawSubItem;
             OlvWorkLog.DrawSubItem += OlvWorkLog_DrawSubItem;
-
-            // FormatCell: 셀 단위 포맷(부분 하이라이트가 동작하지 않을 때 전체 셀 Bold 처리 폴백)
-            OlvWorkLog.FormatCell -= OlvWorkLog_FormatCell;
             OlvWorkLog.FormatCell += OlvWorkLog_FormatCell;
-
-            // 폼이 닫힐 때 발생하는 이벤트 추가
-            this.FormClosing -= WorkLogForm_FormClosing;
+            OlvWorkLog.FormatRow += OlvWorkLog_FormatRow;
             this.FormClosing += WorkLogForm_FormClosing;
 
-            // 추가된 부분: 키 업 이벤트
-            TxtWorkLog.KeyUp -= TxtWorkLog_KeyUp;
-            TxtWorkLog.KeyUp += TxtWorkLog_KeyUp;
+            // 핵심: 단축키 및 더블클릭 이미지 이벤트
+            OlvWorkLog.KeyDown += OlvWorkLog_KeyDown;
+            OlvWorkLog.DoubleClick += OlvWorkLog_DoubleClick;
 
-            // FormatRow: 행 전체의 스타일을 데이터 조건에 따라 변경
-            OlvWorkLog.FormatRow -= OlvWorkLog_FormatRow;
-            OlvWorkLog.FormatRow += OlvWorkLog_FormatRow;
-
-            // FontSize Control
+            // Ctrl + 마우스 휠을 통한 폰트 크기 조절
             OlvWorkLog.MouseWheel += (s, e) =>
             {
                 if (Control.ModifierKeys == Keys.Control)
                 {
-                    // 휠을 위로 돌리면 +, 아래로 돌리면 -
-                    float delta = e.Delta > 0 ? 1f : -1f;
-                    ChangeFontSize(delta);
-
-                    // 리스트뷰가 스크롤되는 것을 방지
+                    ChangeFontSize(e.Delta > 0 ? 1f : -1f);
                     ((HandledMouseEventArgs)e).Handled = true;
                 }
             };
         }
 
+        /// <summary>
+        /// 리스트뷰 우클릭 메뉴(추가/삭제)를 구성합니다.
+        /// </summary>
         private void SetupContextMenu()
         {
-            _cms = OlvWorkLog.ContextMenuStrip ?? new ContextMenuStrip();
+            _cms = new ContextMenuStrip();
             OlvWorkLog.ContextMenuStrip = _cms;
-            _cms.Items.Clear();
-
-            var addItem = new ToolStripMenuItem("새 항목 추가", null, (s, e) => AddNewEntry());
-            var delItem = new ToolStripMenuItem("선택 항목 삭제", null, (s, e) => DeleteSelectedEntries());
-
-            _cms.Items.Add(addItem);
-            _cms.Items.Add(delItem);
+            _cms.Items.Add(new ToolStripMenuItem("Add New Item", null, (s, e) => AddNewEntry()));
+            _cms.Items.Add(new ToolStripMenuItem("Delete Selected", null, (s, e) => DeleteSelectedEntries()));
         }
 
+        /// <summary>
+        /// 현재 메모리상의 데이터를 JSON 파일로 영구 저장합니다.
+        /// </summary>
         private void SaveData()
         {
             try
             {
-                var data = new WorkLogData
-                {
-                    FontSize = _currentFontSize, // 현재 폰트 사이즈 포함
-                    Items = _items
-                };
-
-                var settings = new JsonSerializerSettings
-                {
-                    Formatting = Formatting.Indented,
-                    DateFormatString = "yyyy-MM-dd HH:mm:ss"
-                };
-
-                string json = JsonConvert.SerializeObject(data, settings);
+                var data = new WorkLogData { FontSize = _currentFontSize, Items = _items };
+                string json = JsonConvert.SerializeObject(data, Formatting.Indented);
                 File.WriteAllText(_dataPath, json);
             }
             catch (Exception ex) { LogException(ex, Level.Error); }
         }
 
+        /// <summary>
+        /// JSON 파일로부터 데이터를 로드하고 리스트뷰에 표시합니다.
+        /// </summary>
         private void LoadData()
         {
             try
             {
                 if (!File.Exists(_dataPath)) return;
-
                 string json = File.ReadAllText(_dataPath);
                 var data = JsonConvert.DeserializeObject<WorkLogData>(json);
-
                 if (data != null)
                 {
                     _items = data.Items ?? new List<WorkLogEntry>();
-                    _currentFontSize = data.FontSize > 0 ? data.FontSize : 10f; // 폰트 로드
-
-                    // 로드된 폰트 사이즈 즉시 적용
+                    _currentFontSize = data.FontSize > 0 ? data.FontSize : 10f;
                     ChangeFontSize(0);
                 }
-
                 OlvWorkLog.SetObjects(_items);
             }
             catch (Exception ex) { LogException(ex, Level.Error); }
         }
 
-        // 날짜/상태 컬럼 커스텀 에디터 적용, 텍스트 컬럼 Enter 저장
+        /// <summary>
+        /// [핵심 기능] 클립보드에서 이미지를 가져와 비동기로 저장하고 해당 행에 연결합니다.
+        /// </summary>
+        private async void OlvWorkLog_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Control && e.KeyCode == Keys.V)
+            {
+                // 인터락: 선택된 행이 없거나 클립보드에 이미지가 없으면 중단
+                if (!(OlvWorkLog.SelectedObject is WorkLogEntry entry)) return;
+                if (!Clipboard.ContainsImage()) return;
+
+                using (Image img = Clipboard.GetImage())
+                {
+                    if (img == null)
+                    {
+                        MessageBox.Show("Failed to retrieve image from clipboard.", "Clipboard Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+
+                    try
+                    {
+                        // 이미지 저장 폴더 생성 (상대 경로 기준)
+                        string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "Images");
+                        if (!Directory.Exists(imgDir)) Directory.CreateDirectory(imgDir);
+
+                        // 고유 파일명 생성 (초 단위 + 틱값으로 중복 방지)
+                        string fileName = $"{DateTime.Now:yyyyMMdd_HHmmss}_{DateTime.Now.Ticks}.jpg";
+                        string fullPath = Path.Combine(imgDir, fileName);
+
+                        // 핵심: 비동기(Task.Run) + JPG 압축을 통해 UI 프리징 방지 및 용량 최적화
+                        using (Bitmap bmp = new Bitmap(img))
+                        {
+                            await Task.Run(() => bmp.Save(fullPath, System.Drawing.Imaging.ImageFormat.Jpeg));
+                        }
+
+                        // 인터락: 파일명만 저장(상대경로 방식)하여 폴더 이동 시에도 링크 유지
+                        entry.ImagePaths.Add(fileName);
+                        entry.Memo = $"[Image Attached: {fileName}] " + entry.Memo;
+                        entry.Touch();
+
+                        OlvWorkLog.RefreshObject(entry);
+                        SaveData();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error saving image: {ex.Message}", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// [핵심 기능] 더블클릭 시 연결된 이미지를 기본 사진 앱으로 엽니다.
+        /// </summary>
+        private void OlvWorkLog_DoubleClick(object sender, EventArgs e)
+        {
+            if (OlvWorkLog.SelectedObject is WorkLogEntry entry && entry.HasImage)
+            {
+                string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "Images");
+                string fileName = entry.ImagePaths.Last(); // 가장 최근 이미지 열기
+                string fullPath = Path.Combine(imgDir, fileName);
+
+                // 인터락: 유저가 폴더에서 파일을 지웠을 경우를 대비한 체크
+                if (File.Exists(fullPath))
+                {
+                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(fullPath) { UseShellExecute = true });
+                }
+                else
+                {
+                    MessageBox.Show("Image file not found. It may have been moved or renamed.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+        }
+
+        /// <summary>
+        /// [핵심 기능] 항목 삭제 시 물리적 이미지 파일도 함께 삭제를 시도합니다.
+        /// </summary>
+        private void DeleteSelectedEntries()
+        {
+            var selected = OlvWorkLog.SelectedObjects?.Cast<WorkLogEntry>().ToList();
+            if (selected == null || selected.Count == 0) return;
+
+            var result = MessageBox.Show($"Are you sure you want to delete {selected.Count} selected item(s)?\n(Connected image files will also be deleted.)",
+                "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes) return;
+
+            List<string> failedFiles = new List<string>();
+            string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "Images");
+
+            foreach (var entry in selected)
+            {
+                foreach (var fileName in entry.ImagePaths)
+                {
+                    try
+                    {
+                        string fullPath = Path.Combine(imgDir, fileName);
+                        // 인터락: 파일이 사진 앱 등으로 열려 있어 삭제가 안 될 때 예외 처리
+                        if (File.Exists(fullPath)) File.Delete(fullPath);
+                    }
+                    catch
+                    {
+                        failedFiles.Add(fileName); // 삭제 실패 리스트 수집
+                    }
+                }
+                _items.Remove(entry);
+                OlvWorkLog.RemoveObject(entry);
+            }
+
+            // 삭제 실패 시 유저에게 알림 (고아 파일 방지)
+            if (failedFiles.Count > 0)
+            {
+                string message = "Data was removed, but the following files could not be deleted (likely in use):\n\n" + string.Join("\n", failedFiles);
+                MessageBox.Show(message, "Partial Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            SaveData();
+        }
+
+        /// <summary>
+        /// 셀 편집 시작 시 콤보박스나 날짜 선택기 등을 생성합니다.
+        /// </summary>
         private void OlvWorkLog_CellEditStarting(object sender, CellEditEventArgs e)
         {
             if (e.Column == null) return;
-            var aspect = e.Column.AspectName ?? string.Empty;
+            var aspect = e.Column.AspectName;
 
-            if (string.Equals(aspect, nameof(WorkLogEntry.Status), StringComparison.Ordinal))
+            if (aspect == nameof(WorkLogEntry.Status))
             {
-                var cb = new ComboBox
-                {
-                    DropDownStyle = ComboBoxStyle.DropDownList,
-                    Bounds = e.CellBounds,
-                    Font = new System.Drawing.Font("Consolas", 10f)
-                };
+                var cb = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Bounds = e.CellBounds };
                 cb.Items.AddRange(StatusOptions);
-
-                // 현재 값 매칭
-                cb.SelectedItem = StatusOptions.Contains(e.Value?.ToString()) ? e.Value.ToString() : "Open";
-
-                // ⭐ 중요: 선택 즉시 편집을 끝내고 싶다면 사용
-                cb.SelectedIndexChanged += (s, _) =>
-                {
-                    // 이 호출이 아래 CellEditFinishing을 유발합니다.
-                    this.BeginInvoke(new Action(() => OlvWorkLog.FinishCellEdit()));
-                };
-
+                cb.SelectedItem = StatusOptions.Contains(e.Value?.ToString()) ? e.Value.ToString() : "OPEN";
+                cb.SelectedIndexChanged += (s, _) => { e.NewValue = cb.SelectedItem.ToString(); this.BeginInvoke(new Action(() => OlvWorkLog.FinishCellEdit())); };
                 e.Control = cb;
             }
-
-            // [Date] Column Setting
-            if (string.Equals(aspect, nameof(WorkLogEntry.Date), StringComparison.Ordinal))
+            else if (aspect == nameof(WorkLogEntry.Date))
             {
-                var dtp = new DateTimePicker
-                {
-                    Format = DateTimePickerFormat.Custom,
-                    CustomFormat = "yyyy-MM-dd HH:mm:ss",
-                    Value = e.Value is DateTime dt && dt != default(DateTime) ? dt : DateTime.Today,
-                    // ⭐ 에디터의 위치와 크기를 현재 셀의 위치와 정확히 일치시킵니다.
-                    Bounds = e.CellBounds
-                };
-
+                var dtp = new DateTimePicker { Format = DateTimePickerFormat.Custom, CustomFormat = "yyyy-MM-dd HH:mm:ss", Value = e.Value is DateTime dt ? dt : DateTime.Now, Bounds = e.CellBounds };
                 dtp.DropDown += (s, _) => _isDatePickerDropDownOpen = true;
-                dtp.CloseUp += (s, _) =>
-                {
-                    _isDatePickerDropDownOpen = false;
-                    // ⭐ 날짜 선택이 완료되면 바로 값을 반영하고 편집을 마칩니다.
-                    OlvWorkLog.FinishCellEdit();
-                };
-
-                dtp.KeyDown += (s, ke) =>
-                {
-                    if (ke.KeyCode == Keys.Enter)
-                    {
-                        _isDatePickerDropDownOpen = false;
-                        OlvWorkLog.FinishCellEdit();
-                        ke.Handled = true;
-                    }
-                };
-
+                dtp.CloseUp += (s, _) => { _isDatePickerDropDownOpen = false; OlvWorkLog.FinishCellEdit(); };
                 e.Control = dtp;
             }
-            // [Status] Column Setting
-            else if (string.Equals(aspect, nameof(WorkLogEntry.Status), StringComparison.Ordinal))
-            {
-                var cb = new ComboBox
-                {
-                    DropDownStyle = ComboBoxStyle.DropDownList,
-                    Bounds = e.CellBounds,
-                    Font = new System.Drawing.Font("맑은 고딕", 10f)
-                };
-                cb.Items.AddRange(StatusOptions);
-
-                // 현재 값 선택
-                var current = e.Value as string;
-                cb.SelectedItem = StatusOptions.Contains(current) ? current : "Open";
-
-                // ⭐ 핵심: 값이 바뀌면 '새 값'임을 알려주고 편집을 끝냄
-                cb.SelectedIndexChanged += (s, _) =>
-                {
-                    e.NewValue = cb.SelectedItem.ToString(); // OLV에 새 값을 전달
-
-                    // 지연 실행으로 편집 종료를 유도 (즉시 종료 시 간섭 발생 방지)
-                    this.BeginInvoke(new Action(() =>
-                    {
-                        OlvWorkLog.FinishCellEdit();
-                    }));
-                };
-
-                e.Control = cb;
-            }
         }
 
-        // 달력 열림 중에는 편집 종료를 막는다
+        /// <summary>
+        /// 날짜 선택기가 열려 있는 동안은 편집이 종료되지 않도록 방어합니다.
+        /// </summary>
         private void OlvWorkLog_CellEditFinishing(object sender, CellEditEventArgs e)
         {
-            if (e.Column == null) return;
-
-            // Status 컬럼인 경우
-            if (string.Equals(e.Column.AspectName, nameof(WorkLogEntry.Status), StringComparison.Ordinal))
-            {
-                if (e.Control is ComboBox cb)
-                {
-                    // ⭐ 에디터(ComboBox)에 선택된 값을 직접 추출해서 NewValue에 할당
-                    e.NewValue = cb.SelectedItem?.ToString();
-
-                    // 만약 선택된 게 없다면 기존 값 유지 (Null 방지)
-                    if (e.NewValue == null) e.Cancel = true;
-                }
-            }
-            // Date 컬럼인 경우 (기존 로직)
-            else if (string.Equals(e.Column.AspectName, nameof(WorkLogEntry.Date), StringComparison.Ordinal)
-                     && _isDatePickerDropDownOpen)
-            {
-                e.Cancel = true;
-            }
+            if (e.Column?.AspectName == nameof(WorkLogEntry.Date) && _isDatePickerDropDownOpen) e.Cancel = true;
         }
 
+        /// <summary>
+        /// 편집 완료 후 수정 시간을 갱신하고 데이터를 저장합니다.
+        /// </summary>
         private void OlvWorkLog_CellEditFinished(object sender, CellEditEventArgs e)
         {
-            if (e.Cancel) return;
-
-            if (e.RowObject is WorkLogEntry entry)
-            {
-                // NewValue가 확실히 들어있으므로 모델에 반영
-                if (e.NewValue != null)
-                {
-                    if (string.Equals(e.Column.AspectName, nameof(WorkLogEntry.Status), StringComparison.Ordinal))
-                        entry.Status = e.NewValue.ToString();
-                    else if (string.Equals(e.Column.AspectName, nameof(WorkLogEntry.Title), StringComparison.Ordinal))
-                        entry.Title = e.NewValue.ToString();
-                    // ... 나머지 컬umn ...
-                }
-
-                entry.Touch(); // LastUpdated 갱신
-                OlvWorkLog.RefreshObject(entry);
-                SaveData();
-            }
+            if (e.Cancel || !(e.RowObject is WorkLogEntry entry)) return;
+            entry.Touch();
+            OlvWorkLog.RefreshObject(entry);
+            SaveData();
         }
 
-        // TxtWorkLog_TextChanged와 KeyUp에서 필터 설정 후 즉시 리빌드/리프레시
-        private void TxtWorkLog_TextChanged(object sender, EventArgs e)
+        /// <summary>
+        /// 검색창 텍스트 변경 시 실시간 필터링을 수행합니다.
+        /// </summary>
+        private void TxtWorkLog_TextChanged(object sender, EventArgs e) => ApplyFilter(TxtWorkLog.Text);
+
+        /// <summary>
+        /// 검색창에서 엔터 키 입력 시 필터링을 강제 수행합니다.
+        /// </summary>
+        private void TxtWorkLog_KeyUp(object sender, KeyEventArgs e) { if (e.KeyCode == Keys.Enter) ApplyFilter(TxtWorkLog.Text); }
+
+        /// <summary>
+        /// 입력된 쿼리에 맞춰 리스트뷰 목록을 필터링합니다.
+        /// </summary>
+        private void ApplyFilter(string q)
         {
-            var q = TxtWorkLog.Text?.Trim() ?? string.Empty;
-
-            // 현재 검색어 저장
-            _currentFilter = q;
-
+            _currentFilter = q?.Trim() ?? "";
             OlvWorkLog.BeginUpdate();
-            try
-            {
-                // 기존 TextMatchFilter 하이라이트를 비활성화하기 위해 수동으로 SetObjects를 사용
-                ApplyFilter(q);
-
-                // 필터 적용 즉시 리스트를 재구성
-                OlvWorkLog.BuildList(true);
-                OlvWorkLog.Refresh();
-            }
-            finally
-            {
-                OlvWorkLog.EndUpdate();
-            }
+            OlvWorkLog.SetObjects(string.IsNullOrEmpty(_currentFilter) ? _items : _items.Where(RowMatchesFilter).ToList());
+            OlvWorkLog.EndUpdate();
         }
 
+        /// <summary>
+        /// 행 데이터가 현재 필터 쿼리와 일치하는지 판별합니다.
+        /// </summary>
+        private bool RowMatchesFilter(WorkLogEntry entry)
+        {
+            string q = _currentFilter.ToLower();
+            return (entry.Title?.ToLower().Contains(q) ?? false) ||
+                   (entry.Content?.ToLower().Contains(q) ?? false) ||
+                   (entry.Memo?.ToLower().Contains(q) ?? false);
+        }
+
+        /// <summary>
+        /// 새로운 로그 항목을 생성하고 리스트 최하단에 추가합니다.
+        /// </summary>
+        private void AddNewEntry()
+        {
+            int nextNo = _items.Count == 0 ? 1 : _items.Max(x => x.No) + 1;
+            var entry = new WorkLogEntry { No = nextNo, Date = DateTime.Now };
+            _items.Add(entry);
+            OlvWorkLog.AddObject(entry);
+            OlvWorkLog.SelectObject(entry, true);
+            SaveData();
+        }
+
+        /// <summary>
+        /// 폼 종료 시 리스트뷰 자원을 해제합니다.
+        /// </summary>
+        private void WorkLogForm_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            OlvWorkLog.Parent = null;
+            OlvWorkLog.Dispose();
+        }
+
+        // --- 커스텀 드로잉 로직 (UI 커스터마이징) ---
+
+        private void OlvWorkLog_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
+        { e.DrawBackground(); TextRenderer.DrawText(e.Graphics, e.Header.Text, e.Font, e.Bounds, Color.Black, TextFormatFlags.VerticalCenter); }
+
+        private void OlvWorkLog_DrawItem(object sender, DrawListViewItemEventArgs e) => e.DrawBackground();
+
+        /// <summary>
+        /// 검색어가 포함된 텍스트를 Bold체로 강조하여 출력합니다.
+        /// </summary>
+        private void OlvWorkLog_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
+        {
+            e.DrawBackground();
+            bool highlight = !string.IsNullOrEmpty(_currentFilter) && e.SubItem.Text.ToLower().Contains(_currentFilter.ToLower());
+            Font f = highlight ? new Font(e.SubItem.Font, FontStyle.Bold) : e.SubItem.Font;
+            TextRenderer.DrawText(e.Graphics, e.SubItem.Text, f, e.Bounds, e.SubItem.ForeColor, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
+        }
+
+        private void OlvWorkLog_FormatCell(object sender, FormatCellEventArgs e) { }
+
+        /// <summary>
+        /// 상태(Status) 값에 따라 행의 배경색을 다르게 표시합니다.
+        /// </summary>
         private void OlvWorkLog_FormatRow(object sender, FormatRowEventArgs e)
         {
             if (e.Model is WorkLogEntry entry)
             {
-                // 상태에 따른 색상 지정
-                switch (entry.Status?.ToUpper())
-                {
-                    case "DONE":
-                        e.Item.BackColor = Color.LightGray;
-                        e.Item.ForeColor = Color.DimGray; // 글자색도 살짝 흐리게
-                        break;
-
-                    case "ING..":
-                        e.Item.BackColor = Color.LemonChiffon;
-                        e.Item.ForeColor = Color.Black;
-                        break;
-
-                    case "FIXED":
-                        e.Item.BackColor = Color.LightBlue; // FIXED 상태일 때 예시
-                        e.Item.ForeColor = Color.Black;
-                        break;
-
-                    default:
-                        // OPEN 등 기타 상태는 기본 테마 색상 유지
-                        e.Item.BackColor = Color.Empty;
-                        e.Item.ForeColor = Color.Empty;
-                        break;
-                }
+                if (entry.Status == "DONE") { e.Item.BackColor = Color.LightGray; e.Item.ForeColor = Color.DimGray; }
+                else if (entry.Status == "ING..") e.Item.BackColor = Color.LemonChiffon;
             }
         }
 
-        // 추가된 TxtWorkLog_KeyUp 핸들러도 동일하게 처리
-        private void TxtWorkLog_KeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.KeyCode == Keys.Left || e.KeyCode == Keys.Right || e.KeyCode == Keys.Up || e.KeyCode == Keys.Down)
-                return;
-
-            var q = TxtWorkLog.Text?.Trim() ?? string.Empty;
-
-            // 현재 검색어 저장
-            _currentFilter = q;
-
-            OlvWorkLog.BeginUpdate();
-            try
-            {
-                ApplyFilter(q);
-
-                OlvWorkLog.BuildList(true);
-                OlvWorkLog.Refresh();
-            }
-            finally
-            {
-                OlvWorkLog.EndUpdate();
-            }
-        }
-
-        // 중앙화된 필터 적용: 하이라이트 색상(배경/전경)을 명시적으로 지정하여 가시성 향상
-        private void ApplyFilter(string q)
-        {
-            // 수동 필터링: TextMatchFilter를 사용하지 않고, 표시할 객체만 SetObjects로 전달합니다.
-            _currentFilter = q ?? string.Empty;
-
-            if (string.IsNullOrEmpty(q))
-            {
-                OlvWorkLog.SetObjects(_items);
-                return;
-            }
-
-            var filtered = _items.Where(item => RowMatchesFilter(item, q)).ToList();
-            OlvWorkLog.SetObjects(filtered);
-        }
-
-        // WorkLogEntry에 대해 단순한 대소문자 무시 포함 검사
-        private bool RowMatchesFilter(WorkLogEntry entry, string q)
-        {
-            if (entry == null || string.IsNullOrEmpty(q)) return false;
-            string lower = q.ToLowerInvariant();
-
-            // 검사 대상 필드
-            if ((!string.IsNullOrEmpty(entry.Title) && entry.Title.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                (!string.IsNullOrEmpty(entry.Content) && entry.Content.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                (!string.IsNullOrEmpty(entry.Tags) && entry.Tags.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                (!string.IsNullOrEmpty(entry.Memo) && entry.Memo.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0) ||
-                (!string.IsNullOrEmpty(entry.Status) && entry.Status.IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0))
-                return true;
-
-            // 숫자 및 날짜 검사
-            if (entry.No.ToString().IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0)
-                return true;
-
-            if (entry.Date.ToString("yyyy-MM-dd HH:mm:ss").IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                entry.Date.ToString("yyyy-MM-dd").IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0)
-                return true;
-
-            if (entry.LastUpdated.ToString("yyyy-MM-dd HH:mm").IndexOf(q, StringComparison.OrdinalIgnoreCase) >= 0)
-                return true;
-
-            return false;
-        }
-
-        private void CommitOlvEdit()
-        {
-            // 키 이벤트 직후에는 즉시 포커스 이동이 막힐 수 있어 BeginInvoke로 지연
-            this.BeginInvoke(new Action(() => OlvWorkLog.Focus()));
-        }
-
-        private void AddNewEntry()
-        {
-            try
-            {
-                int nextNo = _items.Count == 0 ? 1 : (_items.Max(x => x.No) + 1);
-
-                var entry = new WorkLogEntry
-                {
-                    No = nextNo,
-                    Date = DateTime.Now,
-                    Status = "OPEN",
-                    LastUpdated = DateTime.Now
-                };
-
-                _items.Add(entry);
-                OlvWorkLog.AddObject(entry);
-
-                // 선택/가시화 및 즉시 제목 편집
-                OlvWorkLog.SelectObject(entry, true);
-                OlvWorkLog.EnsureModelVisible(entry);
-
-                int titleColIndex = FindColumnIndexByAspectName(nameof(WorkLogEntry.Title));
-                var rowItem = OlvWorkLog.ModelToItem(entry);
-                if (rowItem != null && titleColIndex >= 0)
-                {
-                    // 제목부터 바로 입력하도록 편집 시작
-                    OlvWorkLog.StartCellEdit(rowItem, titleColIndex);
-                }
-
-                SaveData();
-            }
-            catch (Exception ex)
-            {
-                LogException(ex, Level.Error);
-                MessageBox.Show(this, "An error occurred while adding the item.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void DeleteSelectedEntries()
-        {
-            try
-            {
-                var selected = OlvWorkLog.SelectedObjects?.Cast<object>().ToList() ?? new List<object>();
-                if (selected.Count == 0) return;
-
-                var confirm = MessageBox.Show(this,
-                    $"Are you sure you want to delete the {selected.Count} selected items?",
-                    "Confirm Delete",
-                    MessageBoxButtons.YesNo,
-                    MessageBoxIcon.Question);
-
-                if (confirm != DialogResult.Yes) return;
-
-                foreach (var obj in selected)
-                {
-                    if (obj is WorkLogEntry entry)
-                    {
-                        _items.Remove(entry);
-                        OlvWorkLog.RemoveObject(entry);
-                    }
-                }
-
-                SaveData();
-            }
-            catch (Exception ex)
-            {
-                LogException(ex, Level.Error);
-                MessageBox.Show(this, "항목을 삭제하는 중 오류가 발생했습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private int FindColumnIndexByAspectName(string aspectName)
-        {
-            for (int i = 0; i < OlvWorkLog.AllColumns.Count; i++)
-            {
-                var c = OlvWorkLog.AllColumns[i];
-                if (string.Equals(c.AspectName, aspectName, StringComparison.Ordinal))
-                {
-                    // 표시되지 않는 컬럼이면 화면상 인덱스를 다시 매핑
-                    int visibleIndex = OlvWorkLog.Columns.IndexOf(c);
-                    return visibleIndex >= 0 ? visibleIndex : i;
-                }
-            }
-            return -1;
-        }
-
-        
-
-        private void WorkLogForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            try
-            {
-                // 1. 레이아웃 및 툴팁 기능 중지
-                OlvWorkLog.SuspendLayout();
-                OlvWorkLog.ShowItemToolTips = false;
-
-                // 2. 중요: 부모 폼과의 관계를 먼저 끊습니다.
-                // 이렇게 하면 폼이 파괴될 때 OLV가 잘못된 시스템 폰트 핸들을 참조하는 것을 방지합니다.
-                OlvWorkLog.Parent = null;
-
-                this.FormClosing -= WorkLogForm_FormClosing;
-
-                if (!OlvWorkLog.IsDisposed)
-                {
-                    OlvWorkLog.Dispose();
-                }
-
-                OlvWorkLog.Visible = false;
-                OlvWorkLog.Parent = null; // 핸들 연결 해제
-            }
-            catch (Exception)
-            {
-                // 여기서 발생하는 '트루타입 글꼴' 예외는 무시해도 무방합니다. (종료 시점이므로)
-            }
-        }
-
-        protected override void WndProc(ref Message m)
-        {
-            try
-            {
-                base.WndProc(ref m);
-            }
-            catch (ArgumentException ex) when (ex.Message.Contains("트루타입") || ex.Message.Contains("TrueType"))
-            {
-                // 폰트 핸들 정리 중 발생하는 WinForms 고질적 버그이므로 로그만 남기고 무시
-                System.Diagnostics.Debug.WriteLine("폰트 예외 무시됨: " + ex.Message);
-            }
-        }
-
-        // ColumnHeader 기본 렌더링
-        private void OlvWorkLog_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
-        {
-            try
-            {
-                e.DrawBackground();
-                TextRenderer.DrawText(e.Graphics, e.Header.Text, e.Font, e.Bounds, e.ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
-            }
-            catch
-            {
-                // 무시
-            }
-        }
-
-        // Item 배경만 그리기 (SubItem에서 텍스트를 그림)
-        private void OlvWorkLog_DrawItem(object sender, DrawListViewItemEventArgs e)
-        {
-            try
-            {
-                e.DrawBackground();
-            }
-            catch
-            {
-            }
-        }
-
-        // SubItem 부분 문자열 Bold 렌더링
-        private void OlvWorkLog_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
-        {
-            try
-            {
-                e.DrawBackground();
-
-                string text = e.SubItem.Text ?? string.Empty;
-
-                // 검색어가 비어있으면 기본 그리기
-                if (string.IsNullOrEmpty(_currentFilter))
-                {
-                    TextRenderer.DrawText(e.Graphics, text, e.SubItem.Font ?? OlvWorkLog.Font, e.Bounds, e.SubItem.ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
-                    return;
-                }
-
-                string lower = text.ToLowerInvariant();
-                string q = _currentFilter.ToLowerInvariant();
-
-                int start = 0;
-                int idx = lower.IndexOf(q, start, StringComparison.Ordinal);
-
-                // 좌측 패딩
-                int x = e.Bounds.X + 2;
-                int y = e.Bounds.Y;
-                int height = e.Bounds.Height;
-
-                Font normalFont = e.SubItem.Font ?? OlvWorkLog.Font;
-                using (Font boldFont = new Font(normalFont, FontStyle.Bold))
-                {
-                    var flags = TextFormatFlags.NoPadding | TextFormatFlags.SingleLine | TextFormatFlags.NoPrefix;
-
-                    // 만약 셀에 필터 문자열이 포함되어 있으면 전체 텍스트를 Bold로 그려서 가시성을 보장합니다.
-                    if (idx >= 0)
-                    {
-                        // 전체 텍스트 Bold로 그리기 (부분 하이라이트가 보이지 않을 때의 확실한 대체)
-                        TextRenderer.DrawText(e.Graphics, text, boldFont, e.Bounds, e.SubItem.ForeColor, TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
-                        return;
-                    }
-
-                    // (부분 렌더링 로직을 보류했습니다. 필요하면 되돌려 부분 굵게 처리 가능)
-                 }
-             }
-             catch
-             {
-                 // 실패 시 기본 그리기
-                 try { e.DrawText(); } catch { }
-             }
-         }
-
-        // FormatCell 핸들러: 셀 텍스트에 현재 필터가 포함되어 있으면 Bold 처리 (폴백)
-        private void OlvWorkLog_FormatCell(object sender, FormatCellEventArgs e)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(_currentFilter))
-                {
-                    // 원래 폰트로 복원
-                    e.SubItem.Font = OlvWorkLog.Font;
-                    return;
-                }
-
-                string cellText = e.SubItem.Text ?? string.Empty;
-                if (cellText.IndexOf(_currentFilter, StringComparison.OrdinalIgnoreCase) >= 0)
-                {
-                    // Bold로 표시
-                    e.SubItem.Font = new Font(OlvWorkLog.Font, FontStyle.Bold);
-                }
-                else
-                {
-                    e.SubItem.Font = OlvWorkLog.Font;
-                }
-            }
-            catch
-            {
-                // 무시
-            }
-        }
-
+        /// <summary>
+        /// Adjusts the font size of the list view and synchronizes column headers.
+        /// </summary>
+        /// <param name="delta">The amount to change the font size by.</param>
         private void ChangeFontSize(float delta)
         {
-            _currentFontSize += delta;
+            // 8pt ~ 24pt 사이로 제한
+            _currentFontSize = Math.Max(8f, Math.Min(24f, _currentFontSize + delta));
+            Font nFont = new Font("맑은 고딕", _currentFontSize);
 
-            // 최소/최대 크기 제한 (안전장치)
-            if (_currentFontSize < 8f) _currentFontSize = 8f;
-            if (_currentFontSize > 24f) _currentFontSize = 24f;
+            OlvWorkLog.Font = nFont;
 
-            Font newFont = new Font("맑은 고딕", _currentFontSize, FontStyle.Regular);
-
-            OlvWorkLog.Font = newFont;
-
-            // 헤더 폰트도 함께 조절하고 싶을 경우
+            // 헤더 폰트도 함께 변경
             foreach (OLVColumn col in OlvWorkLog.AllColumns)
             {
-                try { col.HeaderFont = newFont; } catch { }
+                try { col.HeaderFont = nFont; } catch { }
             }
 
-            // 변경사항 즉시 반영
-            OlvWorkLog.Refresh();
+            // 행 높이를 폰트 크기에 맞춰 자동 조절 (ObjectListView 전용)
+            OlvWorkLog.RowHeight = (int)(_currentFontSize * 2.0);
 
-            // 사이즈 변경 시 자동 저장 (선택 사항)
-            SaveData();
+            OlvWorkLog.Refresh();
         }
 
         private void btnZoomIn_Click(object sender, EventArgs e)
@@ -787,60 +446,37 @@ namespace GateHelper
         {
             ChangeFontSize(-1f);
         }
-    } // 클래스 끝
 
-    // Work Log 한 행을 표현하는 데이터 모델
+    } ////////////////////////////////////////////////////////////////////////////////////////////       클래스 끝
+
+    /// <summary>
+    /// 개별 로그 항목 데이터를 담는 데이터 클래스입니다.
+    /// </summary>
     [DataContract]
     public class WorkLogEntry
     {
-        [DataMember(Order = 1)]
-        public int No { get; set; }
+        [DataMember] public int No { get; set; }
+        [DataMember] public DateTime Date { get; set; } = DateTime.Now;
+        [DataMember] public string Title { get; set; } = "";
+        [DataMember] public string Content { get; set; } = "";
+        [DataMember] public string Status { get; set; } = "OPEN";
+        [DataMember] public string Memo { get; set; } = "";
+        [DataMember] public DateTime LastUpdated { get; set; } = DateTime.Now;
+        [DataMember] public List<string> ImagePaths { get; set; } = new List<string>();
 
-        [DataMember(Order = 2)]
-        public DateTime Date { get; set; }
+        // 인터락 포인트: 이미지 존재 여부 확인 프로퍼티
+        public bool HasImage => ImagePaths != null && ImagePaths.Count > 0;
 
-        [DataMember(Order = 3)]
-        public string Title { get; set; }
+        // 데이터 변경 시 수정 시간을 갱신합니다.
+        public void Touch() => LastUpdated = DateTime.Now;
+    }
 
-        [DataMember(Order = 4)]
-        public string Content { get; set; }
-
-        [DataMember(Order = 5)]
-        public string Status { get; set; }
-
-        [DataMember(Order = 6)]
-        public string Tags { get; set; }
-
-        [DataMember(Order = 7)]
-        public string Memo { get; set; }
-
-        [DataMember(Order = 8)]
-        public DateTime LastUpdated { get; set; }
-
-        public WorkLogEntry()
-        {
-            Date = DateTime.Today;
-            LastUpdated = DateTime.Now;
-            Title = string.Empty;
-            Content = string.Empty;
-            Status = string.Empty;
-            Tags = string.Empty;
-            Memo = string.Empty;
-        }
-
-        public void Touch()
-        {
-            LastUpdated = DateTime.Now;
-        }
-
-        public class WorkLogData
-        {
-            [DataMember]
-            public float FontSize { get; set; } = 10f;
-
-            [DataMember]
-            public List<WorkLogEntry> Items { get; set; } = new List<WorkLogEntry>();
-        }
-
+    /// <summary>
+    /// JSON 저장 및 폰트 설정을 포함하는 전체 데이터 구조입니다.
+    /// </summary>
+    public class WorkLogData
+    {
+        public float FontSize { get; set; }
+        public List<WorkLogEntry> Items { get; set; }
     }
 }

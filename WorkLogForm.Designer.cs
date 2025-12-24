@@ -73,6 +73,7 @@
             this.OlvWorkLog.TabIndex = 0;
             this.OlvWorkLog.UseCompatibleStateImageBehavior = false;
             this.OlvWorkLog.View = System.Windows.Forms.View.Details;
+            this.OlvWorkLog.KeyDown += new System.Windows.Forms.KeyEventHandler(this.OlvWorkLog_KeyDown);
             // 
             // No
             // 
