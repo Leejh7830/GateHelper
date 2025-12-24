@@ -11,6 +11,7 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Json;
 using System.Windows.Forms;
 using static GateHelper.LogManager;
+using static GateHelper.WorkLogEntry;
 
 namespace GateHelper
 {
@@ -28,10 +29,13 @@ namespace GateHelper
         private string _currentFilter = string.Empty;
 
         // 상태 선택 옵션
-        private static readonly string[] StatusOptions = new[] { "Open", "ING..", "Done", "Blocked" };
+        private static readonly string[] StatusOptions = new[] { "OPEN", "ING..", "DONE", "FIXED" };
 
         // 컨텍스트 메뉴
         private ContextMenuStrip _cms;
+
+        // Pont Size
+        private float _currentFontSize = 10f; // Default
 
         private bool _isDatePickerDropDownOpen = false;
 
@@ -104,7 +108,7 @@ namespace GateHelper
                 try
                 {
                     // 시스템에서 가장 안정적인 트루타입 폰트 생성
-                    Font malgunFont = new Font("맑은 고딕", 9f, FontStyle.Regular);
+                    Font malgunFont = new Font("맑은 고딕", 10f, FontStyle.Regular);
 
                     // 1. 전체 리스트뷰 폰트 강제 설정
                     OlvWorkLog.Font = malgunFont;
@@ -168,6 +172,24 @@ namespace GateHelper
             // 추가된 부분: 키 업 이벤트
             TxtWorkLog.KeyUp -= TxtWorkLog_KeyUp;
             TxtWorkLog.KeyUp += TxtWorkLog_KeyUp;
+
+            // FormatRow: 행 전체의 스타일을 데이터 조건에 따라 변경
+            OlvWorkLog.FormatRow -= OlvWorkLog_FormatRow;
+            OlvWorkLog.FormatRow += OlvWorkLog_FormatRow;
+
+            // FontSize Control
+            OlvWorkLog.MouseWheel += (s, e) =>
+            {
+                if (Control.ModifierKeys == Keys.Control)
+                {
+                    // 휠을 위로 돌리면 +, 아래로 돌리면 -
+                    float delta = e.Delta > 0 ? 1f : -1f;
+                    ChangeFontSize(delta);
+
+                    // 리스트뷰가 스크롤되는 것을 방지
+                    ((HandledMouseEventArgs)e).Handled = true;
+                }
+            };
         }
 
         private void SetupContextMenu()
@@ -187,22 +209,22 @@ namespace GateHelper
         {
             try
             {
-                // 날짜 포맷 설정 객체 생성
+                var data = new WorkLogData
+                {
+                    FontSize = _currentFontSize, // 현재 폰트 사이즈 포함
+                    Items = _items
+                };
+
                 var settings = new JsonSerializerSettings
                 {
-                    Formatting = Formatting.Indented, // 들여쓰기 적용
+                    Formatting = Formatting.Indented,
                     DateFormatString = "yyyy-MM-dd HH:mm:ss"
                 };
 
-                string json = JsonConvert.SerializeObject(_items, settings);
-
-                Directory.CreateDirectory(Path.GetDirectoryName(_dataPath) ?? Application.StartupPath);
+                string json = JsonConvert.SerializeObject(data, settings);
                 File.WriteAllText(_dataPath, json);
             }
-            catch (Exception ex)
-            {
-                LogException(ex, Level.Error);
-            }
+            catch (Exception ex) { LogException(ex, Level.Error); }
         }
 
         private void LoadData()
@@ -212,21 +234,20 @@ namespace GateHelper
                 if (!File.Exists(_dataPath)) return;
 
                 string json = File.ReadAllText(_dataPath);
+                var data = JsonConvert.DeserializeObject<WorkLogData>(json);
 
-                var settings = new JsonSerializerSettings
+                if (data != null)
                 {
-                    DateFormatString = "yyyy-MM-dd HH:mm:ss"
-                };
+                    _items = data.Items ?? new List<WorkLogEntry>();
+                    _currentFontSize = data.FontSize > 0 ? data.FontSize : 10f; // 폰트 로드
 
-                _items = JsonConvert.DeserializeObject<List<WorkLogEntry>>(json, settings) ?? new List<WorkLogEntry>();
+                    // 로드된 폰트 사이즈 즉시 적용
+                    ChangeFontSize(0);
+                }
+
                 OlvWorkLog.SetObjects(_items);
             }
-            catch (Exception ex)
-            {
-                LogException(ex, Level.Error);
-                _items = new List<WorkLogEntry>();
-                OlvWorkLog.SetObjects(_items);
-            }
+            catch (Exception ex) { LogException(ex, Level.Error); }
         }
 
         // 날짜/상태 컬럼 커스텀 에디터 적용, 텍스트 컬럼 Enter 저장
@@ -392,6 +413,37 @@ namespace GateHelper
             }
         }
 
+        private void OlvWorkLog_FormatRow(object sender, FormatRowEventArgs e)
+        {
+            if (e.Model is WorkLogEntry entry)
+            {
+                // 상태에 따른 색상 지정
+                switch (entry.Status?.ToUpper())
+                {
+                    case "DONE":
+                        e.Item.BackColor = Color.LightGray;
+                        e.Item.ForeColor = Color.DimGray; // 글자색도 살짝 흐리게
+                        break;
+
+                    case "ING..":
+                        e.Item.BackColor = Color.LemonChiffon;
+                        e.Item.ForeColor = Color.Black;
+                        break;
+
+                    case "FIXED":
+                        e.Item.BackColor = Color.LightBlue; // FIXED 상태일 때 예시
+                        e.Item.ForeColor = Color.Black;
+                        break;
+
+                    default:
+                        // OPEN 등 기타 상태는 기본 테마 색상 유지
+                        e.Item.BackColor = Color.Empty;
+                        e.Item.ForeColor = Color.Empty;
+                        break;
+                }
+            }
+        }
+
         // 추가된 TxtWorkLog_KeyUp 핸들러도 동일하게 처리
         private void TxtWorkLog_KeyUp(object sender, KeyEventArgs e)
         {
@@ -477,7 +529,7 @@ namespace GateHelper
                 {
                     No = nextNo,
                     Date = DateTime.Now,
-                    Status = "Open",
+                    Status = "OPEN",
                     LastUpdated = DateTime.Now
                 };
 
@@ -552,6 +604,8 @@ namespace GateHelper
             }
             return -1;
         }
+
+        
 
         private void WorkLogForm_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -699,6 +753,40 @@ namespace GateHelper
             }
         }
 
+        private void ChangeFontSize(float delta)
+        {
+            _currentFontSize += delta;
+
+            // 최소/최대 크기 제한 (안전장치)
+            if (_currentFontSize < 8f) _currentFontSize = 8f;
+            if (_currentFontSize > 24f) _currentFontSize = 24f;
+
+            Font newFont = new Font("맑은 고딕", _currentFontSize, FontStyle.Regular);
+
+            OlvWorkLog.Font = newFont;
+
+            // 헤더 폰트도 함께 조절하고 싶을 경우
+            foreach (OLVColumn col in OlvWorkLog.AllColumns)
+            {
+                try { col.HeaderFont = newFont; } catch { }
+            }
+
+            // 변경사항 즉시 반영
+            OlvWorkLog.Refresh();
+
+            // 사이즈 변경 시 자동 저장 (선택 사항)
+            SaveData();
+        }
+
+        private void btnZoomIn_Click(object sender, EventArgs e)
+        {
+            ChangeFontSize(1f);
+        }
+
+        private void btnZoomOut_Click(object sender, EventArgs e)
+        {
+            ChangeFontSize(-1f);
+        }
     } // 클래스 끝
 
     // Work Log 한 행을 표현하는 데이터 모델
@@ -744,5 +832,15 @@ namespace GateHelper
         {
             LastUpdated = DateTime.Now;
         }
+
+        public class WorkLogData
+        {
+            [DataMember]
+            public float FontSize { get; set; } = 10f;
+
+            [DataMember]
+            public List<WorkLogEntry> Items { get; set; } = new List<WorkLogEntry>();
+        }
+
     }
 }

@@ -39,6 +39,8 @@
             this.LastUpdated = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.TxtWorkLog = new MaterialSkin.Controls.MaterialTextBox();
             this.BtnTemp1 = new MaterialSkin.Controls.MaterialButton();
+            this.btnZoomIn = new MaterialSkin.Controls.MaterialButton();
+            this.btnZoomOut = new MaterialSkin.Controls.MaterialButton();
             ((System.ComponentModel.ISupportInitialize)(this.OlvWorkLog)).BeginInit();
             this.SuspendLayout();
             // 
@@ -153,11 +155,53 @@
             this.BtnTemp1.UseAccentColor = false;
             this.BtnTemp1.UseVisualStyleBackColor = true;
             // 
+            // btnZoomIn
+            // 
+            this.btnZoomIn.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnZoomIn.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnZoomIn.Depth = 0;
+            this.btnZoomIn.HighEmphasis = true;
+            this.btnZoomIn.Icon = null;
+            this.btnZoomIn.Location = new System.Drawing.Point(906, 102);
+            this.btnZoomIn.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnZoomIn.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnZoomIn.Name = "btnZoomIn";
+            this.btnZoomIn.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnZoomIn.Size = new System.Drawing.Size(64, 36);
+            this.btnZoomIn.TabIndex = 3;
+            this.btnZoomIn.Text = "+";
+            this.btnZoomIn.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
+            this.btnZoomIn.UseAccentColor = false;
+            this.btnZoomIn.UseVisualStyleBackColor = true;
+            this.btnZoomIn.Click += new System.EventHandler(this.btnZoomIn_Click);
+            // 
+            // btnZoomOut
+            // 
+            this.btnZoomOut.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnZoomOut.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnZoomOut.Depth = 0;
+            this.btnZoomOut.HighEmphasis = true;
+            this.btnZoomOut.Icon = null;
+            this.btnZoomOut.Location = new System.Drawing.Point(978, 102);
+            this.btnZoomOut.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnZoomOut.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnZoomOut.Name = "btnZoomOut";
+            this.btnZoomOut.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnZoomOut.Size = new System.Drawing.Size(64, 36);
+            this.btnZoomOut.TabIndex = 4;
+            this.btnZoomOut.Text = "-";
+            this.btnZoomOut.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
+            this.btnZoomOut.UseAccentColor = true;
+            this.btnZoomOut.UseVisualStyleBackColor = true;
+            this.btnZoomOut.Click += new System.EventHandler(this.btnZoomOut_Click);
+            // 
             // WorkLogForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1049, 628);
+            this.Controls.Add(this.btnZoomOut);
+            this.Controls.Add(this.btnZoomIn);
             this.Controls.Add(this.BtnTemp1);
             this.Controls.Add(this.TxtWorkLog);
             this.Controls.Add(this.OlvWorkLog);
@@ -182,5 +226,7 @@
         private BrightIdeasSoftware.OLVColumn No;
         private BrightIdeasSoftware.OLVColumn Status;
         private BrightIdeasSoftware.OLVColumn LastUpdated;
+        private MaterialSkin.Controls.MaterialButton btnZoomIn;
+        private MaterialSkin.Controls.MaterialButton btnZoomOut;
     }
 }

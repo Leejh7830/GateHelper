@@ -83,7 +83,7 @@ v1.0.0
 25.03.28 ListView 클릭 접속 기능(Option)
 
 v2.0.0
-25.08.18 OP) Popup/Modal 해제 기능 (30분마다 Gateone 비밀번호 알림창)
+25.08.18 OP) Popup/Modal 해제 기능 (30분마다 Gateone 비밀번호 알림창 해제)
 25.08.19 OP) ListView 중복 제거 기능
 25.08.20 OP) 옵션전용폼 추가 및 옵션변수 이동
 25.09.04 ListView 메모 기능
