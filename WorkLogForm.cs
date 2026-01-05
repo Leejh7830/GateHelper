@@ -24,6 +24,7 @@ namespace GateHelper
         private ContextMenuStrip _cms;
         private float _currentFontSize = 10f;
         private bool _isDatePickerDropDownOpen = false;
+        private DateTime _lastPasteTime = DateTime.MinValue;
 
         public WorkLogForm()
         {
@@ -59,6 +60,15 @@ namespace GateHelper
             OlvWorkLog.OwnerDraw = true;
             OlvWorkLog.HeaderUsesThemes = false;
             OlvWorkLog.ShowItemToolTips = false;
+            OlvWorkLog.IsSimpleDragSource = true;
+
+            Content.FillsFreeSpace = true;
+
+            // 폼 확장/축소 시 컬럼 크기 조절
+            foreach (OLVColumn col in OlvWorkLog.AllColumns)
+            {
+                col.MinimumWidth = 50; // 너무 작아지는 것 방지
+            }
 
             // 컬럼별 날짜 포맷 및 편집 가능 여부 설정
             foreach (var col in OlvWorkLog.AllColumns)
@@ -166,52 +176,65 @@ namespace GateHelper
         }
 
         /// <summary>
-        /// [핵심 기능] 클립보드에서 이미지를 가져와 비동기로 저장하고 해당 행에 연결합니다.
+        /// [핵심 기능] 클립보드 이미지 붙여넣기 및 예외 상황(Abnormal) 처리
         /// </summary>
         private async void OlvWorkLog_KeyDown(object sender, KeyEventArgs e)
         {
+            // Ctrl + V 감지
             if (e.Control && e.KeyCode == Keys.V)
             {
-                // 인터락: 선택된 행이 없거나 클립보드에 이미지가 없으면 중단
+                // 1. [인터락] 연타 방지: 0.8초 이내 재입력 무시
+                if ((DateTime.Now - _lastPasteTime).TotalMilliseconds < 800) return;
+                _lastPasteTime = DateTime.Now;
+
+                // 2. [인터락] 선택된 데이터가 없는 경우
                 if (!(OlvWorkLog.SelectedObject is WorkLogEntry entry)) return;
+
+                // 3. [인터락] 클립보드에 이미지 데이터가 없는 경우
                 if (!Clipboard.ContainsImage()) return;
 
-                using (Image img = Clipboard.GetImage())
+                try
                 {
-                    if (img == null)
+                    using (Image img = Clipboard.GetImage())
                     {
-                        MessageBox.Show("Failed to retrieve image from clipboard.", "Clipboard Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                        return;
-                    }
+                        // 4. [Abnormal] 특정 앱에서 복사 시 이미지 객체가 null이 되는 현상 대응
+                        if (img == null) return;
 
-                    try
-                    {
-                        // 이미지 저장 폴더 생성 (상대 경로 기준)
+                        // 5. [Abnormal] 초고해상도 이미지 경고 (선택 사항)
+                        if (img.Width > 5000 || img.Height > 5000)
+                        {
+                            var res = MessageBox.Show("This image is extremely large. Continue?", "Large Image", MessageBoxButtons.YesNo);
+                            if (res != DialogResult.Yes) return;
+                        }
+
                         string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "Images");
                         if (!Directory.Exists(imgDir)) Directory.CreateDirectory(imgDir);
 
-                        // 고유 파일명 생성 (초 단위 + 틱값으로 중복 방지)
                         string fileName = $"{DateTime.Now:yyyyMMdd_HHmmss}_{DateTime.Now.Ticks}.jpg";
                         string fullPath = Path.Combine(imgDir, fileName);
 
-                        // 핵심: 비동기(Task.Run) + JPG 압축을 통해 UI 프리징 방지 및 용량 최적화
+                        // 6. [성능] 비동기로 저장하여 UI 프리징 차단
                         using (Bitmap bmp = new Bitmap(img))
                         {
                             await Task.Run(() => bmp.Save(fullPath, System.Drawing.Imaging.ImageFormat.Jpeg));
                         }
 
-                        // 인터락: 파일명만 저장(상대경로 방식)하여 폴더 이동 시에도 링크 유지
-                        entry.ImagePaths.Add(fileName);
-                        entry.Memo = $"[Image Attached: {fileName}] " + entry.Memo;
-                        entry.Touch();
+                        // 7. [확인] 실제 저장이 성공했는지 검증 후 데이터 연결
+                        if (File.Exists(fullPath))
+                        {
+                            entry.ImagePaths.Add(fileName);
+                            entry.Memo = $"[Image: {fileName}] " + entry.Memo;
+                            entry.Touch();
 
-                        OlvWorkLog.RefreshObject(entry);
-                        SaveData();
+                            OlvWorkLog.RefreshObject(entry);
+                            SaveData();
+                        }
                     }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"Error saving image: {ex.Message}", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                }
+                catch (Exception ex)
+                {
+                    // 8. [Abnormal] 권한 부족, 디스크 꽉 참 등 물리적 에러 처리
+                    MessageBox.Show($"Failed to save image: {ex.Message}", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
@@ -313,7 +336,32 @@ namespace GateHelper
         /// </summary>
         private void OlvWorkLog_CellEditFinishing(object sender, CellEditEventArgs e)
         {
-            if (e.Column?.AspectName == nameof(WorkLogEntry.Date) && _isDatePickerDropDownOpen) e.Cancel = true;
+            if (e.Column == null || e.RowObject == null) return;
+            var entry = (WorkLogEntry)e.RowObject;
+            var aspect = e.Column.AspectName;
+
+            // 1. 날짜 피커 열려있으면 취소
+            if (aspect == nameof(WorkLogEntry.Date) && _isDatePickerDropDownOpen)
+            {
+                e.Cancel = true;
+                return;
+            }
+
+            // 2. 컨트롤로부터 최신 값 추출
+            if (e.Control is ComboBox cb) e.NewValue = cb.SelectedItem?.ToString();
+            else if (e.Control is DateTimePicker dtp) e.NewValue = dtp.Value;
+            // 일반 TextBox는 이미 e.NewValue에 들어있음
+
+            // 3. [Abnormal 대응] 모델에 강제 쓰기 (이 코드가 없으면 Tags 등이 null 될 수 있음)
+            if (!e.Cancel && e.NewValue != null)
+            {
+                if (aspect == nameof(WorkLogEntry.Tags)) entry.Tags = e.NewValue.ToString();
+                else if (aspect == nameof(WorkLogEntry.Status)) entry.Status = e.NewValue.ToString();
+                else if (aspect == nameof(WorkLogEntry.Title)) entry.Title = e.NewValue.ToString();
+                else if (aspect == nameof(WorkLogEntry.Content)) entry.Content = e.NewValue.ToString();
+                else if (aspect == nameof(WorkLogEntry.Memo)) entry.Memo = e.NewValue.ToString();
+                // 날짜는 Finished에서 처리하거나 여기서 직접 캐스팅하여 할당
+            }
         }
 
         /// <summary>
@@ -356,6 +404,7 @@ namespace GateHelper
             string q = _currentFilter.ToLower();
             return (entry.Title?.ToLower().Contains(q) ?? false) ||
                    (entry.Content?.ToLower().Contains(q) ?? false) ||
+                   (entry.Tags?.ToLower().Contains(q) ?? false) ||
                    (entry.Memo?.ToLower().Contains(q) ?? false);
         }
 
@@ -408,8 +457,16 @@ namespace GateHelper
         {
             if (e.Model is WorkLogEntry entry)
             {
-                if (entry.Status == "DONE") { e.Item.BackColor = Color.LightGray; e.Item.ForeColor = Color.DimGray; }
-                else if (entry.Status == "ING..") e.Item.BackColor = Color.LemonChiffon;
+                if (entry.Status == "DONE") 
+                {
+                    e.Item.BackColor = Color.LightGray; 
+                    e.Item.ForeColor = Color.DimGray; 
+                }
+                else if (entry.Status == "ING..")
+                {
+                    e.Item.BackColor = Color.Yellow;
+                    e.Item.ForeColor = Color.Black;
+                }
             }
         }
 
@@ -460,6 +517,7 @@ namespace GateHelper
         [DataMember] public string Title { get; set; } = "";
         [DataMember] public string Content { get; set; } = "";
         [DataMember] public string Status { get; set; } = "OPEN";
+        [DataMember] public string Tags { get; set; } = "";
         [DataMember] public string Memo { get; set; } = "";
         [DataMember] public DateTime LastUpdated { get; set; } = DateTime.Now;
         [DataMember] public List<string> ImagePaths { get; set; } = new List<string>();
@@ -469,6 +527,17 @@ namespace GateHelper
 
         // 데이터 변경 시 수정 시간을 갱신합니다.
         public void Touch() => LastUpdated = DateTime.Now;
+
+
+        public WorkLogEntry()
+        {
+            Title = "";
+            Content = "";
+            Status = "OPEN";
+            Tags = "";
+            Memo = "";
+            ImagePaths = new List<string>();
+        }
     }
 
     /// <summary>

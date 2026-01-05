@@ -54,6 +54,9 @@
             this.OlvWorkLog.AllColumns.Add(this.Tags);
             this.OlvWorkLog.AllColumns.Add(this.Memo);
             this.OlvWorkLog.AllColumns.Add(this.LastUpdated);
+            this.OlvWorkLog.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.OlvWorkLog.CellEditUseWholeCell = false;
             this.OlvWorkLog.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
             this.No,
@@ -118,7 +121,7 @@
             // 
             this.LastUpdated.AspectName = "LastUpdated";
             this.LastUpdated.Text = "LastUpdated";
-            this.LastUpdated.Width = 120;
+            this.LastUpdated.Width = 150;
             // 
             // TxtWorkLog
             // 
@@ -139,6 +142,7 @@
             // 
             // BtnTemp1
             // 
+            this.BtnTemp1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.BtnTemp1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BtnTemp1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.BtnTemp1.Depth = 0;
@@ -158,6 +162,7 @@
             // 
             // btnZoomIn
             // 
+            this.btnZoomIn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnZoomIn.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.btnZoomIn.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.btnZoomIn.Depth = 0;
@@ -178,6 +183,7 @@
             // 
             // btnZoomOut
             // 
+            this.btnZoomOut.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnZoomOut.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.btnZoomOut.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.btnZoomOut.Depth = 0;

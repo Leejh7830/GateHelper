@@ -61,7 +61,6 @@ namespace GateHelper
             this.MenuItem2_Favorite = new System.Windows.Forms.ToolStripMenuItem();
             this.txtMemoEditor = new System.Windows.Forms.TextBox();
             this.tabPage3 = new System.Windows.Forms.TabPage();
-            this.BtnWorkLog1 = new MaterialSkin.Controls.MaterialButton();
             this.dummyControlOutsideTab = new MaterialSkin.Controls.MaterialButton();
             this.BtnOpenImages1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnReloadImages1 = new MaterialSkin.Controls.MaterialButton();
@@ -87,6 +86,7 @@ namespace GateHelper
             this.lblUDPStatus = new System.Windows.Forms.Label();
             this.lblVersion = new System.Windows.Forms.Label();
             this.BtnOpenLog2 = new MaterialSkin.Controls.MaterialButton();
+            this.BtnWorkLog1 = new MaterialSkin.Controls.MaterialButton();
             this.GroupConnect1.SuspendLayout();
             this.GroupPreset1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
@@ -562,26 +562,6 @@ namespace GateHelper
             this.tabPage3.Text = "REFERENCE";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
-            // BtnWorkLog1
-            // 
-            this.BtnWorkLog1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnWorkLog1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnWorkLog1.Depth = 0;
-            this.BtnWorkLog1.HighEmphasis = true;
-            this.BtnWorkLog1.Icon = null;
-            this.BtnWorkLog1.Location = new System.Drawing.Point(399, 8);
-            this.BtnWorkLog1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.BtnWorkLog1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnWorkLog1.Name = "BtnWorkLog1";
-            this.BtnWorkLog1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnWorkLog1.Size = new System.Drawing.Size(95, 36);
-            this.BtnWorkLog1.TabIndex = 33;
-            this.BtnWorkLog1.Text = "Work Log";
-            this.BtnWorkLog1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnWorkLog1.UseAccentColor = false;
-            this.BtnWorkLog1.UseVisualStyleBackColor = true;
-            this.BtnWorkLog1.Click += new System.EventHandler(this.BtnWorkLog1_Click);
-            // 
             // dummyControlOutsideTab
             // 
             this.dummyControlOutsideTab.AutoSize = false;
@@ -944,6 +924,26 @@ namespace GateHelper
             this.BtnOpenLog2.UseAccentColor = false;
             this.BtnOpenLog2.UseVisualStyleBackColor = true;
             this.BtnOpenLog2.Click += new System.EventHandler(this.BtnOpenLog2_Click);
+            // 
+            // BtnWorkLog1
+            // 
+            this.BtnWorkLog1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnWorkLog1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnWorkLog1.Depth = 0;
+            this.BtnWorkLog1.HighEmphasis = true;
+            this.BtnWorkLog1.Icon = null;
+            this.BtnWorkLog1.Location = new System.Drawing.Point(158, 310);
+            this.BtnWorkLog1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnWorkLog1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnWorkLog1.Name = "BtnWorkLog1";
+            this.BtnWorkLog1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnWorkLog1.Size = new System.Drawing.Size(95, 36);
+            this.BtnWorkLog1.TabIndex = 102;
+            this.BtnWorkLog1.Text = "Work Log";
+            this.BtnWorkLog1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnWorkLog1.UseAccentColor = false;
+            this.BtnWorkLog1.UseVisualStyleBackColor = true;
+            this.BtnWorkLog1.Click += new System.EventHandler(this.BtnWorkLog1_Click);
             // 
             // MainUI
             // 
