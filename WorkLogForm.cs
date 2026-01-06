@@ -239,26 +239,45 @@ namespace GateHelper
             }
         }
 
-        /// <summary>
-        /// [핵심 기능] 더블클릭 시 연결된 이미지를 기본 사진 앱으로 엽니다.
-        /// </summary>
         private void OlvWorkLog_DoubleClick(object sender, EventArgs e)
         {
-            if (OlvWorkLog.SelectedObject is WorkLogEntry entry && entry.HasImage)
-            {
-                string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "Images");
-                string fileName = entry.ImagePaths.Last(); // 가장 최근 이미지 열기
-                string fullPath = Path.Combine(imgDir, fileName);
+            // 1. 마우스 위치를 가져옵니다.
+            Point mousePos = OlvWorkLog.PointToClient(Control.MousePosition);
 
-                // 인터락: 유저가 폴더에서 파일을 지웠을 경우를 대비한 체크
-                if (File.Exists(fullPath))
+            // 2. [핵심] 일반 HitTest가 아니라 OlvHitTest를 사용해야 합니다.
+            OlvListViewHitTestInfo hitTest = OlvWorkLog.OlvHitTest(mousePos.X, mousePos.Y);
+
+            // 3. 클릭된 위치가 유효한지 확인 (행과 컬럼이 모두 있어야 함)
+            if (hitTest.Item != null && hitTest.Column != null)
+            {
+                // 4. 클릭한 컬럼의 AspectName이 Memo일 때만 실행
+                if (hitTest.Column.AspectName == nameof(WorkLogEntry.Memo))
                 {
-                    System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(fullPath) { UseShellExecute = true });
+                    // hitTest.RowObject를 통해 직접 데이터에 접근 가능합니다.
+                    if (hitTest.RowObject is WorkLogEntry entry && entry.HasImage)
+                    {
+                        OpenLastImage(entry);
+                    }
                 }
-                else
-                {
-                    MessageBox.Show("Image file not found. It may have been moved or renamed.", "File Not Found", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                }
+            }
+        }
+
+        /// <summary>
+        /// 이미지 열기 로직을 별도 메서드로 분리 (코드 가독성)
+        /// </summary>
+        private void OpenLastImage(WorkLogEntry entry)
+        {
+            string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "Images");
+            string fileName = entry.ImagePaths.Last();
+            string fullPath = Path.Combine(imgDir, fileName);
+
+            if (File.Exists(fullPath))
+            {
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(fullPath) { UseShellExecute = true });
+            }
+            else
+            {
+                MessageBox.Show("Image file not found.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
 
@@ -311,6 +330,15 @@ namespace GateHelper
         /// </summary>
         private void OlvWorkLog_CellEditStarting(object sender, CellEditEventArgs e)
         {
+            // Memo 컬럼인데 이미지가 있는 경우, 편집을 취소하고 이미지 열기에 집중하게 함 (선택 사항)
+            if (e.Column.AspectName == nameof(WorkLogEntry.Memo))
+            {
+                if (e.RowObject is WorkLogEntry entry && entry.HasImage)
+                {
+                    e.Cancel = true; 
+                }
+            }
+
             if (e.Column == null) return;
             var aspect = e.Column.AspectName;
 

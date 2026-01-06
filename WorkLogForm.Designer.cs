@@ -87,7 +87,7 @@
             // 
             this.Date.AspectName = "Date";
             this.Date.Text = "Date";
-            this.Date.Width = 120;
+            this.Date.Width = 100;
             // 
             // Title
             // 
