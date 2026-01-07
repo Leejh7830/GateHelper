@@ -95,6 +95,24 @@ namespace GateHelper
                 }
                 OlvWorkLog.Refresh();
             }));
+
+            // Images 열을 찾아서 커스텀 출력 설정
+            var colImages = OlvWorkLog.AllColumns.Cast<OLVColumn>()
+                        .FirstOrDefault(x => x.Text == "Images" || x.AspectName == "ImagePaths");
+
+            if (colImages != null)
+            {
+                colImages.AspectGetter = row => {
+                    var entry = (WorkLogEntry)row;
+                    return entry.HasImage ? $"📸 ({entry.ImagePaths.Count})" : "";
+                };
+                colImages.IsEditable = false;
+                colImages.TextAlign = HorizontalAlignment.Center;
+                colImages.Width = 80; // 적당한 너비 설정
+            }
+
+
+
         }
 
         /// <summary>
@@ -207,7 +225,7 @@ namespace GateHelper
                             if (res != DialogResult.Yes) return;
                         }
 
-                        string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "Images");
+                        string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "WorkLog_Images");
                         if (!Directory.Exists(imgDir)) Directory.CreateDirectory(imgDir);
 
                         string fileName = $"{DateTime.Now:yyyyMMdd_HHmmss}_{DateTime.Now.Ticks}.jpg";
@@ -223,10 +241,8 @@ namespace GateHelper
                         if (File.Exists(fullPath))
                         {
                             entry.ImagePaths.Add(fileName);
-                            entry.Memo = $"[Image: {fileName}] " + entry.Memo;
                             entry.Touch();
-
-                            OlvWorkLog.RefreshObject(entry);
+                            OlvWorkLog.RefreshObject(entry); // 이미지 개수 표시가 즉시 갱신됨
                             SaveData();
                         }
                     }
@@ -237,38 +253,80 @@ namespace GateHelper
                     MessageBox.Show($"Failed to save image: {ex.Message}", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
+
         }
 
         private void OlvWorkLog_DoubleClick(object sender, EventArgs e)
         {
-            // 1. 마우스 위치를 가져옵니다.
             Point mousePos = OlvWorkLog.PointToClient(Control.MousePosition);
-
-            // 2. [핵심] 일반 HitTest가 아니라 OlvHitTest를 사용해야 합니다.
             OlvListViewHitTestInfo hitTest = OlvWorkLog.OlvHitTest(mousePos.X, mousePos.Y);
 
-            // 3. 클릭된 위치가 유효한지 확인 (행과 컬럼이 모두 있어야 함)
             if (hitTest.Item != null && hitTest.Column != null)
             {
-                // 4. 클릭한 컬럼의 AspectName이 Memo일 때만 실행
-                if (hitTest.Column.AspectName == nameof(WorkLogEntry.Memo))
+                if (hitTest.Column.Text == "Images" || hitTest.Column.AspectName == "ImagePaths")
                 {
-                    // hitTest.RowObject를 통해 직접 데이터에 접근 가능합니다.
                     if (hitTest.RowObject is WorkLogEntry entry && entry.HasImage)
                     {
-                        OpenLastImage(entry);
+                        // [변경] 바로 열지 않고 개수에 따라 분기 처리
+                        ShowImageSelectionMenu(entry);
                     }
                 }
             }
         }
 
         /// <summary>
-        /// 이미지 열기 로직을 별도 메서드로 분리 (코드 가독성)
+        /// 이미지가 여러 장일 경우 선택 메뉴를 띄우고, 한 장이면 바로 엽니다.
         /// </summary>
-        private void OpenLastImage(WorkLogEntry entry)
+        private void ShowImageSelectionMenu(WorkLogEntry entry)
         {
-            string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "Images");
-            string fileName = entry.ImagePaths.Last();
+            if (entry.ImagePaths.Count == 1)
+            {
+                OpenImageFile(entry.ImagePaths[0]);
+                return;
+            }
+
+            ContextMenuStrip menu = new ContextMenuStrip();
+            // 미리보기 이미지가 잘 보이도록 이미지 크기 설정 (기본값은 너무 작음)
+            menu.ImageScalingSize = new Size(64, 64);
+
+            string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "WorkLog_Images");
+
+            for (int i = entry.ImagePaths.Count - 1; i >= 0; i--)
+            {
+                string fileName = entry.ImagePaths[i];
+                string fullPath = Path.Combine(imgDir, fileName);
+
+                ToolStripMenuItem item = new ToolStripMenuItem(fileName);
+                item.Click += (s, e) => OpenImageFile(fileName);
+
+                // [핵심] 미리보기(Thumbnail) 생성 로직
+                if (File.Exists(fullPath))
+                {
+                    try
+                    {
+                        // 파일을 직접 물고 있지 않게 하기 위해 메모리 스트림으로 복사하여 로드
+                        using (var stream = new MemoryStream(File.ReadAllBytes(fullPath)))
+                        {
+                            Image original = Image.FromStream(stream);
+                            // 64x64 크기의 썸네일 생성하여 메뉴 아이콘에 할당
+                            item.Image = original.GetThumbnailImage(64, 64, null, IntPtr.Zero);
+                        }
+                    }
+                    catch { /* 이미지 손상 시 아이콘 생략 */ }
+                }
+
+                menu.Items.Add(item);
+            }
+
+            menu.Show(Cursor.Position);
+        }
+
+        /// <summary>
+        /// 공통 이미지 실행 로직
+        /// </summary>
+        private void OpenImageFile(string fileName)
+        {
+            string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "WorkLog_Images");
             string fullPath = Path.Combine(imgDir, fileName);
 
             if (File.Exists(fullPath))
@@ -277,9 +335,10 @@ namespace GateHelper
             }
             else
             {
-                MessageBox.Show("Image file not found.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("File not found: " + fileName, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
+
 
         /// <summary>
         /// [핵심 기능] 항목 삭제 시 물리적 이미지 파일도 함께 삭제를 시도합니다.
@@ -295,7 +354,7 @@ namespace GateHelper
             if (result != DialogResult.Yes) return;
 
             List<string> failedFiles = new List<string>();
-            string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "Images");
+            string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "WorkLog_Images");
 
             foreach (var entry in selected)
             {
@@ -330,29 +389,40 @@ namespace GateHelper
         /// </summary>
         private void OlvWorkLog_CellEditStarting(object sender, CellEditEventArgs e)
         {
-            // Memo 컬럼인데 이미지가 있는 경우, 편집을 취소하고 이미지 열기에 집중하게 함 (선택 사항)
-            if (e.Column.AspectName == nameof(WorkLogEntry.Memo))
+            if (e.Column == null) return;
+
+            // 1. [인터락] 이미지 열은 텍스트 편집 기능을 아예 차단 (가장 먼저 체크)
+            if (e.Column.AspectName == "ImagePaths" || e.Column.Text == "Images")
             {
-                if (e.RowObject is WorkLogEntry entry && entry.HasImage)
-                {
-                    e.Cancel = true; 
-                }
+                e.Cancel = true;
+                return;
             }
 
-            if (e.Column == null) return;
             var aspect = e.Column.AspectName;
 
+            // 2. 상태(Status) 열: 콤보박스 생성
             if (aspect == nameof(WorkLogEntry.Status))
             {
                 var cb = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Bounds = e.CellBounds };
                 cb.Items.AddRange(StatusOptions);
                 cb.SelectedItem = StatusOptions.Contains(e.Value?.ToString()) ? e.Value.ToString() : "OPEN";
-                cb.SelectedIndexChanged += (s, _) => { e.NewValue = cb.SelectedItem.ToString(); this.BeginInvoke(new Action(() => OlvWorkLog.FinishCellEdit())); };
+                cb.SelectedIndexChanged += (s, _) =>
+                {
+                    e.NewValue = cb.SelectedItem.ToString();
+                    this.BeginInvoke(new Action(() => OlvWorkLog.FinishCellEdit()));
+                };
                 e.Control = cb;
             }
+            // 3. 날짜(Date) 열: 날짜 선택기 생성
             else if (aspect == nameof(WorkLogEntry.Date))
             {
-                var dtp = new DateTimePicker { Format = DateTimePickerFormat.Custom, CustomFormat = "yyyy-MM-dd HH:mm:ss", Value = e.Value is DateTime dt ? dt : DateTime.Now, Bounds = e.CellBounds };
+                var dtp = new DateTimePicker
+                {
+                    Format = DateTimePickerFormat.Custom,
+                    CustomFormat = "yyyy-MM-dd HH:mm:ss",
+                    Value = e.Value is DateTime dt ? dt : DateTime.Now,
+                    Bounds = e.CellBounds
+                };
                 dtp.DropDown += (s, _) => _isDatePickerDropDownOpen = true;
                 dtp.CloseUp += (s, _) => { _isDatePickerDropDownOpen = false; OlvWorkLog.FinishCellEdit(); };
                 e.Control = dtp;

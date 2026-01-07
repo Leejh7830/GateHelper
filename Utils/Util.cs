@@ -42,7 +42,7 @@ namespace GateHelper
             string metaNotesPath = GetMetaPath("ReleaseNotes.txt");
             string content =
 @"
-v2.2.0 / 25.12.22 / Test Version
+v2.2.1 / 26.01.07 / Test Version
 - leejh7830@lgespartner.com
 - 비영리 목적으로 제작한 유틸리티입니다.
 
@@ -98,7 +98,8 @@ v2.1.3 / 25.11.15 [UDP] 접속/종료 시 송신
 v2.1.4 / 25.12.16 현재 화면의 서버목록에 접속하려는 서버가 없으면 스크롤하여 검색하도록 개선
 v2.1.5 / 25.12.17 개선 - Listview 컨텍스트 메뉴 색상 반전 (현재 색상모드와 불일치)
 
-v2.2.0 / 25.12.22 신규 - Work Log 추가 (작업 메모용, Reference 탭)
+v2.2.0 / 25.12.22 신규 - WorkLog 추가 (작업 메모용, Reference 탭)
+v2.2.1 / 26.01.07 개선 - WorkLog 기능추가 (이미지붙여넣기)
          
 ";
 
