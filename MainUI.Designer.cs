@@ -473,7 +473,6 @@ namespace GateHelper
             this.OlvServerList.TabIndex = 98;
             this.OlvServerList.UseCompatibleStateImageBehavior = false;
             this.OlvServerList.View = System.Windows.Forms.View.Details;
-            this.OlvServerList.CellEditFinished += new BrightIdeasSoftware.CellEditEventHandler(this.ObjectListView1_CellEditFinished);
             this.OlvServerList.CellToolTipShowing += new System.EventHandler<BrightIdeasSoftware.ToolTipShowingEventArgs>(this.ObjectListView1_CellToolTipShowing);
             this.OlvServerList.FormatRow += new System.EventHandler<BrightIdeasSoftware.FormatRowEventArgs>(this.ObjectListView1_FormatRow);
             this.OlvServerList.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.ObjectListView1_MouseDoubleClick);

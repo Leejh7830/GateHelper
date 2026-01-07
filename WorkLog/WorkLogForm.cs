@@ -26,6 +26,9 @@ namespace GateHelper
         private bool _isDatePickerDropDownOpen = false;
         private DateTime _lastPasteTime = DateTime.MinValue;
 
+        // Model Data
+        private WorkLogData _data;
+
         public WorkLogForm()
         {
             InitializeComponent();
@@ -83,18 +86,6 @@ namespace GateHelper
                     col.IsEditable = false; // No와 수정시간은 자동관리되므로 편집 불가
                 }
             }
-
-            // UI 스레드에서 폰트 적용
-            this.BeginInvoke(new Action(() =>
-            {
-                Font malgunFont = new Font("맑은 고딕", _currentFontSize, FontStyle.Regular);
-                OlvWorkLog.Font = malgunFont;
-                foreach (OLVColumn col in OlvWorkLog.AllColumns)
-                {
-                    try { col.HeaderFont = malgunFont; } catch { }
-                }
-                OlvWorkLog.Refresh();
-            }));
 
             // Images 열을 찾아서 커스텀 출력 설정
             var colImages = OlvWorkLog.AllColumns.Cast<OLVColumn>()
@@ -165,8 +156,10 @@ namespace GateHelper
         {
             try
             {
-                var data = new WorkLogData { FontSize = _currentFontSize, Items = _items };
-                string json = JsonConvert.SerializeObject(data, Formatting.Indented);
+                if (_data == null) _data = new WorkLogData();
+                _data.Items = _items;
+
+                string json = JsonConvert.SerializeObject(_data, Formatting.Indented);
                 File.WriteAllText(_dataPath, json);
             }
             catch (Exception ex) { LogException(ex, Level.Error); }
@@ -179,18 +172,46 @@ namespace GateHelper
         {
             try
             {
-                if (!File.Exists(_dataPath)) return;
-                string json = File.ReadAllText(_dataPath);
-                var data = JsonConvert.DeserializeObject<WorkLogData>(json);
-                if (data != null)
+                if (!File.Exists(_dataPath))
                 {
-                    _items = data.Items ?? new List<WorkLogEntry>();
-                    _currentFontSize = data.FontSize > 0 ? data.FontSize : 10f;
-                    ChangeFontSize(0);
+                    _data = new WorkLogData();
+                    _items = _data.Items;
+                    return;
                 }
+
+                string json = File.ReadAllText(_dataPath);
+                _data = JsonConvert.DeserializeObject<WorkLogData>(json);
+
+                if (_data != null)
+                {
+                    _items = _data.Items ?? new List<WorkLogEntry>();
+                    _data.Items = _items;
+                    chkHideDone.Checked = _data.HideDone;
+
+                    // [수정] 폼이 완전히 뜬 직후에 폰트를 적용하도록 예약
+                    this.BeginInvoke(new Action(() => {
+                        ChangeFontSize(0);
+                        ApplyFilter(TxtWorkLog.Text);
+                    }));
+                }
+                else
+                {
+                    _data = new WorkLogData();
+                    _items = _data.Items;
+                }
+
+                // [핵심 수정] 단순히 SetObjects만 하지 말고, 필터를 강제로 적용합니다.
+                // TxtWorkLog.Text가 빈 값이더라도 ApplyFilter 내부의 RowMatchesFilter가 
+                // chkHideDone.Checked 상태를 보고 DONE 항목을 걸러내 줄 것입니다.
+                ApplyFilter(TxtWorkLog.Text);
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error);
+                _data = new WorkLogData();
+                _items = _data.Items;
                 OlvWorkLog.SetObjects(_items);
             }
-            catch (Exception ex) { LogException(ex, Level.Error); }
         }
 
         /// <summary>
@@ -391,7 +412,7 @@ namespace GateHelper
         {
             if (e.Column == null) return;
 
-            // 1. [인터락] 이미지 열은 텍스트 편집 기능을 아예 차단 (가장 먼저 체크)
+            // 1. [인터락] 이미지 열은 텍스트 편집 기능 차단
             if (e.Column.AspectName == "ImagePaths" || e.Column.Text == "Images")
             {
                 e.Cancel = true;
@@ -489,8 +510,11 @@ namespace GateHelper
         private void ApplyFilter(string q)
         {
             _currentFilter = q?.Trim() ?? "";
+
             OlvWorkLog.BeginUpdate();
-            OlvWorkLog.SetObjects(string.IsNullOrEmpty(_currentFilter) ? _items : _items.Where(RowMatchesFilter).ToList());
+            var filteredList = _items.Where(RowMatchesFilter).ToList();
+
+            OlvWorkLog.SetObjects(filteredList);
             OlvWorkLog.EndUpdate();
         }
 
@@ -499,11 +523,27 @@ namespace GateHelper
         /// </summary>
         private bool RowMatchesFilter(WorkLogEntry entry)
         {
+            // [우선순위 1] 체크박스가 체크되어 있다면, 상태가 DONE인 행은 무조건 숨김(false)
+            if (chkHideDone.Checked && entry.Status == "DONE")
+            {
+                return false;
+            }
+
+            // [우선순위 2] 검색어 처리
             string q = _currentFilter.ToLower();
+
+            // 검색어가 없으면, 위에서 DONE으로 걸러지지 않은 모든 행을 보여줌(true)
+            if (string.IsNullOrEmpty(q))
+            {
+                return true;
+            }
+
+            // [우선순위 3] 검색어가 있으면 모든 필드(Status 포함) 매칭 검사
             return (entry.Title?.ToLower().Contains(q) ?? false) ||
                    (entry.Content?.ToLower().Contains(q) ?? false) ||
                    (entry.Tags?.ToLower().Contains(q) ?? false) ||
-                   (entry.Memo?.ToLower().Contains(q) ?? false);
+                   (entry.Memo?.ToLower().Contains(q) ?? false) ||
+                   (entry.Status?.ToLower().Contains(q) ?? false);
         }
 
         /// <summary>
@@ -519,6 +559,16 @@ namespace GateHelper
             SaveData();
         }
 
+        // 체크박스 클릭 시 바로 필터 갱신
+        private void chkHideDone_CheckedChanged(object sender, EventArgs e)
+        {
+            if (_data == null) return;
+            _data.HideDone = chkHideDone.Checked;
+            ApplyFilter(TxtWorkLog.Text);
+            SaveData();
+        }
+
+
         /// <summary>
         /// 폼 종료 시 리스트뷰 자원을 해제합니다.
         /// </summary>
@@ -527,6 +577,7 @@ namespace GateHelper
             OlvWorkLog.Parent = null;
             OlvWorkLog.Dispose();
         }
+
 
         // --- 커스텀 드로잉 로직 (UI 커스터마이징) ---
 
@@ -574,23 +625,43 @@ namespace GateHelper
         /// <param name="delta">The amount to change the font size by.</param>
         private void ChangeFontSize(float delta)
         {
-            // 8pt ~ 24pt 사이로 제한
-            _currentFontSize = Math.Max(8f, Math.Min(24f, _currentFontSize + delta));
-            Font nFont = new Font("맑은 고딕", _currentFontSize);
+            if (_data == null) return;
+
+            _data.FontSize = Math.Max(8f, Math.Min(24f, _data.FontSize + delta));
+            _currentFontSize = _data.FontSize;
+
+            Font nFont = new Font("맑은 고딕", _data.FontSize);
 
             OlvWorkLog.Font = nFont;
+            OlvWorkLog.RowHeight = (int)(_data.FontSize * 2.2);
 
-            // 헤더 폰트도 함께 변경
-            foreach (OLVColumn col in OlvWorkLog.AllColumns)
+            OlvWorkLog.BeginUpdate();
+            try
             {
-                try { col.HeaderFont = nFont; } catch { }
+                // 3. 헤더 폰트 적용
+                foreach (OLVColumn col in OlvWorkLog.AllColumns)
+                {
+                    try { col.HeaderFont = nFont; } catch { }
+                }
+
+                // 4. 구조 재구축 및 데이터 갱신
+                OlvWorkLog.BuildList(true);
+
+                // [핵심] 현재 리스트에 있는 모든 객체를 다시 읽어오도록 지시 (UpdateItem 대신 사용)
+                OlvWorkLog.RefreshObjects(_items);
+            }
+            finally
+            {
+                OlvWorkLog.EndUpdate();
             }
 
-            // 행 높이를 폰트 크기에 맞춰 자동 조절 (ObjectListView 전용)
-            OlvWorkLog.RowHeight = (int)(_currentFontSize * 2.0);
+            // 5. 화면 강제 전체 무효화 (true는 자식 컨트롤까지 포함)
+            OlvWorkLog.Invalidate(true);
+            OlvWorkLog.Update(); // 즉시 그리기를 OS에 명령
 
-            OlvWorkLog.Refresh();
+            SaveData();
         }
+
 
         private void btnZoomIn_Click(object sender, EventArgs e)
         {
@@ -603,47 +674,4 @@ namespace GateHelper
         }
 
     } ////////////////////////////////////////////////////////////////////////////////////////////       클래스 끝
-
-    /// <summary>
-    /// 개별 로그 항목 데이터를 담는 데이터 클래스입니다.
-    /// </summary>
-    [DataContract]
-    public class WorkLogEntry
-    {
-        [DataMember] public int No { get; set; }
-        [DataMember] public DateTime Date { get; set; } = DateTime.Now;
-        [DataMember] public string Title { get; set; } = "";
-        [DataMember] public string Content { get; set; } = "";
-        [DataMember] public string Status { get; set; } = "OPEN";
-        [DataMember] public string Tags { get; set; } = "";
-        [DataMember] public string Memo { get; set; } = "";
-        [DataMember] public DateTime LastUpdated { get; set; } = DateTime.Now;
-        [DataMember] public List<string> ImagePaths { get; set; } = new List<string>();
-
-        // 인터락 포인트: 이미지 존재 여부 확인 프로퍼티
-        public bool HasImage => ImagePaths != null && ImagePaths.Count > 0;
-
-        // 데이터 변경 시 수정 시간을 갱신합니다.
-        public void Touch() => LastUpdated = DateTime.Now;
-
-
-        public WorkLogEntry()
-        {
-            Title = "";
-            Content = "";
-            Status = "OPEN";
-            Tags = "";
-            Memo = "";
-            ImagePaths = new List<string>();
-        }
-    }
-
-    /// <summary>
-    /// JSON 저장 및 폰트 설정을 포함하는 전체 데이터 구조입니다.
-    /// </summary>
-    public class WorkLogData
-    {
-        public float FontSize { get; set; }
-        public List<WorkLogEntry> Items { get; set; }
-    }
 }

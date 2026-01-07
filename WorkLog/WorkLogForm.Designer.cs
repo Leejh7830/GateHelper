@@ -37,11 +37,12 @@
             this.Tags = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.Memo = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.LastUpdated = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.Images = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.TxtWorkLog = new MaterialSkin.Controls.MaterialTextBox();
             this.BtnTemp1 = new MaterialSkin.Controls.MaterialButton();
             this.btnZoomIn = new MaterialSkin.Controls.MaterialButton();
             this.btnZoomOut = new MaterialSkin.Controls.MaterialButton();
-            this.Images = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
+            this.chkHideDone = new MaterialSkin.Controls.MaterialCheckbox();
             ((System.ComponentModel.ISupportInitialize)(this.OlvWorkLog)).BeginInit();
             this.SuspendLayout();
             // 
@@ -126,6 +127,12 @@
             this.LastUpdated.Text = "LastUpdated";
             this.LastUpdated.Width = 150;
             // 
+            // Images
+            // 
+            this.Images.AspectName = "Images";
+            this.Images.Text = "Images";
+            this.Images.Width = 80;
+            // 
             // TxtWorkLog
             // 
             this.TxtWorkLog.AnimateReadOnly = false;
@@ -205,17 +212,29 @@
             this.btnZoomOut.UseVisualStyleBackColor = true;
             this.btnZoomOut.Click += new System.EventHandler(this.btnZoomOut_Click);
             // 
-            // Images
+            // chkHideDone
             // 
-            this.Images.AspectName = "Images";
-            this.Images.Text = "Images";
-            this.Images.Width = 80;
+            this.chkHideDone.AutoSize = true;
+            this.chkHideDone.Depth = 0;
+            this.chkHideDone.Location = new System.Drawing.Point(231, 88);
+            this.chkHideDone.Margin = new System.Windows.Forms.Padding(0);
+            this.chkHideDone.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.chkHideDone.MouseState = MaterialSkin.MouseState.HOVER;
+            this.chkHideDone.Name = "chkHideDone";
+            this.chkHideDone.ReadOnly = false;
+            this.chkHideDone.Ripple = true;
+            this.chkHideDone.Size = new System.Drawing.Size(116, 37);
+            this.chkHideDone.TabIndex = 5;
+            this.chkHideDone.Text = "HIDE DONE";
+            this.chkHideDone.UseVisualStyleBackColor = true;
+            this.chkHideDone.CheckedChanged += new System.EventHandler(this.chkHideDone_CheckedChanged);
             // 
             // WorkLogForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1138, 674);
+            this.Controls.Add(this.chkHideDone);
             this.Controls.Add(this.btnZoomOut);
             this.Controls.Add(this.btnZoomIn);
             this.Controls.Add(this.BtnTemp1);
@@ -245,5 +264,6 @@
         private MaterialSkin.Controls.MaterialButton btnZoomIn;
         private MaterialSkin.Controls.MaterialButton btnZoomOut;
         private BrightIdeasSoftware.OLVColumn Images;
+        private MaterialSkin.Controls.MaterialCheckbox chkHideDone;
     }
 }

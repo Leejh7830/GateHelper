@@ -184,12 +184,15 @@
     <Compile Include="Utils\Util_RDP.cs" />
     <Compile Include="Utils\Util_ServerList.cs" />
     <Compile Include="Utils\Util_Test.cs" />
-    <Compile Include="WorkLogForm.cs">
+    <Compile Include="WorkLog\WorkLogForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="WorkLogForm.Designer.cs">
+    <Compile Include="WorkLog\WorkLogForm.Designer.cs">
       <DependentUpon>WorkLogForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="WorkLog\WorkLogModel.cs" />
+    <Compile Include="WorkLog\WorkLogRepository.cs" />
+    <Compile Include="WorkLog\WorkLogService.cs" />
     <EmbeddedResource Include="MainUI.resx">
       <DependentUpon>MainUI.cs</DependentUpon>
     </EmbeddedResource>
@@ -201,7 +204,7 @@
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-    <EmbeddedResource Include="WorkLogForm.resx">
+    <EmbeddedResource Include="WorkLog\WorkLogForm.resx">
       <DependentUpon>WorkLogForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="packages.config" />

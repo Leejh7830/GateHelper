@@ -874,7 +874,8 @@ namespace GateHelper
             }
         }
         
-        private void ObjectListView1_CellEditFinished(object sender, BrightIdeasSoftware.CellEditEventArgs e)
+        private void ObjectListView1_
+            (object sender, BrightIdeasSoftware.CellEditEventArgs e)
         {
             if (e.Column != Memo) return;
 
