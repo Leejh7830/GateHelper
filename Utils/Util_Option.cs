@@ -54,6 +54,7 @@ namespace GateHelper
                             if (!info.Notified && (now - info.FirstSeenUtc).TotalMilliseconds >= _appSettings.PopupGraceMs)
                             {
                                 string msg = $"팝업창이 {ToPrettySeconds(_appSettings.PopupGraceMs)}초 이상 떠 있습니다.";
+                                MessageBox.Show($"팝업창이 {ToPrettySeconds(_appSettings.PopupGraceMs)}초 이상 떠 있습니다.", "확인", MessageBoxButtons.OK);
                                 if (Application.OpenForms["MainUI"] is MainUI mainUI)
                                 {
                                     mainUI.Invoke(new Action(() => mainUI.ShowTrayNotification("알림", msg, ToolTipIcon.Warning)));
