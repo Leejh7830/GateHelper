@@ -42,14 +42,11 @@ namespace GateHelper
         private void WorkLogForm_Load(object sender, EventArgs e)
         {
             InitializeLogFile(); // 로그 시스템 초기화
-            LogMessage("WorkLogForm Loading Start", Level.Info);
 
             InitListView();
             WireEvents();
             SetupContextMenu();
             LoadData();
-
-            LogMessage("WorkLogForm Load Completed", Level.Info);
         }
 
         private void InitListView()
@@ -133,7 +130,7 @@ namespace GateHelper
             _cms.Items.Add(new ToolStripMenuItem("Add New Item", null, (s, e) => AddNewEntry()));
             _cms.Items.Add(new ToolStripMenuItem("Delete Selected", null, (s, e) => DeleteSelectedEntries()));
             _cms.Items.Add(new ToolStripSeparator());
-            _cms.Items.Add(new ToolStripMenuItem("Open Log File", null, (s, e) => OpenLogFile())); // 로그 열기 메뉴 추가
+            // _cms.Items.Add(new ToolStripMenuItem("Open Log File", null, (s, e) => OpenLogFile())); // 로그 열기 메뉴 추가
         }
 
         private void SaveData()
@@ -158,9 +155,9 @@ namespace GateHelper
             {
                 if (!File.Exists(_dataPath))
                 {
-                    LogMessage("WorkLog.json not found. Initializing new data.", Level.Info);
                     _data = new WorkLogData();
                     _items = _data.Items;
+                    LogMessage("New Data File Created (First Run)", Level.Info); // 최초 실행 시만 기록
                     return;
                 }
 
@@ -173,7 +170,8 @@ namespace GateHelper
                     _data.Items = _items;
                     chkHideDone.Checked = _data.HideDone;
 
-                    LogMessage($"Data loaded. Items: {_items.Count}", Level.Info);
+                    // [핵심] 여러 줄의 로그를 이 시점에 한 줄로 요약
+                    LogMessage($"WorkLog Started - Loaded Items: {_items.Count}, FontSize: {_data.FontSize}", Level.Info);
 
                     this.BeginInvoke(new Action(() => {
                         ChangeFontSize(0);
@@ -182,12 +180,10 @@ namespace GateHelper
                 }
                 else
                 {
-                    LogMessage("JSON Deserialization failed (null).", Level.Error);
+                    LogMessage("Data Load Failed (Deserialization null)", Level.Error);
                     _data = new WorkLogData();
                     _items = _data.Items;
                 }
-
-                ApplyFilter(TxtWorkLog.Text);
             }
             catch (Exception ex)
             {
@@ -516,8 +512,28 @@ namespace GateHelper
         {
             if (e.Model is WorkLogEntry entry)
             {
-                if (entry.Status == "DONE") { e.Item.BackColor = Color.LightGray; e.Item.ForeColor = Color.DimGray; }
-                else if (entry.Status == "ING..") { e.Item.BackColor = Color.Yellow; e.Item.ForeColor = Color.Black; }
+                // 1. 기본 색상 로직
+                if (entry.Status == "DONE")
+                {
+                    e.Item.BackColor = Color.LightGray;
+                    e.Item.ForeColor = Color.DimGray;
+                }
+                else if (entry.Status == "ING..")
+                {
+                    e.Item.BackColor = Color.Yellow;
+                    e.Item.ForeColor = Color.Black;
+                }
+
+                // 2. 리마인더 로직 (7일 이상 경과)
+                if (entry.Status == "OPEN" || entry.Status == "ING..")
+                {
+                    if ((DateTime.Now - entry.Date).TotalDays >= 7)
+                    {
+                        e.Item.ForeColor = Color.Red;
+                        // FontStyle만 추가할 때는 아래와 같이 기존 폰트를 활용하는 것이 안전합니다.
+                        e.Item.Font = new Font(OlvWorkLog.Font, FontStyle.Bold);
+                    }
+                }
             }
         }
 

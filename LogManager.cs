@@ -139,7 +139,7 @@ namespace GateHelper
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, Level.Error, $"Failed to open log file: {_currentLogFilePath}");
+                LogException(ex, Level.Error, $"Failed to open log file: {_currentLogFilePath}");
                 MessageBox.Show($"Failed to open log file.\n{ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
