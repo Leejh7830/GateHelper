@@ -1026,6 +1026,43 @@ namespace GateHelper
             }
         }
 
+        public void ShowTrayNotification(string title, string message, ToolTipIcon iconType)
+        {
+            if (this.notifyIcon1 != null)
+            {
+                if (this.InvokeRequired)
+                {
+                    this.Invoke(new Action(() => ShowTrayNotification(title, message, iconType)));
+                    return;
+                }
+
+                // 1. 아이콘을 트레이에 보이게 설정
+                this.notifyIcon1.Icon = this.Icon ?? SystemIcons.Information;
+                this.notifyIcon1.Visible = true;
+
+                this.notifyIcon1.BalloonTipTitle = title;
+                this.notifyIcon1.BalloonTipText = message;
+                this.notifyIcon1.BalloonTipIcon = iconType;
+
+                this.notifyIcon1.BalloonTipClosed -= HideTrayIcon;
+                this.notifyIcon1.BalloonTipClicked -= HideTrayIcon;
+
+                // 3. 이벤트 연결: 사용자가 X를 누르거나(Closed), 클릭했을 때(Clicked)만 실행
+                this.notifyIcon1.BalloonTipClosed += HideTrayIcon;
+                this.notifyIcon1.BalloonTipClicked += HideTrayIcon;
+
+                this.notifyIcon1.ShowBalloonTip(30000); // 30초 설정 (시스템에 따라 다름)
+            }
+        }
+
+        // 아이콘을 트레이에서 사라지게 하는 메서드
+        private void HideTrayIcon(object sender, EventArgs e)
+        {
+            if (this.notifyIcon1 != null)
+            {
+                this.notifyIcon1.Visible = false;
+            }
+        }
 
         private void StartRdpDetect(string serverName)
         {
