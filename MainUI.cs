@@ -47,7 +47,6 @@ namespace GateHelper
         // 연결상태 감지용
         private string _lastDriverStatus = "";
         private string _lastInternetStatus = "";
-        private string _lastPopupStatus = "";
         private bool _isStatusTickRunning = false; // 타이머 겹침 방지, 진행중인지
         private DateTime _lastTickAtUtc = DateTime.MinValue; // 타이머 겹침 방지, 시간체크용
 
@@ -126,9 +125,10 @@ namespace GateHelper
         // ✦ TimerTick : Driver/Network/Popup/UDP Status Check
         private async void TimerStatusChecker_Tick(object sender, EventArgs e)
         {
-            timer1.Stop(); // 밀린 틱 방지: 일단 멈추고 들어간다
+            // 1. 밀린 틱 방지 및 재진입 가드
+            timer1.Stop();
 
-            if (_isStatusTickRunning) // 재진입 가드
+            if (_isStatusTickRunning)
             {
                 LogMessage("[Tick] Re-entrancy blocked", Level.Info);
                 timer1.Start();
@@ -138,32 +138,33 @@ namespace GateHelper
 
             try
             {
-                // 실제 틱 간격 로깅(확인용)
+                // --- 틱 간격 로깅 (디버그용) ---
                 var now = DateTime.UtcNow;
                 if (_lastTickAtUtc != DateTime.MinValue)
                 {
                     var deltaMs = (now - _lastTickAtUtc).TotalMilliseconds;
-                    ///////////////////   LogMessage($"[Tick Δ] {deltaMs:F0} ms", Level.Info);
+                    // LogMessage($"[Tick Δ] {deltaMs:F0} ms", Level.Info);
                 }
                 _lastTickAtUtc = now;
 
+                // 공통 색상 설정
                 Color onColor = ColorTranslator.FromHtml("#4CAF50"); // Green 500
                 Color offColor = ColorTranslator.FromHtml("#F44336"); // Red 500
-                Color whiteColor = Color.White;
 
-                // 🔍 Driver 상태
+                // 🔍 1. Driver 상태 체크
                 bool driverOn = (_driver != null && chromeDriverManager.IsDriverAlive(_driver));
                 string newDriverStatus = driverOn ? "ON" : "OFF";
                 lblDriverStatus.Text = $"Driver {newDriverStatus}";
                 lblDriverStatus.BackColor = driverOn ? onColor : offColor;
                 lblDriverStatus.ForeColor = Color.White;
+
                 if (_lastDriverStatus != newDriverStatus)
                 {
                     LogMessage($"[Status Change] Driver {newDriverStatus}", driverOn ? Level.Info : Level.Error);
                     _lastDriverStatus = newDriverStatus;
                 }
 
-                // Driver OFF 감지 시 UDP 수신 중지
+                // Driver OFF 감지 시 UDP 수신 중지 로직
                 if (!driverOn && Util_Rdp.IsUdpReceiving)
                 {
                     Util_Rdp.StopBroadcastReceiveLoop();
@@ -171,75 +172,66 @@ namespace GateHelper
                     LogMessage("[자동] 드라이버 OFF 감지, UDP 수신 중지", Level.Info);
                 }
 
-                // 🔍 Network 상태
+                // 🔍 2. Network 상태 체크
                 bool netOn = chromeDriverManager.IsInternetAvailable();
                 string newNetStatus = netOn ? "ON" : "OFF";
                 lblInternetStatus.Text = $"Network {newNetStatus}";
                 lblInternetStatus.BackColor = netOn ? onColor : offColor;
                 lblInternetStatus.ForeColor = Color.White;
+
                 if (_lastInternetStatus != newNetStatus)
                 {
                     LogMessage($"[Status Change] Network {newNetStatus}", netOn ? Level.Info : Level.Error);
                     _lastInternetStatus = newNetStatus;
                 }
 
-                // 🔍 UDP 상태
+                // 🔍 3. UDP 상태 업데이트
                 Util_Rdp.UpdateUDPStatusLabel(Util_Rdp.IsUdpReceiving);
 
-                // 🔍 팝업 감지 상태 추가
-                bool popupFeatureOn = _appSettings.DisablePopup; // 현재 로직 유지
-                string newPopupStatus = popupFeatureOn ? "ON" : "OFF";
-                lblPopupStatus.Text = $"Detect {newPopupStatus} ({_popupCount})";
-                lblPopupStatus.BackColor = popupFeatureOn ? onColor : offColor;
-                lblPopupStatus.ForeColor = whiteColor;
 
-                if (_lastPopupStatus != newPopupStatus)
-                {
-                    LogMessage($"[Status Change] Popup Detect {newPopupStatus}", Level.Info);
-                    _lastPopupStatus = newPopupStatus;
-                }
+                // 🔍 4. 팝업 감지 상태 업데이트 (설정값 기반)
+                // DisablePopup 변수 명칭에 따라 true일 때 OFF, false일 때 ON으로 처리
+                bool popupFeatureOn = !_appSettings.DisablePopup;
 
-                // 팝업 감지/모달 처리
+                // 타이머마다 UI를 갱신해주는 이유는 카운트 숫자를 최신화하기 위함입니다.
+                Util_Option.UpdatePopupStatus(lblPopupStatus, popupFeatureOn, Util_Option.GetLockHandledCount());
+
                 if (driverOn && popupFeatureOn)
                 {
                     try
                     {
-                        bool popupHandled = await Util_Option.HandleWindows(_driver, mainHandle, _config);
-
-                        // 메인 핸들 최신화(예외 무시)
-                        try { mainHandle = _driver.CurrentWindowHandle; }
-                        catch (WebDriverException ex)
-                        {
-                            LogMessage($"Update mainHandle skipped: {ex.Message}", Level.Info);
-                        }
+                        // HandleWindows 호출 (라벨과 활성화 여부 전달)
+                        bool popupHandled = await Util_Option.HandleWindows(
+                            _driver,
+                            mainHandle,
+                            _config,
+                            lblPopupStatus,
+                            popupFeatureOn
+                        );
 
                         if (popupHandled)
                         {
-                            _popupCount++;
-                            LogMessage($"Closed Popups: {_popupCount}", Level.Info);
+                            _popupCount = Util_Option.GetLockHandledCount();
+                            LogMessage($"[자동화] 잠금 화면 해제 완료 (누적: {_popupCount})", Level.Info);
                         }
-                    }
-                    catch (NoSuchWindowException ex)
-                    {
-                        LogMessage($"FATAL: 메인 창 복귀 실패: {ex.Message}", Level.Critical);
-                        // UI 표시만 OFF로
-                        driverOn = false;
-                        return; // finally에서 가드/타이머 복구됨
-                    }
-                    catch (WebDriverException ex)
-                    {
-                        LogMessage($"HandleWindows 중 WebDriver 오류: {ex.Message}", Level.Error);
+
+                        try { mainHandle = _driver.CurrentWindowHandle; } catch { }
                     }
                     catch (Exception ex)
                     {
-                        LogException(ex, Level.Error);
+                        LogMessage($"HandleWindows 실행 중 예외: {ex.Message}", Level.Error);
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error, "TimerStatusChecker_Tick 전체 오류");
+            }
             finally
             {
+                // 5. 가드 해제 및 타이머 재시작
                 _isStatusTickRunning = false;
-                timer1.Start(); // 밀린 틱 방지: 여기서 다시 시작
+                timer1.Start();
             }
         }
 
@@ -587,7 +579,11 @@ namespace GateHelper
 
                 if (oldDisablePopup != _appSettings.DisablePopup)
                 {
-                    Util_Option.UpdatePopupStatus(lblPopupStatus, !_appSettings.DisablePopup, _popupCount);
+                    bool isEnabled = !_appSettings.DisablePopup;
+                    string statusText = isEnabled ? "ON" : "OFF";
+                    LogMessage($"[Status Change] Popup Detect {statusText}", Level.Info);
+
+                    Util_Option.UpdatePopupStatus(lblPopupStatus, isEnabled, Util_Option.GetLockHandledCount());
                 }
 
                 if (oldUseUdpReceive != _appSettings.UseUDP)

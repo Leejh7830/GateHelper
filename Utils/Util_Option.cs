@@ -11,143 +11,101 @@ namespace GateHelper
 {
     class Util_Option
     {
-        // 팝업 지속 감지용 상태 캐시 (핸들별 첫 감지 시각/알림 여부)
-        private class SeenInfo
-        {
-            public DateTime FirstSeenUtc;
-            public bool Notified;
-        }
-
-        // 팝업 핸들 상태
-        private static readonly Dictionary<string, SeenInfo> _seenWindows = new Dictionary<string, SeenInfo>();
+        #region Fields & Properties
 
         // 그레이스 타임 (ms), 첫감지후 알림간격
         private static AppSettings _appSettings = new AppSettings();
 
-        /////////////////////////////////////////////////////////////////////////////////////////
+        // 비밀번호 모달을 성공적으로 처리한 누적 횟수
+        private static int _lockHandledCount = 0;
 
-        public static async Task<bool> HandleWindows(IWebDriver driver, string mainHandle, Config config)
+        // 현재 카운트를 외부(MainUI)에서 가져갈 수 있게 Getter 추가
+        public static int GetLockHandledCount() => _lockHandledCount;
+
+        #endregion
+
+
+        #region Public Methods (HandleWindows)
+        public static async Task<bool> HandleWindows(IWebDriver driver, string mainHandle, Config config, Label popupStatusLabel, bool isFeatureEnabled)
         {
             bool wasHandled = false;
 
-            // 1) 팝업 처리 로직 (WindowHandles 감지)
+            // 1. UI 상태 업데이트 (진입 시점에 현재 상태 표시)
+            // 숫자는 내부 변수인 _lockHandledCount를 사용합니다.
+            UpdatePopupStatus(popupStatusLabel, isFeatureEnabled, _lockHandledCount);
+
+            // 옵션이 꺼져 있으면 로직을 타지 않고 바로 리턴
+            if (!isFeatureEnabled) return false;
+
             try
             {
-                var handles = driver.WindowHandles;
-                var now = DateTime.UtcNow;
-                var currentPopups = new HashSet<string>();
-
-                if (handles != null)
-                {
-                    foreach (var h in handles)
-                    {
-                        if (h == mainHandle) continue;
-                        currentPopups.Add(h);
-
-                        if (!_seenWindows.ContainsKey(h))
-                        {
-                            _seenWindows[h] = new SeenInfo { FirstSeenUtc = now, Notified = false };
-                        }
-                        else
-                        {
-                            var info = _seenWindows[h];
-                            if (!info.Notified && (now - info.FirstSeenUtc).TotalMilliseconds >= _appSettings.PopupGraceMs)
-                            {
-                                string msg = $"팝업창이 {ToPrettySeconds(_appSettings.PopupGraceMs)}초 이상 떠 있습니다.";
-                                MessageBox.Show($"팝업창이 {ToPrettySeconds(_appSettings.PopupGraceMs)}초 이상 떠 있습니다.", "확인", MessageBoxButtons.OK);
-                                if (Application.OpenForms["MainUI"] is MainUI mainUI)
-                                {
-                                    mainUI.Invoke(new Action(() => mainUI.ShowTrayNotification("알림", msg, ToolTipIcon.Warning)));
-                                }
-                                info.Notified = true;
-                                wasHandled = true;
-                            }
-                        }
-                    }
-                }
-
-                var toRemove = new List<string>();
-                foreach (var kv in _seenWindows) if (!currentPopups.Contains(kv.Key)) toRemove.Add(kv.Key);
-                foreach (var key in toRemove) _seenWindows.Remove(key);
-            }
-            catch (Exception ex) { LogException(ex, Level.Error, "Popup detection error"); }
-
-            // 2) 모달 및 알럿 통합 처리
-            try
-            {
-                // A. 잠금 화면(비밀번호) 모달 감지 및 처리
+                // 2. 잠금 화면(비밀번호) 모달 처리
                 if (IsLockModalPresent(driver))
                 {
-                    LogMessage("Detected a Lock screen Modal.", Level.Info);
-
+                    LogMessage("Detected a Lock screen Modal. Processing...", Level.Info);
                     try
                     {
-                        bool ok = await EnterModalPassword(driver, config);
-                        wasHandled |= ok;
-                        if (ok) LogMessage("Lock screen Modal was handled successfully.", Level.Info);
+                        // 비밀번호 입력 시도
+                        if (await EnterModalPassword(driver, config))
+                        {
+                            _lockHandledCount++;
+                            wasHandled = true;
+
+                            // 성공 시 카운트가 올라갔으므로 UI 즉시 업데이트
+                            UpdatePopupStatus(popupStatusLabel, isFeatureEnabled, _lockHandledCount);
+                        }
                     }
                     catch (UnhandledAlertException ex)
                     {
-                        // [복구 로직] 비밀번호 입력 중 Base64 알럿 발생 시
-                        LogMessage($"[HandleWindows] 보안 알럿 감지: {ex.AlertText}", Level.Error);
+                        // [보안 복구] 입력 중 브라우저 보안 알럿(alert) 발생 시
+                        LogMessage($"[Action] Security alert detected: {ex.AlertText}", Level.Error);
 
-                        // 알럿 닫기 (대기 시간 0.5초 포함된 메서드)
+                        // 알럿을 닫고 다시 시도
                         await HandleUnexpectedAlert(driver);
 
-                        // 알럿 제거 후 처음부터 다시 입력 시도 (가장 확실한 복구 방법)
-                        LogMessage("알럿 해결 후 비밀번호 재입력을 시도합니다.", Level.Info);
-                        bool retryOk = await EnterModalPassword(driver, config);
-                        wasHandled |= retryOk;
+                        if (await EnterModalPassword(driver, config))
+                        {
+                            _lockHandledCount++;
+                            wasHandled = true;
+                            UpdatePopupStatus(popupStatusLabel, isFeatureEnabled, _lockHandledCount);
+                        }
                     }
                 }
-                // B. 그 외 알 수 없는 일반 모달 감지 (사용자님의 CssSelector 로직 활용)
+                // 3. 비밀번호 모달은 없지만, 다른 '알 수 없는 모달'이 떠 있는 경우
                 else if (IsUnknownModalPresent(driver))
                 {
-                    LogMessage("[Detect] Unknown modal present (not handled).", Level.Info);
-                    // 필요 시 여기에 트레이 알림 추가 가능
+                    // 다른 작업 없이 로그로만 기록 (사용자 확인용)
+                    LogMessage("[Detect] Unknown modal or dialog is currently displayed.", Level.Info);
                 }
             }
             catch (Exception ex)
             {
-                LogException(ex, Level.Error, "Modal handling error");
+                LogException(ex, Level.Error, "Modal handling error in HandleWindows");
             }
 
-            // 3) 복귀 정책 (작업이 수행된 경우에만 메인 핸들로 전환)
-            try
+            // 4. 복귀 정책 (작업이 수행되었거나 창 전환이 일어났을 경우 안전하게 메인으로 복귀)
+            if (wasHandled)
             {
-                if (wasHandled)
+                try
                 {
+                    // 현재 열려있는 핸들 목록에 메인 핸들이 있는지 확인 후 전환
                     if (driver.WindowHandles.Contains(mainHandle))
                     {
                         driver.SwitchTo().Window(mainHandle);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                LogMessage($"Restore window failed: {ex.Message}", Level.Critical);
+                catch (Exception ex)
+                {
+                    LogMessage($"Failed to switch back to main handle: {ex.Message}", Level.Info);
+                }
             }
 
             return wasHandled;
         }
+        #endregion
 
-        // 알럿 처리 전용 보조 메서드
-        private static async Task HandleUnexpectedAlert(IWebDriver driver)
-        {
-            try
-            {
-                await Task.Delay(500); // 확인 전 대기
-                IAlert alert = driver.SwitchTo().Alert();
-                alert.Accept();
-                LogMessage("보안 알럿을 확인하고 닫았습니다.", Level.Info);
 
-                if (Application.OpenForms["MainUI"] is MainUI mainUI)
-                    mainUI.Invoke(new Action(() => mainUI.ShowTrayNotification("자동 복구", "보안 알럿을 해제했습니다.", ToolTipIcon.Info)));
-
-                await Task.Delay(500); // 확인 후 안정화 대기
-            }
-            catch (NoAlertPresentException) { }
-        }
+        #region Element Checkers
 
         // lock_passwd 모달만 판별(알림이 있으면 DOM 접근 스킵)
         private static bool IsLockModalPresent(IWebDriver driver)
@@ -177,21 +135,20 @@ namespace GateHelper
             }
         }
 
-        // lock_passwd가 아닌 '다른' 모달 간단 감지(닫지 않음, 로그만)
         private static bool IsUnknownModalPresent(IWebDriver driver)
         {
             try
             {
-                // [보안] 알럿이 이미 떠 있으면 DOM 조회 시 예외가 발생하므로 우선 체크
+                // 브라우저 알럿이 떠 있으면 DOM 조회가 불가능하므로 스킵
                 if (IsAlertPresent(driver, out _)) return false;
 
-                // 1. lock_passwd(비밀번호창) 모달이 있으면 여기선 false (역할 분리)
-                if (IsLockModalPresent(driver)) return false;
+                // 비밀번호 모달이 아닐 때만 체크
+                // (IsLockModalPresent에서 이미 체크하므로 HandleWindows 흐름상 안전하지만 중복 방어)
 
-                // 2. 사용자님의 기존 CSS 패턴 (매우 우수함: role, aria, 다양한 클래스 대응)
+                // 범용적인 모달/다이얼로그 패턴 (role, aria, common classes)
                 var any = driver.FindElements(By.CssSelector("[role='dialog'], [aria-modal='true'], .modal, .dialog, .MuiDialog-root"));
 
-                // 3. 요소가 존재하고 실제로 화면에 보이는지(Displayed)까지 체크하면 더 정확합니다.
+                // 요소가 존재하고 화면에 보이는 상태인지 확인
                 return any != null && any.Count > 0 && any[0].Displayed;
             }
             catch
@@ -200,6 +157,10 @@ namespace GateHelper
             }
         }
 
+        #endregion
+
+
+        #region Private Logic
 
         private static async Task<bool> EnterModalPassword(IWebDriver driver, Config config)
         {
@@ -282,7 +243,23 @@ namespace GateHelper
             }
         }
 
+        // 알럿 처리 전용 보조 메서드
+        private static async Task HandleUnexpectedAlert(IWebDriver driver)
+        {
+            try
+            {
+                await Task.Delay(500); // 확인 전 대기
+                IAlert alert = driver.SwitchTo().Alert();
+                alert.Accept();
+                LogMessage("보안 알럿을 확인하고 닫았습니다.", Level.Info);
 
+                if (Application.OpenForms["MainUI"] is MainUI mainUI)
+                    mainUI.Invoke(new Action(() => mainUI.ShowTrayNotification("자동 복구", "보안 알럿을 해제했습니다.", ToolTipIcon.Info)));
+
+                await Task.Delay(500); // 확인 후 안정화 대기
+            }
+            catch (NoAlertPresentException) { }
+        }
 
         private static bool IsAlertPresent(IWebDriver driver, out string alertText)
         {
@@ -304,7 +281,30 @@ namespace GateHelper
             }
         }
 
+        #endregion
 
+        // 팝업 감지 상태 라벨 업데이트
+        public static void UpdatePopupStatus(Label popupStatusLabel, bool isPopupEnabled, int successCount)
+        {
+            if (popupStatusLabel == null) return;
+
+            // UI 스레드 안전성 확보
+            if (popupStatusLabel.InvokeRequired)
+            {
+                popupStatusLabel.Invoke(new Action(() => UpdatePopupStatus(popupStatusLabel, isPopupEnabled, successCount)));
+                return;
+            }
+
+            // MainUI에서 사용하는 색상과 동일하게 설정 (Green/Red)
+            Color onColor = ColorTranslator.FromHtml("#4CAF50");
+            Color offColor = ColorTranslator.FromHtml("#F44336");
+
+            string statusText = isPopupEnabled ? "ON" : "OFF";
+            popupStatusLabel.Text = $"Detect {statusText} ({successCount})";
+
+            popupStatusLabel.BackColor = isPopupEnabled ? onColor : offColor;
+            popupStatusLabel.ForeColor = Color.White;
+        }
 
         public static void SetPopupGraceMs(int ms)
         {
@@ -315,17 +315,6 @@ namespace GateHelper
         private static string ToPrettySeconds(int ms)
         {
             return (ms % 1000 == 0) ? (ms / 1000).ToString() : (ms / 1000.0).ToString("0.###");
-        }
-
-        // 팝업 감지 상태 라벨 업데이트
-        public static void UpdatePopupStatus(Label popupStatusLabel, bool isPopupEnabled, int popupCount)
-        {
-            string newPopupStatus = isPopupEnabled ? "ON" : "OFF";
-            popupStatusLabel.Text = $"Detect {newPopupStatus} ({popupCount})";
-            Color onColor = Color.Red;
-            Color offColor = Color.Green;
-            popupStatusLabel.BackColor = isPopupEnabled ? onColor : offColor;
-            popupStatusLabel.ForeColor = Color.White;
         }
 
         /////////////////////////////////////////////////////////////////////////////////////////
