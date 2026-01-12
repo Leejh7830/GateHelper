@@ -19,6 +19,9 @@ namespace GateHelper
         // 비밀번호 모달을 성공적으로 처리한 누적 횟수
         private static int _lockHandledCount = 0;
 
+        // 이전 상태 저장
+        private static bool? _lastLoggedEnabled = null;
+
         // 현재 카운트를 외부(MainUI)에서 가져갈 수 있게 Getter 추가
         public static int GetLockHandledCount() => _lockHandledCount;
 
@@ -253,9 +256,10 @@ namespace GateHelper
                 alert.Accept();
                 LogMessage("보안 알럿을 확인하고 닫았습니다.", Level.Info);
 
+                /*
                 if (Application.OpenForms["MainUI"] is MainUI mainUI)
                     mainUI.Invoke(new Action(() => mainUI.ShowTrayNotification("자동 복구", "보안 알럿을 해제했습니다.", ToolTipIcon.Info)));
-
+                */
                 await Task.Delay(500); // 확인 후 안정화 대기
             }
             catch (NoAlertPresentException) { }
@@ -288,20 +292,27 @@ namespace GateHelper
         {
             if (popupStatusLabel == null) return;
 
-            // UI 스레드 안전성 확보
+            // 1. 상태가 변했을 때만 로그 출력 (중앙 관리)
+            if (_lastLoggedEnabled != isPopupEnabled)
+            {
+                string statusText = isPopupEnabled ? "ON" : "OFF";
+                LogMessage($"[Status Change] Popup Detect {statusText}", Level.Info);
+
+                // 현재 상태 저장
+                _lastLoggedEnabled = isPopupEnabled;
+            }
+
+            // 2. UI 업데이트 (기존 로직)
             if (popupStatusLabel.InvokeRequired)
             {
                 popupStatusLabel.Invoke(new Action(() => UpdatePopupStatus(popupStatusLabel, isPopupEnabled, successCount)));
                 return;
             }
 
-            // MainUI에서 사용하는 색상과 동일하게 설정 (Green/Red)
             Color onColor = ColorTranslator.FromHtml("#4CAF50");
             Color offColor = ColorTranslator.FromHtml("#F44336");
 
-            string statusText = isPopupEnabled ? "ON" : "OFF";
-            popupStatusLabel.Text = $"Detect {statusText} ({successCount})";
-
+            popupStatusLabel.Text = $"Detect {(isPopupEnabled ? "ON" : "OFF")} ({successCount})";
             popupStatusLabel.BackColor = isPopupEnabled ? onColor : offColor;
             popupStatusLabel.ForeColor = Color.White;
         }

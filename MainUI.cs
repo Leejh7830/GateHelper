@@ -191,7 +191,7 @@ namespace GateHelper
 
                 // 🔍 4. 팝업 감지 상태 업데이트 (설정값 기반)
                 // DisablePopup 변수 명칭에 따라 true일 때 OFF, false일 때 ON으로 처리
-                bool popupFeatureOn = !_appSettings.DisablePopup;
+                bool popupFeatureOn = _appSettings.DisablePopup;
 
                 // 타이머마다 UI를 갱신해주는 이유는 카운트 숫자를 최신화하기 위함입니다.
                 Util_Option.UpdatePopupStatus(lblPopupStatus, popupFeatureOn, Util_Option.GetLockHandledCount());
@@ -579,11 +579,7 @@ namespace GateHelper
 
                 if (oldDisablePopup != _appSettings.DisablePopup)
                 {
-                    bool isEnabled = !_appSettings.DisablePopup;
-                    string statusText = isEnabled ? "ON" : "OFF";
-                    LogMessage($"[Status Change] Popup Detect {statusText}", Level.Info);
-
-                    Util_Option.UpdatePopupStatus(lblPopupStatus, isEnabled, Util_Option.GetLockHandledCount());
+                    Util_Option.UpdatePopupStatus(lblPopupStatus, _appSettings.DisablePopup, _popupCount);
                 }
 
                 if (oldUseUdpReceive != _appSettings.UseUDP)
@@ -1022,6 +1018,7 @@ namespace GateHelper
             }
         }
 
+        #region Notify Icon
         public void ShowTrayNotification(string title, string message, ToolTipIcon iconType)
         {
             if (this.notifyIcon1 != null)
@@ -1059,6 +1056,7 @@ namespace GateHelper
                 this.notifyIcon1.Visible = false;
             }
         }
+        #endregion
 
         private void StartRdpDetect(string serverName)
         {
