@@ -469,8 +469,11 @@ namespace GateHelper
                 int nextNo = _items.Count == 0 ? 1 : _items.Max(x => x.No) + 1;
                 var entry = new WorkLogEntry { No = nextNo, Date = DateTime.Now };
                 _items.Add(entry);
-                OlvWorkLog.AddObject(entry);
-                OlvWorkLog.SelectObject(entry, true);
+                OlvWorkLog.AddObject(entry); // 리스트뷰에 즉시 반영
+                OlvWorkLog.DeselectAll(); // 기존에 선택된 모든 항목을 해제
+
+                OlvWorkLog.SelectedObject = entry; // 새로 만든 줄 선택
+                OlvWorkLog.EnsureModelVisible(entry); // 화면 밖이면 스크롤 이동
 
                 LogMessage($"Entry added. No: {nextNo}", Level.Info);
                 SaveData();
@@ -567,5 +570,10 @@ namespace GateHelper
 
         private void btnZoomIn_Click(object sender, EventArgs e) => ChangeFontSize(1f);
         private void btnZoomOut_Click(object sender, EventArgs e) => ChangeFontSize(-1f);
+
+        private void btnAddNew_Click(object sender, EventArgs e)
+        {
+            AddNewEntry();
+        }
     }
 }

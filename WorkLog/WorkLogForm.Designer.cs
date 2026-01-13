@@ -43,6 +43,7 @@
             this.btnZoomIn = new MaterialSkin.Controls.MaterialButton();
             this.btnZoomOut = new MaterialSkin.Controls.MaterialButton();
             this.chkHideDone = new MaterialSkin.Controls.MaterialCheckbox();
+            this.btnAddNew = new MaterialSkin.Controls.MaterialButton();
             ((System.ComponentModel.ISupportInitialize)(this.OlvWorkLog)).BeginInit();
             this.SuspendLayout();
             // 
@@ -176,6 +177,7 @@
             this.btnZoomIn.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.btnZoomIn.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.btnZoomIn.Depth = 0;
+            this.btnZoomIn.Font = new System.Drawing.Font("굴림", 9F);
             this.btnZoomIn.HighEmphasis = true;
             this.btnZoomIn.Icon = null;
             this.btnZoomIn.Location = new System.Drawing.Point(995, 102);
@@ -206,7 +208,7 @@
             this.btnZoomOut.NoAccentTextColor = System.Drawing.Color.Empty;
             this.btnZoomOut.Size = new System.Drawing.Size(64, 36);
             this.btnZoomOut.TabIndex = 4;
-            this.btnZoomOut.Text = "-";
+            this.btnZoomOut.Text = "ㅡ";
             this.btnZoomOut.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
             this.btnZoomOut.UseAccentColor = true;
             this.btnZoomOut.UseVisualStyleBackColor = true;
@@ -229,11 +231,33 @@
             this.chkHideDone.UseVisualStyleBackColor = true;
             this.chkHideDone.CheckedChanged += new System.EventHandler(this.chkHideDone_CheckedChanged);
             // 
+            // btnAddNew
+            // 
+            this.btnAddNew.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnAddNew.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnAddNew.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnAddNew.Depth = 0;
+            this.btnAddNew.HighEmphasis = true;
+            this.btnAddNew.Icon = null;
+            this.btnAddNew.Location = new System.Drawing.Point(899, 102);
+            this.btnAddNew.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnAddNew.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnAddNew.Name = "btnAddNew";
+            this.btnAddNew.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnAddNew.Size = new System.Drawing.Size(64, 36);
+            this.btnAddNew.TabIndex = 6;
+            this.btnAddNew.Text = "ROW+";
+            this.btnAddNew.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
+            this.btnAddNew.UseAccentColor = false;
+            this.btnAddNew.UseVisualStyleBackColor = true;
+            this.btnAddNew.Click += new System.EventHandler(this.btnAddNew_Click);
+            // 
             // WorkLogForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1138, 674);
+            this.Controls.Add(this.btnAddNew);
             this.Controls.Add(this.chkHideDone);
             this.Controls.Add(this.btnZoomOut);
             this.Controls.Add(this.btnZoomIn);
@@ -265,5 +289,6 @@
         private MaterialSkin.Controls.MaterialButton btnZoomOut;
         private BrightIdeasSoftware.OLVColumn Images;
         private MaterialSkin.Controls.MaterialCheckbox chkHideDone;
+        private MaterialSkin.Controls.MaterialButton btnAddNew;
     }
 }

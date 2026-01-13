@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -128,7 +130,13 @@ namespace GateHelper
             }
             catch (WebDriverException ex)
             {
-                LogMessage($"IsLockModalPresent skipped (WebDriver): {ex.Message}", Level.Info);
+                // 1. 전체 화면을 먼저 찍고 (현재 사용자가 보는 그대로)
+                Util_Option.SaveFullDesktopScreenshot("WebDriver_Error_1");
+
+                // 2. 브라우저 내부를 찍습니다.
+                Util_Option.SaveScreenshot(driver, "WebDriver_Error_2");
+
+                LogMessage($"IsLockModalPresent skipped: {ex.Message}", Level.Info);
                 return false;
             }
             catch (Exception ex)
@@ -329,5 +337,57 @@ namespace GateHelper
         }
 
         /////////////////////////////////////////////////////////////////////////////////////////
+        ///
+
+        public static void SaveFullDesktopScreenshot(string reason)
+        {
+            try
+            {
+                string folderPath = Path.Combine(Application.StartupPath, "FullScreenshots");
+                if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+                // 주 모니터의 해상도 가져오기
+                Rectangle bounds = Screen.PrimaryScreen.Bounds;
+
+                using (Bitmap bitmap = new Bitmap(bounds.Width, bounds.Height))
+                {
+                    using (Graphics g = Graphics.FromImage(bitmap))
+                    {
+                        // 화면 전체 복사
+                        g.CopyFromScreen(Point.Empty, Point.Empty, bounds.Size);
+                    }
+
+                    string fileName = $"{DateTime.Now:yyyyMMdd_HHmmss}_Full_{reason}.png";
+                    bitmap.Save(Path.Combine(folderPath, fileName), ImageFormat.Png);
+                    LogMessage($"[Full Screenshot] Saved: {fileName}", Level.Info);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"Desktop Screenshot Failed: {ex.Message}", Level.Error);
+            }
+        }
+
+        private static void SaveScreenshot(IWebDriver driver, string reason)
+        {
+            try
+            {
+                string folderPath = Path.Combine(Application.StartupPath, "ErrorScreenshots");
+                if (!Directory.Exists(folderPath)) Directory.CreateDirectory(folderPath);
+
+                string fileName = $"{DateTime.Now:yyyyMMdd_HHmmss}_{reason}.png";
+                string filePath = Path.Combine(folderPath, fileName);
+
+                ITakesScreenshot screenshotDriver = driver as ITakesScreenshot;
+                Screenshot screenshot = screenshotDriver.GetScreenshot();
+                screenshot.SaveAsFile(filePath);
+
+                LogMessage($"[Screenshot] Saved due to: {reason} -> {fileName}", Level.Info);
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"Failed to save screenshot: {ex.Message}", Level.Error);
+            }
+        }
     }
 }
