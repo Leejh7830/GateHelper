@@ -143,6 +143,12 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppSettings.cs" />
+    <Compile Include="SandBox\BitFlipControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SandBox\BitFlipControl.Designer.cs">
+      <DependentUpon>BitFlipControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="ChromeDriverManager.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="ConfigManager.cs" />
@@ -151,6 +157,18 @@
     </Compile>
     <Compile Include="OptionForm.Designer.cs">
       <DependentUpon>OptionForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SandBox\GameListControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SandBox\GameListControl.Designer.cs">
+      <DependentUpon>GameListControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SandBox\SandBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SandBox\SandBox.Designer.cs">
+      <DependentUpon>SandBox.cs</DependentUpon>
     </Compile>
     <Compile Include="ThemeManager.cs" />
     <Compile Include="TransparentPictureBox.cs">
@@ -192,6 +210,9 @@
     <Compile Include="WorkLog\WorkLogModel.cs" />
     <Compile Include="WorkLog\WorkLogRepository.cs" />
     <Compile Include="WorkLog\WorkLogService.cs" />
+    <EmbeddedResource Include="SandBox\BitFlipControl.resx">
+      <DependentUpon>BitFlipControl.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="MainUI.resx">
       <DependentUpon>MainUI.cs</DependentUpon>
     </EmbeddedResource>
@@ -202,6 +223,12 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SandBox\GameListControl.resx">
+      <DependentUpon>GameListControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SandBox\SandBox.resx">
+      <DependentUpon>SandBox.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="WorkLog\WorkLogForm.resx">
       <DependentUpon>WorkLogForm.cs</DependentUpon>

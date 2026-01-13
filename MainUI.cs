@@ -64,6 +64,9 @@ namespace GateHelper
         // Work Log 관리용
         private WorkLogForm _workLogForm;
 
+        // SandBox 관리용
+        private SandBox _sandbox = null;
+
 
         private enum PresetSelection { None, A, B }
 
@@ -1121,6 +1124,21 @@ namespace GateHelper
                 LogException(ex, Level.Error);
                 MessageBox.Show(this, "An error occurred while opening the Work Log window.", "Error",
                   MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void btnSandBox_Click(object sender, EventArgs e)
+        {
+            // 창이 없거나 닫혀서 메모리에서 해제된 경우 새로 생성
+            if (_sandbox == null || _sandbox.IsDisposed)
+            {
+                _sandbox = new SandBox();
+                _sandbox.Show();
+            }
+            else
+            {
+                // 이미 떠 있다면 앞으로 가져오기
+                _sandbox.BringToFront();
             }
         }
     }

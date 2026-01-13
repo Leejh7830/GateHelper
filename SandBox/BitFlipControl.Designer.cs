@@ -1,0 +1,137 @@
+﻿namespace GateHelper
+{
+    partial class BitFlipControl
+    {
+        /// <summary> 
+        /// 필수 디자이너 변수입니다.
+        /// </summary>
+        private System.ComponentModel.IContainer components = null;
+
+        /// <summary> 
+        /// 사용 중인 모든 리소스를 정리합니다.
+        /// </summary>
+        /// <param name="disposing">관리되는 리소스를 삭제해야 하면 true이고, 그렇지 않으면 false입니다.</param>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing && (components != null))
+            {
+                components.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+
+        #region 구성 요소 디자이너에서 생성한 코드
+
+        /// <summary> 
+        /// 디자이너 지원에 필요한 메서드입니다. 
+        /// 이 메서드의 내용을 코드 편집기로 수정하지 마세요.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.materialCard1 = new MaterialSkin.Controls.MaterialCard();
+            this.cmbDifficulty = new MaterialSkin.Controls.MaterialComboBox();
+            this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.btnBack = new MaterialSkin.Controls.MaterialButton();
+            this.materialCard1.SuspendLayout();
+            this.SuspendLayout();
+            // 
+            // materialCard1
+            // 
+            this.materialCard1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.materialCard1.Controls.Add(this.btnBack);
+            this.materialCard1.Controls.Add(this.cmbDifficulty);
+            this.materialCard1.Controls.Add(this.tableLayoutPanel1);
+            this.materialCard1.Depth = 0;
+            this.materialCard1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.materialCard1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.materialCard1.Location = new System.Drawing.Point(0, 0);
+            this.materialCard1.Margin = new System.Windows.Forms.Padding(14);
+            this.materialCard1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialCard1.Name = "materialCard1";
+            this.materialCard1.Padding = new System.Windows.Forms.Padding(14);
+            this.materialCard1.Size = new System.Drawing.Size(600, 650);
+            this.materialCard1.TabIndex = 0;
+            // 
+            // cmbDifficulty
+            // 
+            this.cmbDifficulty.AutoResize = false;
+            this.cmbDifficulty.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.cmbDifficulty.Depth = 0;
+            this.cmbDifficulty.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawVariable;
+            this.cmbDifficulty.DropDownHeight = 174;
+            this.cmbDifficulty.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.cmbDifficulty.DropDownWidth = 121;
+            this.cmbDifficulty.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Pixel);
+            this.cmbDifficulty.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.cmbDifficulty.FormattingEnabled = true;
+            this.cmbDifficulty.IntegralHeight = false;
+            this.cmbDifficulty.ItemHeight = 43;
+            this.cmbDifficulty.Items.AddRange(new object[] {
+            "Easy",
+            "Normal",
+            "Hard",
+            "Extreme"});
+            this.cmbDifficulty.Location = new System.Drawing.Point(9, 2);
+            this.cmbDifficulty.MaxDropDownItems = 4;
+            this.cmbDifficulty.MouseState = MaterialSkin.MouseState.OUT;
+            this.cmbDifficulty.Name = "cmbDifficulty";
+            this.cmbDifficulty.Size = new System.Drawing.Size(121, 49);
+            this.cmbDifficulty.StartIndex = 0;
+            this.cmbDifficulty.TabIndex = 1;
+            this.cmbDifficulty.SelectedIndexChanged += new System.EventHandler(this.cmbDifficulty_SelectedIndexChanged);
+            // 
+            // tableLayoutPanel1
+            // 
+            this.tableLayoutPanel1.ColumnCount = 2;
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.tableLayoutPanel1.Location = new System.Drawing.Point(14, 64);
+            this.tableLayoutPanel1.Name = "tableLayoutPanel1";
+            this.tableLayoutPanel1.RowCount = 2;
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
+            this.tableLayoutPanel1.Size = new System.Drawing.Size(572, 572);
+            this.tableLayoutPanel1.TabIndex = 0;
+            // 
+            // btnBack
+            // 
+            this.btnBack.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnBack.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnBack.Depth = 0;
+            this.btnBack.HighEmphasis = true;
+            this.btnBack.Icon = null;
+            this.btnBack.Location = new System.Drawing.Point(141, 6);
+            this.btnBack.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnBack.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnBack.Name = "btnBack";
+            this.btnBack.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnBack.Size = new System.Drawing.Size(64, 36);
+            this.btnBack.TabIndex = 1;
+            this.btnBack.Text = "Back";
+            this.btnBack.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnBack.UseAccentColor = false;
+            this.btnBack.UseVisualStyleBackColor = true;
+            this.btnBack.Click += new System.EventHandler(this.btnBack_Click);
+            // 
+            // BitFlipControl
+            // 
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.Controls.Add(this.materialCard1);
+            this.Name = "BitFlipControl";
+            this.Size = new System.Drawing.Size(600, 650);
+            this.materialCard1.ResumeLayout(false);
+            this.materialCard1.PerformLayout();
+            this.ResumeLayout(false);
+
+        }
+
+        #endregion
+
+        private MaterialSkin.Controls.MaterialCard materialCard1;
+        private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private MaterialSkin.Controls.MaterialButton btnBack;
+        private MaterialSkin.Controls.MaterialComboBox cmbDifficulty;
+    }
+}

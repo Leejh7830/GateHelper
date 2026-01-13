@@ -61,6 +61,7 @@ namespace GateHelper
             this.MenuItem2_Favorite = new System.Windows.Forms.ToolStripMenuItem();
             this.txtMemoEditor = new System.Windows.Forms.TextBox();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.btnSandBox = new MaterialSkin.Controls.MaterialButton();
             this.BtnWorkLog1 = new MaterialSkin.Controls.MaterialButton();
             this.dummyControlOutsideTab = new MaterialSkin.Controls.MaterialButton();
             this.BtnOpenImages1 = new MaterialSkin.Controls.MaterialButton();
@@ -548,6 +549,7 @@ namespace GateHelper
             // 
             // tabPage3
             // 
+            this.tabPage3.Controls.Add(this.btnSandBox);
             this.tabPage3.Controls.Add(this.BtnWorkLog1);
             this.tabPage3.Controls.Add(this.dummyControlOutsideTab);
             this.tabPage3.Controls.Add(this.BtnOpenImages1);
@@ -561,6 +563,26 @@ namespace GateHelper
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "REFERENCE";
             this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // btnSandBox
+            // 
+            this.btnSandBox.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnSandBox.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnSandBox.Depth = 0;
+            this.btnSandBox.HighEmphasis = true;
+            this.btnSandBox.Icon = null;
+            this.btnSandBox.Location = new System.Drawing.Point(259, 310);
+            this.btnSandBox.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnSandBox.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnSandBox.Name = "btnSandBox";
+            this.btnSandBox.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnSandBox.Size = new System.Drawing.Size(89, 36);
+            this.btnSandBox.TabIndex = 103;
+            this.btnSandBox.Text = "SandBox";
+            this.btnSandBox.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnSandBox.UseAccentColor = false;
+            this.btnSandBox.UseVisualStyleBackColor = true;
+            this.btnSandBox.Click += new System.EventHandler(this.btnSandBox_Click);
             // 
             // BtnWorkLog1
             // 
@@ -1061,6 +1083,7 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton BtnOpenLog2;
         private MaterialSkin.Controls.MaterialButton BtnWorkLog1;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
+        private MaterialSkin.Controls.MaterialButton btnSandBox;
     }
 }
 
