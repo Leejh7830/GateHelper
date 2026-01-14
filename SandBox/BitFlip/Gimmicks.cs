@@ -106,7 +106,7 @@ namespace GateHelper
     // [3] 개별 기믹 클래스들
     public class ShakeGimmick : GimmickBase
     {
-        public ShakeGimmick(BitFlipControl parent) : base("화면 흔들림", 5, parent) { }
+        public ShakeGimmick(BitFlipControl parent) : base("화면 흔들림", 7, parent) { }
         public override async Task ExecuteAsync()
         {
             // 랜덤 플립 1회
@@ -118,7 +118,7 @@ namespace GateHelper
 
     public class LockGimmick : GimmickBase
     {
-        public LockGimmick(BitFlipControl parent) : base("시스템 잠금", 3, parent) { }
+        public LockGimmick(BitFlipControl parent) : base("시스템 잠금", 5, parent) { }
         public override async Task ExecuteAsync()
         {
             // 잠금 위치만 변경 (UI 업데이트는 매니저가 일괄 처리)
@@ -127,7 +127,7 @@ namespace GateHelper
         }
     }
 
-    public class NoiseGimmick : GimmickBase
+    public class NoiseGimmick : GimmickBase // 미구현
     {
         public NoiseGimmick(BitFlipControl parent) : base("데이터 노이즈", 2, parent) { }
         public override async Task ExecuteAsync()
