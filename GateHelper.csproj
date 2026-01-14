@@ -143,10 +143,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppSettings.cs" />
-    <Compile Include="SandBox\BitFlipControl.cs">
+    <Compile Include="SandBox\BitFlip\BitFlipControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="SandBox\BitFlipControl.Designer.cs">
+    <Compile Include="SandBox\BitFlip\BitFlipControl.Designer.cs">
       <DependentUpon>BitFlipControl.cs</DependentUpon>
     </Compile>
     <Compile Include="ChromeDriverManager.cs" />
@@ -158,6 +158,7 @@
     <Compile Include="OptionForm.Designer.cs">
       <DependentUpon>OptionForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="SandBox\BitFlip\Gimmicks.cs" />
     <Compile Include="SandBox\GameListControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -210,7 +211,7 @@
     <Compile Include="WorkLog\WorkLogModel.cs" />
     <Compile Include="WorkLog\WorkLogRepository.cs" />
     <Compile Include="WorkLog\WorkLogService.cs" />
-    <EmbeddedResource Include="SandBox\BitFlipControl.resx">
+    <EmbeddedResource Include="SandBox\BitFlip\BitFlipControl.resx">
       <DependentUpon>BitFlipControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainUI.resx">
