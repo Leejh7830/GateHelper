@@ -29,15 +29,19 @@
         private void InitializeComponent()
         {
             this.materialCard1 = new MaterialSkin.Controls.MaterialCard();
+            this.btnBack = new MaterialSkin.Controls.MaterialButton();
             this.cmbDifficulty = new MaterialSkin.Controls.MaterialComboBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.btnBack = new MaterialSkin.Controls.MaterialButton();
+            this.btnReset = new MaterialSkin.Controls.MaterialButton();
+            this.lblTimer = new MaterialSkin.Controls.MaterialLabel();
             this.materialCard1.SuspendLayout();
             this.SuspendLayout();
             // 
             // materialCard1
             // 
             this.materialCard1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.materialCard1.Controls.Add(this.lblTimer);
+            this.materialCard1.Controls.Add(this.btnReset);
             this.materialCard1.Controls.Add(this.btnBack);
             this.materialCard1.Controls.Add(this.cmbDifficulty);
             this.materialCard1.Controls.Add(this.tableLayoutPanel1);
@@ -51,6 +55,26 @@
             this.materialCard1.Padding = new System.Windows.Forms.Padding(14);
             this.materialCard1.Size = new System.Drawing.Size(600, 650);
             this.materialCard1.TabIndex = 0;
+            // 
+            // btnBack
+            // 
+            this.btnBack.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnBack.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnBack.Depth = 0;
+            this.btnBack.HighEmphasis = true;
+            this.btnBack.Icon = null;
+            this.btnBack.Location = new System.Drawing.Point(210, 6);
+            this.btnBack.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnBack.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnBack.Name = "btnBack";
+            this.btnBack.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnBack.Size = new System.Drawing.Size(64, 36);
+            this.btnBack.TabIndex = 2;
+            this.btnBack.Text = "Back";
+            this.btnBack.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnBack.UseAccentColor = false;
+            this.btnBack.UseVisualStyleBackColor = true;
+            this.btnBack.Click += new System.EventHandler(this.btnBack_Click);
             // 
             // cmbDifficulty
             // 
@@ -71,7 +95,7 @@
             "Normal",
             "Hard",
             "Extreme"});
-            this.cmbDifficulty.Location = new System.Drawing.Point(9, 2);
+            this.cmbDifficulty.Location = new System.Drawing.Point(9, 0);
             this.cmbDifficulty.MaxDropDownItems = 4;
             this.cmbDifficulty.MouseState = MaterialSkin.MouseState.OUT;
             this.cmbDifficulty.Name = "cmbDifficulty";
@@ -94,25 +118,37 @@
             this.tableLayoutPanel1.Size = new System.Drawing.Size(572, 572);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
-            // btnBack
+            // btnReset
             // 
-            this.btnBack.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.btnBack.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.btnBack.Depth = 0;
-            this.btnBack.HighEmphasis = true;
-            this.btnBack.Icon = null;
-            this.btnBack.Location = new System.Drawing.Point(141, 6);
-            this.btnBack.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.btnBack.MouseState = MaterialSkin.MouseState.HOVER;
-            this.btnBack.Name = "btnBack";
-            this.btnBack.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.btnBack.Size = new System.Drawing.Size(64, 36);
-            this.btnBack.TabIndex = 1;
-            this.btnBack.Text = "Back";
-            this.btnBack.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.btnBack.UseAccentColor = false;
-            this.btnBack.UseVisualStyleBackColor = true;
-            this.btnBack.Click += new System.EventHandler(this.btnBack_Click);
+            this.btnReset.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnReset.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnReset.Depth = 0;
+            this.btnReset.HighEmphasis = true;
+            this.btnReset.Icon = null;
+            this.btnReset.Location = new System.Drawing.Point(137, 6);
+            this.btnReset.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnReset.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnReset.Name = "btnReset";
+            this.btnReset.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnReset.Size = new System.Drawing.Size(65, 36);
+            this.btnReset.TabIndex = 2;
+            this.btnReset.Text = "Reset";
+            this.btnReset.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnReset.UseAccentColor = false;
+            this.btnReset.UseVisualStyleBackColor = true;
+            this.btnReset.Click += new System.EventHandler(this.btnReset_Click);
+            // 
+            // lblTimer
+            // 
+            this.lblTimer.AutoSize = true;
+            this.lblTimer.Depth = 0;
+            this.lblTimer.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.lblTimer.Location = new System.Drawing.Point(479, 14);
+            this.lblTimer.MouseState = MaterialSkin.MouseState.HOVER;
+            this.lblTimer.Name = "lblTimer";
+            this.lblTimer.Size = new System.Drawing.Size(107, 19);
+            this.lblTimer.TabIndex = 3;
+            this.lblTimer.Text = "materialLabel1";
             // 
             // BitFlipControl
             // 
@@ -133,5 +169,7 @@
         private System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private MaterialSkin.Controls.MaterialButton btnBack;
         private MaterialSkin.Controls.MaterialComboBox cmbDifficulty;
+        private MaterialSkin.Controls.MaterialButton btnReset;
+        private MaterialSkin.Controls.MaterialLabel lblTimer;
     }
 }
