@@ -20,13 +20,14 @@ namespace GateHelper
 
             // 현재 구현된 기믹들
             var pool = new List<GimmickBase> {
-                new ShakeGimmick(_parent),
-                new LockGimmick(_parent),
-                new NoiseGimmick(_parent) // [추가] 빈 껍데기라도 넣어둬야 Take(3)이 의미가 있습니다.
+                //new ShakeGimmick(_parent),       
+                //new LockGimmick(_parent),        
+                new NoiseGimmick(_parent),       
+                //new VerticalFlipGimmick(_parent)
             };
 
             // 풀에 있는 기믹 중 최대 3개를 랜덤하게 선정
-            ActiveGimmicks = pool.OrderBy(x => _rand.Next()).Take(3).ToList();
+            ActiveGimmicks = pool.OrderBy(x => _rand.Next()).Take(1).ToList();
 
             _parent.lblTimer.ForeColor = System.Drawing.Color.Red;
             for (int i = 0; i < 10; i++)
@@ -64,7 +65,6 @@ namespace GateHelper
             foreach (var gimmick in ActiveGimmicks)
             {
                 gimmick.ElapsedSeconds++;
-
                 if (gimmick.ElapsedSeconds >= gimmick.Interval)
                 {
                     executionTasks.Add(gimmick.ExecuteAsync());
@@ -74,13 +74,9 @@ namespace GateHelper
 
             if (executionTasks.Count > 0)
             {
-                // [최적화] 실행할 기믹이 있을 때만 조작을 방지합니다.
-                _parent.tableLayoutPanel1.Enabled = false;
-
+                // [수정] 여기서 일괄적으로 Enabled = false를 하던 코드를 삭제했습니다.
                 await Task.WhenAll(executionTasks);
-
                 _parent.UpdateUI();
-                _parent.tableLayoutPanel1.Enabled = true;
             }
         }
     }
@@ -106,34 +102,89 @@ namespace GateHelper
     // [3] 개별 기믹 클래스들
     public class ShakeGimmick : GimmickBase
     {
-        public ShakeGimmick(BitFlipControl parent) : base("화면 흔들림", 7, parent) { }
+        public ShakeGimmick(BitFlipControl parent) : base("화면 흔들림", 9, parent) { }
         public override async Task ExecuteAsync()
         {
+            Parent.tableLayoutPanel1.Enabled = false; // 실행 동안 클릭 차단
             // 랜덤 플립 1회
             Parent.GimmickHandler.FlipSwitch(Parent.rand.Next(Parent.currentGridSize), Parent.rand.Next(Parent.currentGridSize));
             // 화면 흔들기
             await Parent.ShakeScreen(500, 12);
+            Parent.tableLayoutPanel1.Enabled = true; // 클릭 복구
         }
     }
 
     public class LockGimmick : GimmickBase
     {
-        public LockGimmick(BitFlipControl parent) : base("시스템 잠금", 5, parent) { }
+        public LockGimmick(BitFlipControl parent) : base("시스템 잠금", 7, parent) { }
         public override async Task ExecuteAsync()
         {
-            // 잠금 위치만 변경 (UI 업데이트는 매니저가 일괄 처리)
-            Parent.lockedPoint = new System.Drawing.Point(Parent.rand.Next(Parent.currentGridSize), Parent.rand.Next(Parent.currentGridSize));
-            await Task.CompletedTask;
+            Parent.tableLayoutPanel1.Enabled = false; // 실행 동안 클릭 차단
+            Parent.GimmickHandler.FlipSwitch(Parent.rand.Next(Parent.currentGridSize), Parent.rand.Next(Parent.currentGridSize));
+            await Parent.ShakeScreen(500, 12);
+            Parent.tableLayoutPanel1.Enabled = true; // 클릭 복구
+        }
+
+    }
+
+    // [기믹 3] 데이터 노이즈
+    public class NoiseGimmick : GimmickBase
+    {
+        public NoiseGimmick(BitFlipControl parent) : base("데이터 노이즈", 4, parent) { }
+
+        public override async Task ExecuteAsync()
+        {
+            // 글리치에 사용할 네온 컬러 배열
+            System.Drawing.Color[] glitchColors = {
+            System.Drawing.Color.Lime,    // 네온 그린
+            System.Drawing.Color.Cyan,    // 사이언
+            System.Drawing.Color.Magenta, // 마젠타
+            System.Drawing.Color.Yellow,  // 노란색
+            System.Drawing.Color.White    // 흰색
+        };
+
+            for (int i = 0; i < 8; i++)
+            {
+                foreach (var btn in Parent.gridButtons)
+                {
+                    btn.UseAccentColor = false;
+                    btn.BackColor = glitchColors[Parent.rand.Next(glitchColors.Length)];
+                    btn.Refresh();
+                }
+                await Task.Delay(50);
+            }
+
+            // 효과 종료 후에는 매니저가 UpdateUI를 호출해 다시 붉은색/흰색으로 복구합니다.
         }
     }
 
-    public class NoiseGimmick : GimmickBase // 미구현
+    // [기믹 4] 상하반전
+    public class VerticalFlipGimmick : GimmickBase
     {
-        public NoiseGimmick(BitFlipControl parent) : base("데이터 노이즈", 2, parent) { }
+        public VerticalFlipGimmick(BitFlipControl parent) : base("상하반전", 11, parent) { }
+
         public override async Task ExecuteAsync()
         {
-            // 곧 구현할 번쩍임 효과 자리
-            await Task.CompletedTask;
+            Parent.tableLayoutPanel1.Enabled = false; // 실행 동안 클릭 차단
+            int size = Parent.currentGridSize;
+            // 상하 반전 로직: y축의 절반만 돌면서 위아래 데이터를 교환함
+            for (int x = 0; x < size; x++)
+            {
+                for (int y = 0; y < size / 2; y++)
+                {
+                    bool temp = Parent.gridStates[x, y];
+                    Parent.gridStates[x, y] = Parent.gridStates[x, size - 1 - y];
+                    Parent.gridStates[x, size - 1 - y] = temp;
+                }
+            }
+
+            // 시각적 효과: 반전될 때 짧게 흔들림 추가
+            await Parent.ShakeScreen(300, 5);
+            Parent.tableLayoutPanel1.Enabled = true; // 클릭 복구
         }
     }
+
+
+
+
 }

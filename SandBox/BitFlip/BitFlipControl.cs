@@ -22,7 +22,6 @@ namespace GateHelper
 
         private Timer gameTimer;
         private int playTimeSeconds;
-        private int extremeTickCount;
 
         public struct DifficultyConfig
         {
@@ -147,6 +146,11 @@ namespace GateHelper
                 for (int c = 0; c < currentGridSize; c++)
                 {
                     var btn = gridButtons[c, r];
+
+                    // 1. [중요] 기믹이 입힌 네온 색상을 지우고 투명하게 리셋합니다.
+                    // 이 코드가 있어야 데이터 노이즈 효과가 끝난 후 다시 원래대로 돌아옵니다.
+                    btn.BackColor = Color.Transparent;
+
                     bool isLocked = (c == lockedPoint.X && r == lockedPoint.Y);
 
                     if (isLocked)
@@ -160,10 +164,14 @@ namespace GateHelper
                         btn.Enabled = true;
                         btn.Text = "";
                         bool state = gridStates[c, r];
+
+                        // 2. 버튼의 데이터 상태에 따라 스타일을 결정합니다.
                         btn.Type = state ? MaterialButton.MaterialButtonType.Contained : MaterialButton.MaterialButtonType.Outlined;
                         btn.HighEmphasis = state;
-                        btn.UseAccentColor = state;
+                        btn.UseAccentColor = state; // 여기서 다시 붉은색 테마 색상이 적용됩니다.
                     }
+
+                    // 변경사항을 즉시 화면에 반영합니다.
                     btn.Invalidate();
                 }
             }
