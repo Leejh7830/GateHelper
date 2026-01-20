@@ -1,14 +1,11 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
-using System.Text.RegularExpressions;
 
 namespace GateHelper
 {
@@ -244,7 +241,7 @@ namespace GateHelper
                         if (parts.Length >= 2)
                         {
                             userId = parts[0].Trim();
-                            token  = parts[1].Trim();
+                            token = parts[1].Trim();
 
                             if (string.Equals(token, "INITIAL_CONNECT", StringComparison.OrdinalIgnoreCase))
                                 tag = "[LOGIN]";

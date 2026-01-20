@@ -1,12 +1,12 @@
-﻿using OpenQA.Selenium;
+﻿using BrightIdeasSoftware;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
 using System;
-using System.Windows.Forms;
 using System.Threading;
+using System.Windows.Forms;
 using static GateHelper.LogManager;
 using static GateHelper.Util_Element;
-using BrightIdeasSoftware;
 
 namespace GateHelper
 {

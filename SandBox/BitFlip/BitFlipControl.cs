@@ -15,7 +15,12 @@ namespace GateHelper
         internal MaterialButton[,] gridButtons;
         internal bool[,] gridStates;
         internal int currentGridSize;
-        internal Point lockedPoint = new Point(-1, -1);
+
+        private bool _isProcessing = false; // 셔플, 초기화, 승리 처리 등 '작업 중'임을 나타냄
+        private bool _isGameActive = false; // 실제 플레이 가능한 상태인지 여부
+
+        // 기믹용 (잠금)
+        public List<Point> lockedPoints = new List<Point>();
 
         // 로직 관리자
         internal GimmickManager GimmickHandler;
@@ -49,53 +54,63 @@ namespace GateHelper
 
         private async void StartNewGame(string levelName)
         {
+            // 이미 처리 중이면 아무것도 하지 않음
+            if (_isProcessing) return;
+
+            _isProcessing = true;
+            _isGameActive = false; // 셔플 중에는 게임 활성 상태가 아님
+
+            gameTimer.Stop(); // 이전 타이머가 돌고 있다면 정지
+
             var config = GetConfig(levelName);
             CreateGrid(config.GridSize);
-            gameTimer.Stop();
 
-            // 1. 공통 상태 초기화
-            lockedPoint = new Point(-1, -1);
+            // 상태 초기화 로직 (잠금 리스트 비우기 등)
+            lockedPoints.Clear();
             UpdateUI();
 
-            // 2. 익스트림 모드 설정
             if (levelName == "Extreme")
             {
-                // 새로운 기믹 3개를 랜덤으로 뽑습니다. (내부에서 새 객체가 생성되므로 시간은 0임)
+                GimmickHandler.ResetAllGimmickStates();
                 await GimmickHandler.ApplyRandomGimmicksAsync();
             }
-            else
-            {
-                // 익스트림이 아니면 활성화된 기믹 목록을 비워줍니다.
-                GimmickHandler.ActiveGimmicks.Clear();
-            }
 
-            // 3. 셔플 애니메이션
+            // 3. 셔플 애니메이션 (이동안 _isProcessing은 계속 true임)
             await ShuffleAnimationAsync(config.ShuffleCount);
 
-            // 4. 게임 시작 데이터 설정
-            playTimeSeconds = 0;
-            // extremeTickCount = 0; // <-- [삭제] 이제 필요 없습니다!
+            if (levelName == "Extreme") GimmickHandler.ManageProgression(0);
 
+            playTimeSeconds = 0;
             lblTimer.Text = "00:00";
-            lblTimer.ForeColor = Color.White;
+
+            _isGameActive = true;  // 이제 플레이 가능
+            _isProcessing = false; // 작업 완료
             gameTimer.Start();
         }
 
-        private async void CheckVictory()
+        private void CheckVictory()
         {
-            bool isAllClear = gridStates.Cast<bool>().All(state => state);
+            // 이미 승리 처리가 시작되었다면 중복 실행 방지
+            if (!_isGameActive || _isProcessing) return;
 
-            if (isAllClear)
+            bool isVictory = true;
+            for (int r = 0; r < currentGridSize; r++)
             {
+                for (int c = 0; c < currentGridSize; c++)
+                {
+                    if (gridStates[c, r]) { isVictory = false; break; }
+                }
+            }
+
+            if (isVictory)
+            {
+                _isGameActive = false; // 게임 종료
+                _isProcessing = true;  // 승리 메시지 처리 시작
                 gameTimer.Stop();
-                TimeSpan t = TimeSpan.FromSeconds(playTimeSeconds);
-                string finalTime = string.Format("{0:D2}:{1:D2}", t.Minutes, t.Seconds);
-                lblTimer.Text = finalTime;
 
-                if (cmbDifficulty.Text == "Extreme") await ShakeScreen(800, 10);
+                MessageBox.Show($"Clear! Time: {lblTimer.Text}");
 
-                MessageBox.Show($"Clear Time: {finalTime}\nLogic Synchronized!", "System Victory");
-                StartNewGame(cmbDifficulty.Text);
+                _isProcessing = false; // 메시지 닫은 후 상태 해제
             }
         }
 
@@ -151,7 +166,7 @@ namespace GateHelper
                     // 이 코드가 있어야 데이터 노이즈 효과가 끝난 후 다시 원래대로 돌아옵니다.
                     btn.BackColor = Color.Transparent;
 
-                    bool isLocked = (c == lockedPoint.X && r == lockedPoint.Y);
+                    bool isLocked = lockedPoints.Contains(new Point(c, r));
 
                     if (isLocked)
                     {
@@ -227,10 +242,12 @@ namespace GateHelper
 
             if (cmbDifficulty.Text == "Extreme")
             {
-                // 매초마다 각 기믹의 내부 카운터를 업데이트하고 필요시 실행
+                // [추가] 매니저에게 시간을 전달하여 기믹 단계 관리
+                GimmickHandler.ManageProgression(playTimeSeconds);
+
                 await GimmickHandler.UpdateTickAsync();
 
-                // [경고 연출] 아무 기믹이나 곧 터질 것 같을 때(주기 1초 전) 빨간색 표시
+                // 경고 연출 (기존 동일)
                 bool isAnyGimmickNear = GimmickHandler.ActiveGimmicks.Any(g => g.ElapsedSeconds == g.Interval - 1);
                 lblTimer.ForeColor = isAnyGimmickNear ? Color.Red : Color.White;
 
@@ -242,15 +259,25 @@ namespace GateHelper
             }
         }
 
+        // 버튼 클릭 이벤트
         private async void OnGridClick(object sender, EventArgs e)
         {
+            // 게임이 시작되지 않았거나, 셔플/승리 처리 중이면 클릭 무시
+            if (!_isGameActive || _isProcessing) return;
+
             if (!(sender is MaterialButton btn)) return;
             Point pos = (Point)btn.Tag;
 
-            if (pos == lockedPoint) { await ShakeScreen(100, 2); return; }
+            if (lockedPoints.Contains(pos))
+            {
+                await ShakeScreen(100, 2);
+                return;
+            }
 
             GimmickHandler.FlipSwitch(pos.X, pos.Y);
             UpdateUI();
+
+            // 승리 체크
             CheckVictory();
         }
 
@@ -264,6 +291,30 @@ namespace GateHelper
                 case "Extreme": return new DifficultyConfig { GridSize = 9, ShuffleCount = 50 };
                 default: return new DifficultyConfig { GridSize = 5, ShuffleCount = 15 };
             }
+        }
+
+        // 기믹 추가 알림을 표시하는 메서드
+        internal async Task ShowGimmickNotify(string msg)
+        {
+            if (lblGimmickNotify == null) return;
+
+            // 1. 텍스트 및 색상 설정
+            lblGimmickNotify.Text = msg;
+            lblGimmickNotify.ForeColor = Color.Red;
+
+            // 2. 굵게(Bold) 처리 및 크기 조절 (기존 폰트 유지하면서 스타일만 변경)
+            // 만약 크기를 키우고 싶다면 12f 대신 원하는 숫자를 넣으세요.
+            lblGimmickNotify.Font = new Font(lblGimmickNotify.Font.FontFamily, 12f, FontStyle.Bold);
+
+            // 3. 표시 및 최상단 배치
+            lblGimmickNotify.Visible = true;
+            lblGimmickNotify.BringToFront();
+
+            // 4. 대기 후 사라짐
+            await Task.Delay(2000);
+
+            lblGimmickNotify.Visible = false;
+            lblGimmickNotify.Text = "";
         }
 
         private void cmbDifficulty_SelectedIndexChanged(object sender, EventArgs e) => StartNewGame(cmbDifficulty.Text);

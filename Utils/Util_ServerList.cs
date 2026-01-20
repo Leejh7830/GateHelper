@@ -1,17 +1,14 @@
 ﻿using BrightIdeasSoftware;
+using OpenQA.Selenium;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
-using System.Net;
-using System.Runtime.Serialization.Formatters.Binary;
-using System.Windows.Forms;
-using static GateHelper.LogManager;
-using System.Text.Json;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
-using OpenQA.Selenium;
+using System.Windows.Forms;
+using static GateHelper.LogManager;
 
 namespace GateHelper
 {
@@ -28,7 +25,7 @@ namespace GateHelper
             public DateTime LastConnected { get; set; }
             public string Memo { get; set; }
             public bool IsFavorite { get; set; }
-            
+
 
             // --- 추가: UDP 접속용 ---
             public bool IsInUse { get; set; }         // 사용 기록
@@ -177,7 +174,7 @@ namespace GateHelper
 
                 string jsonString = File.ReadAllText(_serverFilePath);
                 List<ServerInfo> serverList = JsonSerializer.Deserialize<List<ServerInfo>>(jsonString);
-                
+
                 listView.Items.Clear();
 
                 listView.SetObjects(serverList);

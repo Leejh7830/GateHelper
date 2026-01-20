@@ -34,12 +34,14 @@
             this.btnBack = new MaterialSkin.Controls.MaterialButton();
             this.cmbDifficulty = new MaterialSkin.Controls.MaterialComboBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.lblGimmickNotify = new System.Windows.Forms.Label();
             this.materialCard1.SuspendLayout();
             this.SuspendLayout();
             // 
             // materialCard1
             // 
             this.materialCard1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.materialCard1.Controls.Add(this.lblGimmickNotify);
             this.materialCard1.Controls.Add(this.lblTimer);
             this.materialCard1.Controls.Add(this.btnReset);
             this.materialCard1.Controls.Add(this.btnBack);
@@ -61,12 +63,12 @@
             this.lblTimer.AutoSize = true;
             this.lblTimer.Depth = 0;
             this.lblTimer.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.lblTimer.Location = new System.Drawing.Point(316, 15);
+            this.lblTimer.Location = new System.Drawing.Point(312, 9);
             this.lblTimer.MouseState = MaterialSkin.MouseState.HOVER;
             this.lblTimer.Name = "lblTimer";
-            this.lblTimer.Size = new System.Drawing.Size(107, 19);
+            this.lblTimer.Size = new System.Drawing.Size(42, 19);
             this.lblTimer.TabIndex = 3;
-            this.lblTimer.Text = "materialLabel1";
+            this.lblTimer.Text = "Timer";
             // 
             // btnReset
             // 
@@ -127,7 +129,7 @@
             "Normal",
             "Hard",
             "Extreme"});
-            this.cmbDifficulty.Location = new System.Drawing.Point(9, -2);
+            this.cmbDifficulty.Location = new System.Drawing.Point(9, -4);
             this.cmbDifficulty.MaxDropDownItems = 4;
             this.cmbDifficulty.MouseState = MaterialSkin.MouseState.OUT;
             this.cmbDifficulty.Name = "cmbDifficulty";
@@ -150,6 +152,16 @@
             this.tableLayoutPanel1.Size = new System.Drawing.Size(572, 572);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
+            // lblGimmickNotify
+            // 
+            this.lblGimmickNotify.AutoSize = true;
+            this.lblGimmickNotify.Location = new System.Drawing.Point(357, 10);
+            this.lblGimmickNotify.Name = "lblGimmickNotify";
+            this.lblGimmickNotify.Size = new System.Drawing.Size(38, 12);
+            this.lblGimmickNotify.TabIndex = 5;
+            this.lblGimmickNotify.Text = "label1";
+            this.lblGimmickNotify.Visible = false;
+            // 
             // BitFlipControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -171,5 +183,6 @@
         internal MaterialSkin.Controls.MaterialButton btnReset;
         internal MaterialSkin.Controls.MaterialLabel lblTimer;
         internal System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
+        private System.Windows.Forms.Label lblGimmickNotify;
     }
 }

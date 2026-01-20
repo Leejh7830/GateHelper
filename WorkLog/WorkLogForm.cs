@@ -7,7 +7,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static GateHelper.LogManager; // LogManager 활용을 위한 static import
@@ -86,7 +85,8 @@ namespace GateHelper
 
             if (colImages != null)
             {
-                colImages.AspectGetter = row => {
+                colImages.AspectGetter = row =>
+                {
                     var entry = (WorkLogEntry)row;
                     return entry.HasImage ? $"📸 ({entry.ImagePaths.Count})" : "";
                 };
@@ -173,7 +173,8 @@ namespace GateHelper
                     // [핵심] 여러 줄의 로그를 이 시점에 한 줄로 요약
                     LogMessage($"WorkLog Started - Loaded Items: {_items.Count}, FontSize: {_data.FontSize}", Level.Info);
 
-                    this.BeginInvoke(new Action(() => {
+                    this.BeginInvoke(new Action(() =>
+                    {
                         ChangeFontSize(0);
                         ApplyFilter(TxtWorkLog.Text);
                     }));
@@ -377,7 +378,8 @@ namespace GateHelper
                     this.BeginInvoke(new Action(() => OlvWorkLog.FinishCellEdit()));
                 };
 
-                this.BeginInvoke(new Action(() => {
+                this.BeginInvoke(new Action(() =>
+                {
                     if (cb != null && !cb.IsDisposed)
                     {
                         cb.Focus();

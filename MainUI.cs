@@ -1,11 +1,8 @@
-﻿using BrightIdeasSoftware;
-using MaterialSkin;
+﻿using MaterialSkin;
 using MaterialSkin.Controls;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
-using SeleniumExtras.WaitHelpers;
 using System;
-using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Drawing;
@@ -292,7 +289,7 @@ namespace GateHelper
 
             Util_Connect.AutoConnect_2_Step(_driver, _config, mainHandle);
             // Util_Connect.AutoConnect_3_Step(_driver);
-            
+
         }
 
         private async void BtnSearch1_Click(object sender, EventArgs e)
@@ -663,7 +660,7 @@ namespace GateHelper
 
             if (hit.Column == Memo)  // 메모 열이면
             {
-                if (hit.Item != null) 
+                if (hit.Item != null)
                     OlvServerList.StartCellEdit(hit.Item, hit.ColumnIndex);
                 return;
             }
@@ -868,7 +865,7 @@ namespace GateHelper
                 e.Item.Font = new Font(this.Font, FontStyle.Regular);
             }
         }
-        
+
         private void ObjectListView1_
             (object sender, BrightIdeasSoftware.CellEditEventArgs e)
         {
@@ -930,7 +927,7 @@ namespace GateHelper
                 if (serverInfo == null) continue;
 
                 // INITIAL_CONNECT/EXIT는 서버명이 아니므로 제외, 서버명인 경우에만 반영
-                bool isServerEvent = 
+                bool isServerEvent =
                     !string.Equals(serverNameOrToken, "INITIAL_CONNECT", StringComparison.OrdinalIgnoreCase) &&
                     !string.Equals(serverNameOrToken, "EXIT", StringComparison.OrdinalIgnoreCase);
 

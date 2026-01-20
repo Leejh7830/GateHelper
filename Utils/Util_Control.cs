@@ -1,12 +1,7 @@
-﻿using OpenQA.Selenium.Support.UI;
-using OpenQA.Selenium;
-using SeleniumExtras.WaitHelpers;
-using System;
+﻿using OpenQA.Selenium;
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
-using System.IO;
-using static GateHelper.LogManager;
 using static GateHelper.Util_Element;
 
 

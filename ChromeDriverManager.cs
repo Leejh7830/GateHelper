@@ -5,14 +5,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Text.RegularExpressions; // 상단 using 추가
 using System.Threading;
 using System.Windows.Forms;
-using WebDriverManager;
-using WebDriverManager.DriverConfigs.Impl;
 using static GateHelper.LogManager;
-using System.Management;
-using System.Drawing;
-using System.Text.RegularExpressions; // 상단 using 추가
 
 namespace GateHelper
 {
@@ -317,7 +313,7 @@ namespace GateHelper
                     if (latest != null) return latest.FullName;
                 }
             }
-            catch {  }
+            catch { }
 
             // 3) Selenium Manager 캐시: %LOCALAPPDATA%\selenium\...
             try
@@ -334,7 +330,7 @@ namespace GateHelper
                     if (latest != null) return latest.FullName;
                 }
             }
-            catch {  }
+            catch { }
 
             // 4) PATH 내 디렉터리 스캔
             try
@@ -348,11 +344,11 @@ namespace GateHelper
                     if (File.Exists(path)) return path;
                 }
             }
-            catch {  }
+            catch { }
 
             return null;
         }
-        
+
         private static string TryGetRunningChromeDriverPathViaWmi()
         {
             try
@@ -566,6 +562,6 @@ namespace GateHelper
             }
         }
 
-        
+
     }
 }

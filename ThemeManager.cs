@@ -1,8 +1,7 @@
-﻿using MaterialSkin;
+﻿using BrightIdeasSoftware;
+using MaterialSkin;
 using System.Drawing;
 using System.Windows.Forms;
-using GateHelper;
-using BrightIdeasSoftware;
 
 public class ThemeManager
 {

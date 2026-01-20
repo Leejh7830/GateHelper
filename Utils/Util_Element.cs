@@ -1,15 +1,9 @@
 ﻿using OpenQA.Selenium;
-using OpenQA.Selenium.Chrome;
 using OpenQA.Selenium.Support.UI;
-using System;
-using System.IO;
-using System.Windows.Forms;
-using Newtonsoft.Json;
 using SeleniumExtras.WaitHelpers;
-using System.Text;
+using System;
+using System.Windows.Forms;
 using static GateHelper.LogManager;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace GateHelper
 {

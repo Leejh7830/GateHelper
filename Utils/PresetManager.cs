@@ -1,6 +1,4 @@
-using System;
 using System.Windows.Forms;
-using OpenQA.Selenium;
 using static GateHelper.LogManager;
 
 namespace GateHelper
