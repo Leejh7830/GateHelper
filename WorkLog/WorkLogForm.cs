@@ -216,13 +216,24 @@ namespace GateHelper
                     {
                         if (img == null) return;
 
+                        // 이미지 저장 폴더 설정
                         string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "WorkLog_Images");
                         if (!Directory.Exists(imgDir)) Directory.CreateDirectory(imgDir);
 
-                        string fileName = $"{DateTime.Now:yyyyMMdd_HHmmss}_{DateTime.Now.Ticks}.jpg";
+                        // [개선] No + 타임스탬프 + 해당 로그의 이미지 순번(Index) 조합
+                        // 예: 105_20260122_141005_1.jpg, 105_20260122_141005_2.jpg
+                        int nextIndex = entry.ImagePaths.Count + 1; // 현재 리스트 개수 + 1
+                        string timePart = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+                        string fileName = $"{entry.No}_{timePart}_{nextIndex}.jpg";
                         string fullPath = Path.Combine(imgDir, fileName);
 
-                        LogMessage($"Saving image: {fileName}", Level.Info);
+                        // 만약 파일이 이미 존재할 경우를 대비한 안전 로직 (중복 방지 루프)
+                        int safetyCopy = 1;
+                        while (File.Exists(fullPath))
+                        {
+                            fileName = $"{entry.No}_{timePart}_{nextIndex}_{safetyCopy++}.jpg";
+                            fullPath = Path.Combine(imgDir, fileName);
+                        }
 
                         using (Bitmap bmp = new Bitmap(img))
                         {

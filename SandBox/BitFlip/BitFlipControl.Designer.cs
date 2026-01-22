@@ -29,12 +29,12 @@
         private void InitializeComponent()
         {
             this.materialCard1 = new MaterialSkin.Controls.MaterialCard();
+            this.lblGimmickNotify = new System.Windows.Forms.Label();
             this.lblTimer = new MaterialSkin.Controls.MaterialLabel();
             this.btnReset = new MaterialSkin.Controls.MaterialButton();
             this.btnBack = new MaterialSkin.Controls.MaterialButton();
             this.cmbDifficulty = new MaterialSkin.Controls.MaterialComboBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.lblGimmickNotify = new System.Windows.Forms.Label();
             this.materialCard1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -57,6 +57,16 @@
             this.materialCard1.Padding = new System.Windows.Forms.Padding(14);
             this.materialCard1.Size = new System.Drawing.Size(600, 650);
             this.materialCard1.TabIndex = 0;
+            // 
+            // lblGimmickNotify
+            // 
+            this.lblGimmickNotify.AutoSize = true;
+            this.lblGimmickNotify.Location = new System.Drawing.Point(360, 12);
+            this.lblGimmickNotify.Name = "lblGimmickNotify";
+            this.lblGimmickNotify.Size = new System.Drawing.Size(38, 12);
+            this.lblGimmickNotify.TabIndex = 5;
+            this.lblGimmickNotify.Text = "label1";
+            this.lblGimmickNotify.Visible = false;
             // 
             // lblTimer
             // 
@@ -128,6 +138,7 @@
             "Easy",
             "Normal",
             "Hard",
+            "Insane",
             "Extreme"});
             this.cmbDifficulty.Location = new System.Drawing.Point(9, -4);
             this.cmbDifficulty.MaxDropDownItems = 4;
@@ -151,16 +162,6 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(572, 572);
             this.tableLayoutPanel1.TabIndex = 0;
-            // 
-            // lblGimmickNotify
-            // 
-            this.lblGimmickNotify.AutoSize = true;
-            this.lblGimmickNotify.Location = new System.Drawing.Point(357, 10);
-            this.lblGimmickNotify.Name = "lblGimmickNotify";
-            this.lblGimmickNotify.Size = new System.Drawing.Size(38, 12);
-            this.lblGimmickNotify.TabIndex = 5;
-            this.lblGimmickNotify.Text = "label1";
-            this.lblGimmickNotify.Visible = false;
             // 
             // BitFlipControl
             // 

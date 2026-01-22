@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Rebar;
 
 namespace GateHelper
 {
@@ -19,8 +20,9 @@ namespace GateHelper
         private bool _isProcessing = false; // 셔플, 초기화, 승리 처리 등 '작업 중'임을 나타냄
         private bool _isGameActive = false; // 실제 플레이 가능한 상태인지 여부
 
-        // 기믹용 (잠금)
+        // 기믹용
         public List<Point> lockedPoints = new List<Point>();
+        public Dictionary<Point, int> ActiveBombs = new Dictionary<Point, int>();
 
         // 로직 관리자
         internal GimmickManager GimmickHandler;
@@ -54,43 +56,43 @@ namespace GateHelper
 
         private async void StartNewGame(string levelName)
         {
-            // 이미 처리 중이면 아무것도 하지 않음
             if (_isProcessing) return;
-
             _isProcessing = true;
-            _isGameActive = false; // 셔플 중에는 게임 활성 상태가 아님
+            _isGameActive = false;
 
-            gameTimer.Stop(); // 이전 타이머가 돌고 있다면 정지
-
+            gameTimer.Stop();
             var config = GetConfig(levelName);
             CreateGrid(config.GridSize);
-
-            // 상태 초기화 로직 (잠금 리스트 비우기 등)
             lockedPoints.Clear();
             UpdateUI();
 
-            if (levelName == "Extreme")
-            {
-                GimmickHandler.ResetAllGimmickStates();
-                await GimmickHandler.ApplyRandomGimmicksAsync();
-            }
+            GimmickHandler.ResetAllGimmickStates();
 
-            // 3. 셔플 애니메이션 (이동안 _isProcessing은 계속 true임)
+            // 1. 기믹 데이터만 먼저 설정 (알림 안 뜸)
+            if (levelName == "Hard") GimmickHandler.SetStaticGimmicks((1, 2));
+            else if (levelName == "Insane") GimmickHandler.SetStaticGimmicks((1, 2), (1, 3));
+            else if (levelName == "Extreme") await GimmickHandler.ApplyRandomGimmicksAsync();
+
+            // 2. 셔플 애니메이션 실행 (lblTimer에 % 표시)
             await ShuffleAnimationAsync(config.ShuffleCount);
 
-            if (levelName == "Extreme") GimmickHandler.ManageProgression(0);
+            // 3. [핵심] 셔플이 완전히 끝난 후 기믹 알림 표시
+            if (levelName == "Hard" || levelName == "Insane" || levelName == "Extreme")
+            {
+                GimmickHandler.ManageProgression(0, levelName);
+            }
 
             playTimeSeconds = 0;
             lblTimer.Text = "00:00";
-
-            _isGameActive = true;  // 이제 플레이 가능
-            _isProcessing = false; // 작업 완료
+            _isGameActive = true;
+            _isProcessing = false;
             gameTimer.Start();
         }
 
+        // [BitFlipControl.cs - CheckVictory 메서드 내부]
+
         private void CheckVictory()
         {
-            // 이미 승리 처리가 시작되었다면 중복 실행 방지
             if (!_isGameActive || _isProcessing) return;
 
             bool isVictory = true;
@@ -98,20 +100,127 @@ namespace GateHelper
             {
                 for (int c = 0; c < currentGridSize; c++)
                 {
-                    if (gridStates[c, r]) { isVictory = false; break; }
+                    if (!gridStates[c, r]) { isVictory = false; break; }
                 }
             }
 
             if (isVictory)
             {
-                _isGameActive = false; // 게임 종료
-                _isProcessing = true;  // 승리 메시지 처리 시작
+                _isGameActive = false;
+                _isProcessing = true;
                 gameTimer.Stop();
 
-                MessageBox.Show($"Clear! Time: {lblTimer.Text}");
+                // [수정] MaterialSkin 스타일의 승리 화면 호출
+                ShowVictoryOverlay(lblTimer.Text, cmbDifficulty.Text, GimmickHandler.UsedGimmicks);
 
-                _isProcessing = false; // 메시지 닫은 후 상태 해제
+                _isProcessing = false;
             }
+        }
+
+        /// <summary>
+        /// 게임 클리어 시 Dim 효과와 함께 Material 디자인 결과창을 표시합니다.
+        /// </summary>
+        private void ShowVictoryOverlay(string time, string difficulty, HashSet<string> gimmicks)
+        {
+            // 1. Dim 레이어 생성 (배경을 어둡게 만듭니다)
+            Panel dimLayer = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = Color.FromArgb(180, 0, 0, 0), // 180: 투명도 (0~255)
+                Location = new Point(0, 0),
+                Name = "DimLayer"
+            };
+
+            // 2. 결과 카드 생성 (중앙에 배치될 흰색/회색 박스)
+            var resultCard = new MaterialSkin.Controls.MaterialCard
+            {
+                Size = new Size(380, 500),
+                Padding = new Padding(24),
+                Depth = 0,
+                BackColor = Color.FromArgb(40, 40, 40) // 다크 테마 배경색
+            };
+
+            // 3. 제목 라벨 (lblTitle: 승리 문구)
+            var lblTitle = new MaterialSkin.Controls.MaterialLabel
+            {
+                Text = "SYSTEM CRACKED",
+                FontType = MaterialSkin.MaterialSkinManager.fontType.H4,
+                HighEmphasis = true,
+                UseAccent = true, // 강조색(Accent) 적용
+                Location = new Point(24, 24),
+                AutoSize = true
+            };
+
+            // 4. 기록 정보 라벨 (lblStats: 시간 및 난이도)
+            var lblStats = new MaterialSkin.Controls.MaterialLabel
+            {
+                Text = $"TIME: {time}\nLEVEL: {difficulty.ToUpper()}",
+                FontType = MaterialSkin.MaterialSkinManager.fontType.Subtitle1,
+                Location = new Point(24, 85),
+                AutoSize = true
+            };
+
+            // 5. 기믹 목록 제목
+            var lblGimmickTitle = new MaterialSkin.Controls.MaterialLabel
+            {
+                Text = "OVERCOMED SECURITY",
+                FontType = MaterialSkin.MaterialSkinManager.fontType.Caption,
+                Location = new Point(24, 155),
+                AutoSize = true
+            };
+
+            // 6. 기믹 목록 텍스트 상자 (txtGimmicks)
+            // 해커 텍스트 느낌을 주기 위해 Consolas 폰트와 어두운 배경을 사용합니다.
+            var txtGimmicks = new TextBox
+            {
+                Text = gimmicks.Count > 0 ? "• " + string.Join("\r\n• ", gimmicks.Select(g => g.ToUpper())) : "NO GIMMICKS DETECTED",
+                Multiline = true,
+                ReadOnly = true,
+                ScrollBars = ScrollBars.Vertical,
+                BorderStyle = BorderStyle.None,
+                BackColor = Color.FromArgb(50, 50, 50),
+                ForeColor = Color.LimeGreen, // 해커 느낌의 초록색 글씨
+                Font = new Font("Consolas", 10f, FontStyle.Bold),
+                Location = new Point(24, 185),
+                Size = new Size(330, 220)
+            };
+
+            // 7. 확인 버튼 (btnClose: 클릭 시 닫고 새 게임)
+            var btnClose = new MaterialSkin.Controls.MaterialButton
+            {
+                Text = "CONFIRM & NEXT MISSION",
+                Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained,
+                UseAccentColor = true,
+                Size = new Size(330, 40),
+                Location = new Point(24, 430)
+            };
+
+            // 버튼 클릭 이벤트: Dim 레이어 전체를 제거하고 새 게임 시작
+            btnClose.Click += (s, e) =>
+            {
+                this.Controls.Remove(dimLayer);
+                dimLayer.Dispose();
+                StartNewGame(difficulty);
+            };
+
+            // 8. 컨트롤 조립 (Hierarchy 구성)
+            resultCard.Controls.Add(lblTitle);
+            resultCard.Controls.Add(lblStats);
+            resultCard.Controls.Add(lblGimmickTitle);
+            resultCard.Controls.Add(txtGimmicks);
+            resultCard.Controls.Add(btnClose);
+
+            // 카드를 Dim 레이어 정중앙에 배치
+            resultCard.Location = new Point(
+                (this.Width - resultCard.Width) / 2,
+                (this.Height - resultCard.Height) / 2
+            );
+
+            dimLayer.Controls.Add(resultCard);
+
+            // 최종적으로 폼에 추가
+            this.Controls.Add(dimLayer);
+            dimLayer.BringToFront(); // 최상단으로 가져오기
         }
 
         // --- UI 생성 및 업데이트 ---
@@ -156,37 +265,88 @@ namespace GateHelper
 
         internal void UpdateUI()
         {
+            // 안개 기믹이 활성화된 경우, 마우스의 현재 위치를 컨트롤 기준 좌표로 가져옵니다.
+            Point mousePos = PointToClient(Cursor.Position);
+
             for (int r = 0; r < currentGridSize; r++)
             {
                 for (int c = 0; c < currentGridSize; c++)
                 {
                     var btn = gridButtons[c, r];
+                    Point pos = new Point(c, r);
+                    bool state = gridStates[c, r];
 
-                    // 1. [중요] 기믹이 입힌 네온 색상을 지우고 투명하게 리셋합니다.
-                    // 이 코드가 있어야 데이터 노이즈 효과가 끝난 후 다시 원래대로 돌아옵니다.
+                    // 1. 기본 스타일 리셋 (기믹에 의해 변했을 수 있는 색상 초기화)
                     btn.BackColor = Color.Transparent;
+                    btn.ForeColor = Color.White;
 
-                    bool isLocked = lockedPoints.Contains(new Point(c, r));
+                    // 2. 전장의 안개(Fog of War) 처리
+                    bool isInFog = false;
+                    if (GimmickHandler.IsFogActive)
+                    {
+                        // 버튼의 중앙 좌표와 마우스 커서 사이의 거리를 계산합니다.
+                        Point btnCenter = new Point(btn.Left + btn.Width / 2, btn.Top + btn.Height / 2);
+                        double distance = Math.Sqrt(Math.Pow(btnCenter.X - mousePos.X, 2) + Math.Pow(btnCenter.Y - mousePos.Y, 2));
 
-                    if (isLocked)
+                        // 거리 120 이상인 버튼은 안개로 가립니다.
+                        if (distance > 140) isInFog = true;
+                    }
+
+                    if (isInFog)
+                    {
+                        btn.Text = "";
+                        btn.BackColor = Color.FromArgb(20, 20, 20); // 어두운 안개 색상
+                        btn.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+                        btn.HighEmphasis = false;
+                        btn.UseAccentColor = false;
+                        btn.Invalidate();
+                        continue; // 안개 상태면 나머지(폭탄, 잠금 등) 처리를 건너뜁니다.
+                    }
+
+                    // 3. 잠금(LOCK) 기믹 처리
+                    if (lockedPoints.Contains(pos))
                     {
                         btn.Enabled = false;
                         btn.Text = "LOCK";
-                        btn.Type = MaterialButton.MaterialButtonType.Contained;
+                        btn.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+                        btn.HighEmphasis = false;
+                        btn.UseAccentColor = false;
                     }
                     else
                     {
                         btn.Enabled = true;
-                        btn.Text = "";
-                        bool state = gridStates[c, r];
 
-                        // 2. 버튼의 데이터 상태에 따라 스타일을 결정합니다.
-                        btn.Type = state ? MaterialButton.MaterialButtonType.Contained : MaterialButton.MaterialButtonType.Outlined;
-                        btn.HighEmphasis = state;
-                        btn.UseAccentColor = state; // 여기서 다시 붉은색 테마 색상이 적용됩니다.
+                        // 4. 폭탄(BOMB) 기믹 처리
+                        if (ActiveBombs.ContainsKey(pos))
+                        {
+                            int remaining = ActiveBombs[pos];
+                            btn.Text = "💣" + remaining;
+                            // 2초 이하면 빨간색, 아니면 노란색으로 긴박함 표시
+                            btn.ForeColor = (remaining <= 2) ? Color.Red : Color.Yellow;
+                        }
+                        else
+                        {
+                            btn.Text = "";
+                        }
+
+                        // 5. 일반 비트 상태(ON/OFF) 반영
+                        if (state)
+                        {
+                            // ON: 채워진 버튼 + 테마 강조색
+                            btn.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+                            btn.HighEmphasis = true;
+                            btn.UseAccentColor = true;
+                        }
+                        else
+                        {
+                            // OFF: 테두리만 있는 버튼
+                            btn.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
+                            btn.HighEmphasis = false;
+                            btn.UseAccentColor = false;
+                        }
                     }
 
-                    // 변경사항을 즉시 화면에 반영합니다.
+                    // 변경 사항을 화면에 즉시 반영합니다.
                     btn.Invalidate();
                 }
             }
@@ -236,29 +396,26 @@ namespace GateHelper
             if (!tableLayoutPanel1.Enabled) return;
 
             playTimeSeconds++;
-            TimeSpan t = TimeSpan.FromSeconds(playTimeSeconds);
-            string timeStr = string.Format("{0:D2}:{1:D2}", t.Minutes, t.Seconds);
-            lblTimer.Text = timeStr;
+            lblTimer.Text = string.Format("{0:D2}:{1:D2}", playTimeSeconds / 60, playTimeSeconds % 60);
 
-            if (cmbDifficulty.Text == "Extreme")
+            string diff = cmbDifficulty.Text;
+            bool hasGimmicks = (diff == "Hard" || diff == "Insane" || diff == "Extreme");
+
+            if (hasGimmicks)
             {
-                // [추가] 매니저에게 시간을 전달하여 기믹 단계 관리
-                GimmickHandler.ManageProgression(playTimeSeconds);
+                // 20초마다 잠금 해제 등의 공통 관리 로직 실행
+                GimmickHandler.ManageProgression(playTimeSeconds, diff);
 
+                // 현재 활성화된 기믹(상시 또는 동적) 실행
                 await GimmickHandler.UpdateTickAsync();
 
                 // 경고 연출 (기존 동일)
                 bool isAnyGimmickNear = GimmickHandler.ActiveGimmicks.Any(g => g.ElapsedSeconds == g.Interval - 1);
                 lblTimer.ForeColor = isAnyGimmickNear ? Color.Red : Color.White;
-
-                CheckVictory();
-            }
-            else
-            {
-                lblTimer.ForeColor = Color.White;
             }
         }
 
+        
         // 버튼 클릭 이벤트
         private async void OnGridClick(object sender, EventArgs e)
         {
@@ -288,6 +445,7 @@ namespace GateHelper
                 case "Easy": return new DifficultyConfig { GridSize = 3, ShuffleCount = 5 };
                 case "Normal": return new DifficultyConfig { GridSize = 5, ShuffleCount = 15 };
                 case "Hard": return new DifficultyConfig { GridSize = 7, ShuffleCount = 30 };
+                case "Insane": return new DifficultyConfig { GridSize = 9, ShuffleCount = 40 }; // 새 난이도
                 case "Extreme": return new DifficultyConfig { GridSize = 9, ShuffleCount = 50 };
                 default: return new DifficultyConfig { GridSize = 5, ShuffleCount = 15 };
             }
