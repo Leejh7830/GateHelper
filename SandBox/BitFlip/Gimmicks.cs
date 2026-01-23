@@ -211,6 +211,97 @@ namespace GateHelper
                 UsedGimmicks.Add(g.Name);
             }
         }
+
+
+        /// <summary>
+        /// 현재 게임이 해결가능한지 계산
+        /// </summary>
+        /// <param name="grid"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
+        public bool IsSolvable(bool[,] grid, int size)
+        {
+            int n = size * size;
+            // 확장 행렬 생성 (n x n+1)
+            bool[,] matrix = new bool[n, n + 1];
+
+            // 1. 행렬 A 구성 (각 버튼을 눌렀을 때의 영향도)
+            for (int r = 0; r < size; r++)
+            {
+                for (int c = 0; c < size; c++)
+                {
+                    int i = r * size + c;
+                    // 자기 자신과 주변 십자(+) 방향 버튼들의 영향력 설정
+                    int[] dx = { 0, 0, 0, 1, -1 };
+                    int[] dy = { 0, 1, -1, 0, 0 };
+
+                    for (int k = 0; k < 5; k++)
+                    {
+                        int nx = c + dx[k];
+                        int ny = r + dy[k];
+                        if (nx >= 0 && nx < size && ny >= 0 && ny < size)
+                        {
+                            matrix[ny * size + nx, i] = true;
+                        }
+                    }
+                    // 목표 상태: 모든 비트를 1(True)로 만드는 것이므로, 
+                    // 현재 꺼져 있는(False) 칸을 뒤집어야 함.
+                    matrix[i, n] = !grid[c, r];
+                }
+            }
+
+            // 2. 가우스 소거법 실행 (Forward Elimination)
+            int pivot = 0;
+            for (int j = 0; j < n && pivot < n; j++)
+            {
+                int sel = pivot;
+                while (sel < n && !matrix[sel, j]) sel++;
+                if (sel == n) continue;
+
+                // 행 바꿈
+                for (int k = j; k <= n; k++)
+                {
+                    bool temp = matrix[sel, k];
+                    matrix[sel, k] = matrix[pivot, k];
+                    matrix[pivot, k] = temp;
+                }
+
+                // 다른 행들 XOR 연산
+                for (int i = 0; i < n; i++)
+                {
+                    if (i != pivot && matrix[i, j])
+                    {
+                        for (int k = j; k <= n; k++)
+                            matrix[i, k] ^= matrix[pivot, k];
+                    }
+                }
+                pivot++;
+            }
+
+            // 3. 해 존재 여부 판별
+            // 0 = 1 형태의 행이 존재하면 해가 없음 (Unsolvable)
+            for (int i = 0; i < n; i++)
+            {
+                bool allZeros = true;
+                for (int j = 0; j < n; j++) if (matrix[i, j]) allZeros = false;
+                if (allZeros && matrix[i, n]) return false;
+            }
+
+            return true;
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
     }
 
     // [2] 기믹 추상 부모 클래스
@@ -380,19 +471,20 @@ namespace GateHelper
         public override async Task ExecuteAsync()
         {
             _parent.GimmickHandler.IsFogActive = true;
-            _ = _parent.ShowGimmickNotify("SYSTEM: FOG DEPLOYED");
 
-            // 안개 유지하며 마우스 움직임 반영
             DateTime endTime = DateTime.Now.AddSeconds(7);
             while (DateTime.Now < endTime)
             {
+                // [추가] 부모 창이 닫혔다면 루프 즉시 종료
+                if (_parent.IsDisposed || _parent.Disposing) return;
+
                 _parent.UpdateUI();
-                await Task.Delay(50); // 20FPS 정도로 시야 갱신
+                await Task.Delay(50);
             }
 
+            if (_parent.IsDisposed || _parent.Disposing) return;
             _parent.GimmickHandler.IsFogActive = false;
             _parent.UpdateUI();
-            await Task.CompletedTask;
         }
     }
 

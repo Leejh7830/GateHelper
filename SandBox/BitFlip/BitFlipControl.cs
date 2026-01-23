@@ -45,6 +45,10 @@ namespace GateHelper
             gameTimer.Interval = 1000;
             gameTimer.Tick += GameTimer_Tick;
 
+            lblSolvability.Font = new Font("Consolas", 14f, FontStyle.Bold);
+            lblSolvability.BackColor = Color.Transparent;
+
+
             if (!DesignMode)
             {
                 if (cmbDifficulty.Items.Count > 0) cmbDifficulty.SelectedIndex = 1;
@@ -188,7 +192,7 @@ namespace GateHelper
             // 7. 확인 버튼 (btnClose: 클릭 시 닫고 새 게임)
             var btnClose = new MaterialSkin.Controls.MaterialButton
             {
-                Text = "CONFIRM & NEXT MISSION",
+                Text = "COMPLETED",
                 Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained,
                 UseAccentColor = true,
                 Size = new Size(330, 40),
@@ -265,7 +269,26 @@ namespace GateHelper
 
         internal void UpdateUI()
         {
-            // 안개 기믹이 활성화된 경우, 마우스의 현재 위치를 컨트롤 기준 좌표로 가져옵니다.
+            // 1. 가장 먼저 컨트롤의 파기 상태를 확인하여 에러 방지
+            if (this.IsDisposed || this.Disposing) return;
+
+            // 2. UI 스레드가 아닐 경우 Invoke를 통해 재호출 (중복 제거)
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(UpdateUI));
+                return;
+            }
+            ////////////////////////////////////////////////////////////////
+            // 1. 해결 가능성 체크 및 라벨 갱신 (반복문 밖에서 한 번만 수행)
+            bool solvable = GimmickHandler.IsSolvable(gridStates, currentGridSize);
+
+            lblSolvability.Text = solvable ? "가능" : "불가능";
+            lblSolvability.ForeColor = solvable ? Color.LimeGreen : Color.OrangeRed;
+
+            // 라벨을 다른 컨트롤보다 위로 올리고 강제 새로고침
+            lblSolvability.BringToFront();
+            lblSolvability.Refresh();
+
             Point mousePos = PointToClient(Cursor.Position);
 
             for (int r = 0; r < currentGridSize; r++)
@@ -276,77 +299,61 @@ namespace GateHelper
                     Point pos = new Point(c, r);
                     bool state = gridStates[c, r];
 
-                    // 1. 기본 스타일 리셋 (기믹에 의해 변했을 수 있는 색상 초기화)
                     btn.BackColor = Color.Transparent;
                     btn.ForeColor = Color.White;
 
-                    // 2. 전장의 안개(Fog of War) 처리
+                    // 2. 안개 기믹 처리
                     bool isInFog = false;
                     if (GimmickHandler.IsFogActive)
                     {
-                        // 버튼의 중앙 좌표와 마우스 커서 사이의 거리를 계산합니다.
                         Point btnCenter = new Point(btn.Left + btn.Width / 2, btn.Top + btn.Height / 2);
                         double distance = Math.Sqrt(Math.Pow(btnCenter.X - mousePos.X, 2) + Math.Pow(btnCenter.Y - mousePos.Y, 2));
-
-                        // 거리 120 이상인 버튼은 안개로 가립니다.
                         if (distance > 140) isInFog = true;
                     }
 
                     if (isInFog)
                     {
                         btn.Text = "";
-                        btn.BackColor = Color.FromArgb(20, 20, 20); // 어두운 안개 색상
+                        btn.BackColor = Color.FromArgb(20, 20, 20);
                         btn.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
                         btn.HighEmphasis = false;
                         btn.UseAccentColor = false;
                         btn.Invalidate();
-                        continue; // 안개 상태면 나머지(폭탄, 잠금 등) 처리를 건너뜁니다.
+                        continue;
                     }
 
-                    // 3. 잠금(LOCK) 기믹 처리
+                    // 3. 잠금, 폭탄, 일반 상태 처리 (기존 로직 유지)
                     if (lockedPoints.Contains(pos))
                     {
                         btn.Enabled = false;
                         btn.Text = "LOCK";
                         btn.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-                        btn.HighEmphasis = false;
-                        btn.UseAccentColor = false;
                     }
                     else
                     {
                         btn.Enabled = true;
-
-                        // 4. 폭탄(BOMB) 기믹 처리
                         if (ActiveBombs.ContainsKey(pos))
                         {
                             int remaining = ActiveBombs[pos];
                             btn.Text = "💣" + remaining;
-                            // 2초 이하면 빨간색, 아니면 노란색으로 긴박함 표시
                             btn.ForeColor = (remaining <= 2) ? Color.Red : Color.Yellow;
                         }
-                        else
-                        {
-                            btn.Text = "";
-                        }
+                        else { btn.Text = ""; }
 
-                        // 5. 일반 비트 상태(ON/OFF) 반영
                         if (state)
                         {
-                            // ON: 채워진 버튼 + 테마 강조색
                             btn.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
                             btn.HighEmphasis = true;
                             btn.UseAccentColor = true;
                         }
                         else
                         {
-                            // OFF: 테두리만 있는 버튼
                             btn.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
                             btn.HighEmphasis = false;
                             btn.UseAccentColor = false;
                         }
                     }
 
-                    // 변경 사항을 화면에 즉시 반영합니다.
                     btn.Invalidate();
                 }
             }
@@ -393,6 +400,13 @@ namespace GateHelper
 
         private async void GameTimer_Tick(object sender, EventArgs e)
         {
+            // [추가] 컨트롤이 없으면 타이머 중단 및 반환
+            if (this.IsDisposed || this.Disposing)
+            {
+                gameTimer.Stop();
+                return;
+            }
+
             if (!tableLayoutPanel1.Enabled) return;
 
             playTimeSeconds++;

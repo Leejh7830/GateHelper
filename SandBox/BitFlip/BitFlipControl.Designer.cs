@@ -35,12 +35,14 @@
             this.btnBack = new MaterialSkin.Controls.MaterialButton();
             this.cmbDifficulty = new MaterialSkin.Controls.MaterialComboBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
+            this.lblSolvability = new System.Windows.Forms.Label();
             this.materialCard1.SuspendLayout();
             this.SuspendLayout();
             // 
             // materialCard1
             // 
             this.materialCard1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.materialCard1.Controls.Add(this.lblSolvability);
             this.materialCard1.Controls.Add(this.lblGimmickNotify);
             this.materialCard1.Controls.Add(this.lblTimer);
             this.materialCard1.Controls.Add(this.btnReset);
@@ -163,6 +165,15 @@
             this.tableLayoutPanel1.Size = new System.Drawing.Size(572, 572);
             this.tableLayoutPanel1.TabIndex = 0;
             // 
+            // lblSolvability
+            // 
+            this.lblSolvability.AutoSize = true;
+            this.lblSolvability.Location = new System.Drawing.Point(590, 11);
+            this.lblSolvability.Name = "lblSolvability";
+            this.lblSolvability.Size = new System.Drawing.Size(38, 12);
+            this.lblSolvability.TabIndex = 6;
+            this.lblSolvability.Text = "label1";
+            // 
             // BitFlipControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -185,5 +196,6 @@
         internal MaterialSkin.Controls.MaterialLabel lblTimer;
         internal System.Windows.Forms.TableLayoutPanel tableLayoutPanel1;
         private System.Windows.Forms.Label lblGimmickNotify;
+        private System.Windows.Forms.Label lblSolvability;
     }
 }
