@@ -29,17 +29,17 @@
         private void InitializeComponent()
         {
             this.SB_tabControl1 = new MaterialSkin.Controls.MaterialTabControl();
-            this.SB_tpList = new System.Windows.Forms.TabPage();
+            this.tpList = new System.Windows.Forms.TabPage();
             this.tpBitFlip = new System.Windows.Forms.TabPage();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.tpSignalLink = new System.Windows.Forms.TabPage();
             this.SB_tabControl1.SuspendLayout();
             this.SuspendLayout();
             // 
             // SB_tabControl1
             // 
-            this.SB_tabControl1.Controls.Add(this.SB_tpList);
+            this.SB_tabControl1.Controls.Add(this.tpList);
             this.SB_tabControl1.Controls.Add(this.tpBitFlip);
-            this.SB_tabControl1.Controls.Add(this.tabPage2);
+            this.SB_tabControl1.Controls.Add(this.tpSignalLink);
             this.SB_tabControl1.Depth = 0;
             this.SB_tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.SB_tabControl1.ItemSize = new System.Drawing.Size(40, 20);
@@ -52,15 +52,15 @@
             this.SB_tabControl1.SizeMode = System.Windows.Forms.TabSizeMode.Fixed;
             this.SB_tabControl1.TabIndex = 1;
             // 
-            // SB_tpList
+            // tpList
             // 
-            this.SB_tpList.Location = new System.Drawing.Point(4, 24);
-            this.SB_tpList.Name = "SB_tpList";
-            this.SB_tpList.Padding = new System.Windows.Forms.Padding(3);
-            this.SB_tpList.Size = new System.Drawing.Size(636, 605);
-            this.SB_tpList.TabIndex = 2;
-            this.SB_tpList.Text = "List";
-            this.SB_tpList.UseVisualStyleBackColor = true;
+            this.tpList.Location = new System.Drawing.Point(4, 24);
+            this.tpList.Name = "tpList";
+            this.tpList.Padding = new System.Windows.Forms.Padding(3);
+            this.tpList.Size = new System.Drawing.Size(636, 605);
+            this.tpList.TabIndex = 2;
+            this.tpList.Text = "List";
+            this.tpList.UseVisualStyleBackColor = true;
             // 
             // tpBitFlip
             // 
@@ -72,15 +72,15 @@
             this.tpBitFlip.Text = "M1";
             this.tpBitFlip.UseVisualStyleBackColor = true;
             // 
-            // tabPage2
+            // tpSignalLink
             // 
-            this.tabPage2.Location = new System.Drawing.Point(4, 24);
-            this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(636, 605);
-            this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "M3";
-            this.tabPage2.UseVisualStyleBackColor = true;
+            this.tpSignalLink.Location = new System.Drawing.Point(4, 24);
+            this.tpSignalLink.Name = "tpSignalLink";
+            this.tpSignalLink.Padding = new System.Windows.Forms.Padding(3);
+            this.tpSignalLink.Size = new System.Drawing.Size(636, 605);
+            this.tpSignalLink.TabIndex = 1;
+            this.tpSignalLink.Text = "M3";
+            this.tpSignalLink.UseVisualStyleBackColor = true;
             // 
             // SandBox
             // 
@@ -98,7 +98,7 @@
         #endregion
         private MaterialSkin.Controls.MaterialTabControl SB_tabControl1;
         private System.Windows.Forms.TabPage tpBitFlip;
-        private System.Windows.Forms.TabPage tabPage2;
-        private System.Windows.Forms.TabPage SB_tpList;
+        private System.Windows.Forms.TabPage tpSignalLink;
+        private System.Windows.Forms.TabPage tpList;
     }
 }

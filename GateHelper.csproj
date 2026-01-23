@@ -143,10 +143,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppSettings.cs" />
-    <Compile Include="SandBox\BitFlip\BitFlipControl.cs">
+    <Compile Include="SandBox\1. BitFlip\BitFlipControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
-    <Compile Include="SandBox\BitFlip\BitFlipControl.Designer.cs">
+    <Compile Include="SandBox\1. BitFlip\BitFlipControl.Designer.cs">
       <DependentUpon>BitFlipControl.cs</DependentUpon>
     </Compile>
     <Compile Include="ChromeDriverManager.cs" />
@@ -158,7 +158,16 @@
     <Compile Include="OptionForm.Designer.cs">
       <DependentUpon>OptionForm.cs</DependentUpon>
     </Compile>
-    <Compile Include="SandBox\BitFlip\Gimmicks.cs" />
+    <Compile Include="SandBox\1. BitFlip\Gimmicks.cs" />
+    <Compile Include="SandBox\2. SignalLink\SignalLinkControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SandBox\2. SignalLink\SignalLinkControl.Designer.cs">
+      <DependentUpon>SignalLinkControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SandBox\2. SignalLink\SignalManager.cs" />
+    <Compile Include="SandBox\2. SignalLink\SignalNode.cs" />
+    <Compile Include="SandBox\2. SignalLink\SignalPath.cs" />
     <Compile Include="SandBox\GameListControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -194,7 +203,6 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="Unused.cs" />
     <Compile Include="Utils\Util.cs" />
     <Compile Include="Utils\Util_Control.cs" />
     <Compile Include="Utils\Util_Element.cs" />
@@ -211,7 +219,7 @@
     <Compile Include="WorkLog\WorkLogModel.cs" />
     <Compile Include="WorkLog\WorkLogRepository.cs" />
     <Compile Include="WorkLog\WorkLogService.cs" />
-    <EmbeddedResource Include="SandBox\BitFlip\BitFlipControl.resx">
+    <EmbeddedResource Include="SandBox\1. BitFlip\BitFlipControl.resx">
       <DependentUpon>BitFlipControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="MainUI.resx">
@@ -224,6 +232,9 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <SubType>Designer</SubType>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SandBox\2. SignalLink\SignalLinkControl.resx">
+      <DependentUpon>SignalLinkControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="SandBox\GameListControl.resx">
       <DependentUpon>GameListControl.cs</DependentUpon>
@@ -281,6 +292,7 @@
   <ItemGroup>
     <None Include="Resource_TEMP\arrow_left.png" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>

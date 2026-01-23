@@ -28,83 +28,102 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
-            this.btnSelectBitFlip = new MaterialSkin.Controls.MaterialCard();
-            this.materialCard2 = new MaterialSkin.Controls.MaterialCard();
+            this.GL_FlowPanel1 = new System.Windows.Forms.FlowLayoutPanel();
+            this.GL_btnSelectBitFlip = new MaterialSkin.Controls.MaterialCard();
             this.materialLabel1 = new MaterialSkin.Controls.MaterialLabel();
-            this.flowLayoutPanel1.SuspendLayout();
-            this.btnSelectBitFlip.SuspendLayout();
+            this.GL_btnSelectSignalLink = new MaterialSkin.Controls.MaterialCard();
+            this.materialLabel2 = new MaterialSkin.Controls.MaterialLabel();
+            this.GL_FlowPanel1.SuspendLayout();
+            this.GL_btnSelectBitFlip.SuspendLayout();
+            this.GL_btnSelectSignalLink.SuspendLayout();
             this.SuspendLayout();
             // 
-            // flowLayoutPanel1
+            // GL_FlowPanel1
             // 
-            this.flowLayoutPanel1.Controls.Add(this.btnSelectBitFlip);
-            this.flowLayoutPanel1.Controls.Add(this.materialCard2);
-            this.flowLayoutPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(0, 0);
-            this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(500, 500);
-            this.flowLayoutPanel1.TabIndex = 0;
+            this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectBitFlip);
+            this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectSignalLink);
+            this.GL_FlowPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.GL_FlowPanel1.Location = new System.Drawing.Point(0, 0);
+            this.GL_FlowPanel1.Name = "GL_FlowPanel1";
+            this.GL_FlowPanel1.Size = new System.Drawing.Size(500, 500);
+            this.GL_FlowPanel1.TabIndex = 0;
             // 
-            // btnSelectBitFlip
+            // GL_btnSelectBitFlip
             // 
-            this.btnSelectBitFlip.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            this.btnSelectBitFlip.Controls.Add(this.materialLabel1);
-            this.btnSelectBitFlip.Depth = 0;
-            this.btnSelectBitFlip.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            this.btnSelectBitFlip.Location = new System.Drawing.Point(14, 14);
-            this.btnSelectBitFlip.Margin = new System.Windows.Forms.Padding(14);
-            this.btnSelectBitFlip.MouseState = MaterialSkin.MouseState.HOVER;
-            this.btnSelectBitFlip.Name = "btnSelectBitFlip";
-            this.btnSelectBitFlip.Padding = new System.Windows.Forms.Padding(14);
-            this.btnSelectBitFlip.Size = new System.Drawing.Size(150, 150);
-            this.btnSelectBitFlip.TabIndex = 0;
-            this.btnSelectBitFlip.Click += new System.EventHandler(this.btnSelectBitFlip_Click);
-            // 
-            // materialCard2
-            // 
-            this.materialCard2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            this.materialCard2.Depth = 0;
-            this.materialCard2.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            this.materialCard2.Location = new System.Drawing.Point(192, 14);
-            this.materialCard2.Margin = new System.Windows.Forms.Padding(14);
-            this.materialCard2.MouseState = MaterialSkin.MouseState.HOVER;
-            this.materialCard2.Name = "materialCard2";
-            this.materialCard2.Padding = new System.Windows.Forms.Padding(14);
-            this.materialCard2.Size = new System.Drawing.Size(150, 150);
-            this.materialCard2.TabIndex = 1;
+            this.GL_btnSelectBitFlip.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.GL_btnSelectBitFlip.Controls.Add(this.materialLabel1);
+            this.GL_btnSelectBitFlip.Depth = 0;
+            this.GL_btnSelectBitFlip.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.GL_btnSelectBitFlip.Location = new System.Drawing.Point(14, 14);
+            this.GL_btnSelectBitFlip.Margin = new System.Windows.Forms.Padding(14);
+            this.GL_btnSelectBitFlip.MouseState = MaterialSkin.MouseState.HOVER;
+            this.GL_btnSelectBitFlip.Name = "GL_btnSelectBitFlip";
+            this.GL_btnSelectBitFlip.Padding = new System.Windows.Forms.Padding(14);
+            this.GL_btnSelectBitFlip.Size = new System.Drawing.Size(150, 70);
+            this.GL_btnSelectBitFlip.TabIndex = 0;
+            this.GL_btnSelectBitFlip.Click += new System.EventHandler(this.btnSelectBitFlip_Click);
             // 
             // materialLabel1
             // 
             this.materialLabel1.AutoSize = true;
             this.materialLabel1.Depth = 0;
-            this.materialLabel1.Font = new System.Drawing.Font("Microsoft Sans Serif", 28F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel1.Location = new System.Drawing.Point(42, 62);
+            this.materialLabel1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialLabel1.Location = new System.Drawing.Point(54, 26);
             this.materialLabel1.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialLabel1.Name = "materialLabel1";
-            this.materialLabel1.Size = new System.Drawing.Size(58, 19);
+            this.materialLabel1.Size = new System.Drawing.Size(50, 19);
             this.materialLabel1.TabIndex = 2;
-            this.materialLabel1.Text = "Bit - Flip";
+            this.materialLabel1.Text = "Bit Flip";
+            // 
+            // GL_btnSelectSignalLink
+            // 
+            this.GL_btnSelectSignalLink.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.GL_btnSelectSignalLink.Controls.Add(this.materialLabel2);
+            this.GL_btnSelectSignalLink.Depth = 0;
+            this.GL_btnSelectSignalLink.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.GL_btnSelectSignalLink.Location = new System.Drawing.Point(192, 14);
+            this.GL_btnSelectSignalLink.Margin = new System.Windows.Forms.Padding(14);
+            this.GL_btnSelectSignalLink.MouseState = MaterialSkin.MouseState.HOVER;
+            this.GL_btnSelectSignalLink.Name = "GL_btnSelectSignalLink";
+            this.GL_btnSelectSignalLink.Padding = new System.Windows.Forms.Padding(14);
+            this.GL_btnSelectSignalLink.Size = new System.Drawing.Size(150, 70);
+            this.GL_btnSelectSignalLink.TabIndex = 1;
+            this.GL_btnSelectSignalLink.Click += new System.EventHandler(this.GL_btnSelectSignalLink_Click);
+            // 
+            // materialLabel2
+            // 
+            this.materialLabel2.AutoSize = true;
+            this.materialLabel2.Depth = 0;
+            this.materialLabel2.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialLabel2.Location = new System.Drawing.Point(36, 26);
+            this.materialLabel2.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialLabel2.Name = "materialLabel2";
+            this.materialLabel2.Size = new System.Drawing.Size(80, 19);
+            this.materialLabel2.TabIndex = 3;
+            this.materialLabel2.Text = "Signal Link";
             // 
             // GameListControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.Controls.Add(this.flowLayoutPanel1);
+            this.Controls.Add(this.GL_FlowPanel1);
             this.Name = "GameListControl";
             this.Size = new System.Drawing.Size(500, 500);
-            this.flowLayoutPanel1.ResumeLayout(false);
-            this.btnSelectBitFlip.ResumeLayout(false);
-            this.btnSelectBitFlip.PerformLayout();
+            this.GL_FlowPanel1.ResumeLayout(false);
+            this.GL_btnSelectBitFlip.ResumeLayout(false);
+            this.GL_btnSelectBitFlip.PerformLayout();
+            this.GL_btnSelectSignalLink.ResumeLayout(false);
+            this.GL_btnSelectSignalLink.PerformLayout();
             this.ResumeLayout(false);
 
         }
 
         #endregion
 
-        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
-        private MaterialSkin.Controls.MaterialCard btnSelectBitFlip;
-        private MaterialSkin.Controls.MaterialCard materialCard2;
+        private System.Windows.Forms.FlowLayoutPanel GL_FlowPanel1;
+        private MaterialSkin.Controls.MaterialCard GL_btnSelectBitFlip;
+        private MaterialSkin.Controls.MaterialCard GL_btnSelectSignalLink;
         private MaterialSkin.Controls.MaterialLabel materialLabel1;
+        private MaterialSkin.Controls.MaterialLabel materialLabel2;
     }
 }

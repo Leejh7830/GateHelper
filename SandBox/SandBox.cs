@@ -3,18 +3,16 @@ using System.Windows.Forms;
 
 namespace GateHelper
 {
-    // SandBox 폼 클래스
     public partial class SandBox : MaterialForm
     {
-        // 필드 선언 (에러 방지를 위해 초기에는 null로 설정)
         private GameListControl _gameList;
         private BitFlipControl _bitFlipGame;
+        private SignalLinkControl _signalLinkGame;
 
         public SandBox()
         {
             InitializeComponent();
 
-            // 디자인 모드가 아닐 때만 실행 (디자이너 에러 방지)
             if (!DesignMode)
             {
                 InitializeCustomControls();
@@ -27,15 +25,12 @@ namespace GateHelper
             _gameList = new GameListControl();
             _gameList.Dock = DockStyle.Fill;
 
-            if (SB_tabControl1.TabPages.Contains(SB_tpList))
+            if (SB_tabControl1.TabPages.Contains(tpList))
             {
-                SB_tpList.Controls.Add(_gameList);
+                tpList.Controls.Add(_gameList);
             }
 
-
-            //////////////////////////////////////////////////////////// L I S T //////////////////////////////////////////////////////////
-
-            // 비트 플립 컨트롤 생성 및 추가
+            // 2. Bit Flip 컨트롤 생성 및 추가
             _bitFlipGame = new BitFlipControl();
             _bitFlipGame.Dock = DockStyle.Fill;
             if (SB_tabControl1.TabPages.Contains(tpBitFlip))
@@ -43,16 +38,21 @@ namespace GateHelper
                 tpBitFlip.Controls.Add(_bitFlipGame);
             }
 
-            //////////////////////////////////////////////////////////// L I S T //////////////////////////////////////////////////////////
+            // 3. Signal Link 컨트롤 생성 및 추가
+            _signalLinkGame = new SignalLinkControl();
+            _signalLinkGame.Dock = DockStyle.Fill;
+            if (SB_tabControl1.TabPages.Contains(tpSignalLink))
+            {
+                tpSignalLink.Controls.Add(_signalLinkGame);
+            }
 
-
-            // 초기 탭 설정
-            SB_tabControl1.SelectedTab = SB_tpList;
+            // 초기 탭 설정 (목록 화면)
+            SB_tabControl1.SelectedTab = tpList;
         }
 
         public void BackToList()
         {
-            SB_tabControl1.SelectedTab = SB_tpList; // 목록으로 이동
+            SB_tabControl1.SelectedTab = tpList;
         }
 
         public void SwitchToGame(string gameName)
@@ -60,6 +60,10 @@ namespace GateHelper
             if (gameName == "BitFlip")
             {
                 SB_tabControl1.SelectedTab = tpBitFlip;
+            }
+            else if (gameName == "SignalLink")
+            {
+                SB_tabControl1.SelectedTab = tpSignalLink; 
             }
         }
     }

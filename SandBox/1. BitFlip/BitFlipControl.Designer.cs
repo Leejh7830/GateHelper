@@ -29,13 +29,13 @@
         private void InitializeComponent()
         {
             this.materialCard1 = new MaterialSkin.Controls.MaterialCard();
+            this.lblSolvability = new System.Windows.Forms.Label();
             this.lblGimmickNotify = new System.Windows.Forms.Label();
             this.lblTimer = new MaterialSkin.Controls.MaterialLabel();
             this.btnReset = new MaterialSkin.Controls.MaterialButton();
             this.btnBack = new MaterialSkin.Controls.MaterialButton();
             this.cmbDifficulty = new MaterialSkin.Controls.MaterialComboBox();
             this.tableLayoutPanel1 = new System.Windows.Forms.TableLayoutPanel();
-            this.lblSolvability = new System.Windows.Forms.Label();
             this.materialCard1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -60,10 +60,19 @@
             this.materialCard1.Size = new System.Drawing.Size(600, 650);
             this.materialCard1.TabIndex = 0;
             // 
+            // lblSolvability
+            // 
+            this.lblSolvability.AutoSize = true;
+            this.lblSolvability.Location = new System.Drawing.Point(590, 11);
+            this.lblSolvability.Name = "lblSolvability";
+            this.lblSolvability.Size = new System.Drawing.Size(38, 12);
+            this.lblSolvability.TabIndex = 6;
+            this.lblSolvability.Text = "label1";
+            // 
             // lblGimmickNotify
             // 
             this.lblGimmickNotify.AutoSize = true;
-            this.lblGimmickNotify.Location = new System.Drawing.Point(360, 12);
+            this.lblGimmickNotify.Location = new System.Drawing.Point(360, 14);
             this.lblGimmickNotify.Name = "lblGimmickNotify";
             this.lblGimmickNotify.Size = new System.Drawing.Size(38, 12);
             this.lblGimmickNotify.TabIndex = 5;
@@ -75,7 +84,7 @@
             this.lblTimer.AutoSize = true;
             this.lblTimer.Depth = 0;
             this.lblTimer.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.lblTimer.Location = new System.Drawing.Point(312, 9);
+            this.lblTimer.Location = new System.Drawing.Point(312, 11);
             this.lblTimer.MouseState = MaterialSkin.MouseState.HOVER;
             this.lblTimer.Name = "lblTimer";
             this.lblTimer.Size = new System.Drawing.Size(42, 19);
@@ -164,15 +173,6 @@
             this.tableLayoutPanel1.RowStyles.Add(new System.Windows.Forms.RowStyle(System.Windows.Forms.SizeType.Percent, 50F));
             this.tableLayoutPanel1.Size = new System.Drawing.Size(572, 572);
             this.tableLayoutPanel1.TabIndex = 0;
-            // 
-            // lblSolvability
-            // 
-            this.lblSolvability.AutoSize = true;
-            this.lblSolvability.Location = new System.Drawing.Point(590, 11);
-            this.lblSolvability.Name = "lblSolvability";
-            this.lblSolvability.Size = new System.Drawing.Size(38, 12);
-            this.lblSolvability.TabIndex = 6;
-            this.lblSolvability.Text = "label1";
             // 
             // BitFlipControl
             // 

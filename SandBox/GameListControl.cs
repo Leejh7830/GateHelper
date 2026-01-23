@@ -18,5 +18,13 @@ namespace GateHelper
                 sb.SwitchToGame("BitFlip");
             }
         }
+
+        private void GL_btnSelectSignalLink_Click(object sender, EventArgs e)
+        {
+            if (this.ParentForm is SandBox sb)
+            {
+                sb.SwitchToGame("SignalLink");
+            }
+        }
     }
 }
