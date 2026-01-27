@@ -2,6 +2,8 @@
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Linq;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace GateHelper
@@ -23,10 +25,14 @@ namespace GateHelper
         private int _offsetY = 50;      // 그리드가 그려질 시작 Y 좌표
  
 
-        private Timer _gameTimer;
+        private Timer _gameTimer; // 타이머
         private int _playTimeSeconds;
         private string _currentDifficulty;
         private bool _isGameActive = false;
+
+        private bool _showHint = false; // 힌트 표시 여부
+        private int _hintColorID = -1; // 현재 힌트로 보여줄 색상의 ID (-1은 없음)
+        private System.Threading.CancellationTokenSource _hintCts; // 힌트 취소용 토큰
 
         // 난이도 조절용
         public struct DifficultyConfig
@@ -45,7 +51,8 @@ namespace GateHelper
         {
             { "Easy", new DifficultyConfig(5, 3) },
             { "Normal", new DifficultyConfig(6, 4) },
-            { "Hard", new DifficultyConfig(8, 6) }
+            { "Hard", new DifficultyConfig(8, 6) },
+            { "Extreme", new DifficultyConfig(10, 8) }
         };
 
 
@@ -72,6 +79,7 @@ namespace GateHelper
             btnEasy.Parent = pnlDifficulty;
             btnNormal.Parent = pnlDifficulty;
             btnHard.Parent = pnlDifficulty;
+            btnExtreme.Parent = pnlDifficulty;
 
             // 4. [Z-Order 정리] 누가 누구 위에 보일지 명확히 정하기
             pnlDifficulty.BringToFront(); // 일단 패널을 가장 앞으로
@@ -80,6 +88,7 @@ namespace GateHelper
             btnEasy.BringToFront();
             btnNormal.BringToFront();
             btnHard.BringToFront();
+            btnExtreme.BringToFront();
 
             // 패널 "외부"에서 리셋/백 버튼을 가장 앞으로 (패널을 뚫고 보여야 하니까요)
             btnReset.BringToFront();
@@ -95,6 +104,8 @@ namespace GateHelper
         private void StartGame(string difficulty)
         {
             _currentDifficulty = difficulty;
+            
+
             var config = _configs[difficulty];
             _gridSize = config.GridSize;
 
@@ -111,6 +122,7 @@ namespace GateHelper
             _playTimeSeconds = 0;
             _isGameActive = true;
             _gameTimer.Start();
+            ResetHintState(); // 힌트 초기화
 
             pnlDifficulty.Visible = false;
             this.Invalidate();
@@ -120,6 +132,7 @@ namespace GateHelper
         private void btnEasy_Click(object sender, EventArgs e) => StartGame("Easy");
         private void btnNormal_Click(object sender, EventArgs e) => StartGame("Normal");
         private void btnHard_Click(object sender, EventArgs e) => StartGame("Hard");
+        private void btnExtreme_Click(object sender, EventArgs e) => StartGame("Extreme");
 
 
 
@@ -128,15 +141,33 @@ namespace GateHelper
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
-            // 1. 클릭한 위치가 노드(시작점)인지 확인
-            Point gridPos = GetGridPosition(e.Location);
-            if (IsValidPos(gridPos) && _manager.Grid[gridPos.X, gridPos.Y].Type == NodeType.Node)
+            if (!_isGameActive) return;
+
+            int x = (e.X - _offsetX) / _cellSize;
+            int y = (e.Y - _offsetY) / _cellSize;
+
+            // 클릭한 위치가 그리드 범위 안인지 확인
+            if (x >= 0 && x < _gridSize && y >= 0 && y < _gridSize)
             {
-                _isDragging = true;
-                _activeColor = _manager.Grid[gridPos.X, gridPos.Y].ColorID;
-                _currentPath.Clear();
-                _currentPath.Add(gridPos);
-                this.Invalidate(); // 화면 다시 그리기
+                var node = _manager.Grid[x, y];
+
+                // 1. 시작점이나 끝점을 클릭했을 때
+                if (node.Type == NodeType.Node)
+                {
+                    // [추가된 로직] 이미 연결된 선이 있다면 초기화
+                    if (_completedPaths.ContainsKey(node.ColorID))
+                    {
+                        _completedPaths.Remove(node.ColorID);
+                    }
+
+                    // 2. 드래그 시작 준비
+                    _isDragging = true;
+                    _activeColor = node.ColorID;
+                    _currentPath.Clear();
+                    _currentPath.Add(new Point(x, y));
+
+                    this.Invalidate(); // 화면 갱신
+                }
             }
         }
 
@@ -253,46 +284,91 @@ namespace GateHelper
             Graphics g = e.Graphics;
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-            // 1. 그리드 격자 그리기 [코드 복구]
-            using (Pen gridPen = new Pen(Color.FromArgb(60, 60, 60), 1))
+            // 1. 격자 그리기
+            DrawGridLines(g);
+
+            // 2. [HINT] 3초 힌트 (이건 독립적인 3초 타이머 로직)
+            if (_showHint && _isGameActive && _hintColorID != -1)
             {
-                for (int i = 0; i <= _gridSize; i++)
-                {
-                    g.DrawLine(gridPen, _offsetX, _offsetY + i * _cellSize, _offsetX + _gridSize * _cellSize, _offsetY + i * _cellSize);
-                    g.DrawLine(gridPen, _offsetX + i * _cellSize, _offsetY, _offsetX + i * _cellSize, _offsetY + _gridSize * _cellSize);
-                }
+                Color hintColor = Color.FromArgb(50, GetSignalColor(_hintColorID, true));
+                DrawSignalPath(g, _manager.SolutionPaths[_hintColorID], hintColor, 10);
             }
 
-            // 2. 배치된 노드(점) 그리기 [코드 복구]
-            foreach (var node in _manager.Grid)
-            {
-                if (node.Type == NodeType.Node)
-                {
-                    Color nodeColor = GetSignalColor(node.ColorID);
-                    using (Brush b = new SolidBrush(nodeColor))
-                    {
-                        int margin = _cellSize / 4;
-                        int size = _cellSize / 2;
-                        g.FillEllipse(b, _offsetX + node.Pos.X * _cellSize + margin, _offsetY + node.Pos.Y * _cellSize + margin, size, size);
-                    }
-                }
-            }
-
-            // 3. 이미 완성된 선들 모두 그리기
+            // 3. 이미 완성된 선들 그리기
             foreach (var pathEntry in _completedPaths)
             {
-                DrawSignalPath(g, pathEntry.Value, GetSignalColor(pathEntry.Key));
+                // [수정] 마우스를 떼면 다시 회색으로! 
+                // 오직 지금 드래그 중인 색상과 같은 완성된 선만 색상을 보여줍니다.
+                bool isCurrentActive = _isDragging && (_activeColor == pathEntry.Key);
+
+                // 만약 연결된 모든 선을 항상 회색으로 두고 싶다면 'isCurrentActive'만 사용하세요.
+                DrawSignalPath(g, pathEntry.Value, GetSignalColor(pathEntry.Key, isCurrentActive), 14);
             }
 
             // 4. 현재 드래그 중인 선 그리기
             if (_isDragging && _currentPath.Count > 1)
             {
-                DrawSignalPath(g, _currentPath, GetSignalColor(_activeColor));
+                // 그리는 중에는 당연히 색상이 보여야 함 (true)
+                DrawSignalPath(g, _currentPath, GetSignalColor(_activeColor, true), 14);
+            }
+
+            // 5. 배치된 노드(점) 그리기
+            foreach (var node in _manager.Grid)
+            {
+                if (node.Type == NodeType.Node)
+                {
+                    // [핵심] 마우스를 누르고 있는 동안(isDragging) + 내 색상(activeColor)일 때만 정체 공개
+                    bool isPeeking = (_isDragging && _activeColor == node.ColorID);
+
+                    Color nodeColor = GetSignalColor(node.ColorID, isPeeking);
+
+                    using (Brush b = new SolidBrush(nodeColor))
+                    {
+                        int margin = _cellSize / 4;
+                        g.FillEllipse(b, _offsetX + node.Pos.X * _cellSize + margin,
+                                         _offsetY + node.Pos.Y * _cellSize + margin, _cellSize / 2, _cellSize / 2);
+                    }
+                }
+            }
+
+            // 6. 상태 표시
+            DrawGameStatus(g);
+        }
+
+        private void DrawGridLines(Graphics g)
+        {
+            using (Pen gridPen = new Pen(Color.FromArgb(60, 60, 60), 1))
+            {
+                for (int i = 0; i <= _gridSize; i++)
+                {
+                    // 가로줄
+                    g.DrawLine(gridPen, _offsetX, _offsetY + i * _cellSize,
+                               _offsetX + _gridSize * _cellSize, _offsetY + i * _cellSize);
+                    // 세로줄
+                    g.DrawLine(gridPen, _offsetX + i * _cellSize, _offsetY,
+                               _offsetX + i * _cellSize, _offsetY + _gridSize * _cellSize);
+                }
+            }
+        }
+
+        // 상태 메시지 출력을 위한 추가 헬퍼 메서드
+        private void DrawGameStatus(Graphics g)
+        {
+            int filled = 0;
+            foreach (var p in _completedPaths.Values) filled += p.Count;
+            int remaining = (_gridSize * _gridSize) - filled;
+
+            string status = remaining == 0 ? "READY TO FINISH!" : $"EMPTY CELLS: {remaining}";
+            if (!_isGameActive && remaining == 0) status = "ACCESS GRANTED";
+
+            using (Font f = new Font(this.Font.FontFamily, 10, FontStyle.Bold))
+            {
+                g.DrawString(status, f, Brushes.Gray, _offsetX, _offsetY + (_gridSize * _cellSize) + 10);
             }
         }
 
         // 그리기 로직 공통화 (코드 중복 방지)
-        private void DrawSignalPath(Graphics g, List<Point> path, Color color)
+        private void DrawSignalPath(Graphics g, List<Point> path, Color color, int thickness = 12)
         {
             using (Pen pathPen = new Pen(color, 12)) // 선 굵기
             {
@@ -310,14 +386,24 @@ namespace GateHelper
         }
 
         // ID별 색상 반환 유틸리티
-        private Color GetSignalColor(int id)
+        private Color GetSignalColor(int id, bool isPeeking = false)
         {
+            // 익스트림 모드용 회색 쌍 (7번, 8번)
+            if ((id == 7 || id == 8) && !isPeeking)
+            {
+                return Color.FromArgb(120, 120, 120); // 평상시엔 어두운 회색
+            }
+
             switch (id)
             {
-                case 1: return Color.FromArgb(255, 80, 80);  // Red
-                case 2: return Color.FromArgb(80, 150, 255); // Blue
-                case 3: return Color.FromArgb(80, 255, 150); // Green
-                case 4: return Color.FromArgb(255, 255, 80); // Yellow
+                case 1: return Color.FromArgb(255, 80, 80);   // Red
+                case 2: return Color.FromArgb(80, 150, 255);  // Blue
+                case 3: return Color.FromArgb(80, 255, 150);  // Green
+                case 4: return Color.FromArgb(255, 255, 80);  // Yellow
+                case 5: return Color.FromArgb(255, 150, 50);  // Orange
+                case 6: return Color.FromArgb(180, 100, 255); // Purple
+                case 7: return Color.FromArgb(255, 100, 200); // Pink (Extreme)
+                case 8: return Color.FromArgb(100, 255, 255); // Cyan (Extreme)
                 default: return Color.Gray;
             }
         }
@@ -326,16 +412,22 @@ namespace GateHelper
 
         private void CheckVictory()
         {
-            if (_completedPaths.Count == _manager.PairCount)
+            // 1. 모든 신호 쌍 연결 확인
+            if (_completedPaths.Count != _manager.PairCount) return;
+
+            // 2. 모든 칸 점유 확인 (Fill All Cells)
+            int filledCount = 0;
+            foreach (var path in _completedPaths.Values) filledCount += path.Count;
+
+            // 현재 드래그 중인 선은 포함되지 않으므로, 모든 선이 '완료' 상태여야 함
+            if (filledCount == _gridSize * _gridSize)
             {
                 _isGameActive = false;
-                _gameTimer.Stop();
-
-                // 1. 선이 끝까지 연결된 것을 보여주기 위해 강제 새로고침
+                ResetHintState(); // 클리어 시 힌트 끄기
+                _gameTimer.Stop(); // 클리어 시 타이머 정지
                 this.Refresh();
-                System.Threading.Thread.Sleep(200); // 인지할 시간 부여
+                System.Threading.Thread.Sleep(200);
 
-                // 2. Bit Flip 스타일의 승리 화면 호출
                 string timeStr = string.Format("{0:D2}:{1:D2}", _playTimeSeconds / 60, _playTimeSeconds % 60);
                 ShowVictoryOverlay(timeStr, _currentDifficulty);
             }
@@ -410,9 +502,7 @@ namespace GateHelper
             // 1. 현재 진행 중인 데이터들 초기화
             _currentPath.Clear();
             _completedPaths.Clear();
-
-            // (중요) 나중에 추가할 '완료된 선들의 리스트'도 여기서 Clear 해줘야 합니다.
-            // 예: _completedPaths.Clear(); 
+            ResetHintState(); // 리셋 시 힌트 끄기
 
             // 2. 난이도 선택 패널 다시 표시
             pnlDifficulty.Visible = true;
@@ -432,6 +522,60 @@ namespace GateHelper
             {
                 sb.BackToList();
             }
+        }
+
+        private async void btnHint_Click(object sender, EventArgs e)
+        {
+            if (!_isGameActive) return;
+
+            // 1. 이미 진행 중인 힌트 타이머가 있다면 즉시 취소
+            _hintCts?.Cancel();
+            _hintCts = new System.Threading.CancellationTokenSource();
+            var token = _hintCts.Token;
+
+            // 2. 새로운 랜덤 색상 선택 (현재 표시 중인 색상과 겹치지 않게)
+            var availableColors = _manager.SolutionPaths.Keys.ToList();
+            if (availableColors.Count > 0)
+            {
+                Random rand = new Random();
+                int nextColorID;
+
+                // 색상이 2개 이상이면 현재 보여주는 색상과 다른 색상이 나올 때까지 무작위 선택
+                if (availableColors.Count > 1)
+                {
+                    do
+                    {
+                        nextColorID = availableColors[rand.Next(availableColors.Count)];
+                    } while (nextColorID == _hintColorID);
+                }
+                else
+                {
+                    nextColorID = availableColors[0];
+                }
+
+                _hintColorID = nextColorID;
+                _showHint = true;
+                this.Invalidate(); // 새 힌트 표시
+
+                try
+                {
+                    await Task.Delay(3000, token); // 3. 3초(3000ms) 대기 (취소 토큰 전달)
+                    ResetHintState(); // 4. 3초가 무사히 지나면 힌트 자동 종료
+                    this.Invalidate();
+                }
+                catch (TaskCanceledException)
+                {
+                    // 3초가 지나기 전에 버튼을 다시 누르면 이 위치로 오게 됨
+                    // 새로운 클릭이 이미 _hintColorID를 갱신했으므로 여기서는 아무것도 하지 않음
+                }
+            }
+        }
+
+        private void ResetHintState()
+        {
+            _showHint = false;
+            _hintColorID = -1;
+            // 버튼 스타일 등을 초기화하는 코드가 있다면 여기에 추가
         }
     }
 }

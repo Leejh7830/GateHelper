@@ -18,6 +18,8 @@
             this.btnHard = new MaterialSkin.Controls.MaterialButton();
             this.btnReset = new MaterialSkin.Controls.MaterialButton();
             this.btnBack = new MaterialSkin.Controls.MaterialButton();
+            this.btnHint = new MaterialSkin.Controls.MaterialButton();
+            this.btnExtreme = new MaterialSkin.Controls.MaterialButton();
             this.SuspendLayout();
             // 
             // btnEasy
@@ -68,7 +70,7 @@
             this.btnHard.Depth = 0;
             this.btnHard.HighEmphasis = true;
             this.btnHard.Icon = null;
-            this.btnHard.Location = new System.Drawing.Point(214, 320);
+            this.btnHard.Location = new System.Drawing.Point(214, 319);
             this.btnHard.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.btnHard.MouseState = MaterialSkin.MouseState.HOVER;
             this.btnHard.Name = "btnHard";
@@ -118,8 +120,49 @@
             this.btnBack.UseAccentColor = false;
             this.btnBack.Click += new System.EventHandler(this.btnBack_Click);
             // 
+            // btnHint
+            // 
+            this.btnHint.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnHint.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnHint.Depth = 0;
+            this.btnHint.HighEmphasis = true;
+            this.btnHint.Icon = null;
+            this.btnHint.Location = new System.Drawing.Point(548, 10);
+            this.btnHint.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnHint.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnHint.Name = "btnHint";
+            this.btnHint.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnHint.Size = new System.Drawing.Size(64, 36);
+            this.btnHint.TabIndex = 5;
+            this.btnHint.Text = "HINT";
+            this.btnHint.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnHint.UseAccentColor = true;
+            this.btnHint.Click += new System.EventHandler(this.btnHint_Click);
+            // 
+            // btnExtreme
+            // 
+            this.btnExtreme.AutoSize = false;
+            this.btnExtreme.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnExtreme.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnExtreme.Depth = 0;
+            this.btnExtreme.HighEmphasis = true;
+            this.btnExtreme.Icon = null;
+            this.btnExtreme.Location = new System.Drawing.Point(214, 386);
+            this.btnExtreme.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnExtreme.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnExtreme.Name = "btnExtreme";
+            this.btnExtreme.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnExtreme.Size = new System.Drawing.Size(200, 50);
+            this.btnExtreme.TabIndex = 6;
+            this.btnExtreme.Text = "EXTREME";
+            this.btnExtreme.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnExtreme.UseAccentColor = true;
+            this.btnExtreme.Click += new System.EventHandler(this.btnExtreme_Click);
+            // 
             // SignalLinkControl
             // 
+            this.Controls.Add(this.btnExtreme);
+            this.Controls.Add(this.btnHint);
             this.Controls.Add(this.btnBack);
             this.Controls.Add(this.btnReset);
             this.Controls.Add(this.btnHard);
@@ -137,5 +180,7 @@
         private MaterialSkin.Controls.MaterialButton btnHard;
         private MaterialSkin.Controls.MaterialButton btnReset;
         private MaterialSkin.Controls.MaterialButton btnBack;
+        private MaterialSkin.Controls.MaterialButton btnHint;
+        private MaterialSkin.Controls.MaterialButton btnExtreme;
     }
 }
