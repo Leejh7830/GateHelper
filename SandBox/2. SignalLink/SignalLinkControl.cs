@@ -575,6 +575,7 @@ namespace GateHelper
         {
             _showHint = false;
             _hintColorID = -1;
+            _hintCts?.Cancel();
             // 버튼 스타일 등을 초기화하는 코드가 있다면 여기에 추가
         }
     }
