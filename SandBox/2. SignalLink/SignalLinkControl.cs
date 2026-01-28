@@ -282,106 +282,157 @@ namespace GateHelper
 
             base.OnPaint(e);
             Graphics g = e.Graphics;
+
+            // 배경을 어두운 검은색으로 초기화 (해커 분위기)
+            g.Clear(Color.Black);
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
             // 1. 격자 그리기
             DrawGridLines(g);
 
-            // 2. [HINT] 3초 힌트 (이건 독립적인 3초 타이머 로직)
+            // 2. [HINT] 힌트 레이어 (가장 바닥)
             if (_showHint && _isGameActive && _hintColorID != -1)
             {
-                Color hintColor = Color.FromArgb(50, GetSignalColor(_hintColorID, true));
-                DrawSignalPath(g, _manager.SolutionPaths[_hintColorID], hintColor, 10);
+                if (_manager.SolutionPaths.ContainsKey(_hintColorID))
+                {
+                    var solPath = _manager.SolutionPaths[_hintColorID];
+                    // 힌트는 아주 연하게 번지는 효과만 줌 (Glow 없이 단일 선)
+                    Color hintColor = Color.FromArgb(40, GetSignalColor(_hintColorID, true));
+                    DrawSignalPath(g, solPath, hintColor, 10);
+                }
             }
 
-            // 3. 이미 완성된 선들 그리기
+            // 3. [COMPLETED] 연결 완료된 선들
             foreach (var pathEntry in _completedPaths)
             {
-                // [수정] 마우스를 떼면 다시 회색으로! 
-                // 오직 지금 드래그 중인 색상과 같은 완성된 선만 색상을 보여줍니다.
-                bool isCurrentActive = _isDragging && (_activeColor == pathEntry.Key);
+                // 익스트림 규칙: 마우스를 떼면 회색, 누르고 있는 색상만 정체 공개
+                bool showRealColor = (_isDragging && _activeColor == pathEntry.Key);
+                Color baseColor = GetSignalColor(pathEntry.Key, showRealColor);
 
-                // 만약 연결된 모든 선을 항상 회색으로 두고 싶다면 'isCurrentActive'만 사용하세요.
-                DrawSignalPath(g, pathEntry.Value, GetSignalColor(pathEntry.Key, isCurrentActive), 14);
+                // 연결된 선에 글로우 효과 적용
+                DrawGlowPath(g, pathEntry.Value, baseColor);
             }
 
-            // 4. 현재 드래그 중인 선 그리기
+            // 4. [ACTIVE] 현재 드래그 중인 선
             if (_isDragging && _currentPath.Count > 1)
             {
-                // 그리는 중에는 당연히 색상이 보여야 함 (true)
-                DrawSignalPath(g, _currentPath, GetSignalColor(_activeColor, true), 14);
+                Color activeColor = GetSignalColor(_activeColor, true); // 드래그 중엔 항상 진짜 색상
+                DrawGlowPath(g, _currentPath, activeColor);
             }
 
-            // 5. 배치된 노드(점) 그리기
+            // 5. [NODES] 종착점 (가장 위 레이어)
             foreach (var node in _manager.Grid)
             {
                 if (node.Type == NodeType.Node)
                 {
-                    // [핵심] 마우스를 누르고 있는 동안(isDragging) + 내 색상(activeColor)일 때만 정체 공개
+                    // 마우스 누를 때만 색상 피킹
                     bool isPeeking = (_isDragging && _activeColor == node.ColorID);
-
                     Color nodeColor = GetSignalColor(node.ColorID, isPeeking);
 
-                    using (Brush b = new SolidBrush(nodeColor))
-                    {
-                        int margin = _cellSize / 4;
-                        g.FillEllipse(b, _offsetX + node.Pos.X * _cellSize + margin,
-                                         _offsetY + node.Pos.Y * _cellSize + margin, _cellSize / 2, _cellSize / 2);
-                    }
+                    DrawNode(g, node.Pos.X, node.Pos.Y, nodeColor);
                 }
             }
 
-            // 6. 상태 표시
+            // 6. [STATUS] 하단 게임 상태 정보
             DrawGameStatus(g);
+
+            // 7. [POST-PROCESS] CRT 스캔라인 효과 (모든 것 위에 덮음)
+            DrawScanlines(g);
         }
 
         private void DrawGridLines(Graphics g)
         {
-            using (Pen gridPen = new Pen(Color.FromArgb(60, 60, 60), 1))
+            // 아주 어두운 청록색으로 격자 생성
+            using (Pen gridPen = new Pen(Color.FromArgb(30, 0, 255, 255), 1))
             {
                 for (int i = 0; i <= _gridSize; i++)
                 {
-                    // 가로줄
-                    g.DrawLine(gridPen, _offsetX, _offsetY + i * _cellSize,
-                               _offsetX + _gridSize * _cellSize, _offsetY + i * _cellSize);
-                    // 세로줄
-                    g.DrawLine(gridPen, _offsetX + i * _cellSize, _offsetY,
-                               _offsetX + i * _cellSize, _offsetY + _gridSize * _cellSize);
+                    g.DrawLine(gridPen, _offsetX, _offsetY + i * _cellSize, _offsetX + _gridSize * _cellSize, _offsetY + i * _cellSize);
+                    g.DrawLine(gridPen, _offsetX + i * _cellSize, _offsetY, _offsetX + i * _cellSize, _offsetY + _gridSize * _cellSize);
                 }
             }
         }
 
-        // 상태 메시지 출력을 위한 추가 헬퍼 메서드
+        private void DrawGlowPath(Graphics g, List<Point> path, Color color)
+        {
+            // 1. 바깥쪽 번짐 (Glow)
+            DrawSignalPath(g, path, Color.FromArgb(40, color), 22);
+            // 2. 중간 번짐
+            DrawSignalPath(g, path, Color.FromArgb(80, color), 18);
+            // 3. 중심선 (핵심 신호선)
+            DrawSignalPath(g, path, color, 14);
+        }
+
+        // 그리기 로직 공통화 (코드 중복 방지)
+        private void DrawSignalPath(Graphics g, List<Point> path, Color color, int thickness)
+        {
+            if (path.Count < 2) return;
+
+            // [해커 효과] 신호가 흐르는 듯한 미세한 플리커링 (힌트가 아닐 때만)
+            int alpha = color.A;
+            if (_isGameActive && alpha > 50)
+            {
+                Random rand = new Random();
+                alpha = rand.Next(Math.Max(0, alpha - 40), Math.Min(255, alpha + 10));
+            }
+            Color flickerColor = Color.FromArgb(alpha, color.R, color.G, color.B);
+
+            using (Pen p = new Pen(flickerColor, thickness))
+            {
+                p.StartCap = p.EndCap = System.Drawing.Drawing2D.LineCap.Round;
+                p.LineJoin = System.Drawing.Drawing2D.LineJoin.Round;
+
+                for (int i = 0; i < path.Count - 1; i++)
+                {
+                    Point p1 = new Point(_offsetX + path[i].X * _cellSize + _cellSize / 2, _offsetY + path[i].Y * _cellSize + _cellSize / 2);
+                    Point p2 = new Point(_offsetX + path[i + 1].X * _cellSize + _cellSize / 2, _offsetY + path[i + 1].Y * _cellSize + _cellSize / 2);
+                    g.DrawLine(p, p1, p2);
+                }
+            }
+        }
+
+        private void DrawNode(Graphics g, int x, int y, Color color)
+        {
+            int margin = _cellSize / 4;
+            int size = _cellSize / 2;
+            Rectangle rect = new Rectangle(_offsetX + x * _cellSize + margin, _offsetY + y * _cellSize + margin, size, size);
+
+            using (Brush b = new SolidBrush(color))
+            {
+                g.FillEllipse(b, rect);
+            }
+
+            // 노드 테두리에 밝은 광택 효과 추가
+            using (Pen p = new Pen(Color.FromArgb(150, Color.White), 2))
+            {
+                g.DrawEllipse(p, rect);
+            }
+        }
+
+        private void DrawScanlines(Graphics g)
+        {
+            // 화면 전체에 가로 스캔라인 덧씌우기
+            using (Pen scanlinePen = new Pen(Color.FromArgb(15, 0, 0, 0), 1))
+            {
+                for (int y = _offsetY; y < _offsetY + (_gridSize * _cellSize); y += 3)
+                {
+                    g.DrawLine(scanlinePen, _offsetX, y, _offsetX + (_gridSize * _cellSize), y);
+                }
+            }
+        }
+
         private void DrawGameStatus(Graphics g)
         {
             int filled = 0;
             foreach (var p in _completedPaths.Values) filled += p.Count;
             int remaining = (_gridSize * _gridSize) - filled;
 
-            string status = remaining == 0 ? "READY TO FINISH!" : $"EMPTY CELLS: {remaining}";
-            if (!_isGameActive && remaining == 0) status = "ACCESS GRANTED";
+            string status = remaining == 0 ? ">>> CORE LINKED <<<" : $"SCANNING... EMPTY NODES: {remaining}";
+            if (!_isGameActive && remaining == 0) status = "ACCESS GRANTED [SUCCESS]";
 
-            using (Font f = new Font(this.Font.FontFamily, 10, FontStyle.Bold))
+            using (Font f = new Font("Consolas", 11, FontStyle.Bold))
             {
-                g.DrawString(status, f, Brushes.Gray, _offsetX, _offsetY + (_gridSize * _cellSize) + 10);
-            }
-        }
-
-        // 그리기 로직 공통화 (코드 중복 방지)
-        private void DrawSignalPath(Graphics g, List<Point> path, Color color, int thickness = 12)
-        {
-            using (Pen pathPen = new Pen(color, 12)) // 선 굵기
-            {
-                pathPen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
-                pathPen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
-                pathPen.LineJoin = System.Drawing.Drawing2D.LineJoin.Round;
-
-                for (int i = 0; i < path.Count - 1; i++)
-                {
-                    Point p1 = new Point(_offsetX + path[i].X * _cellSize + _cellSize / 2, _offsetY + path[i].Y * _cellSize + _cellSize / 2);
-                    Point p2 = new Point(_offsetX + path[i + 1].X * _cellSize + _cellSize / 2, _offsetY + path[i + 1].Y * _cellSize + _cellSize / 2);
-                    g.DrawLine(pathPen, p1, p2);
-                }
+                g.DrawString(status, f, Brushes.Lime, _offsetX, _offsetY + (_gridSize * _cellSize) + 15);
             }
         }
 
