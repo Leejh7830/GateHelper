@@ -19,20 +19,27 @@ namespace GateHelper
         private int _activeColor = 0;
         private Panel pnlDifficulty;
 
+        // 그리드
         private int _gridSize = 5;      // 현재 그리드 크기 (5x5 등)
         private int _cellSize = 60;     // 한 칸의 크기 (픽셀)
         private int _offsetX = 50;      // 그리드가 그려질 시작 X 좌표
         private int _offsetY = 50;      // 그리드가 그려질 시작 Y 좌표
  
-
+        // 타이머
         private Timer _gameTimer; // 타이머
         private int _playTimeSeconds;
         private string _currentDifficulty;
         private bool _isGameActive = false;
 
+        // HINT
         private bool _showHint = false; // 힌트 표시 여부
         private int _hintColorID = -1; // 현재 힌트로 보여줄 색상의 ID (-1은 없음)
         private System.Threading.CancellationTokenSource _hintCts; // 힌트 취소용 토큰
+
+        // 이펙트
+        private Queue<string> _logs = new Queue<string>(); // 화면표시 로그
+        private const int MAX_LOGS = 2; // 최대 로그 수
+        private int _errorFlashFrame = 0; // 오류 애니메이션 프레임 카운트
 
         // 난이도 조절용
         public struct DifficultyConfig
@@ -52,7 +59,9 @@ namespace GateHelper
             { "Easy", new DifficultyConfig(5, 3) },
             { "Normal", new DifficultyConfig(6, 4) },
             { "Hard", new DifficultyConfig(8, 6) },
-            { "Extreme", new DifficultyConfig(10, 8) }
+            { "Insane", new DifficultyConfig(12, 9) },
+            { "Extreme", new DifficultyConfig(10, 8) },
+            { "Extreme2", new DifficultyConfig(12, 10) }
         };
 
 
@@ -79,7 +88,9 @@ namespace GateHelper
             btnEasy.Parent = pnlDifficulty;
             btnNormal.Parent = pnlDifficulty;
             btnHard.Parent = pnlDifficulty;
+            btnInsane.Parent = pnlDifficulty;
             btnExtreme.Parent = pnlDifficulty;
+            btnExtreme2.Parent = pnlDifficulty;
 
             // 4. [Z-Order 정리] 누가 누구 위에 보일지 명확히 정하기
             pnlDifficulty.BringToFront(); // 일단 패널을 가장 앞으로
@@ -88,21 +99,33 @@ namespace GateHelper
             btnEasy.BringToFront();
             btnNormal.BringToFront();
             btnHard.BringToFront();
+            btnInsane.BringToFront();
             btnExtreme.BringToFront();
+            btnExtreme2.BringToFront();
 
             // 패널 "외부"에서 리셋/백 버튼을 가장 앞으로 (패널을 뚫고 보여야 하니까요)
             btnReset.BringToFront();
             btnBack.BringToFront();
 
-            // 5. 타이머 및 기타 로직 (기존과 동일)
+            // 5. 타이머 및 기타 로직
             _gameTimer = new Timer { Interval = 1000 };
-            _gameTimer.Tick += (s, e) => { if (_isGameActive) _playTimeSeconds++; };
+            _gameTimer.Tick += (s, e) =>
+            {
+                if (_isGameActive)
+                {
+                    _playTimeSeconds++;
+                    this.Invalidate(); // 갱신
+                }
+            };
         }
 
 
 
         private void StartGame(string difficulty)
         {
+            _logs.Clear(); // 기존 로그 완전 삭제
+            AddLog($"INITIALIZING {difficulty.ToUpper()} ENCRYPTION...");
+
             _currentDifficulty = difficulty;
             
 
@@ -126,13 +149,16 @@ namespace GateHelper
 
             pnlDifficulty.Visible = false;
             this.Invalidate();
+
         }
 
 
         private void btnEasy_Click(object sender, EventArgs e) => StartGame("Easy");
         private void btnNormal_Click(object sender, EventArgs e) => StartGame("Normal");
         private void btnHard_Click(object sender, EventArgs e) => StartGame("Hard");
+        private void btnInsane_Click(object sender, EventArgs e) => StartGame("Insane");
         private void btnExtreme_Click(object sender, EventArgs e) => StartGame("Extreme");
+        private void btnExtreme2_Click(object sender, EventArgs e) => StartGame("Extreme2");
 
 
 
@@ -167,6 +193,7 @@ namespace GateHelper
                     _currentPath.Add(new Point(x, y));
 
                     this.Invalidate(); // 화면 갱신
+                    AddLog($"TARGETING SIGNAL #{node.ColorID}...");
                 }
             }
         }
@@ -220,17 +247,23 @@ namespace GateHelper
         // 다른 선에 의해 막혀있는지 확인하는 헬퍼 메서드
         private bool IsPathBlocked(Point pos)
         {
-            // 현재 그리고 있는 선에 포함되었는가?
-            if (_currentPath.Contains(pos)) return true;
-
-            // 이미 완성된 다른 색상의 선들에 포함되었는가?
+            bool blocked = false;
+            if (_currentPath.Contains(pos)) blocked = true;
             foreach (var entry in _completedPaths)
             {
-                if (entry.Key == _activeColor) continue; // 내 색상의 기존 선은 무시 (덮어쓰기 위해)
-                if (entry.Value.Contains(pos)) return true;
+                if (entry.Key == _activeColor) continue;
+                if (entry.Value.Contains(pos)) { blocked = true; break; }
             }
-            return false;
+
+            if (blocked)
+            {
+                _errorFlashFrame = 5; // N 프레임 동안 붉은색 효과 유지
+                AddLog($"CRITICAL ERROR: SIGNAL COLLISION AT [{pos.X}, {pos.Y}]");
+            }
+            return blocked;
         }
+
+
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
@@ -274,6 +307,7 @@ namespace GateHelper
 
             _currentPath.Clear();
             this.Invalidate();
+            AddLog($"LINK ESTABLISHED: SIGNAL #{_activeColor}");
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -282,43 +316,50 @@ namespace GateHelper
 
             base.OnPaint(e);
             Graphics g = e.Graphics;
+
+            // 해커 배경색 강제 적용 (검은색이어야 효과가 삼)
+            g.Clear(Color.Black);
             g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
             // 1. 격자 그리기
             DrawGridLines(g);
 
-            // 2. [HINT] 3초 힌트 (이건 독립적인 3초 타이머 로직)
+            // 2. [HINT] 힌트 레이어
             if (_showHint && _isGameActive && _hintColorID != -1)
             {
-                Color hintColor = Color.FromArgb(50, GetSignalColor(_hintColorID, true));
-                DrawSignalPath(g, _manager.SolutionPaths[_hintColorID], hintColor, 10);
+                if (_manager.SolutionPaths.ContainsKey(_hintColorID))
+                {
+                    Color hintColor = Color.FromArgb(50, GetSignalColor(_hintColorID, true));
+                    DrawSignalPath(g, _manager.SolutionPaths[_hintColorID], hintColor, 10);
+                }
             }
 
             // 3. 이미 완성된 선들 그리기
             foreach (var pathEntry in _completedPaths)
             {
-                // [수정] 마우스를 떼면 다시 회색으로! 
-                // 오직 지금 드래그 중인 색상과 같은 완성된 선만 색상을 보여줍니다.
-                bool isCurrentActive = _isDragging && (_activeColor == pathEntry.Key);
+                // [수정] 드래그 중이거나, 게임에서 승리했을 때(!_isGameActive) 진짜 색상을 보여줌
+                bool showRealColor = (_isDragging && _activeColor == pathEntry.Key) || (!_isGameActive);
 
-                // 만약 연결된 모든 선을 항상 회색으로 두고 싶다면 'isCurrentActive'만 사용하세요.
-                DrawSignalPath(g, pathEntry.Value, GetSignalColor(pathEntry.Key, isCurrentActive), 14);
+                // GetSignalColor에 showRealColor를 전달하여 회색이 아닌 실제 색상을 가져옴
+                DrawSignalPath(g, pathEntry.Value, GetSignalColor(pathEntry.Key, showRealColor), 14);
             }
 
             // 4. 현재 드래그 중인 선 그리기
             if (_isDragging && _currentPath.Count > 1)
             {
-                // 그리는 중에는 당연히 색상이 보여야 함 (true)
                 DrawSignalPath(g, _currentPath, GetSignalColor(_activeColor, true), 14);
             }
+
+            // [신규] 4.5 터미널 로그 그리기 (노드 밑에 깔리는 것이 좋음)
+            DrawTerminalLog(g);
 
             // 5. 배치된 노드(점) 그리기
             foreach (var node in _manager.Grid)
             {
                 if (node.Type == NodeType.Node)
                 {
-                    // [핵심] 마우스를 누르고 있는 동안(isDragging) + 내 색상(activeColor)일 때만 정체 공개
-                    bool isPeeking = (_isDragging && _activeColor == node.ColorID);
+                    // [수정] 드래그 중이거나, 게임에서 승리했을 때(!_isGameActive) 진짜 색상을 보여줌
+                    bool isPeeking = (_isDragging && _activeColor == node.ColorID) || (!_isGameActive);
 
                     Color nodeColor = GetSignalColor(node.ColorID, isPeeking);
 
@@ -333,6 +374,19 @@ namespace GateHelper
 
             // 6. 상태 표시
             DrawGameStatus(g);
+
+            if (_errorFlashFrame > 0)
+            {
+                // 화면 전체를 반투명한 빨간색으로 덮고, 선 두께를 흔들리게 표현
+                using (Brush errorBrush = new SolidBrush(Color.FromArgb(80, 205, 0, 0)))
+                {
+                    g.FillRectangle(errorBrush, 0, 0, this.Width, this.Height);
+                }
+                _errorFlashFrame--; // 프레임 차감
+            }
+
+            // [신규] 7. CRT 스캔라인 효과 (가장 마지막에 모든 레이어를 덮음)
+            DrawScanlines(g);
         }
 
         private void DrawGridLines(Graphics g)
@@ -354,16 +408,25 @@ namespace GateHelper
         // 상태 메시지 출력을 위한 추가 헬퍼 메서드
         private void DrawGameStatus(Graphics g)
         {
+            // 1. 남은 칸 계산
             int filled = 0;
             foreach (var p in _completedPaths.Values) filled += p.Count;
             int remaining = (_gridSize * _gridSize) - filled;
 
-            string status = remaining == 0 ? "READY TO FINISH!" : $"EMPTY CELLS: {remaining}";
-            if (!_isGameActive && remaining == 0) status = "ACCESS GRANTED";
+            // 2. 실시간 시간 포맷팅 (MM:SS)
+            string timeStr = string.Format("{0:D2}:{1:D2}", _playTimeSeconds / 60, _playTimeSeconds % 60);
 
-            using (Font f = new Font(this.Font.FontFamily, 10, FontStyle.Bold))
+            // 3. 상태 메시지 조합
+            string status = remaining == 0 ? ">>> READY TO FINISH <<<" : $"[{timeStr}] EMPTY NODES: {remaining}";
+
+            // 게임 클리어 시 메시지 변경
+            if (!_isGameActive && remaining == 0)
+                status = $"ACCESS GRANTED - FINAL TIME: {timeStr}";
+
+            // 4. 렌더링 (해커 느낌을 위해 밝은 회색이나 라임색 사용)
+            using (Font f = new Font("Consolas", 10, FontStyle.Bold))
             {
-                g.DrawString(status, f, Brushes.Gray, _offsetX, _offsetY + (_gridSize * _cellSize) + 10);
+                g.DrawString(status, f, Brushes.White, _offsetX, _offsetY + (_gridSize * _cellSize) + 10);
             }
         }
 
@@ -388,12 +451,15 @@ namespace GateHelper
         // ID별 색상 반환 유틸리티
         private Color GetSignalColor(int id, bool isPeeking = false)
         {
-            // 익스트림 모드용 회색 쌍 (7번, 8번)
-            if ((id == 7 || id == 8) && !isPeeking)
+            // [Extreme 모드 전용 로직] 
+            // 피킹 중(드래그, 힌트, 승리 연출)이 아닐 때 모든 노드와 선을 회색으로 만듭니다.
+            // if (_currentDifficulty == "Extreme" && !isPeeking)
+            if ((!isPeeking) && ((_currentDifficulty == "Extreme")||(_currentDifficulty == "Extreme2")))
             {
-                return Color.FromArgb(120, 120, 120); // 평상시엔 어두운 회색
+                return Color.FromArgb(120, 120, 120); // 어두운 회색 (정체 은폐)
             }
 
+            // 다른 난이도이거나 피킹 중일 때 보여줄 '진짜 정체' 색상들
             switch (id)
             {
                 case 1: return Color.FromArgb(255, 80, 80);   // Red
@@ -402,8 +468,11 @@ namespace GateHelper
                 case 4: return Color.FromArgb(255, 255, 80);  // Yellow
                 case 5: return Color.FromArgb(255, 150, 50);  // Orange
                 case 6: return Color.FromArgb(180, 100, 255); // Purple
-                case 7: return Color.FromArgb(255, 100, 200); // Pink (Extreme)
-                case 8: return Color.FromArgb(100, 255, 255); // Cyan (Extreme)
+                case 7: return Color.FromArgb(255, 100, 200); // Pink
+                case 8: return Color.FromArgb(100, 255, 255); // Cyan
+                case 9: return Color.FromArgb(170, 255, 0);   // Neon Lime
+                case 10: return Color.FromArgb(255, 255, 255); // Pure White
+                case 11: return Color.FromArgb(255, 190, 0);   // Amber Gold
                 default: return Color.Gray;
             }
         }
@@ -412,24 +481,26 @@ namespace GateHelper
 
         private void CheckVictory()
         {
-            // 1. 모든 신호 쌍 연결 확인
-            if (_completedPaths.Count != _manager.PairCount) return;
-
-            // 2. 모든 칸 점유 확인 (Fill All Cells)
             int filledCount = 0;
             foreach (var path in _completedPaths.Values) filledCount += path.Count;
 
-            // 현재 드래그 중인 선은 포함되지 않으므로, 모든 선이 '완료' 상태여야 함
             if (filledCount == _gridSize * _gridSize)
             {
                 _isGameActive = false;
-                ResetHintState(); // 클리어 시 힌트 끄기
-                _gameTimer.Stop(); // 클리어 시 타이머 정지
-                this.Refresh();
-                System.Threading.Thread.Sleep(200);
+                _gameTimer.Stop(); // 승리 시 타이머 정지
 
-                string timeStr = string.Format("{0:D2}:{1:D2}", _playTimeSeconds / 60, _playTimeSeconds % 60);
-                ShowVictoryOverlay(timeStr, _currentDifficulty);
+                // 현재까지의 시간을 MM:SS 형식으로 변환
+                string finalTime = string.Format("{0:D2}:{1:D2}", _playTimeSeconds / 60, _playTimeSeconds % 60);
+
+                AddLog(">>> SYSTEM OVERRIDE SUCCESSFUL <<<");
+                AddLog("DECRYPTING ALL SIGNAL NODES...");
+                AddLog("ACCESS GRANTED. WELCOME, ADMIN.");
+
+                this.Invalidate();
+
+                Task.Delay(1500).ContinueWith(_ => {
+                    this.Invoke(new Action(() => ShowVictoryOverlay(finalTime, _currentDifficulty)));
+                });
             }
         }
 
@@ -499,6 +570,13 @@ namespace GateHelper
 
         private void btnReset_Click(object sender, EventArgs e)
         {
+            _isGameActive = false;
+            _gameTimer.Stop(); // 타이머 정지
+            _playTimeSeconds = 0; // 시간 초기화
+
+            _logs.Clear(); // 로그 초기화
+            AddLog("SYSTEM RESET... ALL LOGS PURGED.");
+
             // 1. 현재 진행 중인 데이터들 초기화
             _currentPath.Clear();
             _completedPaths.Clear();
@@ -578,5 +656,70 @@ namespace GateHelper
             _hintCts?.Cancel();
             // 버튼 스타일 등을 초기화하는 코드가 있다면 여기에 추가
         }
+
+        private void AddLog(string message)
+        {
+            // 해커 느낌을 위해 앞에 '>' 기호와 시간을 붙입니다.
+            string logEntry = $"> [{DateTime.Now:HH:mm:ss}] {message}";
+            _logs.Enqueue(logEntry);
+
+            // 로그가 너무 많아지면 가장 오래된 것부터 삭제
+            while (_logs.Count > MAX_LOGS)
+            {
+                _logs.Dequeue();
+            }
+            this.Invalidate(); // 로그가 추가될 때마다 화면 갱신
+        }
+
+        private void DrawTerminalLog(Graphics g)
+        {
+            // 1. 위치 설정
+            int logX = _offsetX + (_gridSize * _cellSize) + 20;
+            int logY = _offsetY;
+
+            if (logX + 200 > this.Width)
+            {
+                logX = _offsetX;
+                logY = _offsetY + (_gridSize * _cellSize) + 25;
+            }
+
+            // 폰트를 조금 더 선명하게 보이기 위해 Bold 추천 (취향에 따라 Regular 유지 가능)
+            using (Font logFont = new Font("Consolas", 9, FontStyle.Bold))
+            {
+                int i = 0;
+                int count = _logs.Count;
+
+                foreach (string log in _logs)
+                {
+                    // [수정] 최소 밝기를 180으로 고정하고 나머지를 비율로 계산
+                    // 로그가 2줄일 때: 첫 줄(alpha 217), 둘째 줄(alpha 255)
+                    // 이렇게 하면 '어두운 연두색'이 아니라 '약간 투명한 밝은 연두색'이 됩니다.
+                    int alpha = 180 + (int)(75 * ((double)(i + 1) / count));
+
+                    // 색상이 여전히 어둡다면 Lime 대신 SpringGreen을 써보세요. 훨씬 눈에 띕니다.
+                    using (Brush b = new SolidBrush(Color.FromArgb(alpha, Color.Lime)))
+                    {
+                        g.DrawString(log, logFont, b, logX, logY + (i * 12));
+                    }
+                    i++;
+                }
+            }
+        }
+
+        private void DrawScanlines(Graphics g)
+        {
+            // 아주 투명한 검은색 선을 3픽셀 간격으로 덧씌움
+            using (Pen scanlinePen = new Pen(Color.FromArgb(20, 0, 0, 0), 1))
+            {
+                for (int y = 0; y < this.Height; y += 3)
+                {
+                    g.DrawLine(scanlinePen, 0, y, this.Width, y);
+                }
+            }
+        }
+
+
+
+        ////////////////////////////////////////////////////////////////////////   CLASS END  /////////////////////////////////////////////////////////////////////////////////////
     }
 }

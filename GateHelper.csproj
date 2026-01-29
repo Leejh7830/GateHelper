@@ -167,7 +167,6 @@
     </Compile>
     <Compile Include="SandBox\2. SignalLink\SignalManager.cs" />
     <Compile Include="SandBox\2. SignalLink\SignalNode.cs" />
-    <Compile Include="SandBox\2. SignalLink\SignalPath.cs" />
     <Compile Include="SandBox\GameListControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

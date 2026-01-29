@@ -20,6 +20,8 @@
             this.btnBack = new MaterialSkin.Controls.MaterialButton();
             this.btnHint = new MaterialSkin.Controls.MaterialButton();
             this.btnExtreme = new MaterialSkin.Controls.MaterialButton();
+            this.btnInsane = new MaterialSkin.Controls.MaterialButton();
+            this.btnExtreme2 = new MaterialSkin.Controls.MaterialButton();
             this.SuspendLayout();
             // 
             // btnEasy
@@ -30,7 +32,7 @@
             this.btnEasy.Depth = 0;
             this.btnEasy.HighEmphasis = true;
             this.btnEasy.Icon = null;
-            this.btnEasy.Location = new System.Drawing.Point(214, 180);
+            this.btnEasy.Location = new System.Drawing.Point(213, 141);
             this.btnEasy.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.btnEasy.MouseState = MaterialSkin.MouseState.HOVER;
             this.btnEasy.Name = "btnEasy";
@@ -50,7 +52,7 @@
             this.btnNormal.Depth = 0;
             this.btnNormal.HighEmphasis = true;
             this.btnNormal.Icon = null;
-            this.btnNormal.Location = new System.Drawing.Point(214, 250);
+            this.btnNormal.Location = new System.Drawing.Point(213, 203);
             this.btnNormal.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.btnNormal.MouseState = MaterialSkin.MouseState.HOVER;
             this.btnNormal.Name = "btnNormal";
@@ -70,7 +72,7 @@
             this.btnHard.Depth = 0;
             this.btnHard.HighEmphasis = true;
             this.btnHard.Icon = null;
-            this.btnHard.Location = new System.Drawing.Point(214, 319);
+            this.btnHard.Location = new System.Drawing.Point(213, 265);
             this.btnHard.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.btnHard.MouseState = MaterialSkin.MouseState.HOVER;
             this.btnHard.Name = "btnHard";
@@ -147,7 +149,7 @@
             this.btnExtreme.Depth = 0;
             this.btnExtreme.HighEmphasis = true;
             this.btnExtreme.Icon = null;
-            this.btnExtreme.Location = new System.Drawing.Point(214, 386);
+            this.btnExtreme.Location = new System.Drawing.Point(213, 389);
             this.btnExtreme.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.btnExtreme.MouseState = MaterialSkin.MouseState.HOVER;
             this.btnExtreme.Name = "btnExtreme";
@@ -159,8 +161,50 @@
             this.btnExtreme.UseAccentColor = true;
             this.btnExtreme.Click += new System.EventHandler(this.btnExtreme_Click);
             // 
+            // btnInsane
+            // 
+            this.btnInsane.AutoSize = false;
+            this.btnInsane.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnInsane.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnInsane.Depth = 0;
+            this.btnInsane.HighEmphasis = true;
+            this.btnInsane.Icon = null;
+            this.btnInsane.Location = new System.Drawing.Point(213, 327);
+            this.btnInsane.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnInsane.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnInsane.Name = "btnInsane";
+            this.btnInsane.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnInsane.Size = new System.Drawing.Size(200, 50);
+            this.btnInsane.TabIndex = 7;
+            this.btnInsane.Text = "INSANE";
+            this.btnInsane.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnInsane.UseAccentColor = true;
+            this.btnInsane.Click += new System.EventHandler(this.btnInsane_Click);
+            // 
+            // btnExtreme2
+            // 
+            this.btnExtreme2.AutoSize = false;
+            this.btnExtreme2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnExtreme2.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnExtreme2.Depth = 0;
+            this.btnExtreme2.HighEmphasis = true;
+            this.btnExtreme2.Icon = null;
+            this.btnExtreme2.Location = new System.Drawing.Point(213, 451);
+            this.btnExtreme2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnExtreme2.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnExtreme2.Name = "btnExtreme2";
+            this.btnExtreme2.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnExtreme2.Size = new System.Drawing.Size(200, 50);
+            this.btnExtreme2.TabIndex = 8;
+            this.btnExtreme2.Text = "EXTREME - II";
+            this.btnExtreme2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnExtreme2.UseAccentColor = true;
+            this.btnExtreme2.Click += new System.EventHandler(this.btnExtreme2_Click);
+            // 
             // SignalLinkControl
             // 
+            this.Controls.Add(this.btnExtreme2);
+            this.Controls.Add(this.btnInsane);
             this.Controls.Add(this.btnExtreme);
             this.Controls.Add(this.btnHint);
             this.Controls.Add(this.btnBack);
@@ -182,5 +226,7 @@
         private MaterialSkin.Controls.MaterialButton btnBack;
         private MaterialSkin.Controls.MaterialButton btnHint;
         private MaterialSkin.Controls.MaterialButton btnExtreme;
+        private MaterialSkin.Controls.MaterialButton btnInsane;
+        private MaterialSkin.Controls.MaterialButton btnExtreme2;
     }
 }
