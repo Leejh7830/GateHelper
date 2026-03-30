@@ -658,7 +658,7 @@ namespace GateHelper
 
             var hit = OlvServerList.OlvHitTest(e.X, e.Y);
 
-            if (hit.Column == Memo)  // 메모 열이면
+            if (hit.Column == Memo)  // 더블클릭이 메모열이면
             {
                 if (hit.Item != null)
                     OlvServerList.StartCellEdit(hit.Item, hit.ColumnIndex);
@@ -762,8 +762,22 @@ namespace GateHelper
 
         private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Util_Rdp.SendExitMessage(_config); // 프로그램 종료 시 메시지 송신
+            // 1. 사용자에게 종료 여부 확인
+            DialogResult result = MessageBox.Show(this,
+                "Are you sure you want to exit?",
+                "Confirm Exit",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question
+            );
 
+            // 2. '아니요'를 선택하면 종료 이벤트 취소
+            if (result == DialogResult.No)
+            {
+                e.Cancel = true; // 이 줄이 실행되면 폼이 닫히지 않습니다.
+                return;
+            }
+
+            Util_Rdp.SendExitMessage(_config); // 프로그램 종료 시 메시지 송신
             Util_Rdp.StopBroadcastReceiveLoop(); // RDP 수신 루프 종료
 
             if (_driver != null)
@@ -771,10 +785,10 @@ namespace GateHelper
                 ChromeDriverManager.CloseDriver(_driver);
                 _driver = null;  // 드라이버 객체 해제
             }
-
             // 프로그램 완전 종료'
             LogMessage("프로그램 종료", Level.Info);
-            Environment.Exit(0);
+
+            // Environment.Exit(0);
         }
 
 

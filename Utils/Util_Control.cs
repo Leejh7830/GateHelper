@@ -69,17 +69,26 @@ namespace GateHelper
 
         public static void FillSearchFields(IWebDriver driver, string serverName, string serverIP)
         {
+            string[] fieldsToClear = {
+                "//*[@id='id_IPADDR']",
+                "//*[@id='id_DEVNAME']",
+                "//*[@id='id_HOSTNAME']",
+                "//*[@id='id_GNAME']",
+                "//*[@id='id_ACCESS_AUTH_GROUP']"
+            };
+
+            foreach (var xpath in fieldsToClear)
+            {
+                SendKeysToElement(driver, xpath, "");
+            }
+
             if (!string.IsNullOrEmpty(serverIP))
             {
-                // 입력: IP 주소
                 SendKeysToElement(driver, "//*[@id='id_IPADDR']", serverIP);
-                SendKeysToElement(driver, "//*[@id='id_DEVNAME']", "");
             }
             else if (!string.IsNullOrEmpty(serverName))
             {
-                // 입력: 서버 이름
                 SendKeysToElement(driver, "//*[@id='id_DEVNAME']", serverName);
-                SendKeysToElement(driver, "//*[@id='id_IPADDR']", "");
             }
         }
 
