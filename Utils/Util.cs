@@ -105,6 +105,7 @@ v2.2.2 / 26.01.13 신규 - SandBox 추가
 v2.2.3 / 26.01.17 신규 - SandBox - BitFlip
 v2.2.4 / 26.01.29 신규 - SandBox - SignalLink
 v2.2.5 / 26.03.30 개선 - 프로그램 종료(X) 클릭 시 확인 창 띄우기 / 리스트뷰에서 바로 접속 시 검색 텍스트 박스 비우기
+v2.2.6 / 26.04.08 개선 - Disable Pop up -> Auto Screen Unlock 으로 변경, 통합관리시스템(Manufacturing Management) 연결
          
 ";
 

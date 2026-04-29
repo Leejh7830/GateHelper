@@ -87,6 +87,9 @@ namespace GateHelper
     <add key=""Favorite2"" value=""Fav2"" />
     <add key=""Favorite3"" value=""Fav3"" />
 
+    <!-- Manufacturing Managerment 접속 URL -->
+    <add key=""ManagementUrl"" value="""" />
+
     <!-- Chrome 설치경로 -->
     <add key=""ChromePath"" value=""C:\Program Files\Google\Chrome\Application\chrome.exe"" />
   </appSettings>
@@ -184,10 +187,11 @@ namespace GateHelper
                     GateName_B = config.AppSettings.Settings["GateName_B"].Value,
                     GateID_B = config.AppSettings.Settings["GateID_B"].Value,
                     GatePW_B = config.AppSettings.Settings["GatePW_B"].Value,
-                    ChromePath = config.AppSettings.Settings["ChromePath"].Value,
                     Fav1 = config.AppSettings.Settings["Favorite1"]?.Value,
                     Fav2 = config.AppSettings.Settings["Favorite2"]?.Value,
-                    Fav3 = config.AppSettings.Settings["Favorite3"]?.Value
+                    Fav3 = config.AppSettings.Settings["Favorite3"]?.Value,
+                    ManagementUrl = config.AppSettings.Settings["ManagementUrl"]?.Value,
+                    ChromePath = config.AppSettings.Settings["ChromePath"].Value
                 };
 
                 LogManager.LogMessage($"Configuration file loaded successfully: {_configFilePath}", Level.Info);
@@ -210,7 +214,23 @@ namespace GateHelper
         {
             try
             {
-                System.Diagnostics.Process.Start(_configFilePath);
+                // 1. 파일이 존재하는지 먼저 확인하고, 없으면 생성 메서드 호출
+                if (!File.Exists(_configFilePath))
+                {
+                    LogManager.LogMessage("Configuration file not found. Attempting to create...", Level.Info);
+                    CreateConfigFiles();
+                }
+
+                // 2. 파일이 생성되었거나 이미 존재하는 경우에만 실행
+                if (File.Exists(_configFilePath))
+                {
+                    System.Diagnostics.Process.Start(_configFilePath);
+                }
+                else
+                {
+                    // 만약 CreateConfigFiles 실행 후에도 파일이 없다면 에러 메시지 출력
+                    MessageBox.Show("설정 파일을 생성할 수 없거나 경로가 잘못되었습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
             catch (Exception ex)
             {

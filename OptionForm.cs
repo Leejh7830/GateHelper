@@ -51,7 +51,7 @@ namespace GateHelper
             {
                 { CBox_RemoveDuplicate, "서버 목록에서 중복항목을 제거합니다." },
                 { CBox_ServerClickConnect, "서버 항목 더블클릭 시 해당 서버로 바로 연결합니다." },
-                { CBox_DisablePopup, "팝업 감지.\n30분 간격으로 팝업되는 비밀번호창 자동 입력." },
+                { CBox_AutoScreenUnlock, "화면잠금 감지.\nGateOne 30분 간격으로 팝업되는 비밀번호 자동 입력." },
                 { CBox_TestMode, "테스트 모드" },
                 { CBox_AutoLogin, "Config 정보로 자동 로그인합니다. 미구현" },
                 { CBox_FavOneClickConnect, "즐겨찾기 클릭 시 해당 서버로 바로 연결합니다." },
@@ -142,7 +142,7 @@ namespace GateHelper
             {
                 CBox_RemoveDuplicate.Checked = AppSettings.RemoveDuplicates;
                 CBox_AutoLogin.Checked = AppSettings.AutoLogin;
-                CBox_DisablePopup.Checked = AppSettings.DisablePopup;
+                CBox_AutoScreenUnlock.Checked = AppSettings.AutoScreenUnlock;
                 CBox_TestMode.Checked = AppSettings.TestMode;
                 CBox_ServerClickConnect.Checked = AppSettings.ServerClickConnect;
                 CBox_FavOneClickConnect.Checked = AppSettings.FavOneClickConnect;
@@ -163,7 +163,7 @@ namespace GateHelper
                 // ⭐ UI의 변경사항을 AppSettings 객체에 저장
                 AppSettings.RemoveDuplicates = CBox_RemoveDuplicate.Checked;
                 AppSettings.AutoLogin = CBox_AutoLogin.Checked;
-                AppSettings.DisablePopup = CBox_DisablePopup.Checked;
+                AppSettings.AutoScreenUnlock = CBox_AutoScreenUnlock.Checked;
                 AppSettings.TestMode = CBox_TestMode.Checked;
                 AppSettings.ServerClickConnect = CBox_ServerClickConnect.Checked;
                 AppSettings.FavOneClickConnect = CBox_FavOneClickConnect.Checked;

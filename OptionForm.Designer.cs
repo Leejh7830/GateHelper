@@ -33,7 +33,7 @@ namespace GateHelper
             this.CBox_AutoLogin = new MaterialSkin.Controls.MaterialCheckbox();
             this.CBox_ServerClickConnect = new MaterialSkin.Controls.MaterialCheckbox();
             this.CBox_TestMode = new MaterialSkin.Controls.MaterialCheckbox();
-            this.CBox_DisablePopup = new MaterialSkin.Controls.MaterialCheckbox();
+            this.CBox_AutoScreenUnlock = new MaterialSkin.Controls.MaterialCheckbox();
             this.CBox_FavOneClickConnect = new MaterialSkin.Controls.MaterialCheckbox();
             this.materialButton1 = new MaterialSkin.Controls.MaterialButton();
             this.materialButton2 = new MaterialSkin.Controls.MaterialButton();
@@ -109,21 +109,21 @@ namespace GateHelper
             this.CBox_TestMode.Text = "TEST MODE";
             this.CBox_TestMode.UseVisualStyleBackColor = true;
             // 
-            // CBox_DisablePopup
+            // CBox_AutoScreenUnlock
             // 
-            this.CBox_DisablePopup.AutoSize = true;
-            this.CBox_DisablePopup.Depth = 0;
-            this.CBox_DisablePopup.Location = new System.Drawing.Point(17, 132);
-            this.CBox_DisablePopup.Margin = new System.Windows.Forms.Padding(0);
-            this.CBox_DisablePopup.MouseLocation = new System.Drawing.Point(-1, -1);
-            this.CBox_DisablePopup.MouseState = MaterialSkin.MouseState.HOVER;
-            this.CBox_DisablePopup.Name = "CBox_DisablePopup";
-            this.CBox_DisablePopup.ReadOnly = false;
-            this.CBox_DisablePopup.Ripple = true;
-            this.CBox_DisablePopup.Size = new System.Drawing.Size(147, 37);
-            this.CBox_DisablePopup.TabIndex = 3;
-            this.CBox_DisablePopup.Text = "Disable POP-UP";
-            this.CBox_DisablePopup.UseVisualStyleBackColor = true;
+            this.CBox_AutoScreenUnlock.AutoSize = true;
+            this.CBox_AutoScreenUnlock.Depth = 0;
+            this.CBox_AutoScreenUnlock.Location = new System.Drawing.Point(17, 132);
+            this.CBox_AutoScreenUnlock.Margin = new System.Windows.Forms.Padding(0);
+            this.CBox_AutoScreenUnlock.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.CBox_AutoScreenUnlock.MouseState = MaterialSkin.MouseState.HOVER;
+            this.CBox_AutoScreenUnlock.Name = "CBox_AutoScreenUnlock";
+            this.CBox_AutoScreenUnlock.ReadOnly = false;
+            this.CBox_AutoScreenUnlock.Ripple = true;
+            this.CBox_AutoScreenUnlock.Size = new System.Drawing.Size(172, 37);
+            this.CBox_AutoScreenUnlock.TabIndex = 3;
+            this.CBox_AutoScreenUnlock.Text = "Auto Screen Unlock";
+            this.CBox_AutoScreenUnlock.UseVisualStyleBackColor = true;
             // 
             // CBox_FavOneClickConnect
             // 
@@ -261,11 +261,11 @@ namespace GateHelper
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(356, 500);
+            this.ClientSize = new System.Drawing.Size(372, 539);
             this.Controls.Add(this.CBox_UseUDP);
             this.Controls.Add(this.CBox_RemoveDuplicate);
             this.Controls.Add(this.CBox_ServerClickConnect);
-            this.Controls.Add(this.CBox_DisablePopup);
+            this.Controls.Add(this.CBox_AutoScreenUnlock);
             this.Controls.Add(this.CBox_TestMode);
             this.Controls.Add(this.CBox_AutoLogin);
             this.Controls.Add(this.CBox_FavOneClickConnect);
@@ -293,7 +293,7 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialCheckbox CBox_AutoLogin;
         private MaterialSkin.Controls.MaterialCheckbox CBox_ServerClickConnect;
         private MaterialSkin.Controls.MaterialCheckbox CBox_TestMode;
-        private MaterialSkin.Controls.MaterialCheckbox CBox_DisablePopup;
+        private MaterialSkin.Controls.MaterialCheckbox CBox_AutoScreenUnlock;
         private MaterialSkin.Controls.MaterialCheckbox CBox_FavOneClickConnect;
         private MaterialSkin.Controls.MaterialButton materialButton1;
         private MaterialSkin.Controls.MaterialButton materialButton2;

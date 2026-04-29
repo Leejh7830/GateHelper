@@ -89,6 +89,7 @@ namespace GateHelper
             this.lblVersion = new System.Windows.Forms.Label();
             this.BtnOpenLog2 = new MaterialSkin.Controls.MaterialButton();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
+            this.BtnStartManagement = new MaterialSkin.Controls.MaterialButton();
             this.GroupConnect1.SuspendLayout();
             this.GroupPreset1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
@@ -717,7 +718,7 @@ namespace GateHelper
             this.BtnStart2.NoAccentTextColor = System.Drawing.Color.Empty;
             this.BtnStart2.Size = new System.Drawing.Size(147, 40);
             this.BtnStart2.TabIndex = 17;
-            this.BtnStart2.Text = "원래사이즈 543/377";
+            this.BtnStart2.Text = "Auto Login";
             this.BtnStart2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.BtnStart2.UseAccentColor = false;
             this.BtnStart2.UseVisualStyleBackColor = true;
@@ -916,7 +917,7 @@ namespace GateHelper
             this.BtnRec1.Depth = 0;
             this.BtnRec1.HighEmphasis = true;
             this.BtnRec1.Icon = null;
-            this.BtnRec1.Location = new System.Drawing.Point(842, 118);
+            this.BtnRec1.Location = new System.Drawing.Point(842, 116);
             this.BtnRec1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnRec1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnRec1.Name = "BtnRec1";
@@ -972,12 +973,35 @@ namespace GateHelper
             this.notifyIcon1.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon1.Icon")));
             this.notifyIcon1.Text = "notifyIcon1";
             // 
+            // BtnStartManagement
+            // 
+            this.BtnStartManagement.AutoSize = false;
+            this.BtnStartManagement.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnStartManagement.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnStartManagement.Depth = 0;
+            this.BtnStartManagement.Font = new System.Drawing.Font("돋움", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BtnStartManagement.HighEmphasis = true;
+            this.BtnStartManagement.Icon = null;
+            this.BtnStartManagement.Location = new System.Drawing.Point(407, 73);
+            this.BtnStartManagement.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.BtnStartManagement.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnStartManagement.Name = "BtnStartManagement";
+            this.BtnStartManagement.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnStartManagement.Size = new System.Drawing.Size(121, 40);
+            this.BtnStartManagement.TabIndex = 102;
+            this.BtnStartManagement.Text = "Start Management";
+            this.BtnStartManagement.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnStartManagement.UseAccentColor = false;
+            this.BtnStartManagement.UseVisualStyleBackColor = true;
+            this.BtnStartManagement.Click += new System.EventHandler(this.BtnStartManagement_Click);
+            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1114, 714);
+            this.Controls.Add(this.BtnStartManagement);
             this.Controls.Add(this.BtnOpenLog2);
             this.Controls.Add(this.lblVersion);
             this.Controls.Add(this.lblUDPStatus);
@@ -1084,6 +1108,7 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton BtnWorkLog1;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private MaterialSkin.Controls.MaterialButton btnSandBox;
+        private MaterialSkin.Controls.MaterialButton BtnStartManagement;
     }
 }
 

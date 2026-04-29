@@ -30,7 +30,8 @@ namespace GateHelper
         private string GateID;
         private string GatePW;
 
-        private string mainHandle;
+        private string mainHandle; // GateOne
+        private string managementHandle;  // Manufacturing Management 통합관리
         private ThemeManager _themeManager;
         private bool changeArrow = true;
 
@@ -190,8 +191,7 @@ namespace GateHelper
 
 
                 // 🔍 4. 팝업 감지 상태 업데이트 (설정값 기반)
-                // DisablePopup 변수 명칭에 따라 true일 때 OFF, false일 때 ON으로 처리
-                bool popupFeatureOn = _appSettings.DisablePopup;
+                bool popupFeatureOn = _appSettings.AutoScreenUnlock;
 
                 // 타이머마다 UI를 갱신해주는 이유는 카운트 숫자를 최신화하기 위함입니다.
                 Util_Option.UpdatePopupStatus(lblPopupStatus, popupFeatureOn, Util_Option.GetLockHandledCount());
@@ -262,7 +262,8 @@ namespace GateHelper
 
                 Util_Control.MoveFormToTop(this);
 
-                if (_appSettings.AutoLogin == true) // Auto Login
+
+                if (_appSettings.AutoLogin == true) // Auto Login 기능 개발 필요
                 {
                     BtnStart2_Click(sender, e);
                     BtnGateOneLogin1_Click(sender, e);
@@ -331,17 +332,19 @@ namespace GateHelper
             }
         }
 
+        // 서버 목록을 로드하여 콤보박스에 채우기
         private async void BtnLoadServers1_Click(object sender, EventArgs e)
         {
+            LogMessage("BtnLoadServers1 Click", Level.Info);
+
             if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
 
-            LogMessage("BtnLoadServers1 Click", Level.Info);
+            Util.SwitchToMainHandle(_driver, mainHandle);
 
             await LoadServersIntoComboBoxAsync();
         }
 
-        // 서버 목록을 로드하여 콤보박스에 채우기
         private async Task LoadServersIntoComboBoxAsync()
         {
             try
@@ -398,6 +401,7 @@ namespace GateHelper
 
             if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
+            Util.SwitchToMainHandle(_driver, mainHandle);
 
             if (ComboBoxServerList1.SelectedItem == null)
             {
@@ -421,6 +425,7 @@ namespace GateHelper
 
             if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
+            Util.SwitchToMainHandle(_driver, mainHandle);
 
             // 1) 검색 수행하고 서버이름을 받음
             string serverName = Util.ClickFavBtnAndGetServerName(_driver, _config, 1, chromeDriverManager);
@@ -450,6 +455,7 @@ namespace GateHelper
 
             if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
+            Util.SwitchToMainHandle(_driver, mainHandle);
 
             string serverName = Util.ClickFavBtnAndGetServerName(_driver, _config, 2, chromeDriverManager);
 
@@ -559,7 +565,7 @@ namespace GateHelper
         private void BtnOption1_Click(object sender, EventArgs e)
         {
             bool oldTestMode = _appSettings.TestMode; // 기존 값 저장
-            bool oldDisablePopup = _appSettings.DisablePopup;
+            bool oldAutoScreenUnlock = _appSettings.AutoScreenUnlock;
             bool oldUseUdpReceive = _appSettings.UseUDP;
 
             OptionForm optionForm = new OptionForm(_appSettings, _themeManager.IsDarkMode);
@@ -577,9 +583,9 @@ namespace GateHelper
                     ApplyTestMode(_appSettings.TestMode);
                 }
 
-                if (oldDisablePopup != _appSettings.DisablePopup)
+                if (oldAutoScreenUnlock != _appSettings.AutoScreenUnlock)
                 {
-                    Util_Option.UpdatePopupStatus(lblPopupStatus, _appSettings.DisablePopup, _popupCount);
+                    Util_Option.UpdatePopupStatus(lblPopupStatus, _appSettings.AutoScreenUnlock, _popupCount);
                 }
 
                 if (oldUseUdpReceive != _appSettings.UseUDP)
@@ -1150,6 +1156,29 @@ namespace GateHelper
             {
                 // 이미 떠 있다면 앞으로 가져오기
                 _sandbox.BringToFront();
+            }
+        }
+
+        // 통합관리시스템 자동오픈
+        private void BtnStartManagement_Click(object sender, EventArgs e)
+        {
+            if (!chromeDriverManager.IsDriverReady(_driver))
+                return;
+
+            try
+            {
+                // 1. 새 탭을 생성하고 포커스를 즉시 새 탭으로 이동시킴
+                _driver.SwitchTo().NewWindow(WindowType.Tab);
+
+                _driver.Navigate().GoToUrl(_config.ManagementUrl);
+                managementHandle = _driver.CurrentWindowHandle;
+
+                LogMessage($"Management 사이트 오픈 완료 (Handle: {managementHandle})", Level.Info);
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error, "보조 사이트 오픈 중 오류 발생");
+                MessageBox.Show("보조 사이트를 열 수 없습니다.\n" + ex.Message);
             }
         }
     }
