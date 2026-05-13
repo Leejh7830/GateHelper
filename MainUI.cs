@@ -240,30 +240,48 @@ namespace GateHelper
         protected async void BtnStart1_Click(object sender, EventArgs e)
         {
             LogMessage("BtnStart1 Click", Level.Info);
+
+            // 1. 진입 시 버튼 비활성화 (중복 클릭 방지)
+            BtnStart1.Enabled = false;
+
             try
             {
+                // 2. 이미 브라우저가 실행 중인지 체크
+                if (_driver != null)
+                {
+                    try
+                    {
+                        var title = _driver.Title; // 생존 확인
+                        MessageBox.Show("이미 브라우저가 실행 중입니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        Util_Control.MoveFormToTop(this);
+                        return;
+                    }
+                    catch
+                    {
+                        // 드라이버가 죽었다면 새로 시작
+                        _driver = null;
+                    }
+                }
+
+                // 3. 기존 실행 로직 진행
                 BtnReConfig1_Click(sender, e);
 
-                // Start 경로에서는 드라이버 아직 없음 -> preset 클릭 핸들러 호출하지 말고
-                // PresetManager에 skipDriverCheck=true로 직접 적용(알림 발생 방지)
                 if (PresetManager.TryApplyPreset(_config, PresetManager.Preset.A, BtnPreset1, BtnPreset2, out var id, out var pw))
                 {
                     GateID = id;
                     GatePW = pw;
                 }
 
-                ////////////////////////WebDriverManager 사용여부//////////////////////////////// 
-                // _driver = await Task.Run(() => ChromeDriverManager.InitializeDriver(_config)); // 비동기로 드라이버 초기화
-                _driver = await Task.Run(() => ChromeDriverManager.InitializeDriverWithSeleniumManager(_config)); // 비동기로 드라이버 초기화
+                // 드라이버 비동기 초기화
+                _driver = await Task.Run(() => ChromeDriverManager.InitializeDriverWithSeleniumManager(_config));
 
-                _driver.Navigate().GoToUrl(_config.Url); // 입력한 사이트로 이동
-                mainHandle = _driver.CurrentWindowHandle; // MainHandle 저장
+                _driver.Navigate().GoToUrl(_config.Url);
+                mainHandle = _driver.CurrentWindowHandle;
                 LogMessage("Start MainHandle: " + mainHandle, Level.Info);
 
                 Util_Control.MoveFormToTop(this);
 
-
-                if (_appSettings.AutoLogin == true) // Auto Login 기능 개발 필요
+                if (_appSettings.AutoLogin)
                 {
                     BtnStart2_Click(sender, e);
                     BtnGateOneLogin1_Click(sender, e);
@@ -272,6 +290,13 @@ namespace GateHelper
             catch (Exception ex)
             {
                 LogException(ex, Level.Error);
+                MessageBox.Show("브라우저 시작 중 오류가 발생했습니다.");
+            }
+            finally
+            {
+                // 4. 어떤 이유로든 메서드가 끝날 때 버튼을 다시 활성화
+                // 조기 리턴(return)이나 에러(catch) 상황 모두 여기서 처리
+                BtnStart1.Enabled = true;
             }
         }
 
@@ -298,9 +323,12 @@ namespace GateHelper
             LogMessage("BtnSearch1 Click", Level.Info);
 
             if (!chromeDriverManager.IsDriverReady(_driver))
-                return;
+                return; // ChromeDriver 없음
 
-            Util.SwitchToMainHandle(_driver, mainHandle);
+            if (!Util.SwitchToMainHandle(_driver, mainHandle))
+            {
+                return; // MainHandle 없음
+            }
 
             try
             {
@@ -338,9 +366,12 @@ namespace GateHelper
             LogMessage("BtnLoadServers1 Click", Level.Info);
 
             if (!chromeDriverManager.IsDriverReady(_driver))
-                return;
+                return; // ChromeDriver 없음
 
-            Util.SwitchToMainHandle(_driver, mainHandle);
+            if (!Util.SwitchToMainHandle(_driver, mainHandle))
+            {
+                return; // MainHandle 없음
+            }
 
             await LoadServersIntoComboBoxAsync();
         }
@@ -400,8 +431,12 @@ namespace GateHelper
             LogMessage("Connect MainHandle : " + mainHandle, Level.Info);
 
             if (!chromeDriverManager.IsDriverReady(_driver))
-                return;
-            Util.SwitchToMainHandle(_driver, mainHandle);
+                return; // ChromeDriver 없음
+
+            if (!Util.SwitchToMainHandle(_driver, mainHandle))
+            {
+                return; // MainHandle 없음
+            }
 
             if (ComboBoxServerList1.SelectedItem == null)
             {
@@ -424,8 +459,12 @@ namespace GateHelper
             LogMessage("BtnFav1 Click", Level.Info);
 
             if (!chromeDriverManager.IsDriverReady(_driver))
-                return;
-            Util.SwitchToMainHandle(_driver, mainHandle);
+                return; // ChromeDriver 없음
+
+            if (!Util.SwitchToMainHandle(_driver, mainHandle))
+            {
+                return; // MainHandle 없음
+            }
 
             // 1) 검색 수행하고 서버이름을 받음
             string serverName = Util.ClickFavBtnAndGetServerName(_driver, _config, 1, chromeDriverManager);
@@ -454,8 +493,12 @@ namespace GateHelper
             LogMessage("BtnFav2 Click", Level.Info);
 
             if (!chromeDriverManager.IsDriverReady(_driver))
-                return;
-            Util.SwitchToMainHandle(_driver, mainHandle);
+                return; // ChromeDriver 없음
+
+            if (!Util.SwitchToMainHandle(_driver, mainHandle))
+            {
+                return; // MainHandle 없음
+            }
 
             string serverName = Util.ClickFavBtnAndGetServerName(_driver, _config, 2, chromeDriverManager);
 
@@ -1160,25 +1203,70 @@ namespace GateHelper
         }
 
         // 통합관리시스템 자동오픈
-        private void BtnStartManagement_Click(object sender, EventArgs e)
+        private async void BtnStartManagement_Click(object sender, EventArgs e)
         {
-            if (!chromeDriverManager.IsDriverReady(_driver))
+            // 1. 드라이버 상태 체크
+            if (!chromeDriverManager.IsDriverReady(_driver)) return;
+
+            // 2. 포커스 복구 로직을 최상단으로 이동 (안전한 명령 수행을 위한 기초 공사)
+            try
+            {
+                var current = _driver.CurrentWindowHandle;
+            }
+            catch
+            {
+                // 포커스를 잃었다면 무조건 메인으로 복귀시켜 이후 명령(WindowHandles 조회 등)이 가능하게 함
+                _driver.SwitchTo().Window(mainHandle);
+            }
+
+            // 3. [인터락] 이미 보조 사이트가 열려있는지 확인
+            if (!string.IsNullOrEmpty(managementHandle) && _driver.WindowHandles.Contains(managementHandle))
+            {
+                LogMessage("보조 사이트가 이미 열려 있습니다. 해당 탭으로 이동합니다.", Level.Info);
+                _driver.SwitchTo().Window(managementHandle);
+                Util_Control.MoveFormToTop(this);
                 return;
+            }
+
+            // 4. URL 유효성 검사
+            if (string.IsNullOrWhiteSpace(_config.ManagementUrl))
+            {
+                MessageBox.Show("ManagementUrl 설정이 비어있습니다.");
+                return;
+            }
 
             try
             {
-                // 1. 새 탭을 생성하고 포커스를 즉시 새 탭으로 이동시킴
+                // 5. 새 탭 오픈 및 로그인 시도
                 _driver.SwitchTo().NewWindow(WindowType.Tab);
-
                 _driver.Navigate().GoToUrl(_config.ManagementUrl);
                 managementHandle = _driver.CurrentWindowHandle;
 
-                LogMessage($"Management 사이트 오픈 완료 (Handle: {managementHandle})", Level.Info);
+                LogMessage("Management 사이트 새 탭 오픈", Level.Info);
+                await Task.Run(() => PerformManagementLogin());
             }
             catch (Exception ex)
             {
-                LogException(ex, Level.Error, "보조 사이트 오픈 중 오류 발생");
-                MessageBox.Show("보조 사이트를 열 수 없습니다.\n" + ex.Message);
+                LogException(ex, Level.Error, "보조 사이트 오픈 중 오류");
+            }
+        }
+
+        private void PerformManagementLogin()
+        {
+            bool idResult = Util_Element.SendKeysToElement(_driver, "//*[@id=\"validationCustom01\"]", _config.ManagementUserID);
+            bool pwResult = Util_Element.SendKeysToElement(_driver, "//*[@id=\"LoginContainer\"]/section/div/form/div[1]/div[2]/input", _config.ManagementUserPW);
+
+            // 3. ID와 PW 입력이 모두 성공했을 때만 로그인 버튼 클릭
+            if (idResult && pwResult)
+            {
+                bool clickResult = Util_Element.ClickElementByXPath(_driver, "//*[@id=\"loginButton\"]");
+
+                if (clickResult)
+                    LogMessage("Management 자동 로그인 완료", Level.Info);
+            }
+            else
+            {
+                LogMessage("Management 로그인 필드를 찾지 못해 자동 로그인을 중단합니다.", Level.Error);
             }
         }
     }

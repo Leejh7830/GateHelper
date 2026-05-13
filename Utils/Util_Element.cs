@@ -38,13 +38,18 @@ namespace GateHelper
                 return false;
             }
         }
-
-        // 요소에 값을 입력하는 메서드
+        /// <summary>
+        /// Xpath 요소에 값을 입력하는 메서드
+        /// </summary>
+        /// <param name="driver"></param>
+        /// <param name="xpath"></param>
+        /// <param name="value"></param>
+        /// <returns></returns>
         public static bool SendKeysToElement(IWebDriver driver, string xpath, string value)
         {
             try
             {
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(7));
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
                 var element = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath(xpath)));
 
                 element.Clear();

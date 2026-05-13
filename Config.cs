@@ -12,8 +12,10 @@ namespace GateHelper
         public string GateName_B { get; set; }
         public string GateID_B { get; set; }
         public string GatePW_B { get; set; }
-        public string UserID { get; set; }
-        public string UserPW { get; set; }
+        public string GateUserID { get; set; }
+        public string GateUserPW { get; set; }
+        public string ManagementUserID { get; set; }
+        public string ManagementUserPW { get; set; }
         public string ChromePath { get; set; }
         public string Fav1 { get; set; }
         public string Fav2 { get; set; }

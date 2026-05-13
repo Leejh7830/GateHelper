@@ -144,7 +144,7 @@ namespace GateHelper
             if (!IsUdpReceiving)
                 return;
 
-            string userId = config.UserID ?? "UnknownUser";
+            string userId = config.GateUserID ?? "UnknownUser";
             string utcNow = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " [UTC]";
             string message = $"{userId} / EXIT / {utcNow}";
             BroadcastSend(config, message, raw: true);
@@ -184,7 +184,7 @@ namespace GateHelper
             }
             else
             {
-                string userId = config.UserID ?? "UnknownUser";
+                string userId = config.GateUserID ?? "UnknownUser";
                 string utcNow = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " [UTC]";
                 message = $"{userId} / {serverNameOrMessage} / {utcNow}";
             }
@@ -207,7 +207,7 @@ namespace GateHelper
 
         public static string CreateBroadcastMessage(Config config, string serverName)
         {
-            string userId = config?.UserID ?? "UnknownUser";
+            string userId = config?.GateUserID ?? "UnknownUser";
             string name = serverName ?? "UnknownServer";
             string time = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"); // UTC로 송수신
             return $"{userId} / {name} / {time} [UTC]";
@@ -302,7 +302,7 @@ namespace GateHelper
         {
             try
             {
-                string userId = config?.UserID ?? "UnknownUser";
+                string userId = config?.GateUserID ?? "UnknownUser";
 
                 string logDir = Path.Combine(Application.StartupPath, "Log");
                 if (!Directory.Exists(logDir))

@@ -113,7 +113,11 @@ namespace GateHelper
                             // 로그인 정보 입력
                             EnterCredentials(driver, GateID, GatePW);
 
-                            Util.SwitchToMainHandle(driver, mainHandle);
+                            if (!Util.SwitchToMainHandle(driver, mainHandle))
+                            {
+                                return false; // MainHandle 없음
+                            }
+
                             LogMessage("접속 완료, 접속 후 MainHandle: " + mainHandle, Level.Info);
 
                             // 접속 이력 추가
@@ -256,15 +260,19 @@ namespace GateHelper
             // EnID,PW 입력
             try
             {
-                Util.SwitchToMainHandle(driver, mainHandle);
+                if (!Util.SwitchToMainHandle(driver, mainHandle))
+                {
+                    return; // MainHandle 없음
+                }
+
                 //WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
                 //Util_Control.SendKeysToElement(driver, "//*[@id='USERID']", _config.EnportalID); 
                 //Util_Control.SendKeysToElement(driver, "//*[@id='PASSWD']", _config.EnportalPW);
                 //Util.InputKeys("{ENTER}", 100);
 
-                Util.InputKeys(_config.UserID, 200);
+                Util.InputKeys(_config.GateUserID, 200);
                 Util.InputKeys("{TAB}", 200);
-                Util.InputKeys(_config.UserPW, 200);
+                Util.InputKeys(_config.GateUserPW, 200);
                 Util.InputKeys("{ENTER}", 200);
             }
             catch (Exception ex)

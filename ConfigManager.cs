@@ -69,8 +69,8 @@ namespace GateHelper
     <add key=""Url"" value="""" />
 
     <!-- 자동로그인 및 팝업제어용 GATEONE ID/PW -->
-    <add key=""UserID"" value="""" />
-    <add key=""UserPW"" value="""" />
+    <add key=""GateUserID"" value="""" />
+    <add key=""GateUserPW"" value="""" />
     
     <!-- VM접속용 ID/PW Preset A -->
     <add key=""GateName_A"" value="""" />
@@ -89,6 +89,10 @@ namespace GateHelper
 
     <!-- Manufacturing Managerment 접속 URL -->
     <add key=""ManagementUrl"" value="""" />
+    
+    <!-- Manufacturing Managerment ID/PW -->
+    <add key=""ManagementUserID"" value="""" />
+    <add key=""ManagementUserPW"" value="""" />
 
     <!-- Chrome 설치경로 -->
     <add key=""ChromePath"" value=""C:\Program Files\Google\Chrome\Application\chrome.exe"" />
@@ -150,14 +154,16 @@ namespace GateHelper
                 var missingFields = new System.Text.StringBuilder(); // 25.03.12 필수 항목 검증
 
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["Url"].Value)) missingFields.AppendLine("URL");
-                if (string.IsNullOrEmpty(config.AppSettings.Settings["UserID"].Value)) missingFields.AppendLine("UserID");
-                if (string.IsNullOrEmpty(config.AppSettings.Settings["UserPW"].Value)) missingFields.AppendLine("UserPW");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["GateUserID"].Value)) missingFields.AppendLine("GateUserID");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["GateUserPW"].Value)) missingFields.AppendLine("GateUserPW");
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["GateName_A"].Value)) missingFields.AppendLine("GateName_A");
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["GateID_A"].Value)) missingFields.AppendLine("GateID_A");
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["GatePW_A"].Value)) missingFields.AppendLine("GatePW_A");
                 // if (string.IsNullOrEmpty(config.AppSettings.Settings["GateName_B"].Value)) missingFields.AppendLine("GateName_B");
                 // if (string.IsNullOrEmpty(config.AppSettings.Settings["GateID_B"].Value)) missingFields.AppendLine("GateID_B");
                 // if (string.IsNullOrEmpty(config.AppSettings.Settings["GatePW_B"].Value)) missingFields.AppendLine("GatePW_B");
+                // if (string.IsNullOrEmpty(config.AppSettings.Settings["ManagementUserID"].Value)) missingFields.AppendLine("ManagementUserID");
+                // if (string.IsNullOrEmpty(config.AppSettings.Settings["ManagementUserPW"].Value)) missingFields.AppendLine("ManagementUserPW");
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["ChromePath"].Value)) missingFields.AppendLine("ChromePath");
 
                 if (missingFields.Length > 0)
@@ -178,20 +184,23 @@ namespace GateHelper
 
                 LoadedConfig = new Config
                 {
-                    Url = config.AppSettings.Settings["Url"].Value,
-                    UserID = config.AppSettings.Settings["UserID"].Value,
-                    UserPW = config.AppSettings.Settings["UserPW"].Value,
-                    GateName_A = config.AppSettings.Settings["GateName_A"].Value,
-                    GateID_A = config.AppSettings.Settings["GateID_A"].Value,
-                    GatePW_A = config.AppSettings.Settings["GatePW_A"].Value,
-                    GateName_B = config.AppSettings.Settings["GateName_B"].Value,
-                    GateID_B = config.AppSettings.Settings["GateID_B"].Value,
-                    GatePW_B = config.AppSettings.Settings["GatePW_B"].Value,
-                    Fav1 = config.AppSettings.Settings["Favorite1"]?.Value,
-                    Fav2 = config.AppSettings.Settings["Favorite2"]?.Value,
-                    Fav3 = config.AppSettings.Settings["Favorite3"]?.Value,
-                    ManagementUrl = config.AppSettings.Settings["ManagementUrl"]?.Value,
-                    ChromePath = config.AppSettings.Settings["ChromePath"].Value
+                    Url = config.AppSettings.Settings["Url"]?.Value ?? "",
+                    GateUserID = config.AppSettings.Settings["GateUserID"]?.Value ?? "",
+                    GateUserPW = config.AppSettings.Settings["GateUserPW"]?.Value ?? "",
+                    GateName_A = config.AppSettings.Settings["GateName_A"]?.Value ?? "",
+                    GateID_A = config.AppSettings.Settings["GateID_A"]?.Value ?? "",
+                    GatePW_A = config.AppSettings.Settings["GatePW_A"]?.Value ?? "",
+                    GateName_B = config.AppSettings.Settings["GateName_B"]?.Value ?? "",
+                    GateID_B = config.AppSettings.Settings["GateID_B"]?.Value ?? "",
+                    GatePW_B = config.AppSettings.Settings["GatePW_B"]?.Value ?? "",
+                    Fav1 = config.AppSettings.Settings["Favorite1"]?.Value ?? "",
+                    Fav2 = config.AppSettings.Settings["Favorite2"]?.Value ?? "",
+                    Fav3 = config.AppSettings.Settings["Favorite3"]?.Value ?? "",
+                    ManagementUrl = config.AppSettings.Settings["ManagementUrl"]?.Value ?? "",
+                    ManagementUserID = config.AppSettings.Settings["ManagementUserID"]?.Value ?? "",
+                    ManagementUserPW = config.AppSettings.Settings["ManagementUserPW"]?.Value ?? "",
+
+                    ChromePath = config.AppSettings.Settings["ChromePath"]?.Value ?? @"C:\Program Files\Google\Chrome\Application\chrome.exe"
                 };
 
                 LogManager.LogMessage($"Configuration file loaded successfully: {_configFilePath}", Level.Info);

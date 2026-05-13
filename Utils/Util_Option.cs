@@ -173,7 +173,7 @@ namespace GateHelper
 
         private static async Task<bool> EnterModalPassword(IWebDriver driver, Config config)
         {
-            if (config == null || string.IsNullOrEmpty(config.UserPW))
+            if (config == null || string.IsNullOrEmpty(config.GateUserPW))
             {
                 LogMessage("Config Value is Null", Level.Error);
                 return false;
@@ -204,13 +204,13 @@ namespace GateHelper
                 const int maxAttempts = 3;
                 for (int attempt = 1; attempt <= maxAttempts; attempt++)
                 {
-                    input.SendKeys(config.UserPW);
+                    input.SendKeys(config.GateUserPW);
                     await Task.Delay(300);
 
                     try
                     {
                         var val = input.GetAttribute("value") ?? string.Empty;
-                        if (val.Length >= Math.Min(1, config.UserPW.Length)) break;
+                        if (val.Length >= Math.Min(1, config.GateUserPW.Length)) break;
                     }
                     catch { }
 
