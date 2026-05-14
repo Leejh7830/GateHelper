@@ -450,7 +450,7 @@ namespace GateHelper
             // UDP 접속 정보 송신
             StartRdpDetect(serverName);
 
-            Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, selectedServer, OlvServerList, _appSettings.RemoveDuplicates);
+            Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, selectedServer, OlvServerList, _appSettings.RemoveDuplicates);
         }
 
 
@@ -478,7 +478,7 @@ namespace GateHelper
                 try
                 {
                     StartRdpDetect(serverName);
-                    Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
+                    Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
                 }
                 catch (Exception ex)
                 {
@@ -509,7 +509,7 @@ namespace GateHelper
                 try
                 {
                     StartRdpDetect(serverName);
-                    Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
+                    Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
                 }
                 catch (Exception ex)
                 {
@@ -535,7 +535,7 @@ namespace GateHelper
                 try
                 {
                     StartRdpDetect(serverName);
-                    Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
+                    Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
                 }
                 catch (Exception ex)
                 {
@@ -736,7 +736,7 @@ namespace GateHelper
                 // UDP 접속 정보 송신
                 StartRdpDetect(serverName);
 
-                Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
+                Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
             }
             else // 없으면 검색 후 접속
             {
@@ -764,7 +764,7 @@ namespace GateHelper
                 // UDP 접속 정보 송신
                 StartRdpDetect(serverName);
 
-                Util_Connect.ConnectToServer(_driver, mainHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
+                Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
             }
         }
 
@@ -1223,7 +1223,15 @@ namespace GateHelper
             if (!string.IsNullOrEmpty(managementHandle) && _driver.WindowHandles.Contains(managementHandle))
             {
                 LogMessage("보조 사이트가 이미 열려 있습니다. 해당 탭으로 이동합니다.", Level.Info);
+
+                // [추가] 사용자에게 상황을 명확히 알림
+                MessageBox.Show("보조 사이트가 이미 실행 중입니다.\n기존에 열려 있는 탭으로 이동합니다.",
+                                "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                // 기존 탭으로 포커스 이동
                 _driver.SwitchTo().Window(managementHandle);
+
+                // 프로그램 폼을 맨 위로 올려 시인성 확보
                 Util_Control.MoveFormToTop(this);
                 return;
             }

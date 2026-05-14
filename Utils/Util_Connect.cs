@@ -15,6 +15,7 @@ namespace GateHelper
         public static bool ConnectToServer(
             IWebDriver driver,
             string mainHandle,
+            string managementHandle,
             string GateID,
             string GatePW,
             string serverName,
@@ -98,7 +99,7 @@ namespace GateHelper
                                 }
                             }
 
-                            Thread.Sleep(1000);
+                            Thread.Sleep(1000); // Alert 대기 시간
 
                             try
                             {
@@ -110,13 +111,57 @@ namespace GateHelper
                                 SendKeys.SendWait(" ");
                             }
 
-                            // 로그인 정보 입력
-                            EnterCredentials(driver, GateID, GatePW);
-
-                            if (!Util.SwitchToMainHandle(driver, mainHandle))
+                            // 창의 개수가 현재(메인+보조 = 2개)보다 많아질 때까지 최대 10초 대기
+                            try
                             {
-                                return false; // MainHandle 없음
+                                // 현재 열려있어야 할 기본 창 개수 계산 (메인 1개 + 보조가 있다면 1개)
+                                int baseCount = string.IsNullOrEmpty(managementHandle) ? 1 : 2;
+
+                                var handleWait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+                                handleWait.Until(d => d.WindowHandles.Count > baseCount);
+
+                                LogMessage($"팝업 감지 완료 (현재 창 개수: {driver.WindowHandles.Count})", Level.Info);
                             }
+                            catch (WebDriverTimeoutException)
+                            {
+                                LogMessage("10초 동안 대기했으나 새 팝업창이 생성되지 않았습니다.", Level.Error);
+                                return false; // 창이 안 떴으므로 중단
+                            }
+
+                            // 현재 모든 핸들을 가져와서 '팝업' 찾기
+                            string popupHandle = "";
+                            var allHandles = driver.WindowHandles;
+
+                            foreach (var handle in allHandles)
+                            {
+                                // 1. 메인 핸들은 무조건 제외
+                                if (handle == mainHandle) continue;
+
+                                // 2. 보조 사이트 핸들이 유효할 때만 제외 (값이 없으면 이 조건은 무시됨)
+                                if (!string.IsNullOrEmpty(managementHandle) && handle == managementHandle)
+                                    continue;
+
+                                // 3. 위 두 조건에 걸리지 않았다면 그것이 진짜 서버 접속 팝업
+                                popupHandle = handle;
+                                LogMessage($"popupHandle = {popupHandle}", Level.Info);
+                                break;
+                            }
+
+                            if (!string.IsNullOrEmpty(popupHandle))
+                            {
+                                driver.SwitchTo().Window(popupHandle);
+                                LogMessage("서버 접속 팝업으로 포커스 이동 완료", Level.Info);
+
+                                // 포커스 이동 성공 시에만 로그인 정보 입력 시도
+                                EnterCredentials(driver, popupHandle, GateID, GatePW);
+                            }
+                            else
+                            {
+                                LogMessage("서버 접속 팝업을 찾을 수 없습니다.", Level.Error);
+                                return false; 
+                            }
+
+                            if (!Util.SwitchToMainHandle(driver, mainHandle)) return false; // MainHandle 없음
 
                             LogMessage("접속 완료, 접속 후 MainHandle: " + mainHandle, Level.Info);
 
@@ -175,11 +220,11 @@ namespace GateHelper
         }
 
 
-        private static void EnterCredentials(IWebDriver driver, string id, string pw)
+        private static void EnterCredentials(IWebDriver driver, string popupHandle, string id, string pw)
         {
             try
             {
-                SwitchToPopup(driver);
+                driver.SwitchTo().Window(popupHandle);
 
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
                 var idInput = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='userid']")));
@@ -190,6 +235,7 @@ namespace GateHelper
 
                 var loginBtn = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath("//*[@id='pop_container']/div[2]/a")));
                 loginBtn.Click();
+                LogMessage("서버 접속 정보 입력 완료", Level.Info);
             }
             catch (WebDriverTimeoutException)
             {
@@ -202,33 +248,6 @@ namespace GateHelper
             }
         }
 
-        private static void SwitchToPopup(IWebDriver driver)
-        {
-            try
-            {
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-                wait.Until(d => d.WindowHandles.Count > 1);
-
-                string original = driver.CurrentWindowHandle;
-                foreach (string handle in driver.WindowHandles)
-                {
-                    if (handle != original)
-                    {
-                        driver.SwitchTo().Window(handle);
-                        break;
-                    }
-                }
-            }
-            catch (WebDriverTimeoutException)
-            {
-                MessageBox.Show("팝업창이 열리지 않았습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            catch (Exception ex)
-            {
-                LogException(ex, Level.Error);
-                MessageBox.Show($"팝업창 전환 오류: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
 
         public static void AutoConnect_1_Step(IWebDriver driver, Form MainForm)
         {
