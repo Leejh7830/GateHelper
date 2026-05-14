@@ -129,10 +129,10 @@ namespace GateHelper
             catch (WebDriverException ex)
             {
                 // 1. 전체 화면을 먼저 찍고 (현재 사용자가 보는 그대로)
-                Util_Option.SaveFullDesktopScreenshot("WebDriver_Error_1");
+                // Util_Option.SaveFullDesktopScreenshot("WebDriver_Error_1");
 
                 // 2. 브라우저 내부를 찍습니다.
-                Util_Option.SaveScreenshot(driver, "WebDriver_Error_2");
+                // Util_Option.SaveScreenshot(driver, "WebDriver_Error_2");
 
                 LogMessage($"IsLockModalPresent skipped: {ex.Message}", Level.Info);
                 return false;
@@ -337,6 +337,7 @@ namespace GateHelper
         /////////////////////////////////////////////////////////////////////////////////////////
         ///
 
+        /* 안쓰는 기능 
         public static void SaveFullDesktopScreenshot(string reason)
         {
             try
@@ -387,5 +388,8 @@ namespace GateHelper
                 LogMessage($"Failed to save screenshot: {ex.Message}", Level.Error);
             }
         }
+        */
+
+
     }
 }

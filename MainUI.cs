@@ -38,6 +38,7 @@ namespace GateHelper
         /// Option 전용
         private int _popupCount = 0; // 팝업 처리 횟수 카운터
         private readonly Timer timer1;
+        private int _tickCounter = 0;
 
         private AppSettings _appSettings;
 
@@ -126,12 +127,10 @@ namespace GateHelper
         // ✦ TimerTick : Driver/Network/Popup/UDP Status Check
         private async void TimerStatusChecker_Tick(object sender, EventArgs e)
         {
-            // 1. 밀린 틱 방지 및 재진입 가드
             timer1.Stop();
 
             if (_isStatusTickRunning)
             {
-                LogMessage("[Tick] Re-entrancy blocked", Level.Info);
                 timer1.Start();
                 return;
             }
@@ -139,87 +138,24 @@ namespace GateHelper
 
             try
             {
-                // --- 틱 간격 로깅 (디버그용) ---
-                var now = DateTime.UtcNow;
-                if (_lastTickAtUtc != DateTime.MinValue)
-                {
-                    var deltaMs = (now - _lastTickAtUtc).TotalMilliseconds;
-                    // LogMessage($"[Tick Δ] {deltaMs:F0} ms", Level.Info);
-                }
-                _lastTickAtUtc = now;
+                // 주기를 계산하기 위한 카운터는 로직 시작 시점에 증가시키는 것이 가장 정확합니다.
+                _tickCounter++;
 
-                // 공통 색상 설정
-                Color onColor = ColorTranslator.FromHtml("#4CAF50"); // Green 500
-                Color offColor = ColorTranslator.FromHtml("#F44336"); // Red 500
+                UpdateConnectionStatus();
 
-                // 🔍 1. Driver 상태 체크
-                bool driverOn = (_driver != null && chromeDriverManager.IsDriverAlive(_driver));
-                string newDriverStatus = driverOn ? "ON" : "OFF";
-                lblDriverStatus.Text = $"Driver {newDriverStatus}";
-                lblDriverStatus.BackColor = driverOn ? onColor : offColor;
-                lblDriverStatus.ForeColor = Color.White;
-
-                if (_lastDriverStatus != newDriverStatus)
-                {
-                    LogMessage($"[Status Change] Driver {newDriverStatus}", driverOn ? Level.Info : Level.Error);
-                    _lastDriverStatus = newDriverStatus;
-                }
-
-                // Driver OFF 감지 시 UDP 수신 중지 로직
-                if (!driverOn && Util_Rdp.IsUdpReceiving)
-                {
-                    Util_Rdp.StopBroadcastReceiveLoop();
-                    Util_Rdp.UpdateUDPStatusLabel(false);
-                    LogMessage("[자동] 드라이버 OFF 감지, UDP 수신 중지", Level.Info);
-                }
-
-                // 🔍 2. Network 상태 체크
-                bool netOn = chromeDriverManager.IsInternetAvailable();
-                string newNetStatus = netOn ? "ON" : "OFF";
-                lblInternetStatus.Text = $"Network {newNetStatus}";
-                lblInternetStatus.BackColor = netOn ? onColor : offColor;
-                lblInternetStatus.ForeColor = Color.White;
-
-                if (_lastInternetStatus != newNetStatus)
-                {
-                    LogMessage($"[Status Change] Network {newNetStatus}", netOn ? Level.Info : Level.Error);
-                    _lastInternetStatus = newNetStatus;
-                }
-
-                // 🔍 3. UDP 상태 업데이트
-                Util_Rdp.UpdateUDPStatusLabel(Util_Rdp.IsUdpReceiving);
-
-
-                // 🔍 4. 팝업 감지 상태 업데이트 (설정값 기반)
                 bool popupFeatureOn = _appSettings.AutoScreenUnlock;
-
-                // 타이머마다 UI를 갱신해주는 이유는 카운트 숫자를 최신화하기 위함입니다.
                 Util_Option.UpdatePopupStatus(lblPopupStatus, popupFeatureOn, Util_Option.GetLockHandledCount());
 
-                if (driverOn && popupFeatureOn)
+                // 10분 주기 체크
+                if (_tickCounter >= 120)
                 {
-                    try
-                    {
-                        // HandleWindows 호출 (라벨과 활성화 여부 전달)
-                        bool popupHandled = await Util_Option.HandleWindows(
-                            _driver,
-                            mainHandle,
-                            _config,
-                            lblPopupStatus,
-                            popupFeatureOn
-                        );
+                    _tickCounter = 0;
 
-                        if (popupHandled)
-                        {
-                            _popupCount = Util_Option.GetLockHandledCount();
-                            LogMessage($"[자동화] 잠금 화면 해제 완료 (누적: {_popupCount})", Level.Info);
-                        }
-
-                        try { mainHandle = _driver.CurrentWindowHandle; } catch { }
-                    }
-                    catch (Exception ex)
+                    bool driverOn = (_driver != null && chromeDriverManager.IsDriverAlive(_driver));
+                    if (driverOn && popupFeatureOn)
                     {
-                        LogMessage($"HandleWindows 실행 중 예외: {ex.Message}", Level.Error);
+                        // await를 사용하여 비동기 작업이 끝날 때까지 타이머 재시작을 대기합니다.
+                        await HandleScreenLockAutomation(popupFeatureOn);
                     }
                 }
             }
@@ -229,12 +165,99 @@ namespace GateHelper
             }
             finally
             {
-                // 5. 가드 해제 및 타이머 재시작
                 _isStatusTickRunning = false;
                 timer1.Start();
             }
         }
 
+        private void UpdateConnectionStatus()
+        {
+            // 공통 색상 설정
+            Color onColor = ColorTranslator.FromHtml("#4CAF50"); // Green 500
+            Color offColor = ColorTranslator.FromHtml("#F44336"); // Red 500
+
+            // 🔍 1. Driver 상태 체크
+            bool driverOn = (_driver != null && chromeDriverManager.IsDriverAlive(_driver));
+            string newDriverStatus = driverOn ? "ON" : "OFF";
+
+            lblDriverStatus.Text = $"Driver {newDriverStatus}";
+            lblDriverStatus.BackColor = driverOn ? onColor : offColor;
+            lblDriverStatus.ForeColor = Color.White;
+
+            if (_lastDriverStatus != newDriverStatus)
+            {
+                LogMessage($"[Status Change] Driver {newDriverStatus}", driverOn ? Level.Info : Level.Error);
+                _lastDriverStatus = newDriverStatus;
+            }
+
+            // Driver OFF 감지 시 UDP 수신 중지 로직
+            if (!driverOn && Util_Rdp.IsUdpReceiving)
+            {
+                Util_Rdp.StopBroadcastReceiveLoop();
+                Util_Rdp.UpdateUDPStatusLabel(false);
+                LogMessage("[자동] 드라이버 OFF 감지, UDP 수신 중지", Level.Info);
+            }
+
+            // 🔍 2. Network 상태 체크
+            bool netOn = chromeDriverManager.IsInternetAvailable();
+            string newNetStatus = netOn ? "ON" : "OFF";
+
+            lblInternetStatus.Text = $"Network {newNetStatus}";
+            lblInternetStatus.BackColor = netOn ? onColor : offColor;
+            lblInternetStatus.ForeColor = Color.White;
+
+            if (_lastInternetStatus != newNetStatus)
+            {
+                LogMessage($"[Status Change] Network {newNetStatus}", netOn ? Level.Info : Level.Error);
+                _lastInternetStatus = newNetStatus;
+            }
+
+            // 🔍 3. UDP 상태 업데이트
+            Util_Rdp.UpdateUDPStatusLabel(Util_Rdp.IsUdpReceiving);
+        }
+
+        private async Task HandleScreenLockAutomation(bool popupFeatureOn)
+        {
+            string currentHandle = "";
+            try
+            {
+                // 1. 현재 핸들 저장 시도 (실패 시 복구 불가하므로 무시)
+                try { currentHandle = _driver.CurrentWindowHandle; } catch { }
+
+                // 2. 메인 핸들로 전환 (이게 실패하면 검사 자체가 불가능)
+                _driver.SwitchTo().Window(mainHandle);
+
+                bool popupHandled = await Util_Option.HandleWindows(
+                    _driver,
+                    mainHandle,
+                    _config,
+                    lblPopupStatus,
+                    popupFeatureOn
+                );
+
+                if (popupHandled)
+                {
+                    _popupCount = Util_Option.GetLockHandledCount();
+                    LogMessage($"[자동화] 잠금 화면 해제 완료 (누적: {_popupCount})", Level.Info);
+                }
+
+                // [핵심 수정] 성공/실패 여부와 상관없이, 원래 메인이 아닌 다른 탭을 보고 있었다면 복구
+                if (!string.IsNullOrEmpty(currentHandle) && currentHandle != mainHandle)
+                {
+                    if (_driver.WindowHandles.Contains(currentHandle))
+                    {
+                        _driver.SwitchTo().Window(currentHandle);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"HandleWindows 실행 중 예외: {ex.Message}", Level.Error);
+
+                // 예외 발생 시에도 시선이 꼬였다면 메인으로라도 돌려놓는 보험
+                try { _driver.SwitchTo().Window(mainHandle); } catch { }
+            }
+        }
 
 
         protected async void BtnStart1_Click(object sender, EventArgs e)
@@ -1276,6 +1299,58 @@ namespace GateHelper
             {
                 LogMessage("Management 로그인 필드를 찾지 못해 자동 로그인을 중단합니다.", Level.Error);
             }
+        }
+
+        private async void BtnMoveVariable_Click(object sender, EventArgs e)
+        {
+            // 1. 드라이버 및 보조 사이트 핸들 유효성 체크
+            if (_driver == null || string.IsNullOrEmpty(managementHandle))
+            {
+                LogMessage("보조 사이트가 열려있지 않습니다.", Level.Error);
+                return;
+            }
+
+            try
+            {
+                LogMessage("[Step1] 변수 관리 메뉴 이동 시작", Level.Info);
+
+                // 보조 사이트로 시선 전환
+                _driver.SwitchTo().Window(managementHandle);
+
+                // 상단 메뉴 클릭 (상단 내비게이션)
+                string firstXpath = "//*[@id=\"topNavArea\"]/nav/div[2]/a[3]";
+                bool firstResult = await Task.Run(() =>
+                    Util_Element.ClickElementByXPath(_driver, firstXpath)); // 10초 대기 포함
+
+                if (!firstResult)
+                {
+                    LogMessage("상단 메뉴를 찾을 수 없습니다.(=Master Data Info)", Level.Error);
+                    return;
+                }
+                LogMessage("[Step2] 상단 메뉴 이동 완료", Level.Info);
+
+                // 메뉴가 열리는 물리적인 시간을 고려해 아주 짧은 대기 (필요시)
+                await Task.Delay(500);
+
+                // 메뉴 클릭 (왼쪽 내비게이션)
+                string secondXpath = "//*[@id=\"mes_container\"]/div/div[1]/div[2]/div[1]/div[2]/div/a[2]/span/span";
+                bool secondResult = await Task.Run(() =>
+                    Util_Element.ClickElementByXPath(_driver, secondXpath));
+
+                if (secondResult)
+                {
+                    LogMessage("[Step3] Variable Search 메뉴 이동 완료", Level.Info);
+                }
+                else
+                {
+                    LogMessage("메뉴 클릭 실패(=Variable Search)", Level.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error, "메뉴 이동 중 오류 발생");
+            }
+
         }
     }
 }

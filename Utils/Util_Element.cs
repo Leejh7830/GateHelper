@@ -13,7 +13,7 @@ namespace GateHelper
         {
             try
             {
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
                 IWebElement element = wait.Until(ExpectedConditions.ElementToBeClickable(By.XPath(xpath)));
 
                 element.Click();
@@ -27,7 +27,7 @@ namespace GateHelper
             }
             catch (WebDriverTimeoutException ex)
             {
-                // 요소를 찾았지만 5초 안에 클릭 가능한 상태가 되지 않은 경우
+                // 요소를 찾았지만 클릭 가능한 상태가 되지 않은 경우
                 LogException(ex, Level.Error, $"클릭 오류: XPath '{xpath}' - 요소가 클릭 가능한 상태가 아닙니다.");
                 return false;
             }

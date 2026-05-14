@@ -42,7 +42,7 @@ namespace GateHelper
             string metaNotesPath = GetMetaPath("ReleaseNotes.txt");
             string content =
 @"
-v2.2.5 / 26.03.30 / Test Version
+v2.3.1 / 26.05.14 / Test Version
 - leejh7830@lgespartner.com
 - 비영리 목적으로 제작한 유틸리티입니다.
 
@@ -67,6 +67,7 @@ v2.2.5 / 26.03.30 / Test Version
 6. 개선 / [UDP] RDP 감지 추가
 7. 개선 / [UDP] 현재 접속자 확인 기능 추가
 8. 개선 / [UDP] 접속자 목록 UI 추가
+9. 개선 / 보조사이트 이용 후 Main 이용 시 현재 목록에 있음에도 새로 검색함
 
 
 
@@ -106,6 +107,9 @@ v2.2.3 / 26.01.17 신규 - SandBox - BitFlip
 v2.2.4 / 26.01.29 신규 - SandBox - SignalLink
 v2.2.5 / 26.03.30 개선 - 프로그램 종료(X) 클릭 시 확인 창 띄우기 / 리스트뷰에서 바로 접속 시 검색 텍스트 박스 비우기
 v2.2.6 / 26.04.08 개선 - Disable Pop up -> Auto Screen Unlock 으로 변경, 통합관리시스템(Manufacturing Management) 연결
+
+v2.3.0 / 26.05.12 신규 - 통합모니터링사이트(Management) 사이트 오픈 및 이동
+v2.3.1 / 26.05.14 신규 - 통합모니터링사이트(Management) 자동로그인 기능 구현 / Main과 Management Handle 관리 구분 및 인터락 구현
          
 ";
 

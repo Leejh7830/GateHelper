@@ -31,6 +31,25 @@ namespace GateHelper
 
             try
             {
+                try
+                {
+                    driver.SwitchTo().Window(mainHandle);
+                }
+                catch
+                {
+                    LogMessage("Critical: 메인 핸들 복구 실패.", Level.Critical);
+                    return false;
+                }
+
+                // [중요] 보조 사이트가 수동으로 닫혔을 경우를 대비해 managementHandle 상태 확인
+                // 현재 열린 창 목록에 없다면 변수를 비워버려야 팝업 찾기 로직에서 꼬이지 않음
+                string actualManagementHandle = managementHandle;
+                if (!string.IsNullOrEmpty(managementHandle) && !driver.WindowHandles.Contains(managementHandle)) // > Handle값은 있지만 WindowTab에 없을 때 = 닫혔다고 판단
+                {
+                    actualManagementHandle = ""; // 닫혔으므로 값 초기화
+                    LogMessage("보조 사이트가 수동으로 닫힌 것을 감지했습니다.", Level.Info);
+                }
+
                 var wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
                 wait.Until(ExpectedConditions.ElementExists(By.Id("seltable")));
 
@@ -115,7 +134,7 @@ namespace GateHelper
                             try
                             {
                                 // 현재 열려있어야 할 기본 창 개수 계산 (메인 1개 + 보조가 있다면 1개)
-                                int baseCount = string.IsNullOrEmpty(managementHandle) ? 1 : 2;
+                                int baseCount = string.IsNullOrEmpty(actualManagementHandle) ? 1 : 2;
 
                                 var handleWait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
                                 handleWait.Until(d => d.WindowHandles.Count > baseCount);
@@ -138,7 +157,7 @@ namespace GateHelper
                                 if (handle == mainHandle) continue;
 
                                 // 2. 보조 사이트 핸들이 유효할 때만 제외 (값이 없으면 이 조건은 무시됨)
-                                if (!string.IsNullOrEmpty(managementHandle) && handle == managementHandle)
+                                if (!string.IsNullOrEmpty(actualManagementHandle) && handle == actualManagementHandle)
                                     continue;
 
                                 // 3. 위 두 조건에 걸리지 않았다면 그것이 진짜 서버 접속 팝업
