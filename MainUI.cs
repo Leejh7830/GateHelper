@@ -3,6 +3,7 @@ using MaterialSkin.Controls;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using System;
+using System.Collections.Generic;
 using System.Configuration;
 using System.Diagnostics;
 using System.Drawing;
@@ -1303,54 +1304,152 @@ namespace GateHelper
 
         private async void BtnMoveVariable_Click(object sender, EventArgs e)
         {
-            // 1. 드라이버 및 보조 사이트 핸들 유효성 체크
+            // 1. 유효성 검사
+            if (_driver == null || string.IsNullOrEmpty(managementHandle))
+            {
+                LogMessage("관리 사이트가 열려있지 않습니다.", Level.Error);
+                return;
+            }
+
+            try
+            {
+                LogMessage("BtnMoveVariable_Click", Level.Info);
+
+                // 2. 보조 사이트로 시선 전환
+                _driver.SwitchTo().Window(managementHandle);
+
+                // 3. 상단 메뉴 클릭 (Util_Element 메서드 활용)
+                bool step1 = await Task.Run(() => Util_Element.ClickElementByXPath(_driver, "//*[@id=\"topNavArea\"]/nav/div[2]/a[3]"));
+                if (!step1) return;
+
+                // 4. 메뉴가 열리는 물리적인 시간을 위한 아주 짧은 대기
+                await Task.Delay(500);
+
+                // 5. 왼쪽 내비게이션 메뉴 클릭
+                bool step2Result = await Task.Run(() => Util_Element.ClickElementByXPath(_driver, "//*[@id=\"mes_container\"]/div/div[1]/div[2]/div[1]/div[2]/div/a[2]/span/span"));
+                if (step2Result)
+                {
+                    LogMessage("Variable Search 메뉴 이동 완료", Level.Info);
+                }
+
+
+
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error, "메뉴 이동 중 치명적 오류 발생");
+            }
+        }
+
+        private async void BtnStoCollect_Click(object sender, EventArgs e)
+        {
+            // 사전 체크
             if (_driver == null || string.IsNullOrEmpty(managementHandle))
             {
                 LogMessage("보조 사이트가 열려있지 않습니다.", Level.Error);
                 return;
             }
 
+            // 사용자 경고 메시지 (Yes를 눌러야만 진행)
+            var confirmResult = MessageBox.Show(
+                "전체 설비 데이터 수집을 시작합니다.\n\n" +
+                "⚠️ 주의: 작업 중 브라우저 조작이나 다른 작업을 하면 오류가 발생할 수 있습니다.\n" +
+                "데이터 양에 따라 시간이 다소 소요될 수 있으니 완료될 때까지 기다려 주세요.\n\n" +
+                "진행하시겠습니까?",
+                "자동화 작업 시작 알림",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
+
+            if (confirmResult != DialogResult.Yes)
+            {
+                LogMessage("사용자에 의해 데이터 수집이 취소되었습니다.", Level.Info);
+                return;
+            }
+
             try
             {
-                LogMessage("[Step1] 변수 관리 메뉴 이동 시작", Level.Info);
+                LogMessage("STO 설비 수집 루틴 시작", Level.Info);
 
-                // 보조 사이트로 시선 전환
                 _driver.SwitchTo().Window(managementHandle);
 
-                // 상단 메뉴 클릭 (상단 내비게이션)
-                string firstXpath = "//*[@id=\"topNavArea\"]/nav/div[2]/a[3]";
-                bool firstResult = await Task.Run(() =>
-                    Util_Element.ClickElementByXPath(_driver, firstXpath)); // 10초 대기 포함
+                // [Step 1] STO 키워드 설비 클릭
+                bool stoResult = await Task.Run(() =>
+                    Util_Element.ClickElementByKeyword(_driver, "STO"));
 
-                if (!firstResult)
+                if (!stoResult)
                 {
-                    LogMessage("상단 메뉴를 찾을 수 없습니다.(=Master Data Info)", Level.Error);
+                    LogMessage("STO 설비를 찾지 못했습니다.", Level.Error);
                     return;
                 }
-                LogMessage("[Step2] 상단 메뉴 이동 완료", Level.Info);
 
-                // 메뉴가 열리는 물리적인 시간을 고려해 아주 짧은 대기 (필요시)
-                await Task.Delay(500);
+                // 클릭 후 화면 갱신을 위한 짧은 대기
+                await Task.Delay(1000);
 
-                // 메뉴 클릭 (왼쪽 내비게이션)
-                string secondXpath = "//*[@id=\"mes_container\"]/div/div[1]/div[2]/div[1]/div[2]/div/a[2]/span/span";
-                bool secondResult = await Task.Run(() =>
-                    Util_Element.ClickElementByXPath(_driver, secondXpath));
+                // [Step 2] StockerSEM 클릭
+                string semXPath = "//span[@class='wj-node-text' and text()='StockerSEM']";
 
-                if (secondResult)
+                bool semResult = await Task.Run(() =>
+                    Util_Element.ClickElementByXPath(_driver, semXPath));
+
+                if (semResult)
                 {
-                    LogMessage("[Step3] Variable Search 메뉴 이동 완료", Level.Info);
+                    LogMessage("StockerSEM 클릭 성공. 표 데이터를 추출합니다.", Level.Info);
+
+                    // 1. 표 데이터 파싱 (이전에 만든 메서드)
+                    var tableData = await Task.Run(() => Util_Element.GetGridTableData(_driver));
+
+                    if (tableData.Count > 0)
+                    {
+                        // 2. 텍스트 변환
+                        string resultText = Util_Element.ConvertTableToText(tableData);
+
+                        // 3. 메모장으로 즉시 확인
+                        ShowDataInNotepad(resultText);
+
+                        LogMessage($"수집 완료: {tableData.Count}행을 메모장으로 출력했습니다.", Level.Info);
+                    }
+                    else
+                    {
+                        LogMessage("수집된 데이터가 없습니다. 표 로딩 상태를 확인하세요.", Level.Error);
+                    }
                 }
                 else
                 {
-                    LogMessage("메뉴 클릭 실패(=Variable Search)", Level.Error);
+                    LogMessage("StockerSEM 버튼을 찾을 수 없습니다.", Level.Error);
                 }
             }
             catch (Exception ex)
             {
-                LogException(ex, Level.Error, "메뉴 이동 중 오류 발생");
+                LogException(ex, Level.Error, "STO 클릭 및 수집 중 오류");
             }
-
         }
+
+        
+
+        
+
+        private void ShowDataInNotepad(string content)
+        {
+            try
+            {
+                // 임시 파일 생성
+                string tempFile = Path.Combine(Path.GetTempPath(), $"DataCheck_{DateTime.Now:HHmmss}.txt");
+                File.WriteAllText(tempFile, content, System.Text.Encoding.UTF8);
+
+                // 메모장으로 열기
+                Process.Start(new ProcessStartInfo("notepad.exe", tempFile) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"메모장 실행 중 오류: {ex.Message}", Level.Error);
+            }
+        }
+
+
+
+
+
+
+
     }
 }

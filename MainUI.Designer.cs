@@ -50,6 +50,8 @@ namespace GateHelper
             this.TabControl1 = new MaterialSkin.Controls.MaterialTabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.GroupManagement1 = new System.Windows.Forms.GroupBox();
+            this.BtnStoCollect = new MaterialSkin.Controls.MaterialButton();
+            this.BtnMoveVariable = new MaterialSkin.Controls.MaterialButton();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.OlvServerList = new BrightIdeasSoftware.ObjectListView();
             this.IsInUse = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
@@ -91,7 +93,6 @@ namespace GateHelper
             this.BtnOpenLog2 = new MaterialSkin.Controls.MaterialButton();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.BtnStartManagement = new MaterialSkin.Controls.MaterialButton();
-            this.BtnMoveVariable = new MaterialSkin.Controls.MaterialButton();
             this.GroupConnect1.SuspendLayout();
             this.GroupPreset1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
@@ -442,6 +443,7 @@ namespace GateHelper
             // 
             // GroupManagement1
             // 
+            this.GroupManagement1.Controls.Add(this.BtnStoCollect);
             this.GroupManagement1.Controls.Add(this.BtnMoveVariable);
             this.GroupManagement1.Location = new System.Drawing.Point(578, 20);
             this.GroupManagement1.Name = "GroupManagement1";
@@ -449,6 +451,48 @@ namespace GateHelper
             this.GroupManagement1.TabIndex = 103;
             this.GroupManagement1.TabStop = false;
             this.GroupManagement1.Text = "Management";
+            // 
+            // BtnStoCollect
+            // 
+            this.BtnStoCollect.AutoSize = false;
+            this.BtnStoCollect.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnStoCollect.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnStoCollect.Depth = 0;
+            this.BtnStoCollect.HighEmphasis = true;
+            this.BtnStoCollect.Icon = null;
+            this.BtnStoCollect.Location = new System.Drawing.Point(20, 111);
+            this.BtnStoCollect.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnStoCollect.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnStoCollect.Name = "BtnStoCollect";
+            this.BtnStoCollect.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnStoCollect.Size = new System.Drawing.Size(195, 60);
+            this.BtnStoCollect.TabIndex = 104;
+            this.BtnStoCollect.Text = "STO Collect";
+            this.BtnStoCollect.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnStoCollect.UseAccentColor = false;
+            this.BtnStoCollect.UseVisualStyleBackColor = true;
+            this.BtnStoCollect.Click += new System.EventHandler(this.BtnStoCollect_Click);
+            // 
+            // BtnMoveVariable
+            // 
+            this.BtnMoveVariable.AutoSize = false;
+            this.BtnMoveVariable.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnMoveVariable.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnMoveVariable.Depth = 0;
+            this.BtnMoveVariable.HighEmphasis = true;
+            this.BtnMoveVariable.Icon = null;
+            this.BtnMoveVariable.Location = new System.Drawing.Point(20, 33);
+            this.BtnMoveVariable.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnMoveVariable.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnMoveVariable.Name = "BtnMoveVariable";
+            this.BtnMoveVariable.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnMoveVariable.Size = new System.Drawing.Size(195, 60);
+            this.BtnMoveVariable.TabIndex = 103;
+            this.BtnMoveVariable.Text = "Move Variable";
+            this.BtnMoveVariable.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnMoveVariable.UseAccentColor = false;
+            this.BtnMoveVariable.UseVisualStyleBackColor = true;
+            this.BtnMoveVariable.Click += new System.EventHandler(this.BtnMoveVariable_Click);
             // 
             // tabPage4
             // 
@@ -1020,27 +1064,6 @@ namespace GateHelper
             this.BtnStartManagement.UseVisualStyleBackColor = true;
             this.BtnStartManagement.Click += new System.EventHandler(this.BtnStartManagement_Click);
             // 
-            // BtnMoveVariable
-            // 
-            this.BtnMoveVariable.AutoSize = false;
-            this.BtnMoveVariable.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnMoveVariable.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnMoveVariable.Depth = 0;
-            this.BtnMoveVariable.HighEmphasis = true;
-            this.BtnMoveVariable.Icon = null;
-            this.BtnMoveVariable.Location = new System.Drawing.Point(20, 33);
-            this.BtnMoveVariable.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
-            this.BtnMoveVariable.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnMoveVariable.Name = "BtnMoveVariable";
-            this.BtnMoveVariable.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnMoveVariable.Size = new System.Drawing.Size(195, 60);
-            this.BtnMoveVariable.TabIndex = 103;
-            this.BtnMoveVariable.Text = "Move Variable";
-            this.BtnMoveVariable.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnMoveVariable.UseAccentColor = false;
-            this.BtnMoveVariable.UseVisualStyleBackColor = true;
-            this.BtnMoveVariable.Click += new System.EventHandler(this.BtnMoveVariable_Click);
-            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 18F);
@@ -1156,6 +1179,7 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton BtnStartManagement;
         private System.Windows.Forms.GroupBox GroupManagement1;
         private MaterialSkin.Controls.MaterialButton BtnMoveVariable;
+        private MaterialSkin.Controls.MaterialButton BtnStoCollect;
     }
 }
 
