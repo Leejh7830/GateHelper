@@ -1353,8 +1353,9 @@ namespace GateHelper
             // 사용자 경고 메시지 (Yes를 눌러야만 진행)
             var confirmResult = MessageBox.Show(
                 "전체 설비 데이터 수집을 시작합니다.\n\n" +
-                "⚠️ 주의: 작업 중 브라우저 조작이나 다른 작업을 하면 오류가 발생할 수 있습니다.\n" +
-                "데이터 양에 따라 시간이 다소 소요될 수 있으니 완료될 때까지 기다려 주세요.\n\n" +
+                "⚠️ 주의: 스크롤 제어 자동화 방식이 구동됩니다.\n" +
+                "작업이 진행되는 동안 해당 크롬 브라우저의 표 영역을 마우스로 클릭하거나 가리지 마십시오.\n" +
+                "데이터 양에 따라 약 5~10초 정도 소요될 수 있으니 완료될 때까지 대기해 주세요.\n\n" +
                 "진행하시겠습니까?",
                 "자동화 작업 시작 알림",
                 MessageBoxButtons.YesNo,
@@ -1393,24 +1394,26 @@ namespace GateHelper
 
                 if (semResult)
                 {
-                    LogMessage("StockerSEM 클릭 성공. 표 데이터를 추출합니다.", Level.Info);
+                    LogMessage("StockerSEM 클릭 성공. 고안정성 스크롤 추적 수집을 시작합니다.", Level.Info);
 
-                    // 1. 표 데이터 파싱 (이전에 만든 메서드)
-                    var tableData = await Task.Run(() => Util_Element.GetGridTableData(_driver));
+                    // 💡 [이 부분을 수정] 스크롤 누적 메서드 적용
+                    var tableData = await Task.Run(() => Util_Element.GetGridTableDataByScrolling(_driver));
 
                     if (tableData.Count > 0)
                     {
                         // 2. 텍스트 변환
                         string resultText = Util_Element.ConvertTableToText(tableData);
+                        LogMessage("텍스트변환 완료", Level.Info);
 
                         // 3. 메모장으로 즉시 확인
                         ShowDataInNotepad(resultText);
+                        LogMessage("메모장출력 완료", Level.Info);
 
-                        LogMessage($"수집 완료: {tableData.Count}행을 메모장으로 출력했습니다.", Level.Info);
+                        LogMessage($"수집 완료: 총 {tableData.Count}행을 안전하게 추출하여 메모장으로 출력했습니다.", Level.Info);
                     }
                     else
                     {
-                        LogMessage("수집된 데이터가 없습니다. 표 로딩 상태를 확인하세요.", Level.Error);
+                        LogMessage("수집된 데이터가 없습니다. 그리드 스크롤 컨테이너 구조나 로딩 상태를 확인하세요.", Level.Error);
                     }
                 }
                 else
@@ -1424,9 +1427,8 @@ namespace GateHelper
             }
         }
 
-        
 
-        
+
 
         private void ShowDataInNotepad(string content)
         {

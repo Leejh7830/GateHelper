@@ -4,6 +4,8 @@ using SeleniumExtras.WaitHelpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 using System.Windows.Forms;
 using static GateHelper.LogManager;
 
@@ -115,50 +117,112 @@ namespace GateHelper
             }
         }
 
-        public static List<string[]> GetGridTableData(IWebDriver driver)
+        ////////////////////////////////////////////////////통합모니터링(Management) 전용 시작/////////////////////////////////////////////////////////////////
+
+
+        /// <summary>
+        /// 자바스크립트 스크롤 제어를 통해 웹 그리드의 데이터를 중복 없이 누적 수집합니다.
+        /// </summary>
+        public static List<string[]> GetGridTableDataByScrolling(IWebDriver driver)
         {
+            var uniqueKeys = new HashSet<string>();
             var allData = new List<string[]>();
+
             try
             {
-                // 1. 데이터 영역(div)이 나타날 때까지 명시적 대기 (최대 10초)
+                string dataAreaPath = "//*[@id='uncontrolled-tab-example-tabpane-WEB030102']/div/div[2]/div/div/div[3]/div/div/div[1]/div/div[2]/div/div/div[2]";
                 WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-                string parentPath = "//*[@id='uncontrolled-tab-example-tabpane-WEB030102']/div/div[2]/div/div/div[3]/div/div/div[1]/div/div[2]/div/div/div[2]/div[1]";
+                var dataArea = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath(dataAreaPath)));
 
-                // 데이터가 들어있는 첫 번째 div가 보일 때까지 기다림
-                wait.Until(ExpectedConditions.ElementIsVisible(By.XPath($"{parentPath}/div[3]")));
+                IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
 
-                // 2. 부모 컨테이너 아래의 모든 직접적인 자식 div들 가져오기
-                var rows = driver.FindElements(By.XPath($"{parentPath}/div"));
+                // 1. 스크롤바 컨테이너 확보
+                IWebElement scrollContainer = (IWebElement)js.ExecuteScript(
+                    "let el = arguments[0]; " +
+                    "while (el && el.tagName !== 'BODY') { " +
+                    "   if (el.scrollHeight > el.clientHeight && window.getComputedStyle(el).overflowY !== 'visible') { " +
+                    "       return el; " +
+                    "   } " +
+                    "   el = el.parentElement; " +
+                    "} " +
+                    "return arguments[0].parentElement;", dataArea);
 
-                foreach (var row in rows)
+                int sameCount = 0;
+                LogMessage("[자동화] 초고속 가상화 스크롤 수집 엔진 가동", Level.Info);
+
+                string rowPath = $"{dataAreaPath}/div[contains(@class, 'wj-row') or @role='row']";
+                long lastScrollTop = -1;
+
+                // 💡 튜닝 1: 휠 방식과 달리 대폭 축소된 루프 횟수 (최대 25회로 가드 설정)
+                for (int step = 0; step < 25; step++)
                 {
-                    // 3. 행 내부의 셀들 추출 (상대 경로 ./div 사용)
-                    var cells = row.FindElements(By.XPath("./div"));
-
-                    // 데이터가 있는 행인지 검사 (열 개수가 5개 이상인 것만)
-                    if (cells.Count >= 5)
+                    // 2. 현재 화면의 데이터 추출
+                    var rows = driver.FindElements(By.XPath(rowPath));
+                    if (rows.Count == 0)
                     {
-                        string name = cells[0].Text.Trim();
-
-                        // 헤더(Name, Value 등 제목)는 제외하고 실제 데이터만 수집
-                        if (string.IsNullOrEmpty(name) || name == "Name" || name == "Value") continue;
-
-                        string[] rowData = new string[5];
-                        rowData[0] = name;
-                        rowData[1] = cells[1].Text.Trim();
-                        rowData[2] = cells[2].Text.Trim();
-                        rowData[3] = cells[3].Text.Trim();
-                        rowData[4] = cells[4].Text.Trim();
-
-                        allData.Add(rowData);
+                        rows = driver.FindElements(By.XPath("//*[@id='uncontrolled-tab-example-tabpane-WEB030102']//div[contains(@class, 'wj-row')]"));
                     }
+
+                    int previousCount = allData.Count;
+
+                    foreach (var row in rows)
+                    {
+                        var cells = row.FindElements(By.XPath("./div"));
+                        if (cells.Count >= 5)
+                        {
+                            string name = cells[0].Text.Trim();
+                            if (string.IsNullOrEmpty(name) || name == "Name" || name == "Value") continue;
+
+                            if (!uniqueKeys.Contains(name))
+                            {
+                                uniqueKeys.Add(name);
+                                allData.Add(new string[] {
+                            name,
+                            cells[1].Text.Trim(),
+                            cells[2].Text.Trim(),
+                            cells[3].Text.Trim(),
+                            cells[4].Text.Trim()
+                        });
+                            }
+                        }
+                    }
+
+                    if (allData.Count > previousCount)
+                    {
+                        sameCount = 0;
+                        LogMessage($"[진행 상황] 데이터 수집 누적: {allData.Count}행...", Level.Info);
+                    }
+
+                    // 3. 물리적 최하단 바닥 검증
+                    long currentScrollTop = (long)js.ExecuteScript("return Math.ceil(arguments[0].scrollTop);", scrollContainer);
+                    long scrollHeight = (long)js.ExecuteScript("return arguments[0].scrollHeight;", scrollContainer);
+                    long clientHeight = (long)js.ExecuteScript("return arguments[0].clientHeight;", scrollContainer);
+
+                    if (currentScrollTop == lastScrollTop || (currentScrollTop + clientHeight >= scrollHeight - 3))
+                    {
+                        sameCount++;
+                        if (sameCount >= 2) break; // 바닥 안착 시 즉시 종료
+                    }
+                    else
+                    {
+                        lastScrollTop = currentScrollTop;
+                    }
+
+                    // 4. [핵심 수정] 미세한 휠 대신 가상화 엔진이 허용하는 가장 빠른 단위인 'PageDown Key' 주입
+                    js.ExecuteScript("arguments[0].focus();", scrollContainer);
+                    js.ExecuteScript(
+                        "var e = new KeyboardEvent('keydown', { key: 'PageDown', keyCode: 34, bubbles: true }); " +
+                        "arguments[0].dispatchEvent(e);", scrollContainer);
+
+                    // 💡 튜닝 2: 한 번에 많이 내려가므로 대기 시간을 0.35초(350ms)로 획기적으로 단축
+                    Thread.Sleep(350);
                 }
             }
             catch (Exception ex)
             {
-                // 데이터가 하나도 없을 때 에러 로그
-                Debug.WriteLine($"[Parsing Error] {ex.Message}");
+                LogMessage($"[스크롤 에러] 치명적 예외 발생: {ex.Message}", Level.Error);
             }
+
             return allData;
         }
 
@@ -183,6 +247,8 @@ namespace GateHelper
 
             return sb.ToString();
         }
+
+        ////////////////////////////////////////////////////통합모니터링(Management) 전용 끝/////////////////////////////////////////////////////////////////
 
 
         /// //////////////////////////////////////////////////////////////////////////////////////////////////
