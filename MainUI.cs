@@ -4,6 +4,7 @@ using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Configuration;
 using System.Diagnostics;
 using System.Drawing;
@@ -1341,6 +1342,8 @@ namespace GateHelper
             }
         }
 
+        /////////////////////////////////////////////////////하나씩 스크롤////////////////////////////////////////////////////////
+        /*
         private async void BtnStoCollect_Click(object sender, EventArgs e)
         {
             // 사전 체크
@@ -1426,28 +1429,134 @@ namespace GateHelper
                 LogException(ex, Level.Error, "STO 클릭 및 수집 중 오류");
             }
         }
+        */
 
 
-
-
-        private void ShowDataInNotepad(string content)
+        private async void BtnStoCollect_Click(object sender, EventArgs e)
         {
+            // 사전 체크
+            if (_driver == null || string.IsNullOrEmpty(managementHandle))
+            {
+                LogMessage("보조 사이트가 열려있지 않습니다.", Level.Error);
+                return;
+            }
+
+            // 사용자 경고 메시지 (Yes를 눌러야만 진행)
+            var confirmResult = MessageBox.Show(
+                "전체 설비 데이터 수집을 시작합니다.\n\n" +
+                "⚠️ 주의: 스크롤 제어 자동화 방식이 구동됩니다.\n" +
+                "작업이 진행되는 동안 해당 크롬 브라우저의 표 영역을 마우스로 클릭하거나 가리지 마십시오.\n" +
+                "데이터 양에 따라 약 5~10초 정도 소요될 수 있으니 완료될 때까지 대기해 주세요.\n\n" +
+                "진행하시겠습니까?",
+                "자동화 작업 시작 알림",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
+
+            if (confirmResult != DialogResult.Yes)
+            {
+                LogMessage("사용자에 의해 데이터 수집이 취소되었습니다.", Level.Info);
+                return;
+            }
+
             try
             {
-                // 임시 파일 생성
-                string tempFile = Path.Combine(Path.GetTempPath(), $"DataCheck_{DateTime.Now:HHmmss}.txt");
-                File.WriteAllText(tempFile, content, System.Text.Encoding.UTF8);
+                LogMessage("STO 설비 수집 루틴 시작", Level.Info);
 
-                // 메모장으로 열기
-                Process.Start(new ProcessStartInfo("notepad.exe", tempFile) { UseShellExecute = true });
+                _driver.SwitchTo().Window(managementHandle);
+
+                // [Step 1] STO 키워드 설비 클릭
+                bool stoResult = await Task.Run(() =>
+                    Util_Element.ClickElementByKeyword(_driver, "STO"));
+
+                if (!stoResult)
+                {
+                    LogMessage("STO 설비를 찾지 못했습니다.", Level.Error);
+                    return;
+                }
+
+                // 클릭 후 화면 갱신을 위한 짧은 대기
+                await Task.Delay(1000);
+
+                // [Step 2] StockerSEM 클릭
+                string semXPath = "//span[@class='wj-node-text' and text()='StockerSEM']";
+
+                bool semResult = await Task.Run(() =>
+                    Util_Element.ClickElementByXPath(_driver, semXPath));
+
+                if (semResult)
+                {
+                    LogMessage("StockerSEM 클릭 성공. 고안정 압축 고속 스크롤 수집을 시작합니다.", Level.Info);
+
+                    // 1. 고속 스크롤 방식으로 데이터 긁어오기
+                    var tableData = await Task.Run(() => Util_Element.GetTableDataByClipboardFast(_driver));
+
+                    if (tableData.Count > 0)
+                    {
+                        LogMessage($"데이터 수집 완료 ({tableData.Count}행). 엑셀 파일 생성을 시작합니다.", Level.Info);
+
+                        // 💡 [EPPlus 고속 엑셀 빌더 호출]
+                        // 우선 단일 호기 테스트이므로 호기명을 "A호기"로 임시 지정하여 넘깁니다.
+                        string excelPath = await Task.Run(() => SaveDataToCSV("A호기", tableData));
+
+                        if (!string.IsNullOrEmpty(excelPath))
+                        {
+                            LogMessage($"[엑셀 생성 완료] 파일이 성공적으로 저장되었습니다: {excelPath}", Level.Info);
+
+                            // 생성된 엑셀 파일을 사용자 화면에 즉시 열어줍니다.
+                            Process.Start(new ProcessStartInfo(excelPath) { UseShellExecute = true });
+                        }
+                    }
+                    else
+                    {
+                        LogMessage("수집된 데이터가 없습니다. 표 로딩 상태를 확인하세요.", Level.Error);
+                    }
+                }
+                else
+                {
+                    LogMessage("StockerSEM 버튼을 찾을 수 없습니다.", Level.Error);
+                }
             }
             catch (Exception ex)
             {
-                LogMessage($"메모장 실행 중 오류: {ex.Message}", Level.Error);
+                LogException(ex, Level.Error, "STO 클릭 및 수집 중 오류");
             }
         }
 
+        private string SaveDataToCSV(string machineName, List<string[]> tableData)
+        {
+            try
+            {
+                // 💡 [라이브러리 해방] 어떠한 외부 패키지나 라이선스 선언도 필요 없습니다.
+                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
+                // 확장자를 .xls로 지정하면 엑셀 프로그램이 더블클릭 시 자동으로 파싱하여 엽니다.
+                string fileName = $"호기결과_{machineName}_{DateTime.Now:yyyyMMdd_HHmmss}.xls";
+                string filePath = Path.Combine(desktopPath, fileName);
+
+                // 엑셀이 인지하는 표준 UTF-8 포맷 스트림 가동 (한글 Description 깨짐 방지)
+                using (StreamWriter sw = new StreamWriter(filePath, false, System.Text.Encoding.UTF8))
+                {
+                    // 1. [공통 헤더 주입] 엑셀 첫 행에 헤더 명시
+                    string[] headers = { "Name", "Access", "Type", "Value", "Description" };
+                    sw.WriteLine(string.Join("\t", headers));
+
+                    // 2. [알맹이 데이터 적재] 탭('\t') 기호로 열을 완벽히 격리하여 대량 주입
+                    foreach (var rowData in tableData)
+                    {
+                        // 셀 내부에 개행이나 탭이 들어있을 경우를 대비한 안전 가공
+                        var sanitizedRow = rowData.Select(cell => cell.Replace("\r", "").Replace("\n", " ").Replace("\t", " "));
+                        sw.WriteLine(string.Join("\t", sanitizedRow));
+                    }
+                }
+
+                return filePath;
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error, "순수 파일 스트림 엑셀 전환 중 예외 발생");
+                return string.Empty;
+            }
+        }
 
 
 

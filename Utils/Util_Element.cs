@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using static GateHelper.LogManager;
+using OpenQA.Selenium.Interactions;
 
 namespace GateHelper
 {
@@ -120,6 +121,9 @@ namespace GateHelper
         ////////////////////////////////////////////////////통합모니터링(Management) 전용 시작/////////////////////////////////////////////////////////////////
 
 
+        /////////////////////////////////////////////////////하나씩 스크롤////////////////////////////////////////////////////////
+        /*
+         * 
         /// <summary>
         /// 자바스크립트 스크롤 제어를 통해 웹 그리드의 데이터를 중복 없이 누적 수집합니다.
         /// </summary>
@@ -247,6 +251,144 @@ namespace GateHelper
 
             return sb.ToString();
         }
+
+
+        */
+
+
+
+        /////////////////////////////////////////////////////복사-붙여넣기////////////////////////////////////////////////////////
+
+        /// <summary>
+        /// 우측 데이터 영역에 정밀 포커스를 주어 0.5초 만에 전체 데이터를 클립보드로 덤프 후 파싱합니다.
+        /// </summary>
+        public static List<string[]> GetTableDataByClipboardFast(IWebDriver driver)
+        {
+            var uniqueKeys = new HashSet<string>();
+            var allData = new List<string[]>();
+
+            try
+            {
+                // 1. Lee님이 완벽하게 검증하신 데이터 영역의 정확한 부모 컨테이너 지정
+                string dataAreaPath = "//*[@id='uncontrolled-tab-example-tabpane-WEB030102']/div/div[2]/div/div/div[3]/div/div/div[1]/div/div[2]/div/div/div[2]";
+                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
+                var dataArea = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath(dataAreaPath)));
+
+                IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
+
+                // 진짜 물리적 스크롤바 컨테이너 추출
+                IWebElement scrollContainer = (IWebElement)js.ExecuteScript(
+                    "let el = arguments[0]; " +
+                    "while (el && el.tagName !== 'BODY') { " +
+                    "   if (el.scrollHeight > el.clientHeight && window.getComputedStyle(el).overflowY !== 'visible') { " +
+                    "       return el; " +
+                    "   } " +
+                    "   el = el.parentElement; " +
+                    "} " +
+                    "return arguments[0].parentElement;", dataArea);
+
+                LogMessage("[자동화] 초고속 가상화 스크롤 데이터 수집을 시작합니다.", Level.Info);
+
+                string rowPath = $"{dataAreaPath}/div[contains(@class, 'wj-row') or @role='row']";
+                long lastScrollTop = -1;
+                int sameCount = 0;
+
+                // 최대 25회 PageDown 루프로 완주하도록 가드 설정
+                for (int step = 0; step < 25; step++)
+                {
+                    // 현재 화면(가상 뷰포트)에 바인딩된 데이터 행 확보
+                    var rows = driver.FindElements(By.XPath(rowPath));
+                    if (rows.Count == 0)
+                    {
+                        rows = driver.FindElements(By.XPath("//*[@id='uncontrolled-tab-example-tabpane-WEB030102']//div[contains(@class, 'wj-row')]"));
+                    }
+
+                    int previousCount = allData.Count;
+
+                    foreach (var row in rows)
+                    {
+                        var cells = row.FindElements(By.XPath("./div"));
+                        if (cells.Count >= 5)
+                        {
+                            string name = cells[0].Text.Trim();
+                            if (string.IsNullOrEmpty(name) || name == "Name" || name == "Value") continue;
+
+                            if (!uniqueKeys.Contains(name))
+                            {
+                                uniqueKeys.Add(name);
+                                allData.Add(new string[] {
+                            name,
+                            cells[1].Text.Trim(),
+                            cells[2].Text.Trim(),
+                            cells[3].Text.Trim(),
+                            cells[4].Text.Trim()
+                        });
+                            }
+                        }
+                    }
+
+                    // 데이터 적재 및 진행 상황 추적
+                    if (allData.Count > previousCount)
+                    {
+                        sameCount = 0;
+                        LogMessage($"[진행 상황] 데이터 수집 누적: {allData.Count}행...", Level.Info);
+                    }
+
+                    // 물리적 최하단 바닥 검증 (가상화 오류로 인한 조기 종료 방지)
+                    long currentScrollTop = (long)js.ExecuteScript("return Math.ceil(arguments[0].scrollTop);", scrollContainer);
+                    long scrollHeight = (long)js.ExecuteScript("return arguments[0].scrollHeight;", scrollContainer);
+                    long clientHeight = (long)js.ExecuteScript("return arguments[0].clientHeight;", scrollContainer);
+
+                    if (currentScrollTop == lastScrollTop || (currentScrollTop + clientHeight >= scrollHeight - 3))
+                    {
+                        sameCount++;
+                        if (sameCount >= 2) break; // 진짜 바닥 안착 시 즉시 루프 탈출
+                    }
+                    else
+                    {
+                        lastScrollTop = currentScrollTop;
+                    }
+
+                    // 가상화 엔진이 공식 지원하는 PageDown 단축키 이벤트를 주입하여 한 페이지 단위 초고속 점프
+                    js.ExecuteScript("arguments[0].focus();", scrollContainer);
+                    js.ExecuteScript(
+                        "var e = new KeyboardEvent('keydown', { key: 'PageDown', keyCode: 34, bubbles: true }); " +
+                        "arguments[0].dispatchEvent(e);", scrollContainer);
+
+                    // 💡 속도 극대화 튜닝: 대기 시간을 가상화가 깨지지 않는 최저 마진인 0.3초(300ms)로 단축
+                    Thread.Sleep(300);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"[스크롤 에러] 데이터 수집 중 치명적 예외 발생: {ex.Message}", Level.Error);
+            }
+
+            return allData;
+        }
+
+        /// <summary>
+        /// 추출된 테이블 원본 데이터를 메모장 출력용 규격 텍스트로 변환합니다.
+        /// </summary>
+        public static string ConvertTableToText(List<string[]> tableData)
+        {
+            if (tableData == null || tableData.Count == 0) return "수집된 데이터가 없습니다.";
+
+            System.Text.StringBuilder sb = new System.Text.StringBuilder();
+            sb.AppendLine($"수집 시각: {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+            sb.AppendLine($"총 행수: {tableData.Count}");
+            sb.AppendLine(new string('-', 50));
+            sb.AppendLine("Name\tAccess\tType\tValue\tDescription");
+            sb.AppendLine(new string('-', 50));
+
+            foreach (var row in tableData)
+            {
+                sb.AppendLine(string.Join("\t", row));
+            }
+
+            return sb.ToString();
+        }
+
 
         ////////////////////////////////////////////////////통합모니터링(Management) 전용 끝/////////////////////////////////////////////////////////////////
 
