@@ -32,7 +32,8 @@ namespace GateHelper
         private string GateID;
         private string GatePW;
 
-        private string mainHandle; // GateOne
+        private string mainHandle; // GateOne Main
+        private bool _isManagementActive; // Manufacturing Management 통합관리 플래그
         private string managementHandle;  // Manufacturing Management 통합관리
         private ThemeManager _themeManager;
         private bool changeArrow = true;
@@ -40,7 +41,6 @@ namespace GateHelper
         /// Option 전용
         private int _popupCount = 0; // 팝업 처리 횟수 카운터
         private readonly Timer timer1;
-        private int _tickCounter = 0;
 
         private AppSettings _appSettings;
 
@@ -131,39 +131,102 @@ namespace GateHelper
         {
             timer1.Stop();
 
+            // 💡 1. [동기화 레이더망] 보조 사이트 탭 감지 및 포커스 인터락 (잠금)
+            try
+            {
+                // 드라이버가 정상 할당되어 있을 때만 탭 스캔 진행
+                if (_driver != null)
+                {
+                    var currentHandles = _driver.WindowHandles;
+
+                    // [탭 열림 자동 감지] 새로운 탭이 생겼는지 확인
+                    if (currentHandles.Count > 1)
+                    {
+                        if (string.IsNullOrEmpty(managementHandle) || !currentHandles.Contains(managementHandle))
+                        {
+                            foreach (var handle in currentHandles)
+                            {
+                                if (handle != mainHandle)
+                                {
+                                    // 새 탭이 보조 사이트인지 판단하기 위해 포커스 전환
+                                    _driver.SwitchTo().Window(handle);
+
+                                    if (_driver.Url.Contains(_config.ManagementUrl))
+                                    {
+                                        managementHandle = handle;
+                                        _isManagementActive = true; // 팝업 감지 일시정지 플래그 ON
+                                        LogMessage("보조 사이트 탭 열림 감지 -> 메인 감지 로직 일시정지", Level.Info);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // [탭 닫힘 자동 감지] 사용자가 보조 사이트를 껐는지 확인
+                    if (_isManagementActive && !string.IsNullOrEmpty(managementHandle))
+                    {
+                        if (!currentHandles.Contains(managementHandle))
+                        {
+                            _isManagementActive = false; // 플래그 OFF
+                            managementHandle = null;
+
+                            // 메인 탭으로 포커스 원상 복구
+                            if (currentHandles.Contains(mainHandle))
+                            {
+                                _driver.SwitchTo().Window(mainHandle);
+                            }
+                            LogMessage("보조 사이트 탭 종료 감지 -> 메인 팝업 감지 재개", Level.Info);
+                        }
+                        else
+                        {
+                            // 보조 사이트가 아직 살아있으므로 하위 로직(상태 갱신, 팝업 감지) 올스톱
+                            timer1.Start();
+                            return;
+                        }
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                // 탭 검사 중 브라우저 닫힘 등 예외 발생 시 안전을 위해 플래그 해제
+                _isManagementActive = false;
+                managementHandle = null;
+            }
+
+            // --- (이 아래부터는 평상시 5초마다 도는 메인 전용 로직) ---
+
             if (_isStatusTickRunning)
             {
                 timer1.Start();
                 return;
             }
+
             _isStatusTickRunning = true;
 
             try
             {
-                // 주기를 계산하기 위한 카운터는 로직 시작 시점에 증가시키는 것이 가장 정확합니다.
-                _tickCounter++;
+                // 💡 2. [기존 상태 업데이트 로직 복원]
+                UpdateConnectionStatus(); // 상단 연결 상태(초록/빨강) 갱신
 
-                UpdateConnectionStatus();
-
+                // 앱 세팅에서 팝업 자동화 ON/OFF 값 가져오기
                 bool popupFeatureOn = _appSettings.AutoScreenUnlock;
+
+                // UI 라벨(PopupStatus) 텍스트 갱신
                 Util_Option.UpdatePopupStatus(lblPopupStatus, popupFeatureOn, Util_Option.GetLockHandledCount());
 
-                // 10분 주기 체크
-                if (_tickCounter >= 120)
-                {
-                    _tickCounter = 0;
+                // 💡 3. [실시간 팝업 감지 수행] (10분 대기 족쇄 제거 완료)
+                bool driverOn = (_driver != null && chromeDriverManager.IsDriverAlive(_driver));
 
-                    bool driverOn = (_driver != null && chromeDriverManager.IsDriverAlive(_driver));
-                    if (driverOn && popupFeatureOn)
-                    {
-                        // await를 사용하여 비동기 작업이 끝날 때까지 타이머 재시작을 대기합니다.
-                        await HandleScreenLockAutomation(popupFeatureOn);
-                    }
+                // 드라이버가 살아있고, 사용자가 팝업 기능을 켜두었다면 5초마다 즉시 감지
+                if (driverOn && popupFeatureOn)
+                {
+                    await HandleScreenLockAutomation(popupFeatureOn);
                 }
             }
             catch (Exception ex)
             {
-                LogException(ex, Level.Error, "TimerStatusChecker_Tick 전체 오류");
+                LogException(ex, Level.Error, "TimerStatusChecker_Tick 메인 로직 오류");
             }
             finally
             {
@@ -1230,6 +1293,13 @@ namespace GateHelper
         // 통합관리시스템 자동오픈
         private async void BtnStartManagement_Click(object sender, EventArgs e)
         {
+            MessageBox.Show(
+                "보조 사이트(Mgmt)를 사용하는 동안 드라이버 충돌 방지를 위해\n메인 사이트의 '팝업 자동 감지' 기능이 일시적으로 비활성화됩니다.\n\n작업을 마치고 Mgmt 탭을 닫으면 팝업 감지가 자동으로 100% 재개됩니다.",
+                "시스템 안내",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information
+            );
+
             // 1. 드라이버 상태 체크
             if (!chromeDriverManager.IsDriverReady(_driver)) return;
 
@@ -1342,96 +1412,6 @@ namespace GateHelper
             }
         }
 
-        /////////////////////////////////////////////////////하나씩 스크롤////////////////////////////////////////////////////////
-        /*
-        private async void BtnStoCollect_Click(object sender, EventArgs e)
-        {
-            // 사전 체크
-            if (_driver == null || string.IsNullOrEmpty(managementHandle))
-            {
-                LogMessage("보조 사이트가 열려있지 않습니다.", Level.Error);
-                return;
-            }
-
-            // 사용자 경고 메시지 (Yes를 눌러야만 진행)
-            var confirmResult = MessageBox.Show(
-                "전체 설비 데이터 수집을 시작합니다.\n\n" +
-                "⚠️ 주의: 스크롤 제어 자동화 방식이 구동됩니다.\n" +
-                "작업이 진행되는 동안 해당 크롬 브라우저의 표 영역을 마우스로 클릭하거나 가리지 마십시오.\n" +
-                "데이터 양에 따라 약 5~10초 정도 소요될 수 있으니 완료될 때까지 대기해 주세요.\n\n" +
-                "진행하시겠습니까?",
-                "자동화 작업 시작 알림",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Warning);
-
-            if (confirmResult != DialogResult.Yes)
-            {
-                LogMessage("사용자에 의해 데이터 수집이 취소되었습니다.", Level.Info);
-                return;
-            }
-
-            try
-            {
-                LogMessage("STO 설비 수집 루틴 시작", Level.Info);
-
-                _driver.SwitchTo().Window(managementHandle);
-
-                // [Step 1] STO 키워드 설비 클릭
-                bool stoResult = await Task.Run(() =>
-                    Util_Element.ClickElementByKeyword(_driver, "STO"));
-
-                if (!stoResult)
-                {
-                    LogMessage("STO 설비를 찾지 못했습니다.", Level.Error);
-                    return;
-                }
-
-                // 클릭 후 화면 갱신을 위한 짧은 대기
-                await Task.Delay(1000);
-
-                // [Step 2] StockerSEM 클릭
-                string semXPath = "//span[@class='wj-node-text' and text()='StockerSEM']";
-
-                bool semResult = await Task.Run(() =>
-                    Util_Element.ClickElementByXPath(_driver, semXPath));
-
-                if (semResult)
-                {
-                    LogMessage("StockerSEM 클릭 성공. 고안정성 스크롤 추적 수집을 시작합니다.", Level.Info);
-
-                    // 💡 [이 부분을 수정] 스크롤 누적 메서드 적용
-                    var tableData = await Task.Run(() => Util_Element.GetGridTableDataByScrolling(_driver));
-
-                    if (tableData.Count > 0)
-                    {
-                        // 2. 텍스트 변환
-                        string resultText = Util_Element.ConvertTableToText(tableData);
-                        LogMessage("텍스트변환 완료", Level.Info);
-
-                        // 3. 메모장으로 즉시 확인
-                        ShowDataInNotepad(resultText);
-                        LogMessage("메모장출력 완료", Level.Info);
-
-                        LogMessage($"수집 완료: 총 {tableData.Count}행을 안전하게 추출하여 메모장으로 출력했습니다.", Level.Info);
-                    }
-                    else
-                    {
-                        LogMessage("수집된 데이터가 없습니다. 그리드 스크롤 컨테이너 구조나 로딩 상태를 확인하세요.", Level.Error);
-                    }
-                }
-                else
-                {
-                    LogMessage("StockerSEM 버튼을 찾을 수 없습니다.", Level.Error);
-                }
-            }
-            catch (Exception ex)
-            {
-                LogException(ex, Level.Error, "STO 클릭 및 수집 중 오류");
-            }
-        }
-        */
-
-
         private async void BtnStoCollect_Click(object sender, EventArgs e)
         {
             // 사전 체크
@@ -1526,26 +1506,34 @@ namespace GateHelper
         {
             try
             {
-                // 💡 [라이브러리 해방] 어떠한 외부 패키지나 라이선스 선언도 필요 없습니다.
                 string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
 
-                // 확장자를 .xls로 지정하면 엑셀 프로그램이 더블클릭 시 자동으로 파싱하여 엽니다.
-                string fileName = $"호기결과_{machineName}_{DateTime.Now:yyyyMMdd_HHmmss}.xls";
+                // 💡 [핵심 1] 확장자를 .csv로 변경하여 엑셀의 '형식 불일치' 경고창을 원천 차단합니다.
+                string fileName = $"호기결과_{machineName}_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
                 string filePath = Path.Combine(desktopPath, fileName);
 
-                // 엑셀이 인지하는 표준 UTF-8 포맷 스트림 가동 (한글 Description 깨짐 방지)
-                using (StreamWriter sw = new StreamWriter(filePath, false, System.Text.Encoding.UTF8))
+                // 한글 깨짐 방지를 위해 EUC-KR 인코딩은 그대로 유지합니다.
+                using (StreamWriter sw = new StreamWriter(filePath, false, System.Text.Encoding.GetEncoding("euc-kr")))
                 {
-                    // 1. [공통 헤더 주입] 엑셀 첫 행에 헤더 명시
-                    string[] headers = { "Name", "Access", "Type", "Value", "Description" };
-                    sw.WriteLine(string.Join("\t", headers));
+                    // (주의: CSV 포맷이므로 sep=\t 구문은 삭제했습니다)
 
-                    // 2. [알맹이 데이터 적재] 탭('\t') 기호로 열을 완벽히 격리하여 대량 주입
+                    // 1. [공통 헤더 주입] 쉼표(,)로 구분
+                    string[] headers = { "Name", "Access", "Type", "Value", "Description" };
+                    sw.WriteLine(string.Join(",", headers));
+
+                    // 2. [알맹이 데이터 적재] 표준 CSV 쌍따옴표 래핑 규격 적용
                     foreach (var rowData in tableData)
                     {
-                        // 셀 내부에 개행이나 탭이 들어있을 경우를 대비한 안전 가공
-                        var sanitizedRow = rowData.Select(cell => cell.Replace("\r", "").Replace("\n", " ").Replace("\t", " "));
-                        sw.WriteLine(string.Join("\t", sanitizedRow));
+                        var sanitizedRow = rowData.Select(cell =>
+                        {
+                            // 줄바꿈 제거 및 데이터 내부의 쌍따옴표 이스케이프 처리
+                            string clean = cell.Replace("\r", "").Replace("\n", " ").Replace("\"", "\"\"");
+
+                            // 💡 [핵심 2] 데이터 안에 쉼표(,)가 있어도 열이 밀리지 않도록 양끝을 쌍따옴표로 감쌉니다.
+                            return $"\"{clean}\"";
+                        });
+
+                        sw.WriteLine(string.Join(",", sanitizedRow));
                     }
                 }
 
@@ -1553,7 +1541,7 @@ namespace GateHelper
             }
             catch (Exception ex)
             {
-                LogException(ex, Level.Error, "순수 파일 스트림 엑셀 전환 중 예외 발생");
+                LogException(ex, Level.Error, "CSV 파일 생성 중 예외 발생");
                 return string.Empty;
             }
         }
