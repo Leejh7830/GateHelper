@@ -199,6 +199,7 @@ namespace GateHelper
             this.ComboBoxGraceMs1.DropDownHeight = 174;
             this.ComboBoxGraceMs1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.ComboBoxGraceMs1.DropDownWidth = 121;
+            this.ComboBoxGraceMs1.Enabled = false;
             this.ComboBoxGraceMs1.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Pixel);
             this.ComboBoxGraceMs1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
             this.ComboBoxGraceMs1.FormattingEnabled = true;
@@ -261,7 +262,7 @@ namespace GateHelper
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(372, 539);
+            this.ClientSize = new System.Drawing.Size(388, 578);
             this.Controls.Add(this.CBox_UseUDP);
             this.Controls.Add(this.CBox_RemoveDuplicate);
             this.Controls.Add(this.CBox_ServerClickConnect);

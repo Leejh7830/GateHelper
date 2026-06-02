@@ -554,7 +554,7 @@ namespace GateHelper
                 {
                     process.Kill();
                 }
-                LogMessage("남아있는 ChromeDriver 프로세스 강제 종료", Level.Info);
+                // LogMessage("남아있는 ChromeDriver 프로세스 강제 종료", Level.Info);
             }
             catch (Exception ex)
             {
