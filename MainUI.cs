@@ -1523,7 +1523,8 @@ namespace GateHelper
 
                             if (tableData != null && tableData.Count > 0)
                             {
-                                await Task.Run(() => SaveDataToCSV($"{currentMachineName}_SEM", tableData));
+                                // await Task.Run(() => SaveDataToCSV($"{currentMachineName}_SEM", tableData));
+                                await Task.Run(() => Util_Mgmt.SaveDataToExcel(currentMachineName, "StockerSEM", tableData));
                             }
                             else
                             {
@@ -1575,7 +1576,9 @@ namespace GateHelper
 
                                 if (tableData != null && tableData.Count > 0)
                                 {
-                                    await Task.Run(() => SaveDataToCSV($"{currentMachineName}_{portName}", tableData));
+                                    // await Task.Run(() => SaveDataToCSV($"{currentMachineName}_{portName}", tableData));
+                                    await Task.Run(() => Util_Mgmt.SaveDataToExcel(currentMachineName, "StockerSEM", tableData));
+
                                 }
                             }
                         }
@@ -1597,6 +1600,11 @@ namespace GateHelper
                 BtnStoCollect.Enabled = true;
             }
         }
+
+
+
+
+
 
         private string SaveDataToCSV(string machineName, List<string[]> tableData)
         {
@@ -1641,6 +1649,7 @@ namespace GateHelper
                 return string.Empty;
             }
         }
+
 
         private async void BtnTestStoSearch_Click(object sender, EventArgs e)
         {
