@@ -1,4 +1,5 @@
-﻿using MaterialSkin;
+﻿using GateHelper.Utils;
+using MaterialSkin;
 using MaterialSkin.Controls;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
@@ -1450,91 +1451,150 @@ namespace GateHelper
 
         private async void BtnStoCollect_Click(object sender, EventArgs e)
         {
-            // 사전 체크
+            // 1. 사전 체크
             if (_driver == null || string.IsNullOrEmpty(managementHandle))
             {
                 LogMessage("MGMT가 열려있지 않습니다.", Level.Error);
                 return;
             }
 
-            // 사용자 경고 메시지 (Yes를 눌러야만 진행)
-            var confirmResult = MessageBox.Show(
-                "전체 설비 데이터 수집을 시작합니다.\n\n" +
-                "⚠️ 주의: 스크롤 제어 자동화 방식이 구동됩니다.\n" +
-                "작업이 진행되는 동안 해당 크롬 브라우저의 표 영역을 마우스로 클릭하거나 가리지 마십시오.\n" +
-                "데이터 양에 따라 약 5~10초 정도 소요될 수 있으니 완료될 때까지 대기해 주세요.\n\n" +
-                "진행하시겠습니까?",
-                "자동화 작업 시작 알림",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Warning);
+            // 2. Util_Mgmt의 동적 다이얼로그 호출
+            var (isSemChecked, isPortChecked) = Util_Mgmt.ShowCollectionSelectDialog();
 
-            if (confirmResult != DialogResult.Yes)
+            if (!isSemChecked && !isPortChecked)
             {
-                LogMessage("사용자에 의해 데이터 수집이 취소되었습니다.", Level.Info);
+                LogMessage("선택된 수집 항목이 없거나 사용자에 의해 작업이 취소되었습니다.", Level.Info);
                 return;
             }
 
+            LogMessage($"[수집 옵션] SEM 수집: {isSemChecked}, Port 수집: {isPortChecked}", Level.Info);
+            BtnStoCollect.Enabled = false;
+
             try
             {
-                LogMessage("STO 설비 수집 루틴 시작", Level.Info);
-
+                LogMessage("STO 설비 다중 순회 수집 루틴 시작", Level.Info);
                 _driver.SwitchTo().Window(managementHandle);
 
-                // [Step 1] STO 키워드 설비 클릭
-                bool stoResult = await Task.Run(() =>
-                    Util_Element.ClickElementByKeyword(_driver, "STO"));
+                // 전체 STO 설비 탐색
+                string stoXPath = "//span[contains(@class, 'wj-node-text') and contains(text(), 'STO')]";
+                var initialStoList = _driver.FindElements(By.XPath(stoXPath));
+                int machineCount = initialStoList.Count;
 
-                if (!stoResult)
+                if (machineCount == 0)
                 {
-                    LogMessage("STO 설비를 찾지 못했습니다.", Level.Error);
+                    LogMessage("화면에서 STO 설비를 찾을 수 없습니다. 트리를 확장해 주세요.", Level.Error);
                     return;
                 }
 
-                // 클릭 후 화면 갱신을 위한 짧은 대기
-                await Task.Delay(1000);
+                LogMessage($"총 {machineCount}대의 STO 설비 순회를 시작합니다.", Level.Info);
 
-                // [Step 2] StockerSEM 클릭
-                string semXPath = "//span[@class='wj-node-text' and text()='StockerSEM']";
-
-                bool semResult = await Task.Run(() =>
-                    Util_Element.ClickElementByXPath(_driver, semXPath));
-
-                if (semResult)
+                // 3. [Master Loop] 설비 순회 시작
+                for (int i = 0; i < machineCount; i++)
                 {
-                    LogMessage("StockerSEM 클릭 성공. 고안정 압축 고속 스크롤 수집을 시작합니다.", Level.Info);
+                    // Stale Element Reference 방어: 매 턴마다 설비 목록 재확보
+                    var currentMachines = _driver.FindElements(By.XPath(stoXPath));
+                    if (i >= currentMachines.Count) break;
 
-                    // 1. 고속 스크롤 방식으로 데이터 긁어오기
-                    var tableData = await Task.Run(() => Util_Element.GetTableDataByClipboardFast(_driver));
+                    var targetMachine = currentMachines[i];
+                    string currentMachineName = targetMachine.Text;
 
-                    if (tableData.Count > 0)
+                    LogMessage($"\n▶ [{i + 1}/{machineCount}] {currentMachineName} 진입", Level.Info);
+
+                    targetMachine.Click();
+                    await Task.Delay(1000); // 하위 노드 전개 애니메이션 대기
+
+                    // ----------------------------------------------------------
+                    // 3-1. StockerSEM 수집
+                    // ----------------------------------------------------------
+                    if (isSemChecked)
                     {
-                        LogMessage($"데이터 수집 완료 ({tableData.Count}행). 엑셀 파일 생성을 시작합니다.", Level.Info);
+                        string semXPath = "//span[contains(@class, 'wj-node-text') and text()='StockerSEM']";
+                        // 💡 [수정] e -> el로 변경하여 변수명 충돌 해결
+                        var semElement = _driver.FindElements(By.XPath(semXPath)).FirstOrDefault(el => el.Displayed);
 
-                        // 💡 [EPPlus 고속 엑셀 빌더 호출]
-                        // 우선 단일 호기 테스트이므로 호기명을 "A호기"로 임시 지정하여 넘깁니다.
-                        string excelPath = await Task.Run(() => SaveDataToCSV("A호기", tableData));
-
-                        if (!string.IsNullOrEmpty(excelPath))
+                        if (semElement != null)
                         {
-                            LogMessage($"[엑셀 생성 완료] 파일이 성공적으로 저장되었습니다: {excelPath}", Level.Info);
+                            LogMessage($"  - {currentMachineName} : StockerSEM 수집 중...", Level.Info);
+                            semElement.Click();
+                            await Task.Delay(1500);
 
-                            // 생성된 엑셀 파일을 사용자 화면에 즉시 열어줍니다.
-                            Process.Start(new ProcessStartInfo(excelPath) { UseShellExecute = true });
+                            // 💡 Util_Element.cs의 클립보드 초고속 추출 메서드 적극 활용
+                            var tableData = await Task.Run(() => Util_Element.GetTableDataByClipboardFast(_driver));
+
+                            if (tableData != null && tableData.Count > 0)
+                            {
+                                await Task.Run(() => SaveDataToCSV($"{currentMachineName}_SEM", tableData));
+                            }
+                            else
+                            {
+                                LogMessage($"  - {currentMachineName}_SEM : 표 데이터가 비어있습니다.", Level.Error);
+                            }
+                        }
+                        else
+                        {
+                            LogMessage($"  - {currentMachineName} : StockerSEM (표시됨) 항목을 찾을 수 없습니다.", Level.Error);
                         }
                     }
-                    else
+
+                    // ----------------------------------------------------------
+                    // 3-2. StockerPort 가변 다중 수집
+                    // ----------------------------------------------------------
+                    if (isPortChecked)
                     {
-                        LogMessage("수집된 데이터가 없습니다. 표 로딩 상태를 확인하세요.", Level.Error);
+                        string portParentXPath = "//span[contains(@class, 'wj-node-text') and text()='StockerPort']";
+                        // 💡 [수정] e -> el로 변경하여 변수명 충돌 해결
+                        var portParentElement = _driver.FindElements(By.XPath(portParentXPath)).FirstOrDefault(el => el.Displayed);
+
+                        if (portParentElement != null)
+                        {
+                            portParentElement.Click();
+                            await Task.Delay(1000);
+
+                            string childPortXPath = "//span[contains(@class, 'wj-node-text') and contains(text(), 'Port') and not(contains(text(), 'Stocker'))]";
+                            // 💡 [수정] e -> el로 변경하여 변수명 충돌 해결
+                            var visibleChildPorts = _driver.FindElements(By.XPath(childPortXPath)).Where(el => el.Displayed).ToList();
+                            int childPortCount = visibleChildPorts.Count;
+
+                            LogMessage($"  - {currentMachineName} : 총 {childPortCount}개의 하위 Port 발견. 순회 시작.", Level.Info);
+
+                            for (int j = 0; j < childPortCount; j++)
+                            {
+                                // 💡 [수정] e -> el로 변경하여 변수명 충돌 해결
+                                var refreshedPorts = _driver.FindElements(By.XPath(childPortXPath)).Where(el => el.Displayed).ToList();
+                                if (j >= refreshedPorts.Count) break;
+
+                                var targetPort = refreshedPorts[j];
+                                string portName = targetPort.Text;
+
+                                LogMessage($"    -> {portName} 수집 중...", Level.Info);
+                                targetPort.Click();
+                                await Task.Delay(1500);
+
+                                // 💡 Util_Element.cs의 클립보드 초고속 추출 메서드 적극 활용
+                                var tableData = await Task.Run(() => Util_Element.GetTableDataByClipboardFast(_driver));
+
+                                if (tableData != null && tableData.Count > 0)
+                                {
+                                    await Task.Run(() => SaveDataToCSV($"{currentMachineName}_{portName}", tableData));
+                                }
+                            }
+                        }
+                        else
+                        {
+                            LogMessage($"  - {currentMachineName} : StockerPort 하위 폴더가 없습니다.", Level.Error);
+                        }
                     }
                 }
-                else
-                {
-                    LogMessage("StockerSEM 버튼을 찾을 수 없습니다.", Level.Error);
-                }
+
+                LogMessage("모든 설비의 자동화 수집 루프가 완료되었습니다.", Level.Info);
             }
             catch (Exception ex)
             {
-                LogException(ex, Level.Error, "STO 클릭 및 수집 중 오류");
+                LogException(ex, Level.Error, "STO 다중 수집 루프 실행 중 오류 발생");
+            }
+            finally
+            {
+                BtnStoCollect.Enabled = true;
             }
         }
 
@@ -1582,9 +1642,68 @@ namespace GateHelper
             }
         }
 
+        private async void BtnTestStoSearch_Click(object sender, EventArgs e)
+        {
+            if (_driver == null || string.IsNullOrEmpty(managementHandle))
+            {
+                LogMessage("MGMT 탭이 열려있지 않습니다.", Level.Error);
+                return;
+            }
 
+            try
+            {
+                LogMessage("=== [테스트] 3-Depth 하위 노드(SEM, Ports) 탐색 시작 ===", Level.Info);
+                _driver.SwitchTo().Window(managementHandle);
 
+                // 1. [Depth 1] StockerSEM 탐색 및 강제 확장
+                string semXPath = "//span[contains(@class, 'wj-node-text') and text()='StockerSEM']";
+                var semElement = _driver.FindElements(By.XPath(semXPath)).FirstOrDefault(el => el.Displayed);
 
+                if (semElement != null)
+                {
+                    LogMessage($"- [Depth 1] StockerSEM 발견됨. 하위 항목을 열기 위해 클릭합니다.", Level.Info);
+                    semElement.Click();
+                    await Task.Delay(1000); // 트리 확장 대기
+                }
+                else
+                {
+                    LogMessage("- [Depth 1] StockerSEM 항목이 화면에 보이지 않습니다. 탐색을 중단합니다.", Level.Error);
+                    return; // SEM이 안 열리면 Port도 열 수 없으므로 즉시 종료
+                }
 
+                // 2. [Depth 2] StockerPorts 부모 폴더 탐색 및 강제 확장 (이미지 팩트: 끝에 's'가 붙음)
+                string portParentXPath = "//span[contains(@class, 'wj-node-text') and text()='StockerPorts']";
+                var portParentElement = _driver.FindElements(By.XPath(portParentXPath)).FirstOrDefault(el => el.Displayed);
+
+                if (portParentElement != null)
+                {
+                    LogMessage($"- [Depth 2] StockerPorts 부모 폴더 발견됨. 자식 포트를 열기 위해 클릭합니다.", Level.Info);
+                    portParentElement.Click();
+                    await Task.Delay(1000); // 트리 확장 대기
+
+                    // 3. [Depth 3] 전개된 하위 STOCKERPORT:n 개수 및 이름 파악 (이미지 팩트: 대문자 및 콜론 포함)
+                    string childPortXPath = "//span[contains(@class, 'wj-node-text') and contains(text(), 'STOCKERPORT:')]";
+
+                    var visibleChildPorts = _driver.FindElements(By.XPath(childPortXPath)).Where(el => el.Displayed).ToList();
+
+                    LogMessage($"- [결과] 총 {visibleChildPorts.Count}개의 하위 세부 포트가 감지되었습니다.", Level.Info);
+
+                    for (int i = 0; i < visibleChildPorts.Count; i++)
+                    {
+                        LogMessage($"  -> 자식 항목 [{i + 1}]: {visibleChildPorts[i].Text}", Level.Info);
+                    }
+                }
+                else
+                {
+                    LogMessage("- [Depth 2] StockerPorts 부모 폴더를 찾을 수 없습니다.", Level.Error);
+                }
+
+                LogMessage("=== [테스트] 3-Depth 하위 노드 탐색 종료 ===", Level.Info);
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error, "하위 노드 탐색 테스트 중 오류 발생");
+            }
+        }
     }
 }

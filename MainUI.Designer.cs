@@ -50,6 +50,7 @@ namespace GateHelper
             this.TabControl1 = new MaterialSkin.Controls.MaterialTabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.GroupManagement1 = new System.Windows.Forms.GroupBox();
+            this.BtnTestStoSearch = new MaterialSkin.Controls.MaterialButton();
             this.BtnStoCollect = new MaterialSkin.Controls.MaterialButton();
             this.BtnMoveVariable = new MaterialSkin.Controls.MaterialButton();
             this.tabPage4 = new System.Windows.Forms.TabPage();
@@ -117,12 +118,12 @@ namespace GateHelper
             this.BtnGateOneLogin1.Depth = 0;
             this.BtnGateOneLogin1.HighEmphasis = true;
             this.BtnGateOneLogin1.Icon = null;
-            this.BtnGateOneLogin1.Location = new System.Drawing.Point(1373, 174);
-            this.BtnGateOneLogin1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnGateOneLogin1.Location = new System.Drawing.Point(961, 116);
+            this.BtnGateOneLogin1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnGateOneLogin1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnGateOneLogin1.Name = "BtnGateOneLogin1";
             this.BtnGateOneLogin1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnGateOneLogin1.Size = new System.Drawing.Size(147, 60);
+            this.BtnGateOneLogin1.Size = new System.Drawing.Size(103, 40);
             this.BtnGateOneLogin1.TabIndex = 4;
             this.BtnGateOneLogin1.Text = "GATEONE LOGIN";
             this.BtnGateOneLogin1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -137,8 +138,8 @@ namespace GateHelper
             this.BtnRDP1.Depth = 0;
             this.BtnRDP1.HighEmphasis = true;
             this.BtnRDP1.Icon = null;
-            this.BtnRDP1.Location = new System.Drawing.Point(1076, 120);
-            this.BtnRDP1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnRDP1.Location = new System.Drawing.Point(753, 80);
+            this.BtnRDP1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnRDP1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnRDP1.Name = "BtnRDP1";
             this.BtnRDP1.NoAccentTextColor = System.Drawing.Color.Empty;
@@ -158,12 +159,12 @@ namespace GateHelper
             this.BtnSearch1.Depth = 0;
             this.BtnSearch1.HighEmphasis = true;
             this.BtnSearch1.Icon = null;
-            this.BtnSearch1.Location = new System.Drawing.Point(381, 34);
-            this.BtnSearch1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnSearch1.Location = new System.Drawing.Point(267, 23);
+            this.BtnSearch1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnSearch1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnSearch1.Name = "BtnSearch1";
             this.BtnSearch1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnSearch1.Size = new System.Drawing.Size(149, 60);
+            this.BtnSearch1.Size = new System.Drawing.Size(104, 40);
             this.BtnSearch1.TabIndex = 7;
             this.BtnSearch1.Text = "Search";
             this.BtnSearch1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -181,7 +182,8 @@ namespace GateHelper
             this.TxtSearch1.HideSelection = true;
             this.TxtSearch1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.TxtSearch1.LeadingIcon = null;
-            this.TxtSearch1.Location = new System.Drawing.Point(7, 28);
+            this.TxtSearch1.Location = new System.Drawing.Point(5, 19);
+            this.TxtSearch1.Margin = new System.Windows.Forms.Padding(2);
             this.TxtSearch1.MaxLength = 32767;
             this.TxtSearch1.MouseState = MaterialSkin.MouseState.OUT;
             this.TxtSearch1.Name = "TxtSearch1";
@@ -193,7 +195,7 @@ namespace GateHelper
             this.TxtSearch1.SelectionLength = 0;
             this.TxtSearch1.SelectionStart = 0;
             this.TxtSearch1.ShortcutsEnabled = true;
-            this.TxtSearch1.Size = new System.Drawing.Size(350, 48);
+            this.TxtSearch1.Size = new System.Drawing.Size(245, 48);
             this.TxtSearch1.TabIndex = 13;
             this.TxtSearch1.TabStop = false;
             this.TxtSearch1.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
@@ -210,11 +212,9 @@ namespace GateHelper
             this.GroupConnect1.Controls.Add(this.GroupFav1);
             this.GroupConnect1.Controls.Add(this.BtnSearch1);
             this.GroupConnect1.Controls.Add(this.TxtSearch1);
-            this.GroupConnect1.Location = new System.Drawing.Point(4, 4);
-            this.GroupConnect1.Margin = new System.Windows.Forms.Padding(4);
+            this.GroupConnect1.Location = new System.Drawing.Point(3, 3);
             this.GroupConnect1.Name = "GroupConnect1";
-            this.GroupConnect1.Padding = new System.Windows.Forms.Padding(4);
-            this.GroupConnect1.Size = new System.Drawing.Size(554, 518);
+            this.GroupConnect1.Size = new System.Drawing.Size(388, 345);
             this.GroupConnect1.TabIndex = 7;
             this.GroupConnect1.TabStop = false;
             this.GroupConnect1.Text = "Server Info";
@@ -223,11 +223,9 @@ namespace GateHelper
             // 
             this.GroupPreset1.Controls.Add(this.BtnPreset1);
             this.GroupPreset1.Controls.Add(this.BtnPreset2);
-            this.GroupPreset1.Location = new System.Drawing.Point(19, 387);
-            this.GroupPreset1.Margin = new System.Windows.Forms.Padding(4);
+            this.GroupPreset1.Location = new System.Drawing.Point(13, 258);
             this.GroupPreset1.Name = "GroupPreset1";
-            this.GroupPreset1.Padding = new System.Windows.Forms.Padding(4);
-            this.GroupPreset1.Size = new System.Drawing.Size(510, 118);
+            this.GroupPreset1.Size = new System.Drawing.Size(357, 79);
             this.GroupPreset1.TabIndex = 100;
             this.GroupPreset1.TabStop = false;
             this.GroupPreset1.Text = "ID/PW Preset";
@@ -240,12 +238,12 @@ namespace GateHelper
             this.BtnPreset1.Depth = 0;
             this.BtnPreset1.HighEmphasis = true;
             this.BtnPreset1.Icon = null;
-            this.BtnPreset1.Location = new System.Drawing.Point(27, 34);
-            this.BtnPreset1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnPreset1.Location = new System.Drawing.Point(19, 23);
+            this.BtnPreset1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnPreset1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnPreset1.Name = "BtnPreset1";
             this.BtnPreset1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnPreset1.Size = new System.Drawing.Size(143, 60);
+            this.BtnPreset1.Size = new System.Drawing.Size(100, 40);
             this.BtnPreset1.TabIndex = 14;
             this.BtnPreset1.Text = "Preset1";
             this.BtnPreset1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -261,12 +259,12 @@ namespace GateHelper
             this.BtnPreset2.Depth = 0;
             this.BtnPreset2.HighEmphasis = true;
             this.BtnPreset2.Icon = null;
-            this.BtnPreset2.Location = new System.Drawing.Point(181, 34);
-            this.BtnPreset2.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnPreset2.Location = new System.Drawing.Point(127, 23);
+            this.BtnPreset2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnPreset2.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnPreset2.Name = "BtnPreset2";
             this.BtnPreset2.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnPreset2.Size = new System.Drawing.Size(143, 60);
+            this.BtnPreset2.Size = new System.Drawing.Size(100, 40);
             this.BtnPreset2.TabIndex = 15;
             this.BtnPreset2.Text = "Preset2";
             this.BtnPreset2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -282,12 +280,12 @@ namespace GateHelper
             this.BtnLoadServers1.Depth = 0;
             this.BtnLoadServers1.HighEmphasis = true;
             this.BtnLoadServers1.Icon = null;
-            this.BtnLoadServers1.Location = new System.Drawing.Point(19, 118);
-            this.BtnLoadServers1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnLoadServers1.Location = new System.Drawing.Point(13, 79);
+            this.BtnLoadServers1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnLoadServers1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnLoadServers1.Name = "BtnLoadServers1";
             this.BtnLoadServers1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnLoadServers1.Size = new System.Drawing.Size(139, 60);
+            this.BtnLoadServers1.Size = new System.Drawing.Size(97, 40);
             this.BtnLoadServers1.TabIndex = 12;
             this.BtnLoadServers1.Text = "SERVER LIST";
             this.BtnLoadServers1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -303,12 +301,12 @@ namespace GateHelper
             this.BtnConnect1.Depth = 0;
             this.BtnConnect1.HighEmphasis = true;
             this.BtnConnect1.Icon = null;
-            this.BtnConnect1.Location = new System.Drawing.Point(19, 198);
-            this.BtnConnect1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnConnect1.Location = new System.Drawing.Point(13, 132);
+            this.BtnConnect1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnConnect1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnConnect1.Name = "BtnConnect1";
             this.BtnConnect1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnConnect1.Size = new System.Drawing.Size(510, 62);
+            this.BtnConnect1.Size = new System.Drawing.Size(357, 41);
             this.BtnConnect1.TabIndex = 99;
             this.BtnConnect1.Text = "Connect";
             this.BtnConnect1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -330,11 +328,12 @@ namespace GateHelper
             this.ComboBoxServerList1.FormattingEnabled = true;
             this.ComboBoxServerList1.IntegralHeight = false;
             this.ComboBoxServerList1.ItemHeight = 43;
-            this.ComboBoxServerList1.Location = new System.Drawing.Point(179, 116);
+            this.ComboBoxServerList1.Location = new System.Drawing.Point(125, 77);
+            this.ComboBoxServerList1.Margin = new System.Windows.Forms.Padding(2);
             this.ComboBoxServerList1.MaxDropDownItems = 4;
             this.ComboBoxServerList1.MouseState = MaterialSkin.MouseState.OUT;
             this.ComboBoxServerList1.Name = "ComboBoxServerList1";
-            this.ComboBoxServerList1.Size = new System.Drawing.Size(350, 49);
+            this.ComboBoxServerList1.Size = new System.Drawing.Size(246, 49);
             this.ComboBoxServerList1.StartIndex = 0;
             this.ComboBoxServerList1.TabIndex = 13;
             // 
@@ -343,11 +342,9 @@ namespace GateHelper
             this.GroupFav1.Controls.Add(this.BtnFav1);
             this.GroupFav1.Controls.Add(this.BtnFav2);
             this.GroupFav1.Controls.Add(this.BtnFav3);
-            this.GroupFav1.Location = new System.Drawing.Point(19, 266);
-            this.GroupFav1.Margin = new System.Windows.Forms.Padding(4);
+            this.GroupFav1.Location = new System.Drawing.Point(13, 177);
             this.GroupFav1.Name = "GroupFav1";
-            this.GroupFav1.Padding = new System.Windows.Forms.Padding(4);
-            this.GroupFav1.Size = new System.Drawing.Size(510, 120);
+            this.GroupFav1.Size = new System.Drawing.Size(357, 80);
             this.GroupFav1.TabIndex = 19;
             this.GroupFav1.TabStop = false;
             this.GroupFav1.Text = "Fav";
@@ -360,12 +357,12 @@ namespace GateHelper
             this.BtnFav1.Depth = 0;
             this.BtnFav1.HighEmphasis = true;
             this.BtnFav1.Icon = null;
-            this.BtnFav1.Location = new System.Drawing.Point(27, 34);
-            this.BtnFav1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnFav1.Location = new System.Drawing.Point(19, 23);
+            this.BtnFav1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnFav1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnFav1.Name = "BtnFav1";
             this.BtnFav1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnFav1.Size = new System.Drawing.Size(143, 60);
+            this.BtnFav1.Size = new System.Drawing.Size(100, 40);
             this.BtnFav1.TabIndex = 14;
             this.BtnFav1.Text = "Favorite1";
             this.BtnFav1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -381,12 +378,12 @@ namespace GateHelper
             this.BtnFav2.Depth = 0;
             this.BtnFav2.HighEmphasis = true;
             this.BtnFav2.Icon = null;
-            this.BtnFav2.Location = new System.Drawing.Point(181, 34);
-            this.BtnFav2.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnFav2.Location = new System.Drawing.Point(127, 23);
+            this.BtnFav2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnFav2.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnFav2.Name = "BtnFav2";
             this.BtnFav2.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnFav2.Size = new System.Drawing.Size(143, 60);
+            this.BtnFav2.Size = new System.Drawing.Size(100, 40);
             this.BtnFav2.TabIndex = 15;
             this.BtnFav2.Text = "Favorite2";
             this.BtnFav2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -402,12 +399,12 @@ namespace GateHelper
             this.BtnFav3.Depth = 0;
             this.BtnFav3.HighEmphasis = true;
             this.BtnFav3.Icon = null;
-            this.BtnFav3.Location = new System.Drawing.Point(336, 34);
-            this.BtnFav3.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnFav3.Location = new System.Drawing.Point(235, 23);
+            this.BtnFav3.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnFav3.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnFav3.Name = "BtnFav3";
             this.BtnFav3.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnFav3.Size = new System.Drawing.Size(143, 60);
+            this.BtnFav3.Size = new System.Drawing.Size(100, 40);
             this.BtnFav3.TabIndex = 16;
             this.BtnFav3.Text = "Favorite3";
             this.BtnFav3.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -421,36 +418,62 @@ namespace GateHelper
             this.TabControl1.Controls.Add(this.tabPage4);
             this.TabControl1.Controls.Add(this.tabPage3);
             this.TabControl1.Depth = 0;
-            this.TabControl1.Location = new System.Drawing.Point(9, 261);
+            this.TabControl1.Location = new System.Drawing.Point(6, 174);
+            this.TabControl1.Margin = new System.Windows.Forms.Padding(2);
             this.TabControl1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TabControl1.Multiline = true;
             this.TabControl1.Name = "TabControl1";
             this.TabControl1.SelectedIndex = 0;
-            this.TabControl1.Size = new System.Drawing.Size(841, 566);
+            this.TabControl1.Size = new System.Drawing.Size(589, 377);
             this.TabControl1.TabIndex = 8;
             // 
             // tabPage1
             // 
             this.tabPage1.Controls.Add(this.GroupManagement1);
             this.tabPage1.Controls.Add(this.GroupConnect1);
-            this.tabPage1.Location = new System.Drawing.Point(4, 28);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(833, 534);
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPage1.Size = new System.Drawing.Size(581, 351);
             this.tabPage1.TabIndex = 98;
             this.tabPage1.Text = "SERVER";
             this.tabPage1.UseVisualStyleBackColor = true;
             // 
             // GroupManagement1
             // 
+            this.GroupManagement1.Controls.Add(this.BtnTestStoSearch);
             this.GroupManagement1.Controls.Add(this.BtnStoCollect);
             this.GroupManagement1.Controls.Add(this.BtnMoveVariable);
-            this.GroupManagement1.Location = new System.Drawing.Point(578, 20);
+            this.GroupManagement1.Location = new System.Drawing.Point(405, 13);
+            this.GroupManagement1.Margin = new System.Windows.Forms.Padding(2);
             this.GroupManagement1.Name = "GroupManagement1";
-            this.GroupManagement1.Size = new System.Drawing.Size(235, 489);
+            this.GroupManagement1.Padding = new System.Windows.Forms.Padding(2);
+            this.GroupManagement1.Size = new System.Drawing.Size(164, 326);
             this.GroupManagement1.TabIndex = 103;
             this.GroupManagement1.TabStop = false;
             this.GroupManagement1.Text = "Management";
+            // 
+            // BtnTestStoSearch
+            // 
+            this.BtnTestStoSearch.AutoSize = false;
+            this.BtnTestStoSearch.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnTestStoSearch.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnTestStoSearch.Depth = 0;
+            this.BtnTestStoSearch.HighEmphasis = true;
+            this.BtnTestStoSearch.Icon = null;
+            this.BtnTestStoSearch.Location = new System.Drawing.Point(14, 121);
+            this.BtnTestStoSearch.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnTestStoSearch.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnTestStoSearch.Name = "BtnTestStoSearch";
+            this.BtnTestStoSearch.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnTestStoSearch.Size = new System.Drawing.Size(136, 40);
+            this.BtnTestStoSearch.TabIndex = 105;
+            this.BtnTestStoSearch.Text = "STO SEARCH";
+            this.BtnTestStoSearch.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnTestStoSearch.UseAccentColor = false;
+            this.BtnTestStoSearch.UseVisualStyleBackColor = true;
+            this.BtnTestStoSearch.Click += new System.EventHandler(this.BtnTestStoSearch_Click);
             // 
             // BtnStoCollect
             // 
@@ -460,12 +483,12 @@ namespace GateHelper
             this.BtnStoCollect.Depth = 0;
             this.BtnStoCollect.HighEmphasis = true;
             this.BtnStoCollect.Icon = null;
-            this.BtnStoCollect.Location = new System.Drawing.Point(20, 111);
-            this.BtnStoCollect.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnStoCollect.Location = new System.Drawing.Point(14, 71);
+            this.BtnStoCollect.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnStoCollect.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnStoCollect.Name = "BtnStoCollect";
             this.BtnStoCollect.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnStoCollect.Size = new System.Drawing.Size(195, 60);
+            this.BtnStoCollect.Size = new System.Drawing.Size(136, 40);
             this.BtnStoCollect.TabIndex = 104;
             this.BtnStoCollect.Text = "STO Collect";
             this.BtnStoCollect.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -481,12 +504,12 @@ namespace GateHelper
             this.BtnMoveVariable.Depth = 0;
             this.BtnMoveVariable.HighEmphasis = true;
             this.BtnMoveVariable.Icon = null;
-            this.BtnMoveVariable.Location = new System.Drawing.Point(20, 33);
-            this.BtnMoveVariable.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnMoveVariable.Location = new System.Drawing.Point(14, 22);
+            this.BtnMoveVariable.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnMoveVariable.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnMoveVariable.Name = "BtnMoveVariable";
             this.BtnMoveVariable.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnMoveVariable.Size = new System.Drawing.Size(195, 60);
+            this.BtnMoveVariable.Size = new System.Drawing.Size(136, 40);
             this.BtnMoveVariable.TabIndex = 103;
             this.BtnMoveVariable.Text = "Move Variable";
             this.BtnMoveVariable.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -498,10 +521,11 @@ namespace GateHelper
             // 
             this.tabPage4.Controls.Add(this.OlvServerList);
             this.tabPage4.Controls.Add(this.txtMemoEditor);
-            this.tabPage4.Location = new System.Drawing.Point(4, 28);
+            this.tabPage4.Location = new System.Drawing.Point(4, 22);
+            this.tabPage4.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage4.Name = "tabPage4";
-            this.tabPage4.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage4.Size = new System.Drawing.Size(833, 534);
+            this.tabPage4.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPage4.Size = new System.Drawing.Size(581, 351);
             this.tabPage4.TabIndex = 3;
             this.tabPage4.Text = "HISTORY";
             this.tabPage4.UseVisualStyleBackColor = true;
@@ -527,12 +551,11 @@ namespace GateHelper
             this.OlvServerList.FullRowSelect = true;
             this.OlvServerList.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
             this.OlvServerList.HideSelection = false;
-            this.OlvServerList.Location = new System.Drawing.Point(0, 2);
-            this.OlvServerList.Margin = new System.Windows.Forms.Padding(4);
+            this.OlvServerList.Location = new System.Drawing.Point(0, 1);
             this.OlvServerList.MultiSelect = false;
             this.OlvServerList.Name = "OlvServerList";
             this.OlvServerList.ShowGroups = false;
-            this.OlvServerList.Size = new System.Drawing.Size(821, 518);
+            this.OlvServerList.Size = new System.Drawing.Size(576, 347);
             this.OlvServerList.TabIndex = 98;
             this.OlvServerList.UseCompatibleStateImageBehavior = false;
             this.OlvServerList.View = System.Windows.Forms.View.Details;
@@ -584,29 +607,28 @@ namespace GateHelper
             this.MenuItem2_Favorite});
             this.ListViewContext1.Name = "contextMenuStrip1";
             this.ListViewContext1.ShowImageMargin = false;
-            this.ListViewContext1.Size = new System.Drawing.Size(124, 68);
+            this.ListViewContext1.Size = new System.Drawing.Size(92, 48);
             // 
             // MenuItem1_Delete
             // 
             this.MenuItem1_Delete.Name = "MenuItem1_Delete";
-            this.MenuItem1_Delete.Size = new System.Drawing.Size(123, 32);
+            this.MenuItem1_Delete.Size = new System.Drawing.Size(91, 22);
             this.MenuItem1_Delete.Text = "Delete";
             this.MenuItem1_Delete.Click += new System.EventHandler(this.MenuItem1_Delete_Click);
             // 
             // MenuItem2_Favorite
             // 
             this.MenuItem2_Favorite.Name = "MenuItem2_Favorite";
-            this.MenuItem2_Favorite.Size = new System.Drawing.Size(123, 32);
+            this.MenuItem2_Favorite.Size = new System.Drawing.Size(91, 22);
             this.MenuItem2_Favorite.Text = "Favorite";
             this.MenuItem2_Favorite.Click += new System.EventHandler(this.MenuItem2_Favorite_Click);
             // 
             // txtMemoEditor
             // 
             this.txtMemoEditor.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtMemoEditor.Location = new System.Drawing.Point(591, 45);
-            this.txtMemoEditor.Margin = new System.Windows.Forms.Padding(4);
+            this.txtMemoEditor.Location = new System.Drawing.Point(414, 30);
             this.txtMemoEditor.Name = "txtMemoEditor";
-            this.txtMemoEditor.Size = new System.Drawing.Size(142, 28);
+            this.txtMemoEditor.Size = new System.Drawing.Size(100, 21);
             this.txtMemoEditor.TabIndex = 98;
             this.txtMemoEditor.Visible = false;
             // 
@@ -618,10 +640,11 @@ namespace GateHelper
             this.tabPage3.Controls.Add(this.BtnOpenImages1);
             this.tabPage3.Controls.Add(this.BtnReloadImages1);
             this.tabPage3.Controls.Add(this.GroupRef2);
-            this.tabPage3.Location = new System.Drawing.Point(4, 28);
+            this.tabPage3.Location = new System.Drawing.Point(4, 22);
+            this.tabPage3.Margin = new System.Windows.Forms.Padding(2);
             this.tabPage3.Name = "tabPage3";
-            this.tabPage3.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage3.Size = new System.Drawing.Size(833, 534);
+            this.tabPage3.Padding = new System.Windows.Forms.Padding(2);
+            this.tabPage3.Size = new System.Drawing.Size(581, 351);
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "REFERENCE";
             this.tabPage3.UseVisualStyleBackColor = true;
@@ -633,8 +656,8 @@ namespace GateHelper
             this.btnSandBox.Depth = 0;
             this.btnSandBox.HighEmphasis = true;
             this.btnSandBox.Icon = null;
-            this.btnSandBox.Location = new System.Drawing.Point(370, 465);
-            this.btnSandBox.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.btnSandBox.Location = new System.Drawing.Point(259, 310);
+            this.btnSandBox.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.btnSandBox.MouseState = MaterialSkin.MouseState.HOVER;
             this.btnSandBox.Name = "btnSandBox";
             this.btnSandBox.NoAccentTextColor = System.Drawing.Color.Empty;
@@ -653,8 +676,8 @@ namespace GateHelper
             this.BtnWorkLog1.Depth = 0;
             this.BtnWorkLog1.HighEmphasis = true;
             this.BtnWorkLog1.Icon = null;
-            this.BtnWorkLog1.Location = new System.Drawing.Point(226, 465);
-            this.BtnWorkLog1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnWorkLog1.Location = new System.Drawing.Point(158, 310);
+            this.BtnWorkLog1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnWorkLog1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnWorkLog1.Name = "BtnWorkLog1";
             this.BtnWorkLog1.NoAccentTextColor = System.Drawing.Color.Empty;
@@ -674,8 +697,8 @@ namespace GateHelper
             this.dummyControlOutsideTab.Depth = 0;
             this.dummyControlOutsideTab.HighEmphasis = true;
             this.dummyControlOutsideTab.Icon = null;
-            this.dummyControlOutsideTab.Location = new System.Drawing.Point(751, 12);
-            this.dummyControlOutsideTab.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.dummyControlOutsideTab.Location = new System.Drawing.Point(526, 8);
+            this.dummyControlOutsideTab.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.dummyControlOutsideTab.MouseState = MaterialSkin.MouseState.HOVER;
             this.dummyControlOutsideTab.Name = "dummyControlOutsideTab";
             this.dummyControlOutsideTab.NoAccentTextColor = System.Drawing.Color.Empty;
@@ -694,12 +717,12 @@ namespace GateHelper
             this.BtnOpenImages1.Depth = 0;
             this.BtnOpenImages1.HighEmphasis = true;
             this.BtnOpenImages1.Icon = null;
-            this.BtnOpenImages1.Location = new System.Drawing.Point(119, 465);
-            this.BtnOpenImages1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnOpenImages1.Location = new System.Drawing.Point(83, 310);
+            this.BtnOpenImages1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnOpenImages1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnOpenImages1.Name = "BtnOpenImages1";
             this.BtnOpenImages1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnOpenImages1.Size = new System.Drawing.Size(96, 60);
+            this.BtnOpenImages1.Size = new System.Drawing.Size(67, 40);
             this.BtnOpenImages1.TabIndex = 31;
             this.BtnOpenImages1.Text = "Open Images";
             this.BtnOpenImages1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -715,12 +738,12 @@ namespace GateHelper
             this.BtnReloadImages1.Depth = 0;
             this.BtnReloadImages1.HighEmphasis = true;
             this.BtnReloadImages1.Icon = null;
-            this.BtnReloadImages1.Location = new System.Drawing.Point(14, 465);
-            this.BtnReloadImages1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnReloadImages1.Location = new System.Drawing.Point(10, 310);
+            this.BtnReloadImages1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnReloadImages1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnReloadImages1.Name = "BtnReloadImages1";
             this.BtnReloadImages1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnReloadImages1.Size = new System.Drawing.Size(96, 60);
+            this.BtnReloadImages1.Size = new System.Drawing.Size(67, 40);
             this.BtnReloadImages1.TabIndex = 32;
             this.BtnReloadImages1.Text = "Reload Images";
             this.BtnReloadImages1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -731,11 +754,9 @@ namespace GateHelper
             // GroupRef2
             // 
             this.GroupRef2.Controls.Add(this.flowLayoutPanel1);
-            this.GroupRef2.Location = new System.Drawing.Point(4, 4);
-            this.GroupRef2.Margin = new System.Windows.Forms.Padding(4);
+            this.GroupRef2.Location = new System.Drawing.Point(3, 3);
             this.GroupRef2.Name = "GroupRef2";
-            this.GroupRef2.Padding = new System.Windows.Forms.Padding(4);
-            this.GroupRef2.Size = new System.Drawing.Size(554, 454);
+            this.GroupRef2.Size = new System.Drawing.Size(388, 303);
             this.GroupRef2.TabIndex = 7;
             this.GroupRef2.TabStop = false;
             this.GroupRef2.Text = "Reference";
@@ -743,10 +764,11 @@ namespace GateHelper
             // flowLayoutPanel1
             // 
             this.flowLayoutPanel1.AutoScroll = true;
-            this.flowLayoutPanel1.Location = new System.Drawing.Point(4, 26);
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(3, 17);
+            this.flowLayoutPanel1.Margin = new System.Windows.Forms.Padding(2);
             this.flowLayoutPanel1.Name = "flowLayoutPanel1";
-            this.flowLayoutPanel1.Padding = new System.Windows.Forms.Padding(4);
-            this.flowLayoutPanel1.Size = new System.Drawing.Size(543, 422);
+            this.flowLayoutPanel1.Padding = new System.Windows.Forms.Padding(3);
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(380, 281);
             this.flowLayoutPanel1.TabIndex = 29;
             // 
             // TabSelector1
@@ -756,10 +778,11 @@ namespace GateHelper
             this.TabSelector1.Depth = 0;
             this.TabSelector1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
             this.TabSelector1.ForeColor = System.Drawing.SystemColors.Control;
-            this.TabSelector1.Location = new System.Drawing.Point(29, 202);
+            this.TabSelector1.Location = new System.Drawing.Point(20, 135);
+            this.TabSelector1.Margin = new System.Windows.Forms.Padding(2);
             this.TabSelector1.MouseState = MaterialSkin.MouseState.HOVER;
             this.TabSelector1.Name = "TabSelector1";
-            this.TabSelector1.Size = new System.Drawing.Size(521, 45);
+            this.TabSelector1.Size = new System.Drawing.Size(365, 30);
             this.TabSelector1.TabIndex = 33;
             this.TabSelector1.TabIndicatorHeight = 3;
             this.TabSelector1.Text = "TabSelector1";
@@ -772,12 +795,12 @@ namespace GateHelper
             this.BtnStart2.Depth = 0;
             this.BtnStart2.HighEmphasis = true;
             this.BtnStart2.Icon = null;
-            this.BtnStart2.Location = new System.Drawing.Point(1189, 96);
-            this.BtnStart2.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnStart2.Location = new System.Drawing.Point(832, 64);
+            this.BtnStart2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnStart2.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnStart2.Name = "BtnStart2";
             this.BtnStart2.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnStart2.Size = new System.Drawing.Size(210, 60);
+            this.BtnStart2.Size = new System.Drawing.Size(147, 40);
             this.BtnStart2.TabIndex = 17;
             this.BtnStart2.Text = "Auto Login";
             this.BtnStart2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -793,12 +816,12 @@ namespace GateHelper
             this.BtnOpenConfig1.Depth = 0;
             this.BtnOpenConfig1.HighEmphasis = true;
             this.BtnOpenConfig1.Icon = null;
-            this.BtnOpenConfig1.Location = new System.Drawing.Point(337, 110);
-            this.BtnOpenConfig1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnOpenConfig1.Location = new System.Drawing.Point(236, 73);
+            this.BtnOpenConfig1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnOpenConfig1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnOpenConfig1.Name = "BtnOpenConfig1";
             this.BtnOpenConfig1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnOpenConfig1.Size = new System.Drawing.Size(96, 60);
+            this.BtnOpenConfig1.Size = new System.Drawing.Size(67, 40);
             this.BtnOpenConfig1.TabIndex = 20;
             this.BtnOpenConfig1.Text = "Open Config";
             this.BtnOpenConfig1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -809,10 +832,9 @@ namespace GateHelper
             // PicBox_Question
             // 
             this.PicBox_Question.Image = global::GateHelper.Properties.Resources.question;
-            this.PicBox_Question.Location = new System.Drawing.Point(501, 980);
-            this.PicBox_Question.Margin = new System.Windows.Forms.Padding(4);
+            this.PicBox_Question.Location = new System.Drawing.Point(351, 653);
             this.PicBox_Question.Name = "PicBox_Question";
-            this.PicBox_Question.Size = new System.Drawing.Size(50, 50);
+            this.PicBox_Question.Size = new System.Drawing.Size(35, 33);
             this.PicBox_Question.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.PicBox_Question.TabIndex = 95;
             this.PicBox_Question.TabStop = false;
@@ -828,12 +850,12 @@ namespace GateHelper
             this.BtnStart1.Font = new System.Drawing.Font("돋움", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BtnStart1.HighEmphasis = true;
             this.BtnStart1.Icon = null;
-            this.BtnStart1.Location = new System.Drawing.Point(24, 110);
-            this.BtnStart1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnStart1.Location = new System.Drawing.Point(17, 73);
+            this.BtnStart1.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.BtnStart1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnStart1.Name = "BtnStart1";
             this.BtnStart1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnStart1.Size = new System.Drawing.Size(194, 60);
+            this.BtnStart1.Size = new System.Drawing.Size(136, 40);
             this.BtnStart1.TabIndex = 22;
             this.BtnStart1.Text = "Start Operation";
             this.BtnStart1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -849,12 +871,12 @@ namespace GateHelper
             this.BtnReConfig1.Depth = 0;
             this.BtnReConfig1.HighEmphasis = true;
             this.BtnReConfig1.Icon = null;
-            this.BtnReConfig1.Location = new System.Drawing.Point(231, 110);
-            this.BtnReConfig1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnReConfig1.Location = new System.Drawing.Point(162, 73);
+            this.BtnReConfig1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnReConfig1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnReConfig1.Name = "BtnReConfig1";
             this.BtnReConfig1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnReConfig1.Size = new System.Drawing.Size(96, 60);
+            this.BtnReConfig1.Size = new System.Drawing.Size(67, 40);
             this.BtnReConfig1.TabIndex = 23;
             this.BtnReConfig1.Text = "Re Config";
             this.BtnReConfig1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -870,12 +892,12 @@ namespace GateHelper
             this.BtnOpenLog1.Depth = 0;
             this.BtnOpenLog1.HighEmphasis = true;
             this.BtnOpenLog1.Icon = null;
-            this.BtnOpenLog1.Location = new System.Drawing.Point(441, 110);
-            this.BtnOpenLog1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnOpenLog1.Location = new System.Drawing.Point(309, 73);
+            this.BtnOpenLog1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnOpenLog1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnOpenLog1.Name = "BtnOpenLog1";
             this.BtnOpenLog1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnOpenLog1.Size = new System.Drawing.Size(96, 60);
+            this.BtnOpenLog1.Size = new System.Drawing.Size(67, 40);
             this.BtnOpenLog1.TabIndex = 24;
             this.BtnOpenLog1.Text = "Open Log";
             this.BtnOpenLog1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -886,10 +908,9 @@ namespace GateHelper
             // PicBox_Arrow
             // 
             this.PicBox_Arrow.Image = global::GateHelper.Properties.Resources.arrow_right;
-            this.PicBox_Arrow.Location = new System.Drawing.Point(384, 980);
-            this.PicBox_Arrow.Margin = new System.Windows.Forms.Padding(4);
+            this.PicBox_Arrow.Location = new System.Drawing.Point(269, 653);
             this.PicBox_Arrow.Name = "PicBox_Arrow";
-            this.PicBox_Arrow.Size = new System.Drawing.Size(50, 50);
+            this.PicBox_Arrow.Size = new System.Drawing.Size(35, 33);
             this.PicBox_Arrow.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.PicBox_Arrow.TabIndex = 26;
             this.PicBox_Arrow.TabStop = false;
@@ -898,10 +919,9 @@ namespace GateHelper
             // PicBox_Setting
             // 
             this.PicBox_Setting.Image = global::GateHelper.Properties.Resources.sun;
-            this.PicBox_Setting.Location = new System.Drawing.Point(443, 980);
-            this.PicBox_Setting.Margin = new System.Windows.Forms.Padding(4);
+            this.PicBox_Setting.Location = new System.Drawing.Point(310, 653);
             this.PicBox_Setting.Name = "PicBox_Setting";
-            this.PicBox_Setting.Size = new System.Drawing.Size(50, 50);
+            this.PicBox_Setting.Size = new System.Drawing.Size(35, 33);
             this.PicBox_Setting.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.PicBox_Setting.TabIndex = 25;
             this.PicBox_Setting.TabStop = false;
@@ -910,20 +930,18 @@ namespace GateHelper
             // lblDriverStatus
             // 
             this.lblDriverStatus.AutoSize = true;
-            this.lblDriverStatus.Location = new System.Drawing.Point(34, 920);
-            this.lblDriverStatus.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblDriverStatus.Location = new System.Drawing.Point(24, 613);
             this.lblDriverStatus.Name = "lblDriverStatus";
-            this.lblDriverStatus.Size = new System.Drawing.Size(54, 18);
+            this.lblDriverStatus.Size = new System.Drawing.Size(37, 12);
             this.lblDriverStatus.TabIndex = 29;
             this.lblDriverStatus.Text = "Driver";
             // 
             // lblInternetStatus
             // 
             this.lblInternetStatus.AutoSize = true;
-            this.lblInternetStatus.Location = new System.Drawing.Point(33, 874);
-            this.lblInternetStatus.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblInternetStatus.Location = new System.Drawing.Point(23, 583);
             this.lblInternetStatus.Name = "lblInternetStatus";
-            this.lblInternetStatus.Size = new System.Drawing.Size(67, 18);
+            this.lblInternetStatus.Size = new System.Drawing.Size(46, 12);
             this.lblInternetStatus.TabIndex = 30;
             this.lblInternetStatus.Text = "Internet";
             // 
@@ -935,12 +953,12 @@ namespace GateHelper
             this.BtnOption1.Depth = 0;
             this.BtnOption1.HighEmphasis = true;
             this.BtnOption1.Icon = null;
-            this.BtnOption1.Location = new System.Drawing.Point(449, 920);
-            this.BtnOption1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnOption1.Location = new System.Drawing.Point(314, 613);
+            this.BtnOption1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnOption1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnOption1.Name = "BtnOption1";
             this.BtnOption1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnOption1.Size = new System.Drawing.Size(100, 50);
+            this.BtnOption1.Size = new System.Drawing.Size(70, 33);
             this.BtnOption1.TabIndex = 38;
             this.BtnOption1.Text = "OPTION";
             this.BtnOption1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -951,10 +969,9 @@ namespace GateHelper
             // lblPopupStatus
             // 
             this.lblPopupStatus.AutoSize = true;
-            this.lblPopupStatus.Location = new System.Drawing.Point(34, 964);
-            this.lblPopupStatus.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblPopupStatus.Location = new System.Drawing.Point(24, 643);
             this.lblPopupStatus.Name = "lblPopupStatus";
-            this.lblPopupStatus.Size = new System.Drawing.Size(59, 18);
+            this.lblPopupStatus.Size = new System.Drawing.Size(40, 12);
             this.lblPopupStatus.TabIndex = 45;
             this.lblPopupStatus.Text = "Detect";
             // 
@@ -965,8 +982,8 @@ namespace GateHelper
             this.BtnSend1.Depth = 0;
             this.BtnSend1.HighEmphasis = true;
             this.BtnSend1.Icon = null;
-            this.BtnSend1.Location = new System.Drawing.Point(1096, 162);
-            this.BtnSend1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnSend1.Location = new System.Drawing.Point(767, 108);
+            this.BtnSend1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnSend1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnSend1.Name = "BtnSend1";
             this.BtnSend1.NoAccentTextColor = System.Drawing.Color.Empty;
@@ -984,8 +1001,8 @@ namespace GateHelper
             this.BtnRec1.Depth = 0;
             this.BtnRec1.HighEmphasis = true;
             this.BtnRec1.Icon = null;
-            this.BtnRec1.Location = new System.Drawing.Point(1189, 162);
-            this.BtnRec1.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnRec1.Location = new System.Drawing.Point(832, 108);
+            this.BtnRec1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnRec1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnRec1.Name = "BtnRec1";
             this.BtnRec1.NoAccentTextColor = System.Drawing.Color.Empty;
@@ -999,20 +1016,18 @@ namespace GateHelper
             // lblUDPStatus
             // 
             this.lblUDPStatus.AutoSize = true;
-            this.lblUDPStatus.Location = new System.Drawing.Point(34, 1008);
-            this.lblUDPStatus.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblUDPStatus.Location = new System.Drawing.Point(24, 672);
             this.lblUDPStatus.Name = "lblUDPStatus";
-            this.lblUDPStatus.Size = new System.Drawing.Size(41, 18);
+            this.lblUDPStatus.Size = new System.Drawing.Size(29, 12);
             this.lblUDPStatus.TabIndex = 99;
             this.lblUDPStatus.Text = "UDP";
             // 
             // lblVersion
             // 
             this.lblVersion.AutoSize = true;
-            this.lblVersion.Location = new System.Drawing.Point(6, 4);
-            this.lblVersion.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.lblVersion.Location = new System.Drawing.Point(4, 3);
             this.lblVersion.Name = "lblVersion";
-            this.lblVersion.Size = new System.Drawing.Size(69, 18);
+            this.lblVersion.Size = new System.Drawing.Size(48, 12);
             this.lblVersion.TabIndex = 100;
             this.lblVersion.Text = "Version";
             // 
@@ -1024,12 +1039,12 @@ namespace GateHelper
             this.BtnOpenLog2.Depth = 0;
             this.BtnOpenLog2.HighEmphasis = true;
             this.BtnOpenLog2.Icon = null;
-            this.BtnOpenLog2.Location = new System.Drawing.Point(131, 1002);
-            this.BtnOpenLog2.Margin = new System.Windows.Forms.Padding(6, 9, 6, 9);
+            this.BtnOpenLog2.Location = new System.Drawing.Point(92, 668);
+            this.BtnOpenLog2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnOpenLog2.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnOpenLog2.Name = "BtnOpenLog2";
             this.BtnOpenLog2.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnOpenLog2.Size = new System.Drawing.Size(80, 39);
+            this.BtnOpenLog2.Size = new System.Drawing.Size(56, 26);
             this.BtnOpenLog2.TabIndex = 101;
             this.BtnOpenLog2.Text = "Log";
             this.BtnOpenLog2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -1051,12 +1066,12 @@ namespace GateHelper
             this.BtnStartManagement.Font = new System.Drawing.Font("돋움", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BtnStartManagement.HighEmphasis = true;
             this.BtnStartManagement.Icon = null;
-            this.BtnStartManagement.Location = new System.Drawing.Point(578, 110);
-            this.BtnStartManagement.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnStartManagement.Location = new System.Drawing.Point(405, 73);
+            this.BtnStartManagement.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.BtnStartManagement.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnStartManagement.Name = "BtnStartManagement";
             this.BtnStartManagement.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnStartManagement.Size = new System.Drawing.Size(173, 60);
+            this.BtnStartManagement.Size = new System.Drawing.Size(121, 40);
             this.BtnStartManagement.TabIndex = 102;
             this.BtnStartManagement.Text = "Start Management";
             this.BtnStartManagement.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -1066,10 +1081,10 @@ namespace GateHelper
             // 
             // MainUI
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(10F, 18F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(1591, 1071);
+            this.ClientSize = new System.Drawing.Size(1114, 714);
             this.Controls.Add(this.BtnStartManagement);
             this.Controls.Add(this.BtnOpenLog2);
             this.Controls.Add(this.lblVersion);
@@ -1093,7 +1108,9 @@ namespace GateHelper
             this.Controls.Add(this.BtnGateOneLogin1);
             this.Controls.Add(this.BtnRDP1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Margin = new System.Windows.Forms.Padding(2);
             this.Name = "MainUI";
+            this.Padding = new System.Windows.Forms.Padding(2, 43, 2, 2);
             this.Sizable = false;
             this.Text = "GATE HELPER";
             this.Load += new System.EventHandler(this.MainUI_Load);
@@ -1180,6 +1197,7 @@ namespace GateHelper
         private System.Windows.Forms.GroupBox GroupManagement1;
         private MaterialSkin.Controls.MaterialButton BtnMoveVariable;
         private MaterialSkin.Controls.MaterialButton BtnStoCollect;
+        private MaterialSkin.Controls.MaterialButton BtnTestStoSearch;
     }
 }
 

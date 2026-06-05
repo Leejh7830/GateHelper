@@ -216,6 +216,7 @@
     <Compile Include="Utils\Util.cs" />
     <Compile Include="Utils\Util_Control.cs" />
     <Compile Include="Utils\Util_Element.cs" />
+    <Compile Include="Utils\Util_Mgmt.cs" />
     <Compile Include="Utils\Util_Option.cs" />
     <Compile Include="Utils\Util_RDP.cs" />
     <Compile Include="Utils\Util_ServerList.cs" />
