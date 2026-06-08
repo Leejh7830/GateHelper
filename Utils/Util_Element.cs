@@ -327,13 +327,6 @@ namespace GateHelper
                         }
                     }
 
-                    // 데이터 적재 및 진행 상황 추적
-                    if (allData.Count > previousCount)
-                    {
-                        sameCount = 0;
-                        LogMessage($"[진행 상황] 데이터 수집 누적: {allData.Count}행...", Level.Info);
-                    }
-
                     // 물리적 최하단 바닥 검증 (가상화 오류로 인한 조기 종료 방지)
                     long currentScrollTop = (long)js.ExecuteScript("return Math.ceil(arguments[0].scrollTop);", scrollContainer);
                     long scrollHeight = (long)js.ExecuteScript("return arguments[0].scrollHeight;", scrollContainer);
