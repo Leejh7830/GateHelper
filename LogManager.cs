@@ -14,6 +14,7 @@ namespace GateHelper
         {
             Info,
             Error,
+            Warning,
             Critical
         }
 
@@ -123,6 +124,7 @@ namespace GateHelper
             {
                 case Level.Info: return "INFO";
                 case Level.Error: return "ERROR";
+                case Level.Warning: return "WARNING";
                 case Level.Critical: return "CRITICAL";
                 default: return "UNKNOWN";
             }

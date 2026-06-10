@@ -1,12 +1,13 @@
-﻿using System;
+﻿using ClosedXML.Excel;
+using OpenQA.Selenium;
+using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Drawing;
 using System.Windows.Forms;
-using ClosedXML.Excel;
-using System.IO;
 using static GateHelper.LogManager;
 
 
@@ -18,13 +19,12 @@ namespace GateHelper.Utils
         /// 수집 항목을 선택받는 동적 팝업을 띄우고 결과를 반환합니다.
         /// 반환값: (SEM 선택 여부, Port 선택 여부)
         /// </summary>
-        public static (bool isSem, bool isPort) ShowCollectionSelectDialog()
+        public static (string eqpType, bool isSem, bool isPort) ShowCollectionSelectDialog()
         {
-            // 1. 메모리 상에서 즉석으로 폼(창) 생성
             Form prompt = new Form()
             {
                 Width = 320,
-                Height = 220,
+                Height = 280,
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 Text = "데이터 수집 옵션",
                 StartPosition = FormStartPosition.CenterParent,
@@ -32,60 +32,41 @@ namespace GateHelper.Utils
                 MinimizeBox = false
             };
 
-            // 2. 체크박스 컨트롤 동적 생성
-            CheckBox chkSem = new CheckBox()
+            // 설비 타입 드롭다운
+            Label lblEqpType = new Label() { Left = 40, Top = 20, Text = "대상 설비 타입:" };
+            ComboBox cmbEqpType = new ComboBox()
             {
                 Left = 40,
-                Top = 30,
-                Text = "StockerSEM 수집",
-                // Checked = true,
-                Width = 220
+                Top = 45,
+                Width = 220,
+                DropDownStyle = ComboBoxStyle.DropDownList
             };
-            CheckBox chkPort = new CheckBox()
-            {
-                Left = 40,
-                Top = 60,
-                Text = "StockerPort 수집 (하위 항목 포함)",
-                // Checked = true,
-                Width = 220
-            };
+            cmbEqpType.Items.AddRange(new string[] { "STO", "CNV", "DDA" });
+            cmbEqpType.SelectedIndex = 0; // 기본값 STO
 
-            // 3. 버튼 컨트롤 동적 생성
-            Button btnOk = new Button()
-            {
-                Text = "수집 시작",
-                Left = 40,
-                Top = 120,
-                Width = 100,
-                DialogResult = DialogResult.OK
-            };
-            Button btnCancel = new Button()
-            {
-                Text = "취소",
-                Left = 150,
-                Top = 120,
-                Width = 100,
-                DialogResult = DialogResult.Cancel
-            };
+            // 수정필요한 부분
+            CheckBox chkSem = new CheckBox() { Left = 40, Top = 90, Text = "StockerSEM 수집", Width = 220 };
+            CheckBox chkPort = new CheckBox() { Left = 40, Top = 120, Text = "StockerPort 수집 (하위 항목 포함)", Width = 220 };
 
-            // 4. 생성한 컨트롤들을 폼에 부착
+            Button btnOk = new Button() { Text = "수집 시작", Left = 40, Top = 180, Width = 100, DialogResult = DialogResult.OK };
+            Button btnCancel = new Button() { Text = "취소", Left = 150, Top = 180, Width = 100, DialogResult = DialogResult.Cancel };
+
+            prompt.Controls.Add(lblEqpType);
+            prompt.Controls.Add(cmbEqpType);
             prompt.Controls.Add(chkSem);
             prompt.Controls.Add(chkPort);
             prompt.Controls.Add(btnOk);
             prompt.Controls.Add(btnCancel);
 
-            // 엔터 키 누르면 확인, ESC 키 누르면 취소 작동
             prompt.AcceptButton = btnOk;
             prompt.CancelButton = btnCancel;
 
-            // 5. 창을 띄우고(ShowDialog) 사용자의 응답 대기 및 결과 반환
             if (prompt.ShowDialog() == DialogResult.OK)
             {
-                return (chkSem.Checked, chkPort.Checked);
+                return (cmbEqpType.SelectedItem.ToString(), chkSem.Checked, chkPort.Checked);
             }
 
-            // 취소 버튼을 누르거나 창을 그냥 끄면 둘 다 false 반환
-            return (false, false);
+            return (null, false, false);
         } // ShowCollectionSelectDialog END
 
 
@@ -95,17 +76,31 @@ namespace GateHelper.Utils
         /// <param name="machineName">호기명 (예: FSTO_01)</param>
         /// <param name="itemName">수집항목명 (예: StockerSEM, STOCKERPORT:1)</param>
         /// <param name="tableData">순수 5열 데이터 리스트</param>
-        public static void SaveDataToExcel(string machineName, string itemName, List<string[]> tableData)
+        public static void SaveDataToExcel(string targetEqpType, string machineName, string itemName, List<string[]> tableData)
         {
             if (tableData == null || tableData.Count == 0) return;
 
-            // 1. 저장 경로 지정 (실행 파일이 있는 폴더에 생성)
-            string filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "전체_설비데이터_통합.xlsx");
+            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            string filePath = Path.Combine(desktopPath, "Integrated_Equipment_Data.xlsx");
 
-            // 2. 동적 시트명 결정 로직 (예: FSTO_01 -> F_SEM 또는 F_PORT)
-            string linePrefix = machineName.Substring(0, 1).ToUpper(); // 첫 글자 추출 (F, A, E, P)
+            // ==========================================================
+            // 💡 targetEqpType을 동적으로 검색 (STO/CNV/DDA)
+            // ==========================================================
+            string linePrefix = "UNKNOWN";
+            int typeIndex = machineName.IndexOf(targetEqpType, StringComparison.OrdinalIgnoreCase);
+
+            if (typeIndex > 0)
+            {
+                linePrefix = machineName.Substring(typeIndex - 1, 1).ToUpper();
+            }
+            else
+            {
+                linePrefix = machineName.Substring(0, 1).ToUpper();
+            }
+
             string typeSuffix = itemName.Contains("SEM") ? "SEM" : "PORT";
             string sheetName = $"{linePrefix}_{typeSuffix}";
+            // ==========================================================
 
             try
             {
@@ -166,13 +161,139 @@ namespace GateHelper.Utils
             catch (IOException)
             {
                 // 사용자가 엑셀 파일을 띄워놓고 있어서 프로그램이 접근하지 못할 때의 치명적 에러 방어
-                LogManager.LogMessage($"[엑셀 저장 실패] '{filePath}' 파일이 열려있습니다. 파일을 닫아주세요.", Level.Error);
+                LogMessage($"[엑셀 저장 실패] '{filePath}' 파일이 열려있습니다. 파일을 닫아주세요.", Level.Error);
             }
             catch (Exception ex)
             {
-                LogManager.LogException(ex, Level.Error, "엑셀 누적 저장 중 예기치 않은 오류 발생");
+                LogException(ex, Level.Error, "엑셀 누적 저장 중 예기치 않은 오류 발생");
             }
         } // SaveDataToExcel END
+
+
+
+
+
+
+
+        // 1. [설비 확산 대비] 키워드 매핑 팩토리
+        public static (string semName, string portParentName, string childPortPrefix) GetEquipmentKeywords(string eqpType)
+        {
+            // 기능확장 시 수정 필요
+            if (eqpType == "CNV") return ("CnvSEM", "CnvPorts", "CNVPORT:");
+            if (eqpType == "AGV") return ("AgvSEM", "AgvPorts", "AGVPORT:");
+
+            // 기본값 STO
+            return ("StockerSEM", "StockerPorts", "STOCKERPORT:");
+        }
+
+        // 2. [서브루틴] SEM 데이터 단일 수집 및 저장
+        public static async Task<int> CollectSemDataAsync(IWebDriver driver, string eqpType, string machineName, string targetSemName)
+        {
+            var tableData = await Task.Run(() => Util_Element.GetTableDataByClipboardFast(driver));
+            if (tableData != null && tableData.Count > 0)
+            {
+                await Task.Run(() => SaveDataToExcel(eqpType, machineName, targetSemName, tableData));
+                return 1; // 수집 성공 건수 반환
+            }
+            return 0;
+        }
+
+        // 3. [서브루틴] Port 부모 전개 및 자식 다중 수집
+        public static async Task<int> CollectPortDataAsync(IWebDriver driver, string eqpType, string machineName, string targetPortParentName, string targetChildPortPrefix)
+        {
+            int count = 0;
+            string portParentXPath = $"//span[contains(@class, 'wj-node-text') and text()='{targetPortParentName}']";
+            var portParentElement = driver.FindElements(By.XPath(portParentXPath)).FirstOrDefault(el => el.Displayed);
+
+            if (portParentElement != null)
+            {
+                bool parentClicked = await Util_Element.ScrollAndClickAsync(driver, portParentElement, 1000);
+                if (parentClicked)
+                {
+                    string childPortXPath = $"//span[contains(@class, 'wj-node-text') and contains(text(), '{targetChildPortPrefix}')]";
+                    var visibleChildPorts = driver.FindElements(By.XPath(childPortXPath)).Where(el => el.Displayed).ToList();
+                    int childPortCount = visibleChildPorts.Count;
+
+                    for (int j = 0; j < childPortCount; j++)
+                    {
+                        var refreshedPorts = driver.FindElements(By.XPath(childPortXPath)).Where(el => el.Displayed).ToList();
+                        if (j >= refreshedPorts.Count) break;
+
+                        var targetPort = refreshedPorts[j];
+                        string portName = targetPort.Text;
+
+                        bool portClicked = await Util_Element.ScrollAndClickAsync(driver, targetPort, 1500);
+                        if (portClicked)
+                        {
+                            var tableData = await Task.Run(() => Util_Element.GetTableDataByClipboardFast(driver));
+                            if (tableData != null && tableData.Count > 0)
+                            {
+                                await Task.Run(() => SaveDataToExcel(eqpType, machineName, portName, tableData));
+                                count++;
+                            }
+                        }
+                    }
+                }
+            }
+            return count; // 누적된 Port 수집 성공 건수 반환
+        }
+
+        // 4. [리포팅] 최종 결과 집계 및 사용자 알림 출력
+        public static void ShowFinalReport(string eqpType, int machineCount, int successMachineCount, int collectedSemCount, int collectedPortCount, TimeSpan elapsedTime, List<string> failedMachines)
+        {
+            // 💡 [수정] TotalMinutes를 사용하여 1시간이 넘어가도 총 누적 분(Minute)으로 표시되도록 변경
+            int totalMinutes = (int)elapsedTime.TotalMinutes;
+            int seconds = elapsedTime.Seconds;
+
+            // 백그라운드 관리자 로그
+            LogMessage("===================================================", Level.Info);
+            LogMessage($"[최종 요약] 전체 자동화 수집 루프 완료 ({eqpType})", Level.Info);
+            LogMessage($" - 총 소요 시간 : {totalMinutes}분 {seconds}초", Level.Info);
+            LogMessage($" - 대상 설비 : 총 {machineCount}대 중 {successMachineCount}대 완료 (실패: {failedMachines.Count}대)", Level.Info);
+            LogMessage($" - 엑셀 누적 결과 : SEM ({collectedSemCount}건), Port ({collectedPortCount}건)", Level.Info);
+
+            if (failedMachines.Count > 0)
+            {
+                LogMessage($" - 실패 호기 목록 : {string.Join(", ", failedMachines)}", Level.Error);
+            }
+            LogMessage("===================================================", Level.Info);
+
+            // 사용자 화면 팝업용 리스트 축약
+            string failedListDisplay = "None";
+            if (failedMachines.Count > 0)
+            {
+                var displayList = failedMachines.Take(5).ToList();
+                failedListDisplay = string.Join(", ", displayList);
+                if (failedMachines.Count > 5)
+                {
+                    failedListDisplay += $" and {failedMachines.Count - 5} more...";
+                }
+            }
+
+            double avgTime = successMachineCount > 0 ? (elapsedTime.TotalSeconds / successMachineCount) : 0;
+            string reportMessage = $"🎉 모든 {eqpType} 설비의 데이터 수집이 완료되었습니다!\n\n" +
+                       "📊 [수집 요약]\n" +
+                       $"• 처리된 설비: 총 {machineCount}대 중 {successMachineCount}대 성공\n" +
+                       $"• 실패한 설비: {failedMachines.Count}대 ({failedListDisplay})\n" +
+                       $"• 총 엑셀 저장 건수: {collectedSemCount + collectedPortCount}건 (SEM: {collectedSemCount}건 / Port: {collectedPortCount}건)\n" +
+                       $"• 총 소요 시간: {totalMinutes}분 {seconds}초 (설비당 평균 {avgTime:F1}초)\n\n" +
+                       "💾 [저장 위치]\n" +
+                       "바탕화면 ➔ Integrated_Equipment_Data.xlsx";
+
+            MessageBox.Show(reportMessage, "Data Collection Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+
+
+
+
+
+
+
+
+
+
+
 
     } // Util.Mgmt.cs END
 

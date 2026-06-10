@@ -42,6 +42,7 @@ namespace GateHelper
             this.materialLabel1 = new MaterialSkin.Controls.MaterialLabel();
             this.materialLabel2 = new MaterialSkin.Controls.MaterialLabel();
             this.CBox_UseUDP = new MaterialSkin.Controls.MaterialCheckbox();
+            this.BtnOpenMappingConfig = new MaterialSkin.Controls.MaterialButton();
             this.SuspendLayout();
             // 
             // CBox_RemoveDuplicate
@@ -150,7 +151,7 @@ namespace GateHelper
             this.materialButton1.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.materialButton1.HighEmphasis = true;
             this.materialButton1.Icon = null;
-            this.materialButton1.Location = new System.Drawing.Point(153, 379);
+            this.materialButton1.Location = new System.Drawing.Point(153, 465);
             this.materialButton1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.materialButton1.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialButton1.Name = "materialButton1";
@@ -171,7 +172,7 @@ namespace GateHelper
             this.materialButton2.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.materialButton2.HighEmphasis = true;
             this.materialButton2.Icon = null;
-            this.materialButton2.Location = new System.Drawing.Point(225, 379);
+            this.materialButton2.Location = new System.Drawing.Point(225, 465);
             this.materialButton2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.materialButton2.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialButton2.Name = "materialButton2";
@@ -209,7 +210,7 @@ namespace GateHelper
             "10",
             "30",
             "60"});
-            this.ComboBoxGraceMs1.Location = new System.Drawing.Point(147, 293);
+            this.ComboBoxGraceMs1.Location = new System.Drawing.Point(147, 379);
             this.ComboBoxGraceMs1.MaxDropDownItems = 4;
             this.ComboBoxGraceMs1.MouseState = MaterialSkin.MouseState.OUT;
             this.ComboBoxGraceMs1.Name = "ComboBoxGraceMs1";
@@ -223,7 +224,7 @@ namespace GateHelper
             this.materialLabel1.AutoSize = true;
             this.materialLabel1.Depth = 0;
             this.materialLabel1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel1.Location = new System.Drawing.Point(37, 323);
+            this.materialLabel1.Location = new System.Drawing.Point(37, 409);
             this.materialLabel1.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialLabel1.Name = "materialLabel1";
             this.materialLabel1.Size = new System.Drawing.Size(83, 19);
@@ -235,7 +236,7 @@ namespace GateHelper
             this.materialLabel2.AutoSize = true;
             this.materialLabel2.Depth = 0;
             this.materialLabel2.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel2.Location = new System.Drawing.Point(17, 298);
+            this.materialLabel2.Location = new System.Drawing.Point(17, 384);
             this.materialLabel2.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialLabel2.Name = "materialLabel2";
             this.materialLabel2.Size = new System.Drawing.Size(124, 19);
@@ -258,11 +259,33 @@ namespace GateHelper
             this.CBox_UseUDP.Text = "Enable UDP";
             this.CBox_UseUDP.UseVisualStyleBackColor = true;
             // 
+            // BtnOpenMappingConfig
+            // 
+            this.BtnOpenMappingConfig.AutoSize = false;
+            this.BtnOpenMappingConfig.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnOpenMappingConfig.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnOpenMappingConfig.Depth = 0;
+            this.BtnOpenMappingConfig.HighEmphasis = true;
+            this.BtnOpenMappingConfig.Icon = null;
+            this.BtnOpenMappingConfig.Location = new System.Drawing.Point(17, 293);
+            this.BtnOpenMappingConfig.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnOpenMappingConfig.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnOpenMappingConfig.Name = "BtnOpenMappingConfig";
+            this.BtnOpenMappingConfig.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnOpenMappingConfig.Size = new System.Drawing.Size(70, 39);
+            this.BtnOpenMappingConfig.TabIndex = 104;
+            this.BtnOpenMappingConfig.Text = "MAPPING";
+            this.BtnOpenMappingConfig.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnOpenMappingConfig.UseAccentColor = false;
+            this.BtnOpenMappingConfig.UseVisualStyleBackColor = true;
+            this.BtnOpenMappingConfig.Click += new System.EventHandler(this.BtnOpenMappingConfig_Click);
+            // 
             // OptionForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(388, 578);
+            this.ClientSize = new System.Drawing.Size(404, 617);
+            this.Controls.Add(this.BtnOpenMappingConfig);
             this.Controls.Add(this.CBox_UseUDP);
             this.Controls.Add(this.CBox_RemoveDuplicate);
             this.Controls.Add(this.CBox_ServerClickConnect);
@@ -303,5 +326,6 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialLabel materialLabel1;
         private MaterialSkin.Controls.MaterialLabel materialLabel2;
         private MaterialSkin.Controls.MaterialCheckbox CBox_UseUDP;
+        private MaterialSkin.Controls.MaterialButton BtnOpenMappingConfig;
     }
 }

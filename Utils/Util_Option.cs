@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using static GateHelper.LogManager;
 
+
 namespace GateHelper
 {
     class Util_Option

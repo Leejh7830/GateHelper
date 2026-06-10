@@ -69,13 +69,16 @@ namespace GateHelper
         // SandBox 관리용
         private SandBox _sandbox = null;
 
+        // ServerMapping 엔터연타방지
+        private bool _isQuickSearching = false;
+
 
         private enum PresetSelection { None, A, B }
 
         public MainUI()
         {
             // 릴리즈노트 파일만 생성(열지 않음)
-            GateHelper.Util.EnsureReleaseNotesInMeta();
+            Util.EnsureReleaseNotesInMeta();
 
             // 이하 기존 코드
             InitializeLogFile();
@@ -717,7 +720,50 @@ namespace GateHelper
             OpenLogFile();
         }
 
+        /// <summary>
+        /// 현재 웹 화면에 서버가 존재하는지 스캔하고, 없으면 검색 후 접속하는 통합 스마트 연결 모듈입니다.
+        /// </summary>
+        private void ExecuteSmartConnection(string targetServer)
+        {
+            LogMessage($"[스마트 접속] '{targetServer}' 접속 시퀀스 시작", Level.Info);
 
+            // 1. 현재 켜진 웹 화면(DOM)에 타겟 서버가 렌더링되어 있는지 팩트 체크
+            var serverList = Util_ServerList.GetServerListFromWebPage(_driver);
+            bool existsOnWeb = serverList.Any(s => string.Equals(s.ServerName, targetServer, StringComparison.OrdinalIgnoreCase));
+
+            if (existsOnWeb)
+            {
+                LogMessage($"현재 웹 화면에 [{targetServer}] 존재 - 바로 접속 시도", Level.Info);
+            }
+            else
+            {
+                LogMessage($"현재 웹 화면에 [{targetServer}] 없음 - 웹 검색 후 접속 시도 (Fallback)", Level.Info);
+
+                // 기존 UI 검색 기능 강제 트리거
+                TxtSearch1.Text = targetServer;
+                BtnSearch1_Click(null, null);
+
+                try
+                {
+                    // 검색 결과가 렌더링될 때까지 최대 10초 대기
+                    WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
+                    wait.Until(driver =>
+                    {
+                        var elements = driver.FindElements(By.XPath("//*[@id='seltable']//td[4]"));
+                        return elements.Any(el => el.Text == targetServer);
+                    });
+                }
+                catch (WebDriverTimeoutException)
+                {
+                    MessageBox.Show($"웹 검색 결과가 로딩되지 않았거나 '{targetServer}' 서버를 찾을 수 없습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return; // 접속 중단
+                }
+            }
+
+            // 2. 최종 접속 시도
+            //StartRdpDetect(targetServer);
+            Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, targetServer, OlvServerList, _appSettings.RemoveDuplicates);
+        }
 
 
 
@@ -826,7 +872,7 @@ namespace GateHelper
 
             var hit = OlvServerList.OlvHitTest(e.X, e.Y);
 
-            if (hit.Column == Memo)  // 더블클릭이 메모열이면
+            if (hit.Column == Memo)  // 더블클릭이 메모열이면 편집모드
             {
                 if (hit.Item != null)
                     OlvServerList.StartCellEdit(hit.Item, hit.ColumnIndex);
@@ -843,48 +889,8 @@ namespace GateHelper
 
             LogMessage($"ListView 더블클릭 접속 시도: {serverName}", Level.Info);
 
-            // 현재 웹페이지에서 서버목록 가져오기
-            var serverList = Util_ServerList.GetServerListFromWebPage(_driver);
-            bool exists = serverList.Any(s =>
-            string.Equals(s.ServerName, serverName, StringComparison.OrdinalIgnoreCase));
-
-            if (exists) // 서버가 현재 페이지에 있으면
-            {
-                LogMessage($"현재 화면에 [{serverName}] 존재 - 바로 접속 시도", Level.Info);
-
-                // UDP 접속 정보 송신
-                StartRdpDetect(serverName);
-
-                Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
-            }
-            else // 없으면 검색 후 접속
-            {
-                LogMessage($"현재 화면에 [{serverName}] 없음 - 검색 후 접속 시도", Level.Info);
-
-                // 검색 동작 수행
-                TxtSearch1.Text = serverName;
-                BtnSearch1_Click(null, null);
-
-                try
-                {
-                    WebDriverWait wait = new WebDriverWait(_driver, TimeSpan.FromSeconds(10));
-                    wait.Until(driver =>
-                    {
-                        var elements = driver.FindElements(By.XPath("//*[@id='seltable']//td[4]"));
-                        return elements.Any(el => el.Text == serverName);
-                    });
-                }
-                catch (WebDriverTimeoutException)
-                {
-                    MessageBox.Show("검색 결과가 로딩되지 않았습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
-
-                // UDP 접속 정보 송신
-                StartRdpDetect(serverName);
-
-                Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
-            }
+            // 💡 통합된 스마트 접속 엔진 호출
+            ExecuteSmartConnection(serverName);
         }
 
         //////////////////////////////////////////////////////////////////////////////// 옵션 전용 끝
@@ -926,6 +932,9 @@ namespace GateHelper
 
             string version = Util.GetCurrentVersionFromReleaseNotes();
             lblVersion.Text = $"{version}";
+
+            // Server Keyword Mapping
+            Util.LoadServerMappingCache();
         }
 
         private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
@@ -1454,149 +1463,111 @@ namespace GateHelper
             if (_driver == null || string.IsNullOrEmpty(managementHandle))
             {
                 LogMessage("MGMT가 열려있지 않습니다.", Level.Error);
-                MessageBox.Show("MGMT(통합모니터링) 화면이 열려있지 않거나 브라우저와 연결이 끊어졌습니다.\n\n해당 탭을 먼저 연 후 다시 수집을 시도해 주세요.",
-                                "데이터 수집 불가",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Warning);
+                MessageBox.Show("The MGMT screen is not open or the browser connection is lost.\n\nPlease open the tab first and try again.",
+                                "Data Collection Unavailable", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            var (isSemChecked, isPortChecked) = Util_Mgmt.ShowCollectionSelectDialog();
+            var (eqpType, isSemChecked, isPortChecked) = Util_Mgmt.ShowCollectionSelectDialog();
 
-            if (!isSemChecked && !isPortChecked)
+            if (string.IsNullOrEmpty(eqpType) || (!isSemChecked && !isPortChecked))
             {
                 LogMessage("선택된 수집 항목이 없거나 사용자에 의해 작업이 취소되었습니다.", Level.Info);
                 return;
             }
 
-            LogMessage($"[수집 옵션] SEM 수집: {isSemChecked}, Port 수집: {isPortChecked}", Level.Info);
+            LogMessage($"[수집 옵션] 대상: {eqpType}, SEM: {isSemChecked}, Port: {isPortChecked}", Level.Info);
             BtnStoCollect.Enabled = false;
+
+            // 💡 1. 분리된 키워드 팩토리 호출
+            var keys = Util_Mgmt.GetEquipmentKeywords(eqpType);
 
             try
             {
-                LogMessage("STO 설비 다중 순회 수집 루틴 시작 (상세 진행 로그는 생략됩니다)", Level.Info);
+                LogMessage($"{eqpType} 설비 다중 순회 수집 루틴 시작", Level.Info);
                 _driver.SwitchTo().Window(managementHandle);
 
-                string stoXPath = "//span[contains(@class, 'wj-node-text') and contains(text(), 'STO')]";
-                var initialStoList = _driver.FindElements(By.XPath(stoXPath));
-                int machineCount = initialStoList.Count;
+                string targetXPath = $"//span[contains(@class, 'wj-node-text') and contains(text(), '{eqpType}')]";
+                var initialTargetList = _driver.FindElements(By.XPath(targetXPath)).Where(el => el.Displayed).ToList();
+                int machineCount = initialTargetList.Count;
 
                 if (machineCount == 0)
                 {
-                    LogMessage("화면에서 STO 설비를 찾을 수 없습니다. 트리를 확장해 주세요.", Level.Error);
+                    LogMessage($"화면에서 {eqpType} 설비를 찾을 수 없습니다.", Level.Error);
+                    MessageBox.Show($"{eqpType} equipment could not be found on the screen.\n\nPlease expand the tree and try again.",
+                                    "Equipment Search Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
-                // 💡 [통계용 변수 초기화 및 타이머 가동]
-                Stopwatch sw = new Stopwatch();
-                sw.Start();
+                Stopwatch sw = Stopwatch.StartNew();
                 int successMachineCount = 0;
                 int collectedSemCount = 0;
                 int collectedPortCount = 0;
+                List<string> failedMachines = new List<string>();
 
+                // 💡 2. 메인 순회 루프
                 for (int i = 0; i < machineCount; i++)
                 {
-                    var currentMachines = _driver.FindElements(By.XPath(stoXPath));
-                    if (i >= currentMachines.Count) break;
-
-                    var targetMachine = currentMachines[i];
-                    string currentMachineName = targetMachine.Text;
-
-                    targetMachine.Click();
-                    await Task.Delay(1000);
-
-                    string semXPath = "//span[contains(@class, 'wj-node-text') and text()='StockerSEM']";
-                    var semElement = _driver.FindElements(By.XPath(semXPath)).FirstOrDefault(el => el.Displayed);
-
-                    if (semElement != null)
+                    string currentMachineName = "Unknown";
+                    try
                     {
-                        semElement.Click();
-                        await Task.Delay(1500);
+                        var currentMachines = _driver.FindElements(By.XPath(targetXPath)).Where(el => el.Displayed).ToList();
+                        if (i >= currentMachines.Count) break;
 
-                        // ----------------------------------------------------------
-                        // 3-1. StockerSEM 수집
-                        // ----------------------------------------------------------
-                        if (isSemChecked)
+                        var targetMachine = currentMachines[i];
+                        currentMachineName = targetMachine.Text;
+
+                        // 공통 유틸리티를 활용한 스크롤 & 클릭
+                        bool machineClicked = await Util_Element.ScrollAndClickAsync(_driver, targetMachine, 1000);
+                        if (!machineClicked) throw new Exception("호기 노드 클릭 실패");
+
+                        // SEM 폴더 무조건 먼저 진입
+                        string semXPath = $"//span[contains(@class, 'wj-node-text') and text()='{keys.semName}']";
+                        var semElement = _driver.FindElements(By.XPath(semXPath)).FirstOrDefault(el => el.Displayed);
+
+                        if (semElement != null)
                         {
-                            var tableData = await Task.Run(() => Util_Element.GetTableDataByClipboardFast(_driver));
+                            bool semClicked = await Util_Element.ScrollAndClickAsync(_driver, semElement, 1500);
+                            if (!semClicked) throw new Exception($"{keys.semName} 노드 클릭 실패");
 
-                            if (tableData != null && tableData.Count > 0)
+                            // 💡 3. SEM 데이터 수집 서브루틴 위임
+                            if (isSemChecked)
                             {
-                                await Task.Run(() => Util_Mgmt.SaveDataToExcel(currentMachineName, "StockerSEM", tableData));
-                                collectedSemCount++; // 통계 누적
+                                collectedSemCount += await Util_Mgmt.CollectSemDataAsync(_driver, eqpType, currentMachineName, keys.semName);
                             }
-                            else
+
+                            // 💡 4. Port 데이터 수집 서브루틴 위임
+                            if (isPortChecked)
                             {
-                                LogMessage($"  - {currentMachineName}_SEM : 표 데이터가 비어있습니다.", Level.Error);
+                                collectedPortCount += await Util_Mgmt.CollectPortDataAsync(_driver, eqpType, currentMachineName, keys.portParentName, keys.childPortPrefix);
                             }
+
+                            LogMessage($"[{i + 1}/{machineCount}] {currentMachineName} 정상 데이터 수집 완료", Level.Info);
+                            successMachineCount++;
                         }
-
-                        // ----------------------------------------------------------
-                        // 3-2. StockerPorts 가변 다중 수집
-                        // ----------------------------------------------------------
-                        if (isPortChecked)
+                        else
                         {
-                            string portParentXPath = "//span[contains(@class, 'wj-node-text') and text()='StockerPorts']";
-                            var portParentElement = _driver.FindElements(By.XPath(portParentXPath)).FirstOrDefault(el => el.Displayed);
-
-                            if (portParentElement != null)
-                            {
-                                portParentElement.Click();
-                                await Task.Delay(1000);
-
-                                string childPortXPath = "//span[contains(@class, 'wj-node-text') and contains(text(), 'STOCKERPORT:')]";
-                                var visibleChildPorts = _driver.FindElements(By.XPath(childPortXPath)).Where(el => el.Displayed).ToList();
-                                int childPortCount = visibleChildPorts.Count;
-
-                                for (int j = 0; j < childPortCount; j++)
-                                {
-                                    var refreshedPorts = _driver.FindElements(By.XPath(childPortXPath)).Where(el => el.Displayed).ToList();
-                                    if (j >= refreshedPorts.Count) break;
-
-                                    var targetPort = refreshedPorts[j];
-                                    string portName = targetPort.Text;
-
-                                    targetPort.Click();
-                                    await Task.Delay(1500);
-
-                                    var tableData = await Task.Run(() => Util_Element.GetTableDataByClipboardFast(_driver));
-
-                                    if (tableData != null && tableData.Count > 0)
-                                    {
-                                        await Task.Run(() => Util_Mgmt.SaveDataToExcel(currentMachineName, portName, tableData));
-                                        collectedPortCount++; // 통계 누적
-                                    }
-                                }
-                            }
-                            else
-                            {
-                                LogMessage($"  - {currentMachineName} : StockerPorts 하위 폴더가 없습니다.", Level.Error);
-                            }
+                            LogMessage($"[{i + 1}/{machineCount}] {currentMachineName} : {keys.semName} 탐색 실패", Level.Error);
+                            failedMachines.Add(currentMachineName);
                         }
-
-                        // 💡 [호기 완료 단일 로그]
-                        LogMessage($"[{i + 1}/{machineCount}] {currentMachineName} 정상 데이터 수집 완료", Level.Info);
-                        successMachineCount++; // 성공 호기 누적
                     }
-                    else
+                    catch (Exception ex)
                     {
-                        LogMessage($"[{i + 1}/{machineCount}] {currentMachineName} : StockerSEM 항목을 찾을 수 없어 탐색 실패", Level.Error);
+                        LogMessage($"[{i + 1}/{machineCount}] {currentMachineName} 처리 중 오류 발생 (스킵): {ex.Message}", Level.Error);
+                        failedMachines.Add(currentMachineName);
+                        continue;
                     }
                 }
-
-                // 💡 [타이머 종료 및 최종 요약 로그 출력]
                 sw.Stop();
 
-                LogMessage("===================================================", Level.Info);
-                LogMessage($"[최종 요약] 전체 자동화 수집 루프 완료", Level.Info);
-                LogMessage($" - 총 소요 시간 : {sw.Elapsed.Minutes}분 {sw.Elapsed.Seconds}초 ({sw.Elapsed.TotalSeconds:F1}초)", Level.Info);
-                LogMessage($" - 대상 설비 : 총 {machineCount}대 중 {successMachineCount}대 완료", Level.Info);
-                LogMessage($" - 엑셀 누적 결과 : SEM ({collectedSemCount}건), Port ({collectedPortCount}건)", Level.Info);
-                LogMessage("===================================================", Level.Info);
+                // 💡 5. 최종 집계 및 UI 팝업 출력 서브루틴 위임
+                Util_Mgmt.ShowFinalReport(eqpType, machineCount, successMachineCount, collectedSemCount, collectedPortCount, sw.Elapsed, failedMachines);
             }
             catch (Exception ex)
             {
-                LogException(ex, Level.Error, "STO 다중 수집 루프 실행 중 오류 발생");
+                LogException(ex, Level.Error, $"{eqpType} 다중 수집 루프 실행 중 치명적 오류 발생");
+                MessageBox.Show($"An error occurred during the collection loop.\n\nError details: {ex.Message}",
+                                "Process Interrupted", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -1606,116 +1577,91 @@ namespace GateHelper
 
 
 
-
-
-
-        private string SaveDataToCSV(string machineName, List<string[]> tableData)
+        // ==========================================================
+        // [이벤트 1] 텍스트박스 엔터 키 입력 (실시간 로드 + 검색)
+        // ==========================================================
+        private async void TxtQuickSearch_KeyDown(object sender, KeyEventArgs e)
         {
+            // 엔터 키를 누른 순간에만 가동
+            if (e.KeyCode == System.Windows.Forms.Keys.Enter)
+            {
+                e.SuppressKeyPress = true; // 띵 소리 방지
+
+                // 💡 [핵심 방어 1] 이미 검색이 진행 중이면 추가 입력을 강제 무시
+                if (_isQuickSearching) return;
+
+                string keyword = TxtQuickSearch.Text.Trim();
+                if (string.IsNullOrEmpty(keyword)) return;
+
+                try
+                {
+                    _isQuickSearching = true;            // 빗장 잠금
+                    TxtQuickSearch.Enabled = false;      // 시각적 비활성화 (회색 처리)
+
+                    // 1. [실시간 엑셀 동기화] 비동기 처리로 UI 멈춤 최소화
+                    await Task.Run(() => Util.LoadServerMappingCache());
+
+                    // 2. 메모리 검색
+                    string targetServer = Util.SearchServerByKeyword(keyword);
+
+                    // 3. UI 상태 업데이트
+                    if (!string.IsNullOrEmpty(targetServer))
+                    {
+                        LblQuickResult.Text = targetServer;
+                        LblQuickResult.ForeColor = Color.LimeGreen;
+                        BtnQuickConnect.Enabled = true;
+                        LogMessage($"[매핑 검색] '{keyword}' ➔ '{targetServer}' 발견", Level.Info);
+                    }
+                    else
+                    {
+                        LblQuickResult.Text = "No Data";
+                        LblQuickResult.ForeColor = Color.Red;
+                        BtnQuickConnect.Enabled = false;
+                        LogMessage($"[매핑 검색] '{keyword}'에 대한 매핑 서버가 없습니다.", Level.Warning);
+                    }
+
+                    // 💡 [핵심 방어 2] 물리적인 0.5초 쿨타임 부여 (하드디스크 보호)
+                    await Task.Delay(500);
+                }
+                finally
+                {
+                    // 예외가 발생하더라도 무조건 잠금 해제 및 포커스 복구
+                    TxtQuickSearch.Enabled = true;
+                    TxtQuickSearch.Focus();
+                    _isQuickSearching = false;
+                }
+            }
+        }
+
+        // ==========================================================
+        // [이벤트 2] 접속 버튼 클릭 (로컬 ➔ 웹 하이브리드 접속)
+        // ==========================================================
+        private void BtnQuickConnect_Click(object sender, EventArgs e)
+        {
+            string targetServer = LblQuickResult.Text;
+
+            // 방어 코드
+            if (string.IsNullOrEmpty(targetServer) || targetServer == "결과 없음") return;
+            if (!chromeDriverManager.IsDriverReady(_driver)) return;
+            if (!Util.SwitchToMainHandle(_driver, mainHandle)) return;
+
+            BtnQuickConnect.Enabled = false;
+
             try
             {
-                string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-
-                // 💡 [핵심 1] 확장자를 .csv로 변경하여 엑셀의 '형식 불일치' 경고창을 원천 차단합니다.
-                string fileName = $"호기결과_{machineName}_{DateTime.Now:yyyyMMdd_HHmmss}.csv";
-                string filePath = Path.Combine(desktopPath, fileName);
-
-                // 한글 깨짐 방지를 위해 EUC-KR 인코딩은 그대로 유지합니다.
-                using (StreamWriter sw = new StreamWriter(filePath, false, System.Text.Encoding.GetEncoding("euc-kr")))
-                {
-                    // (주의: CSV 포맷이므로 sep=\t 구문은 삭제했습니다)
-
-                    // 1. [공통 헤더 주입] 쉼표(,)로 구분
-                    string[] headers = { "Name", "Access", "Type", "Value", "Description" };
-                    sw.WriteLine(string.Join(",", headers));
-
-                    // 2. [알맹이 데이터 적재] 표준 CSV 쌍따옴표 래핑 규격 적용
-                    foreach (var rowData in tableData)
-                    {
-                        var sanitizedRow = rowData.Select(cell =>
-                        {
-                            // 줄바꿈 제거 및 데이터 내부의 쌍따옴표 이스케이프 처리
-                            string clean = cell.Replace("\r", "").Replace("\n", " ").Replace("\"", "\"\"");
-
-                            // 💡 [핵심 2] 데이터 안에 쉼표(,)가 있어도 열이 밀리지 않도록 양끝을 쌍따옴표로 감쌉니다.
-                            return $"\"{clean}\"";
-                        });
-
-                        sw.WriteLine(string.Join(",", sanitizedRow));
-                    }
-                }
-
-                return filePath;
+                // 💡 통합된 스마트 접속 엔진 호출
+                ExecuteSmartConnection(targetServer);
             }
             catch (Exception ex)
             {
-                LogException(ex, Level.Error, "CSV 파일 생성 중 예외 발생");
-                return string.Empty;
+                LogException(ex, Level.Error, "빠른 매핑 접속 중 오류 발생");
+            }
+            finally
+            {
+                BtnQuickConnect.Enabled = true;
             }
         }
 
 
-        private async void BtnTestStoSearch_Click(object sender, EventArgs e)
-        {
-            if (_driver == null || string.IsNullOrEmpty(managementHandle))
-            {
-                LogMessage("MGMT 탭이 열려있지 않습니다.", Level.Error);
-                return;
-            }
-
-            try
-            {
-                LogMessage("=== [테스트] 3-Depth 하위 노드(SEM, Ports) 탐색 시작 ===", Level.Info);
-                _driver.SwitchTo().Window(managementHandle);
-
-                // 1. [Depth 1] StockerSEM 탐색 및 강제 확장
-                string semXPath = "//span[contains(@class, 'wj-node-text') and text()='StockerSEM']";
-                var semElement = _driver.FindElements(By.XPath(semXPath)).FirstOrDefault(el => el.Displayed);
-
-                if (semElement != null)
-                {
-                    LogMessage($"- [Depth 1] StockerSEM 발견됨. 하위 항목을 열기 위해 클릭합니다.", Level.Info);
-                    semElement.Click();
-                    await Task.Delay(1000); // 트리 확장 대기
-                }
-                else
-                {
-                    LogMessage("- [Depth 1] StockerSEM 항목이 화면에 보이지 않습니다. 탐색을 중단합니다.", Level.Error);
-                    return; // SEM이 안 열리면 Port도 열 수 없으므로 즉시 종료
-                }
-
-                // 2. [Depth 2] StockerPorts 부모 폴더 탐색 및 강제 확장 (이미지 팩트: 끝에 's'가 붙음)
-                string portParentXPath = "//span[contains(@class, 'wj-node-text') and text()='StockerPorts']";
-                var portParentElement = _driver.FindElements(By.XPath(portParentXPath)).FirstOrDefault(el => el.Displayed);
-
-                if (portParentElement != null)
-                {
-                    LogMessage($"- [Depth 2] StockerPorts 부모 폴더 발견됨. 자식 포트를 열기 위해 클릭합니다.", Level.Info);
-                    portParentElement.Click();
-                    await Task.Delay(1000); // 트리 확장 대기
-
-                    // 3. [Depth 3] 전개된 하위 STOCKERPORT:n 개수 및 이름 파악 (이미지 팩트: 대문자 및 콜론 포함)
-                    string childPortXPath = "//span[contains(@class, 'wj-node-text') and contains(text(), 'STOCKERPORT:')]";
-
-                    var visibleChildPorts = _driver.FindElements(By.XPath(childPortXPath)).Where(el => el.Displayed).ToList();
-
-                    LogMessage($"- [결과] 총 {visibleChildPorts.Count}개의 하위 세부 포트가 감지되었습니다.", Level.Info);
-
-                    for (int i = 0; i < visibleChildPorts.Count; i++)
-                    {
-                        LogMessage($"  -> 자식 항목 [{i + 1}]: {visibleChildPorts[i].Text}", Level.Info);
-                    }
-                }
-                else
-                {
-                    LogMessage("- [Depth 2] StockerPorts 부모 폴더를 찾을 수 없습니다.", Level.Error);
-                }
-
-                LogMessage("=== [테스트] 3-Depth 하위 노드 탐색 종료 ===", Level.Info);
-            }
-            catch (Exception ex)
-            {
-                LogException(ex, Level.Error, "하위 노드 탐색 테스트 중 오류 발생");
-            }
-        }
-    }
+    } // MainUI.cs END
 }

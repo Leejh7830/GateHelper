@@ -4,6 +4,9 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
+using System.IO;
+using System.Diagnostics;
+using static GateHelper.LogManager;
 
 namespace GateHelper
 {
@@ -190,5 +193,43 @@ namespace GateHelper
             // 마우스 위치를 화면 좌표로 변환해 중앙 처리 함수 호출
             UpdateDescriptionFromScreenPoint(this.PointToScreen(e.Location));
         }
-    }
+
+        // 매핑 설정 엑셀 파일 열기
+        private void BtnOpenMappingConfig_Click(object sender, EventArgs e)
+        {
+            LogMessage("BtnOpenMappingConfig Click", Level.Info);
+
+            // 1. 파일 상태 검증 및 경로 획득
+            string mappingFilePath = Util.EnsureMappingFileExists();
+
+            if (!File.Exists(mappingFilePath))
+            {
+                MessageBox.Show("매핑 설정 파일을 찾을 수 없거나 생성에 실패했습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            try
+            {
+                // 2. OS 기본 프로그램(Excel 등)을 통해 파일 독립 실행
+                Process.Start(new ProcessStartInfo(mappingFilePath) { UseShellExecute = true });
+
+                LogMessage("[OPEN] 사용자가 매핑 마스터 엑셀 파일을 열었습니다.", Level.Info);
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error, "매핑 설정 파일 오픈 중 예외 발생");
+                MessageBox.Show($"파일을 열 수 없습니다.\n\n오류 내용: {ex.Message}", "실행 실패", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+    } // OptionForm END
 }

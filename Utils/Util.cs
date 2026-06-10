@@ -1,5 +1,7 @@
-﻿using OpenQA.Selenium;
+﻿using ClosedXML.Excel;
+using OpenQA.Selenium;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -42,7 +44,7 @@ namespace GateHelper
             string metaNotesPath = GetMetaPath("ReleaseNotes.txt");
             string content =
 @"
-v2.3.1 / 26.05.14 / Test Version
+v2.3.2 / 26.06.10 / Test Version
 - leejh7830@lgespartner.com
 - 비영리 목적으로 제작한 유틸리티입니다.
 
@@ -110,8 +112,9 @@ v2.2.4 / 26.01.29 신규 - SandBox - SignalLink
 v2.2.5 / 26.03.30 개선 - 프로그램 종료(X) 클릭 시 확인 창 띄우기 / 리스트뷰에서 바로 접속 시 검색 텍스트 박스 비우기
 v2.2.6 / 26.04.08 개선 - Disable Pop up -> Auto Screen Unlock 으로 변경, 통합관리시스템(Manufacturing Management) 연결
 
-v2.3.0 / 26.05.12 신규 - 통합모니터링사이트(Management) 사이트 오픈 및 이동
-v2.3.1 / 26.05.14 신규 - 통합모니터링사이트(Management) 자동로그인 기능 구현 / Main과 Management Handle 관리 구분 및 인터락 구현
+v2.3.0 / 26.05.12 신규 - 통합모니터링(MGMT) 사이트 오픈 및 이동
+v2.3.1 / 26.05.14 신규 - 통합모니터링(MGMT) 자동로그인 기능 구현 / Main과 Management Handle 관리 구분 및 인터락 구현
+v2.3.2 / 26.06.10 (안정화버전) 신규 - 통합모니터링(MGMT) STO 데이터 수집 / 신규 - ServerMapping 기능 추가
          
 ";
 
@@ -323,5 +326,132 @@ v2.3.1 / 26.05.14 신규 - 통합모니터링사이트(Management) 자동로그�
 
 
 
-    }
+        ////////////////////////////////////////////////////////// Server Keyword Mapping START /////////////////////////////////////////////////////////////////////////////
+
+        private static Dictionary<string, string> _serverMappingCache =
+            new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        /// <summary>
+        /// 매핑 마스터 엑셀 파일의 존재 여부를 확인하고 없으면 자동 생성합니다.
+        /// </summary>
+        public static string EnsureMappingFileExists()
+        {
+            // 이미 존재하는 Util의 폴더 생성/경로 반환 메서드 재사용
+            string metaPath = CreateMetaFolderAndGetPath();
+            string filePath = Path.Combine(metaPath, "ServerMappingMaster.xlsx");
+
+            try
+            {
+                // 엑셀 파일이 없으면 새 템플릿 생성
+                if (!File.Exists(filePath))
+                {
+                    using (var workbook = new XLWorkbook())
+                    {
+                        var worksheet = workbook.Worksheets.Add("MappingMaster");
+
+                        // 표준 가이드 컬럼 작성
+                        worksheet.Cell(1, 1).Value = "TargetServer";
+                        worksheet.Cell(1, 2).Value = "Keywords";
+
+                        // 샘플 데이터 주입
+                        worksheet.Cell(2, 1).Value = "Server_C";
+                        worksheet.Cell(2, 2).Value = "사과, apple, FSTO_01";
+
+                        worksheet.Columns().AdjustToContents();
+                        workbook.SaveAs(filePath);
+                    }
+                    LogMessage("[생성] 매핑 마스터 기본 템플릿 파일이 _meta에 생성되었습니다.", Level.Info);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error, "매핑 마스터 파일 무결성 체크 중 예외 발생");
+            }
+
+            return filePath;
+        }
+
+        /// <summary>
+        /// 매핑 엑셀 파일을 읽어와 N:1 구조를 메모리(Dictionary)에 실시간 캐싱합니다.
+        /// 파일이 엑셀에 의해 열려 있어도 FileShare.ReadWrite 권한으로 강제 복사하여 읽어옵니다.
+        /// </summary>
+        public static void LoadServerMappingCache()
+        {
+            string filePath = EnsureMappingFileExists();
+
+            if (!File.Exists(filePath))
+            {
+                LogMessage("[캐시 로드 실패] 매핑 파일이 존재하지 않습니다.", Level.Error);
+                return;
+            }
+
+            try
+            {
+                // 딕셔너리 초기화 (새로고침 대응)
+                _serverMappingCache.Clear();
+
+                // 💡 [핵심 방어] 사용자가 엑셀을 열어두었어도 ReadWrite 공유 모드로 스트림을 열어 락 붕괴 방지
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    using (var workbook = new XLWorkbook(stream))
+                    {
+                        var worksheet = workbook.Worksheet(1); // 첫 번째 시트 접근
+                        var rows = worksheet.RangeUsed().RowsUsed().Skip(1); // 헤더행(1행) 제외
+
+                        foreach (var row in rows)
+                        {
+                            string targetServer = row.Cell(1).GetValue<string>().Trim();
+                            string keywordsToken = row.Cell(2).GetValue<string>().Trim();
+
+                            if (string.IsNullOrEmpty(targetServer) || string.IsNullOrEmpty(keywordsToken))
+                                continue;
+
+                            // 콤마(,)를 기준으로 키워드 분리 및 공백 정제
+                            string[] keywords = keywordsToken.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+                            foreach (string kw in keywords)
+                            {
+                                string cleanKeyword = kw.Trim();
+                                if (string.IsNullOrEmpty(cleanKeyword)) continue;
+
+                                // 중복 키워드 방어: 먼저 등록된 키워드가 우선권을 가짐
+                                if (!_serverMappingCache.ContainsKey(cleanKeyword))
+                                {
+                                    _serverMappingCache.Add(cleanKeyword, targetServer);
+                                }
+                                else
+                                {
+                                    LogMessage($"[캐시 경고] 중복된 키워드가 발견되어 제외되었습니다: {cleanKeyword} (서버: {targetServer})", Level.Warning);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error, "서버 매핑 엑셀 파일 캐싱 중 치명적 오류 발생");
+            }
+        }
+
+        /// <summary>
+        /// 입력된 호기명 또는 키워드를 기반으로 메모리에서 타겟 서버명을 찾아 반환합니다.
+        /// </summary>
+        public static string SearchServerByKeyword(string keyword)
+        {
+            if (string.IsNullOrWhiteSpace(keyword)) return string.Empty;
+
+            string cleanKeyword = keyword.Trim();
+            if (_serverMappingCache.TryGetValue(cleanKeyword, out string targetServer))
+            {
+                return targetServer;
+            }
+
+            return string.Empty; // 검색 결과 없음
+        }
+
+        ////////////////////////////////////////////////////////// Server Keyword Mapping END /////////////////////////////////////////////////////////////////////////////
+
+
+    } // Util.cs END
 }

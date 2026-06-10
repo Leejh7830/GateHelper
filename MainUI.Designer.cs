@@ -94,6 +94,9 @@ namespace GateHelper
             this.BtnOpenLog2 = new MaterialSkin.Controls.MaterialButton();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.BtnStartManagement = new MaterialSkin.Controls.MaterialButton();
+            this.TxtQuickSearch = new MaterialSkin.Controls.MaterialTextBox2();
+            this.BtnQuickConnect = new MaterialSkin.Controls.MaterialButton();
+            this.LblQuickResult = new System.Windows.Forms.Label();
             this.GroupConnect1.SuspendLayout();
             this.GroupPreset1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
@@ -442,7 +445,6 @@ namespace GateHelper
             // 
             // GroupManagement1
             // 
-            this.GroupManagement1.Controls.Add(this.BtnTestStoSearch);
             this.GroupManagement1.Controls.Add(this.BtnStoCollect);
             this.GroupManagement1.Controls.Add(this.BtnMoveVariable);
             this.GroupManagement1.Location = new System.Drawing.Point(405, 13);
@@ -462,7 +464,7 @@ namespace GateHelper
             this.BtnTestStoSearch.Depth = 0;
             this.BtnTestStoSearch.HighEmphasis = true;
             this.BtnTestStoSearch.Icon = null;
-            this.BtnTestStoSearch.Location = new System.Drawing.Point(14, 121);
+            this.BtnTestStoSearch.Location = new System.Drawing.Point(869, 174);
             this.BtnTestStoSearch.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnTestStoSearch.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnTestStoSearch.Name = "BtnTestStoSearch";
@@ -473,7 +475,6 @@ namespace GateHelper
             this.BtnTestStoSearch.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.BtnTestStoSearch.UseAccentColor = false;
             this.BtnTestStoSearch.UseVisualStyleBackColor = true;
-            this.BtnTestStoSearch.Click += new System.EventHandler(this.BtnTestStoSearch_Click);
             // 
             // BtnStoCollect
             // 
@@ -1079,12 +1080,78 @@ namespace GateHelper
             this.BtnStartManagement.UseVisualStyleBackColor = true;
             this.BtnStartManagement.Click += new System.EventHandler(this.BtnStartManagement_Click);
             // 
+            // TxtQuickSearch
+            // 
+            this.TxtQuickSearch.AnimateReadOnly = false;
+            this.TxtQuickSearch.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.TxtQuickSearch.CharacterCasing = System.Windows.Forms.CharacterCasing.Normal;
+            this.TxtQuickSearch.Depth = 0;
+            this.TxtQuickSearch.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.TxtQuickSearch.HideSelection = true;
+            this.TxtQuickSearch.ImeMode = System.Windows.Forms.ImeMode.NoControl;
+            this.TxtQuickSearch.LeadingIcon = null;
+            this.TxtQuickSearch.Location = new System.Drawing.Point(162, 544);
+            this.TxtQuickSearch.Margin = new System.Windows.Forms.Padding(2);
+            this.TxtQuickSearch.MaxLength = 32767;
+            this.TxtQuickSearch.MouseState = MaterialSkin.MouseState.OUT;
+            this.TxtQuickSearch.Name = "TxtQuickSearch";
+            this.TxtQuickSearch.PasswordChar = '\0';
+            this.TxtQuickSearch.PrefixSuffixText = null;
+            this.TxtQuickSearch.ReadOnly = false;
+            this.TxtQuickSearch.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.TxtQuickSearch.SelectedText = "";
+            this.TxtQuickSearch.SelectionLength = 0;
+            this.TxtQuickSearch.SelectionStart = 0;
+            this.TxtQuickSearch.ShortcutsEnabled = true;
+            this.TxtQuickSearch.Size = new System.Drawing.Size(111, 48);
+            this.TxtQuickSearch.TabIndex = 104;
+            this.TxtQuickSearch.TabStop = false;
+            this.TxtQuickSearch.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.TxtQuickSearch.TrailingIcon = null;
+            this.TxtQuickSearch.UseSystemPasswordChar = false;
+            this.TxtQuickSearch.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TxtQuickSearch_KeyDown);
+            // 
+            // BtnQuickConnect
+            // 
+            this.BtnQuickConnect.AutoSize = false;
+            this.BtnQuickConnect.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnQuickConnect.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnQuickConnect.Depth = 0;
+            this.BtnQuickConnect.Enabled = false;
+            this.BtnQuickConnect.HighEmphasis = true;
+            this.BtnQuickConnect.Icon = null;
+            this.BtnQuickConnect.Location = new System.Drawing.Point(280, 544);
+            this.BtnQuickConnect.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnQuickConnect.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnQuickConnect.Name = "BtnQuickConnect";
+            this.BtnQuickConnect.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnQuickConnect.Size = new System.Drawing.Size(121, 50);
+            this.BtnQuickConnect.TabIndex = 105;
+            this.BtnQuickConnect.Text = "Connect";
+            this.BtnQuickConnect.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnQuickConnect.UseAccentColor = false;
+            this.BtnQuickConnect.UseVisualStyleBackColor = true;
+            this.BtnQuickConnect.Click += new System.EventHandler(this.BtnQuickConnect_Click);
+            // 
+            // LblQuickResult
+            // 
+            this.LblQuickResult.AutoSize = true;
+            this.LblQuickResult.Location = new System.Drawing.Point(312, 572);
+            this.LblQuickResult.Name = "LblQuickResult";
+            this.LblQuickResult.Size = new System.Drawing.Size(53, 12);
+            this.LblQuickResult.TabIndex = 106;
+            this.LblQuickResult.Text = "SERVER";
+            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1114, 714);
+            this.Controls.Add(this.BtnTestStoSearch);
+            this.Controls.Add(this.LblQuickResult);
+            this.Controls.Add(this.BtnQuickConnect);
+            this.Controls.Add(this.TxtQuickSearch);
             this.Controls.Add(this.BtnStartManagement);
             this.Controls.Add(this.BtnOpenLog2);
             this.Controls.Add(this.lblVersion);
@@ -1198,6 +1265,9 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton BtnMoveVariable;
         private MaterialSkin.Controls.MaterialButton BtnStoCollect;
         private MaterialSkin.Controls.MaterialButton BtnTestStoSearch;
+        private MaterialSkin.Controls.MaterialTextBox2 TxtQuickSearch;
+        private MaterialSkin.Controls.MaterialButton BtnQuickConnect;
+        private System.Windows.Forms.Label LblQuickResult;
     }
 }
 
