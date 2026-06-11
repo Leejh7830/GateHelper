@@ -51,6 +51,7 @@ namespace GateHelper
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.GroupManagement1 = new System.Windows.Forms.GroupBox();
             this.BtnStoCollect = new MaterialSkin.Controls.MaterialButton();
+            this.BtnPauseCollect = new MaterialSkin.Controls.MaterialButton();
             this.BtnMoveVariable = new MaterialSkin.Controls.MaterialButton();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.OlvServerList = new BrightIdeasSoftware.ObjectListView();
@@ -71,7 +72,6 @@ namespace GateHelper
             this.BtnReloadImages1 = new MaterialSkin.Controls.MaterialButton();
             this.GroupRef2 = new System.Windows.Forms.GroupBox();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
-            this.BtnTestStoSearch = new MaterialSkin.Controls.MaterialButton();
             this.TabSelector1 = new MaterialSkin.Controls.MaterialTabSelector();
             this.BtnStart2 = new MaterialSkin.Controls.MaterialButton();
             this.BtnOpenConfig1 = new MaterialSkin.Controls.MaterialButton();
@@ -96,6 +96,7 @@ namespace GateHelper
             this.BtnStartManagement = new MaterialSkin.Controls.MaterialButton();
             this.TxtQuickSearch = new MaterialSkin.Controls.MaterialTextBox2();
             this.BtnQuickConnect = new MaterialSkin.Controls.MaterialButton();
+            this.BtnStopCollect = new MaterialSkin.Controls.MaterialButton();
             this.GroupConnect1.SuspendLayout();
             this.GroupPreset1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
@@ -444,7 +445,9 @@ namespace GateHelper
             // 
             // GroupManagement1
             // 
+            this.GroupManagement1.Controls.Add(this.BtnStopCollect);
             this.GroupManagement1.Controls.Add(this.BtnStoCollect);
+            this.GroupManagement1.Controls.Add(this.BtnPauseCollect);
             this.GroupManagement1.Controls.Add(this.BtnMoveVariable);
             this.GroupManagement1.Location = new System.Drawing.Point(405, 13);
             this.GroupManagement1.Margin = new System.Windows.Forms.Padding(2);
@@ -475,6 +478,27 @@ namespace GateHelper
             this.BtnStoCollect.UseAccentColor = false;
             this.BtnStoCollect.UseVisualStyleBackColor = true;
             this.BtnStoCollect.Click += new System.EventHandler(this.BtnStoCollect_Click);
+            // 
+            // BtnPauseCollect
+            // 
+            this.BtnPauseCollect.AutoSize = false;
+            this.BtnPauseCollect.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnPauseCollect.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnPauseCollect.Depth = 0;
+            this.BtnPauseCollect.HighEmphasis = true;
+            this.BtnPauseCollect.Icon = null;
+            this.BtnPauseCollect.Location = new System.Drawing.Point(14, 271);
+            this.BtnPauseCollect.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnPauseCollect.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnPauseCollect.Name = "BtnPauseCollect";
+            this.BtnPauseCollect.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnPauseCollect.Size = new System.Drawing.Size(136, 40);
+            this.BtnPauseCollect.TabIndex = 105;
+            this.BtnPauseCollect.Text = "PAUSE";
+            this.BtnPauseCollect.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnPauseCollect.UseAccentColor = false;
+            this.BtnPauseCollect.UseVisualStyleBackColor = true;
+            this.BtnPauseCollect.Click += new System.EventHandler(this.BtnPauseCollect_Click);
             // 
             // BtnMoveVariable
             // 
@@ -750,26 +774,6 @@ namespace GateHelper
             this.flowLayoutPanel1.Padding = new System.Windows.Forms.Padding(3);
             this.flowLayoutPanel1.Size = new System.Drawing.Size(380, 281);
             this.flowLayoutPanel1.TabIndex = 29;
-            // 
-            // BtnTestStoSearch
-            // 
-            this.BtnTestStoSearch.AutoSize = false;
-            this.BtnTestStoSearch.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnTestStoSearch.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnTestStoSearch.Depth = 0;
-            this.BtnTestStoSearch.HighEmphasis = true;
-            this.BtnTestStoSearch.Icon = null;
-            this.BtnTestStoSearch.Location = new System.Drawing.Point(869, 174);
-            this.BtnTestStoSearch.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.BtnTestStoSearch.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnTestStoSearch.Name = "BtnTestStoSearch";
-            this.BtnTestStoSearch.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnTestStoSearch.Size = new System.Drawing.Size(136, 40);
-            this.BtnTestStoSearch.TabIndex = 105;
-            this.BtnTestStoSearch.Text = "STO SEARCH";
-            this.BtnTestStoSearch.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnTestStoSearch.UseAccentColor = false;
-            this.BtnTestStoSearch.UseVisualStyleBackColor = true;
             // 
             // TabSelector1
             // 
@@ -1132,13 +1136,32 @@ namespace GateHelper
             this.BtnQuickConnect.UseVisualStyleBackColor = true;
             this.BtnQuickConnect.Click += new System.EventHandler(this.BtnQuickConnect_Click);
             // 
+            // BtnStopCollect
+            // 
+            this.BtnStopCollect.AutoSize = false;
+            this.BtnStopCollect.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnStopCollect.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnStopCollect.Depth = 0;
+            this.BtnStopCollect.HighEmphasis = true;
+            this.BtnStopCollect.Icon = null;
+            this.BtnStopCollect.Location = new System.Drawing.Point(14, 219);
+            this.BtnStopCollect.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnStopCollect.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnStopCollect.Name = "BtnStopCollect";
+            this.BtnStopCollect.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnStopCollect.Size = new System.Drawing.Size(136, 40);
+            this.BtnStopCollect.TabIndex = 106;
+            this.BtnStopCollect.Text = "STOP";
+            this.BtnStopCollect.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnStopCollect.UseAccentColor = false;
+            this.BtnStopCollect.UseVisualStyleBackColor = true;
+            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1114, 714);
-            this.Controls.Add(this.BtnTestStoSearch);
             this.Controls.Add(this.BtnQuickConnect);
             this.Controls.Add(this.TxtQuickSearch);
             this.Controls.Add(this.BtnStartManagement);
@@ -1253,9 +1276,10 @@ namespace GateHelper
         private System.Windows.Forms.GroupBox GroupManagement1;
         private MaterialSkin.Controls.MaterialButton BtnMoveVariable;
         private MaterialSkin.Controls.MaterialButton BtnStoCollect;
-        private MaterialSkin.Controls.MaterialButton BtnTestStoSearch;
+        private MaterialSkin.Controls.MaterialButton BtnPauseCollect;
         private MaterialSkin.Controls.MaterialTextBox2 TxtQuickSearch;
         private MaterialSkin.Controls.MaterialButton BtnQuickConnect;
+        private MaterialSkin.Controls.MaterialButton BtnStopCollect;
     }
 }
 

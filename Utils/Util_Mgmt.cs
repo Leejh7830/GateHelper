@@ -241,14 +241,20 @@ namespace GateHelper.Utils
         // 4. [리포팅] 최종 결과 집계 및 사용자 알림 출력
         public static void ShowFinalReport(string eqpType, int machineCount, int successMachineCount, int collectedSemCount, int collectedPortCount, TimeSpan elapsedTime, List<string> failedMachines)
         {
-            // 💡 [수정] TotalMinutes를 사용하여 1시간이 넘어가도 총 누적 분(Minute)으로 표시되도록 변경
-            int totalMinutes = (int)elapsedTime.TotalMinutes;
-            int seconds = elapsedTime.Seconds;
+            // 💡 [수정] 60분이 넘어가면 '시간' 단위로 변환하여 문자열을 동적 조합
+            int hours = (int)elapsedTime.TotalHours;
+            int minutes = elapsedTime.Minutes;  // 0~59분만 반환
+            int seconds = elapsedTime.Seconds;  // 0~59초만 반환
+
+            // 시간이 1시간 이상일 때와 아닐 때를 구분하여 텍스트 포맷 결정
+            string timeFormat = hours > 0
+                ? $"{hours}시간 {minutes}분 {seconds}초"
+                : $"{minutes}분 {seconds}초";
 
             // 백그라운드 관리자 로그
             LogMessage("===================================================", Level.Info);
             LogMessage($"[최종 요약] 전체 자동화 수집 루프 완료 ({eqpType})", Level.Info);
-            LogMessage($" - 총 소요 시간 : {totalMinutes}분 {seconds}초", Level.Info);
+            LogMessage($" - 총 소요 시간 : {timeFormat}", Level.Info);
             LogMessage($" - 대상 설비 : 총 {machineCount}대 중 {successMachineCount}대 완료 (실패: {failedMachines.Count}대)", Level.Info);
             LogMessage($" - 엑셀 누적 결과 : SEM ({collectedSemCount}건), Port ({collectedPortCount}건)", Level.Info);
 
@@ -276,7 +282,7 @@ namespace GateHelper.Utils
                        $"• 처리된 설비: 총 {machineCount}대 중 {successMachineCount}대 성공\n" +
                        $"• 실패한 설비: {failedMachines.Count}대 ({failedListDisplay})\n" +
                        $"• 총 엑셀 저장 건수: {collectedSemCount + collectedPortCount}건 (SEM: {collectedSemCount}건 / Port: {collectedPortCount}건)\n" +
-                       $"• 총 소요 시간: {totalMinutes}분 {seconds}초 (설비당 평균 {avgTime:F1}초)\n\n" +
+                       $"• 총 소요 시간: {timeFormat} (설비당 평균 {avgTime:F1}초)\n\n" +
                        "💾 [저장 위치]\n" +
                        "바탕화면 ➔ Integrated_Equipment_Data.xlsx";
 
@@ -294,30 +300,5 @@ namespace GateHelper.Utils
 
 
 
-
     } // Util.Mgmt.cs END
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 } // namespace

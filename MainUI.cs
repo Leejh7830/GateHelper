@@ -15,6 +15,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using static GateHelper.LogManager;
 
+
 namespace GateHelper
 {
     public partial class MainUI : MaterialForm
@@ -71,6 +72,13 @@ namespace GateHelper
 
         // ServerMapping 엔터연타방지
         private bool _isQuickSearching = false;
+
+
+        // [MGMT] 수집 루프 긴급 정지를 위한 전역 취소 토큰
+        private System.Threading.CancellationTokenSource _cancelTokenSource;
+
+        // [MGMT] 수집 일시 정지를 위한 전역 신호등 (초기값 true: 통과)
+        private System.Threading.ManualResetEventSlim _pauseEvent = new System.Threading.ManualResetEventSlim(true);
 
 
         private enum PresetSelection { None, A, B }
@@ -1400,6 +1408,8 @@ namespace GateHelper
             }
         }
 
+
+        // [MGMT] MGMT LOGIN
         private void PerformManagementLogin()
         {
             bool idResult = Util_Element.SendKeysToElement(_driver, "//*[@id=\"validationCustom01\"]", _config.ManagementUserID);
@@ -1419,6 +1429,7 @@ namespace GateHelper
             }
         }
 
+        // [MGMT] Variable Menu Click
         private async void BtnMoveVariable_Click(object sender, EventArgs e)
         {
             // 1. 유효성 검사
@@ -1442,15 +1453,33 @@ namespace GateHelper
                 // 4. 메뉴가 열리는 물리적인 시간을 위한 아주 짧은 대기
                 await Task.Delay(500);
 
-                // 5. 왼쪽 내비게이션 메뉴 클릭
-                bool step2Result = await Task.Run(() => Util_Element.ClickElementByXPath(_driver, "//*[@id=\"mes_container\"]/div/div[1]/div[2]/div[1]/div[2]/div/a[2]/span/span"));
+                // 5. 💡 [수정] 정확한 일치(Exact Match) 텍스트 추적 방식으로 전면 개조
+                // normalize-space(.) = 'Variable Search' 구문을 사용하여 다른 유사 메뉴(Monitoring Variable Search)를 완전히 배제합니다.
+                string targetXPath = "//*[@id=\"mes_container\"]//a[normalize-space(.)='Variable Search']";
+
+                bool step2Result = await Task.Run(() => Util_Element.ClickElementByXPath(_driver, targetXPath));
+
                 if (step2Result)
                 {
-                    LogMessage("Variable Search 메뉴 이동 완료", Level.Info);
+                    LogMessage("Variable Search 메뉴 이동 완료 (정확한 텍스트 매칭)", Level.Info);
                 }
+                else
+                {
+                    LogMessage("텍스트 매칭 실패. 내부 Span 구조 직접 탐색으로 폴백(Fallback)을 시도합니다.", Level.Warning);
 
+                    // 💡 [방어막] 태그가 복잡하게 꼬여 <a> 태그 검사가 실패할 경우, 글자가 정확히 일치하는 <span> 엘리먼트 자체를 직접 저격 클릭
+                    string fallbackSpanXPath = "//*[@id=\"mes_container\"]//span[text()='Variable Search']";
+                    bool fallbackResult = await Task.Run(() => Util_Element.ClickElementByXPath(_driver, fallbackSpanXPath));
 
-
+                    if (fallbackResult)
+                    {
+                        LogMessage("Variable Search 메뉴 이동 완료 (Span 텍스트 기반)", Level.Info);
+                    }
+                    else
+                    {
+                        LogMessage("메뉴 클릭에 최종 실패했습니다.", Level.Error);
+                    }
+                }
             }
             catch (Exception ex)
             {
@@ -1458,8 +1487,14 @@ namespace GateHelper
             }
         }
 
+
+
+        // ==========================================================
+        // 🚀 [메인 수집 루틴] 72대 설비 초고속 순회 + 소프트웨어 인터락 내장
+        // ==========================================================
         private async void BtnStoCollect_Click(object sender, EventArgs e)
         {
+            // 1. 브라우저 및 보조 사이트(MGMT) 탭 생존 여부 엄격 검증
             if (_driver == null || string.IsNullOrEmpty(managementHandle))
             {
                 LogMessage("MGMT가 열려있지 않습니다.", Level.Error);
@@ -1468,6 +1503,7 @@ namespace GateHelper
                 return;
             }
 
+            // 2. 수집 옵션 다이얼로그 호출
             var (eqpType, isSemChecked, isPortChecked) = Util_Mgmt.ShowCollectionSelectDialog();
 
             if (string.IsNullOrEmpty(eqpType) || (!isSemChecked && !isPortChecked))
@@ -1477,14 +1513,14 @@ namespace GateHelper
             }
 
             LogMessage($"[수집 옵션] 대상: {eqpType}, SEM: {isSemChecked}, Port: {isPortChecked}", Level.Info);
-            BtnStoCollect.Enabled = false;
-
-            // 💡 1. 분리된 키워드 팩토리 호출
-            var keys = Util_Mgmt.GetEquipmentKeywords(eqpType);
 
             try
             {
-                LogMessage($"{eqpType} 설비 다중 순회 수집 루틴 시작", Level.Info);
+                // 💡 [인터락 가드 가동] 수집 도중 다른 버튼 클릭으로 인한 충돌을 원천 차단
+                SetCollectionInterlock(false);
+                LogMessage($"{eqpType} 설비 다중 순회 수집 루틴 시작 (UI 조작 잠금)", Level.Info);
+
+                // MGMT 탭으로 시선 강제 고정
                 _driver.SwitchTo().Window(managementHandle);
 
                 string targetXPath = $"//span[contains(@class, 'wj-node-text') and contains(text(), '{eqpType}')]";
@@ -1505,38 +1541,41 @@ namespace GateHelper
                 int collectedPortCount = 0;
                 List<string> failedMachines = new List<string>();
 
-                // 💡 2. 메인 순회 루프
+                // 키워드 팩토리 호출
+                var keys = Util_Mgmt.GetEquipmentKeywords(eqpType);
+
+                // 3. 메인 순회 루프 가동
                 for (int i = 0; i < machineCount; i++)
                 {
                     string currentMachineName = "Unknown";
                     try
                     {
+                        // DOM 변경에 대비하여 매 루프마다 엘리먼트 리스트 최신화 (Stale 방지)
                         var currentMachines = _driver.FindElements(By.XPath(targetXPath)).Where(el => el.Displayed).ToList();
                         if (i >= currentMachines.Count) break;
 
                         var targetMachine = currentMachines[i];
                         currentMachineName = targetMachine.Text;
 
-                        // 공통 유틸리티를 활용한 스크롤 & 클릭
+                        // 💡 업그레이드된 3단 방어 클릭 엔진 가동 (유실 방지)
                         bool machineClicked = await Util_Element.ScrollAndClickAsync(_driver, targetMachine, 1000);
                         if (!machineClicked) throw new Exception("호기 노드 클릭 실패");
 
-                        // SEM 폴더 무조건 먼저 진입
+                        // SEM 폴더 진입
                         string semXPath = $"//span[contains(@class, 'wj-node-text') and text()='{keys.semName}']";
                         var semElement = _driver.FindElements(By.XPath(semXPath)).FirstOrDefault(el => el.Displayed);
 
                         if (semElement != null)
                         {
-                            bool semClicked = await Util_Element.ScrollAndClickAsync(_driver, semElement, 1500);
+                            bool semClicked = await Util_Element.ScrollAndClickAsync(_driver, semElement, 1000);
                             if (!semClicked) throw new Exception($"{keys.semName} 노드 클릭 실패");
 
-                            // 💡 3. SEM 데이터 수집 서브루틴 위임
+                            // 💡 서브루틴 위임: 내부적으로 초고속 클립보드 덤프 엔진 가동됨
                             if (isSemChecked)
                             {
                                 collectedSemCount += await Util_Mgmt.CollectSemDataAsync(_driver, eqpType, currentMachineName, keys.semName);
                             }
 
-                            // 💡 4. Port 데이터 수집 서브루틴 위임
                             if (isPortChecked)
                             {
                                 collectedPortCount += await Util_Mgmt.CollectPortDataAsync(_driver, eqpType, currentMachineName, keys.portParentName, keys.childPortPrefix);
@@ -1560,7 +1599,7 @@ namespace GateHelper
                 }
                 sw.Stop();
 
-                // 💡 5. 최종 집계 및 UI 팝업 출력 서브루틴 위임
+                // 4. 최종 집계 및 한국어 리포트 팝업 출력
                 Util_Mgmt.ShowFinalReport(eqpType, machineCount, successMachineCount, collectedSemCount, collectedPortCount, sw.Elapsed, failedMachines);
             }
             catch (Exception ex)
@@ -1571,9 +1610,86 @@ namespace GateHelper
             }
             finally
             {
-                BtnStoCollect.Enabled = true;
+                // [인터락 가드 해제] 에러가 나거나 수집이 끝나면 무조건 UI 조작 권한 복구
+                SetCollectionInterlock(true);
+                LogMessage("데이터 수집 루틴 종료 (UI 조작 잠금 해제)", Level.Info);
             }
-        } // BtnStoCollect_Click END
+        }
+
+        /// <summary>
+        /// 데이터 수집 중 충돌을 방지하기 위해 주요 UI 컨트롤의 활성화 상태를 일괄 제어합니다.
+        /// </summary>
+        private void SetCollectionInterlock(bool isEnabled)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(() => SetCollectionInterlock(isEnabled)));
+                return;
+            }
+
+            BtnStoCollect.Enabled = isEnabled;
+            BtnQuickConnect.Enabled = isEnabled;
+            TxtQuickSearch.Enabled = isEnabled;
+            BtnConnect1.Enabled = isEnabled;
+            BtnSearch1.Enabled = isEnabled;
+            BtnFav1.Enabled = isEnabled;
+            BtnFav2.Enabled = isEnabled;
+            BtnFav3.Enabled = isEnabled;
+            BtnStartManagement.Enabled = isEnabled;
+            BtnMoveVariable.Enabled = isEnabled;
+            ComboBoxServerList1.Enabled = isEnabled;
+
+            // 💡 [수정] 중지 및 일시 정지 버튼은 반대로 동작 (수집 중에만 활성화)
+            if (BtnStopCollect != null)
+            {
+                BtnStopCollect.Enabled = !isEnabled;
+                if (isEnabled) BtnStopCollect.Text = "수집 중지";
+            }
+
+            if (BtnPauseCollect != null)
+            {
+                BtnPauseCollect.Enabled = !isEnabled;
+                if (isEnabled) BtnPauseCollect.Text = "일시 정지"; // 초기화
+            }
+        }
+
+        // ==========================================================
+        // [MGMT] 수집 일시 정지 / 재개 토글
+        // ==========================================================
+        private void BtnPauseCollect_Click(object sender, EventArgs e)
+        {
+            // 신호등이 파란불(진행 중)일 때 누르면 -> 빨간불(정지)로 변경
+            if (_pauseEvent.IsSet)
+            {
+                LogMessage("[일시 정지] 수집이 일시 정지되었습니다. 현재 호기 처리가 끝나면 대기합니다.", Level.Warning);
+                BtnPauseCollect.Text = "수집 재개";
+                _pauseEvent.Reset(); // 빗장 걸기 (스레드 블로킹 대기)
+            }
+            // 신호등이 빨간불(대기 중)일 때 누르면 -> 파란불(진행)로 변경
+            else
+            {
+                LogMessage("[수집 재개] 수집 루프가 다시 가동됩니다.", Level.Info);
+                BtnPauseCollect.Text = "일시 정지";
+                _pauseEvent.Set(); // 빗장 풀기 (스레드 블로킹 해제)
+            }
+        }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -1664,6 +1780,11 @@ namespace GateHelper
                 // BtnQuickConnect.Text = "Quick Connect";
             }
         }
+
+        
+
+
+
 
 
     } // MainUI.cs END

@@ -122,221 +122,158 @@ namespace GateHelper
         ////////////////////////////////////////////////////통합모니터링(Management) 전용 시작/////////////////////////////////////////////////////////////////
 
         /// <summary>
-        /// 우측 데이터 영역에 정밀 포커스를 주어 0.5초 만에 전체 데이터를 클립보드로 덤프 후 파싱합니다.
+        /// (1) 최종 호출 메서드: 클립보드에서 텍스트를 추출한 후 엑셀 저장을 위한 List<string[]> 형태로 파싱합니다.
         /// </summary>
-        public static List<string[]> GetTableDataByClipboardFast(IWebDriver driver)
+        public static async Task<List<string[]>> GetTableDataByClipboardFast(IWebDriver driver)
         {
-            var uniqueKeys = new HashSet<string>();
-            var allData = new List<string[]>();
+            List<string[]> parsedData = new List<string[]>();
 
-            try
+            // 정확한 데이터 표 컨테이너 지정
+            string gridXPath = "//*[@id='uncontrolled-tab-example-tabpane-WEB030102']/div/div[2]/div/div/div[3]/div/div/div[1]/div/div[2]/div/div/div[2]";
+
+            // 클립보드 하이재킹 모듈 실행
+            string rawText = await ExtractDataViaClipboardAsync(driver, gridXPath);
+
+            if (string.IsNullOrWhiteSpace(rawText)) return parsedData;
+
+            // 복사된 텍스트 파싱 (\r\n 또는 \n 으로 엔터키 기준 행 분리)
+            string[] rows = rawText.Split(new[] { "\r\n", "\n" }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (string row in rows)
             {
-                // 1. Lee님이 완벽하게 검증하신 데이터 영역의 정확한 부모 컨테이너 지정
-                string dataAreaPath = "//*[@id='uncontrolled-tab-example-tabpane-WEB030102']/div/div[2]/div/div/div[3]/div/div/div[1]/div/div[2]/div/div/div[2]";
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-                var dataArea = wait.Until(ExpectedConditions.ElementIsVisible(By.XPath(dataAreaPath)));
+                // 탭(\t) 기호로 열 분리
+                string[] columns = row.Split('\t');
 
-                IJavaScriptExecutor js = (IJavaScriptExecutor)driver;
-
-                // 진짜 물리적 스크롤바 컨테이너 추출
-                IWebElement scrollContainer = (IWebElement)js.ExecuteScript(
-                    "let el = arguments[0]; " +
-                    "while (el && el.tagName !== 'BODY') { " +
-                    "   if (el.scrollHeight > el.clientHeight && window.getComputedStyle(el).overflowY !== 'visible') { " +
-                    "       return el; " +
-                    "   } " +
-                    "   el = el.parentElement; " +
-                    "} " +
-                    "return arguments[0].parentElement;", dataArea);
-
-
-                string rowPath = $"{dataAreaPath}/div[contains(@class, 'wj-row') or @role='row']";
-                long lastScrollTop = -1;
-                int sameCount = 0;
-
-                // 최대 25회 PageDown 루프로 완주하도록 가드 설정
-                for (int step = 0; step < 25; step++)
+                // 배열 앞뒤 공백 및 찌꺼기 문자 정제
+                for (int i = 0; i < columns.Length; i++)
                 {
-                    // 현재 화면(가상 뷰포트)에 바인딩된 데이터 행 확보
-                    var rows = driver.FindElements(By.XPath(rowPath));
-                    if (rows.Count == 0)
-                    {
-                        rows = driver.FindElements(By.XPath("//*[@id='uncontrolled-tab-example-tabpane-WEB030102']//div[contains(@class, 'wj-row')]"));
-                    }
-
-                    int previousCount = allData.Count;
-
-                    foreach (var row in rows)
-                    {
-                        var cells = row.FindElements(By.XPath("./div"));
-                        if (cells.Count >= 5)
-                        {
-                            string name = cells[0].Text.Trim();
-                            if (string.IsNullOrEmpty(name) || name == "Name" || name == "Value") continue;
-
-                            if (!uniqueKeys.Contains(name))
-                            {
-                                uniqueKeys.Add(name);
-                                allData.Add(new string[] {
-                            name,
-                            cells[1].Text.Trim(),
-                            cells[2].Text.Trim(),
-                            cells[3].Text.Trim(),
-                            cells[4].Text.Trim()
-                        });
-                            }
-                        }
-                    }
-
-                    // 물리적 최하단 바닥 검증 (가상화 오류로 인한 조기 종료 방지)
-                    long currentScrollTop = (long)js.ExecuteScript("return Math.ceil(arguments[0].scrollTop);", scrollContainer);
-                    long scrollHeight = (long)js.ExecuteScript("return arguments[0].scrollHeight;", scrollContainer);
-                    long clientHeight = (long)js.ExecuteScript("return arguments[0].clientHeight;", scrollContainer);
-
-                    if (currentScrollTop == lastScrollTop || (currentScrollTop + clientHeight >= scrollHeight - 3))
-                    {
-                        sameCount++;
-                        if (sameCount >= 2) break; // 진짜 바닥 안착 시 즉시 루프 탈출
-                    }
-                    else
-                    {
-                        lastScrollTop = currentScrollTop;
-                    }
-
-                    // 가상화 엔진이 공식 지원하는 PageDown 단축키 이벤트를 주입하여 한 페이지 단위 초고속 점프
-                    js.ExecuteScript("arguments[0].focus();", scrollContainer);
-                    js.ExecuteScript(
-                        "var e = new KeyboardEvent('keydown', { key: 'PageDown', keyCode: 34, bubbles: true }); " +
-                        "arguments[0].dispatchEvent(e);", scrollContainer);
-
-                    // 💡 속도 극대화 튜닝: 대기 시간을 가상화가 깨지지 않는 최저 마진인 0.3초(300ms)로 단축
-                    Thread.Sleep(300);
+                    columns[i] = columns[i].Trim().Trim('"');
                 }
-            }
-            catch (Exception ex)
-            {
-                LogMessage($"[스크롤 에러] 데이터 수집 중 치명적 예외 발생: {ex.Message}", Level.Error);
+
+                // 헤더(Name, Value 등)가 포함되었다면 제외
+                if (columns.Length > 0 && (columns[0] == "Name" || columns[0] == "Value"))
+                    continue;
+
+                parsedData.Add(columns);
             }
 
-            return allData;
+            return parsedData;
         }
 
 
         /// <summary>
-        /// 요소를 화면 중앙으로 스크롤한 뒤 클릭합니다. ElementNotInteractable 예외를 원천 차단합니다.
+        /// (2) 엔진 메서드: 그리드를 클릭하고 Ctrl+A, Ctrl+C를 보내 클립보드 텍스트를 탈취합니다.
         /// </summary>
-        public static async Task<bool> ScrollAndClickAsync(IWebDriver driver, IWebElement element, int delayAfterClickMs = 1000)
+        private static async Task<string> ExtractDataViaClipboardAsync(IWebDriver driver, string gridXPath)
+        {
+            try
+            {
+                // 1. 그리드 영역 찾기 및 포커스 클릭 (3단 콤보 방어 로직 사용)
+                var gridElement = driver.FindElement(By.XPath(gridXPath));
+                await ScrollAndClickAsync(driver, gridElement, 500);
+
+                // 2. 기존 클립보드 완전히 비우기 (충돌 방지)
+                RunInSTA(() => Clipboard.Clear());
+
+                // 3. 단축키 전송 (Action 객체가 단순 SendKeys보다 훨씬 안정적임)
+                new OpenQA.Selenium.Interactions.Actions(driver)
+                    .KeyDown(OpenQA.Selenium.Keys.Control).SendKeys("a").KeyUp(OpenQA.Selenium.Keys.Control)
+                    .KeyDown(OpenQA.Selenium.Keys.Control).SendKeys("c").KeyUp(OpenQA.Selenium.Keys.Control)
+                    .Perform();
+
+                // 4. 클립보드에 데이터가 찰 때까지 최대 3초(15회) 대기
+                int waitCount = 0;
+                bool hasText = false;
+                while (waitCount < 15)
+                {
+                    await Task.Delay(200);
+                    RunInSTA(() => hasText = Clipboard.ContainsText());
+                    if (hasText) break;
+                    waitCount++;
+                }
+
+                // 5. 메모리 탈취 및 클립보드 초기화
+                string rawData = string.Empty;
+                if (hasText)
+                {
+                    RunInSTA(() => {
+                        rawData = Clipboard.GetText();
+                        Clipboard.Clear(); // 다음 호기 수집을 위해 무조건 비워야 함
+                    });
+                }
+
+                return rawData;
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogMessage($"클립보드 데이터 추출 실패: {ex.Message}", LogManager.Level.Error);
+                return string.Empty;
+            }
+        }
+
+
+        /// <summary>
+        /// (3) 시스템 방어 메서드: C#의 비동기 스레드에서 클립보드에 접근할 때 발생하는 
+        /// ThreadStateException을 원천 차단하기 위해 STA(단일 스레드) 아파트를 강제 생성합니다.
+        /// </summary>
+        private static void RunInSTA(Action action)
+        {
+            System.Threading.Thread thread = new System.Threading.Thread(() =>
+            {
+                try { action(); } catch { }
+            });
+            thread.SetApartmentState(System.Threading.ApartmentState.STA);
+            thread.Start();
+            thread.Join();
+        }
+
+        /// <summary>
+        /// (4) 3단 방어 스크롤 & 클릭: 스크롤, 일반 클릭, JS 강제 클릭을 혼합하여 재시도합니다.
+        /// </summary>
+        public static async Task<bool> ScrollAndClickAsync(IWebDriver driver, IWebElement element, int delayAfterClickMs = 1000, int maxRetries = 3)
         {
             if (element == null || !element.Displayed) return false;
-            try
+
+            for (int i = 0; i < maxRetries; i++)
             {
-                ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView({block: 'center'});", element);
-                await Task.Delay(300); // UI 스크롤 안정화 대기
-                element.Click();
-                await Task.Delay(delayAfterClickMs);
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-
-        ////////////////////////////////////////////////////통합모니터링(Management) 전용 끝/////////////////////////////////////////////////////////////////
-
-
-        /// //////////////////////////////////////////////////////////////////////////////////////////////////
-        public static void FindAndAlertElement(IWebDriver driver, string xpath)
-        {
-            try
-            {
-                // 최대 5초 동안 요소가 화면에 나타날 때까지 기다립니다.
-                WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(5));
-
-                // ElementIsVisible은 요소가 존재하고, 화면에 표시될 때까지 기다립니다.
-                wait.Until(ExpectedConditions.ElementIsVisible(By.XPath(xpath)));
-
-                // 성공적으로 기다렸다면, 요소가 발견된 것입니다.
-                string message = $"XPath '{xpath}'에 해당하는 요소를 발견했습니다.";
-                LogManager.LogMessage(message, Level.Info);
-                MessageBox.Show(message, "요소 발견", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (WebDriverTimeoutException)
-            {
-                // 5초 안에 요소를 찾지 못하면 이 예외가 발생합니다.
-                string message = $"XPath '{xpath}'에 해당하는 요소를 찾을 수 없습니다.";
-                LogManager.LogMessage(message, Level.Error);
-                MessageBox.Show(message, "요소 없음", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            }
-            catch (Exception ex)
-            {
-                // 그 외 예상치 못한 오류가 발생한 경우
-                LogManager.LogException(ex, Level.Error, $"요소 검색 중 예상치 못한 오류 발생: '{xpath}'");
-                MessageBox.Show($"오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        public static void FindElementAndShowMessage(IWebDriver driver, string query)
-        {
-            try
-            {
-                // XPath인지 CSS Selector인지 자동 판별
-                By by = query.StartsWith("/") || query.StartsWith(".") ? By.XPath(query) : By.CssSelector(query);
-
-                // 현재 페이지에서 검색
-                if (FindElementInCurrentContext(driver, by))
+                try
                 {
-                    MessageBox.Show($"요소를 찾았습니다: {query}", "성공", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
+                    // 1단계: 무조건 화면 중앙으로 스크롤하여 시야에 확보
+                    ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].scrollIntoView({block: 'center'});", element);
+                    await Task.Delay(300); // UI 스크롤 안정화 대기
 
-                // 모든 iframe을 순회하면서 검색
-                var allFrames = driver.FindElements(By.TagName("iframe"));
-                foreach (var frame in allFrames)
-                {
                     try
                     {
-                        driver.SwitchTo().Frame(frame);
-                        if (FindElementInCurrentContext(driver, by))
-                        {
-                            MessageBox.Show($"요소를 찾았습니다 (iframe 내부): {query}", "성공", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                            return;
-                        }
+                        // 2단계: 표준 클릭 시도
+                        element.Click();
                     }
-                    catch (Exception ex)
+                    catch (ElementClickInterceptedException)
                     {
-                        Console.WriteLine($"iframe 전환 실패: {ex.Message}");
+                        // 3단계: 다른 팝업이나 레이어에 가려졌다면 JS 강제 클릭으로 돌파
+                        ((IJavaScriptExecutor)driver).ExecuteScript("arguments[0].click();", element);
                     }
-                    finally
-                    {
-                        driver.SwitchTo().DefaultContent();
-                    }
+
+                    // 클릭이 성공했으므로 지정된 딜레이만큼 대기 후 탈출
+                    await Task.Delay(delayAfterClickMs);
+                    return true;
+                }
+                catch (StaleElementReferenceException)
+                {
+                    LogManager.LogMessage("ScrollAndClickAsync: 요소가 DOM에서 유실됨", LogManager.Level.Warning);
+                    return false;
+                }
+                catch (Exception ex)
+                {
+                    LogManager.LogMessage($"ScrollAndClickAsync 재시도 {i + 1}/{maxRetries} 실패: {ex.Message}", LogManager.Level.Warning);
                 }
 
-                // 요소를 찾지 못한 경우
-                MessageBox.Show($"요소를 찾을 수 없습니다: {query}", "실패", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                await Task.Delay(500); // 쿨타임
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
+
+            return false;
         }
 
-        // 현재 컨텍스트에서 요소를 찾는 함수
-        private static bool FindElementInCurrentContext(IWebDriver driver, By by)
-        {
-            try
-            {
-                return driver.FindElements(by).Count > 0;
-            }
-            catch (NoSuchElementException)
-            {
-                return false;
-            }
-        }
-
-        /// //////////////////////////////////////////////////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////통합모니터링(Management) 전용 끝/////////////////////////////////////////////////////////////////
 
     }
 }
