@@ -50,7 +50,6 @@ namespace GateHelper
             this.TabControl1 = new MaterialSkin.Controls.MaterialTabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.GroupManagement1 = new System.Windows.Forms.GroupBox();
-            this.BtnTestStoSearch = new MaterialSkin.Controls.MaterialButton();
             this.BtnStoCollect = new MaterialSkin.Controls.MaterialButton();
             this.BtnMoveVariable = new MaterialSkin.Controls.MaterialButton();
             this.tabPage4 = new System.Windows.Forms.TabPage();
@@ -72,6 +71,7 @@ namespace GateHelper
             this.BtnReloadImages1 = new MaterialSkin.Controls.MaterialButton();
             this.GroupRef2 = new System.Windows.Forms.GroupBox();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
+            this.BtnTestStoSearch = new MaterialSkin.Controls.MaterialButton();
             this.TabSelector1 = new MaterialSkin.Controls.MaterialTabSelector();
             this.BtnStart2 = new MaterialSkin.Controls.MaterialButton();
             this.BtnOpenConfig1 = new MaterialSkin.Controls.MaterialButton();
@@ -96,7 +96,6 @@ namespace GateHelper
             this.BtnStartManagement = new MaterialSkin.Controls.MaterialButton();
             this.TxtQuickSearch = new MaterialSkin.Controls.MaterialTextBox2();
             this.BtnQuickConnect = new MaterialSkin.Controls.MaterialButton();
-            this.LblQuickResult = new System.Windows.Forms.Label();
             this.GroupConnect1.SuspendLayout();
             this.GroupPreset1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
@@ -456,26 +455,6 @@ namespace GateHelper
             this.GroupManagement1.TabStop = false;
             this.GroupManagement1.Text = "Management";
             // 
-            // BtnTestStoSearch
-            // 
-            this.BtnTestStoSearch.AutoSize = false;
-            this.BtnTestStoSearch.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnTestStoSearch.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnTestStoSearch.Depth = 0;
-            this.BtnTestStoSearch.HighEmphasis = true;
-            this.BtnTestStoSearch.Icon = null;
-            this.BtnTestStoSearch.Location = new System.Drawing.Point(869, 174);
-            this.BtnTestStoSearch.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.BtnTestStoSearch.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnTestStoSearch.Name = "BtnTestStoSearch";
-            this.BtnTestStoSearch.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnTestStoSearch.Size = new System.Drawing.Size(136, 40);
-            this.BtnTestStoSearch.TabIndex = 105;
-            this.BtnTestStoSearch.Text = "STO SEARCH";
-            this.BtnTestStoSearch.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnTestStoSearch.UseAccentColor = false;
-            this.BtnTestStoSearch.UseVisualStyleBackColor = true;
-            // 
             // BtnStoCollect
             // 
             this.BtnStoCollect.AutoSize = false;
@@ -771,6 +750,26 @@ namespace GateHelper
             this.flowLayoutPanel1.Padding = new System.Windows.Forms.Padding(3);
             this.flowLayoutPanel1.Size = new System.Drawing.Size(380, 281);
             this.flowLayoutPanel1.TabIndex = 29;
+            // 
+            // BtnTestStoSearch
+            // 
+            this.BtnTestStoSearch.AutoSize = false;
+            this.BtnTestStoSearch.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnTestStoSearch.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnTestStoSearch.Depth = 0;
+            this.BtnTestStoSearch.HighEmphasis = true;
+            this.BtnTestStoSearch.Icon = null;
+            this.BtnTestStoSearch.Location = new System.Drawing.Point(869, 174);
+            this.BtnTestStoSearch.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnTestStoSearch.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnTestStoSearch.Name = "BtnTestStoSearch";
+            this.BtnTestStoSearch.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnTestStoSearch.Size = new System.Drawing.Size(136, 40);
+            this.BtnTestStoSearch.TabIndex = 105;
+            this.BtnTestStoSearch.Text = "STO SEARCH";
+            this.BtnTestStoSearch.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnTestStoSearch.UseAccentColor = false;
+            this.BtnTestStoSearch.UseVisualStyleBackColor = true;
             // 
             // TabSelector1
             // 
@@ -1133,15 +1132,6 @@ namespace GateHelper
             this.BtnQuickConnect.UseVisualStyleBackColor = true;
             this.BtnQuickConnect.Click += new System.EventHandler(this.BtnQuickConnect_Click);
             // 
-            // LblQuickResult
-            // 
-            this.LblQuickResult.AutoSize = true;
-            this.LblQuickResult.Location = new System.Drawing.Point(312, 572);
-            this.LblQuickResult.Name = "LblQuickResult";
-            this.LblQuickResult.Size = new System.Drawing.Size(53, 12);
-            this.LblQuickResult.TabIndex = 106;
-            this.LblQuickResult.Text = "SERVER";
-            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -1149,7 +1139,6 @@ namespace GateHelper
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1114, 714);
             this.Controls.Add(this.BtnTestStoSearch);
-            this.Controls.Add(this.LblQuickResult);
             this.Controls.Add(this.BtnQuickConnect);
             this.Controls.Add(this.TxtQuickSearch);
             this.Controls.Add(this.BtnStartManagement);
@@ -1267,7 +1256,6 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton BtnTestStoSearch;
         private MaterialSkin.Controls.MaterialTextBox2 TxtQuickSearch;
         private MaterialSkin.Controls.MaterialButton BtnQuickConnect;
-        private System.Windows.Forms.Label LblQuickResult;
     }
 }
 

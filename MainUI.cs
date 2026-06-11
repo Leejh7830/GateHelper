@@ -1587,7 +1587,7 @@ namespace GateHelper
             {
                 e.SuppressKeyPress = true; // 띵 소리 방지
 
-                // 💡 [핵심 방어 1] 이미 검색이 진행 중이면 추가 입력을 강제 무시
+                // 이미 검색이 진행 중이면 추가 입력을 강제 무시
                 if (_isQuickSearching) return;
 
                 string keyword = TxtQuickSearch.Text.Trim();
@@ -1596,36 +1596,34 @@ namespace GateHelper
                 try
                 {
                     _isQuickSearching = true;            // 빗장 잠금
-                    TxtQuickSearch.Enabled = false;      // 시각적 비활성화 (회색 처리)
+                    TxtQuickSearch.Enabled = false;      // 입력창 잠금
+                    BtnQuickConnect.Text = "검색 중..."; // 💡 [추가] 시각적 피드백
 
-                    // 1. [실시간 엑셀 동기화] 비동기 처리로 UI 멈춤 최소화
+                    // 1. [실시간 엑셀 동기화] 비동기 처리
                     await Task.Run(() => Util.LoadServerMappingCache());
 
                     // 2. 메모리 검색
                     string targetServer = Util.SearchServerByKeyword(keyword);
 
-                    // 3. UI 상태 업데이트
+                    // 3. 💡 UI 상태 업데이트 (라벨 대신 버튼 텍스트 변경)
                     if (!string.IsNullOrEmpty(targetServer))
                     {
-                        LblQuickResult.Text = targetServer;
-                        LblQuickResult.ForeColor = Color.LimeGreen;
+                        BtnQuickConnect.Text = targetServer; // 성공: 버튼 글씨를 서버명으로 변경
                         BtnQuickConnect.Enabled = true;
                         LogMessage($"[매핑 검색] '{keyword}' ➔ '{targetServer}' 발견", Level.Info);
                     }
                     else
                     {
-                        LblQuickResult.Text = "No Data";
-                        LblQuickResult.ForeColor = Color.Red;
+                        BtnQuickConnect.Text = "결과 없음";  // 실패: 버튼 글씨를 결과 없음으로 변경
                         BtnQuickConnect.Enabled = false;
                         LogMessage($"[매핑 검색] '{keyword}'에 대한 매핑 서버가 없습니다.", Level.Warning);
                     }
 
-                    // 💡 [핵심 방어 2] 물리적인 0.5초 쿨타임 부여 (하드디스크 보호)
+                    // 물리적인 0.5초 쿨타임 부여 (하드디스크 보호)
                     await Task.Delay(500);
                 }
                 finally
                 {
-                    // 예외가 발생하더라도 무조건 잠금 해제 및 포커스 복구
                     TxtQuickSearch.Enabled = true;
                     TxtQuickSearch.Focus();
                     _isQuickSearching = false;
@@ -1638,10 +1636,11 @@ namespace GateHelper
         // ==========================================================
         private void BtnQuickConnect_Click(object sender, EventArgs e)
         {
-            string targetServer = LblQuickResult.Text;
+            // 💡 [수정] 라벨이 아닌 버튼 자신의 텍스트를 타겟 서버명으로 사용
+            string targetServer = BtnQuickConnect.Text;
 
-            // 방어 코드
-            if (string.IsNullOrEmpty(targetServer) || targetServer == "결과 없음") return;
+            // 방어 코드 ("결과 없음", "검색 중..." 등 예외 텍스트일 때 클릭 방지)
+            if (string.IsNullOrEmpty(targetServer) || targetServer == "결과 없음" || targetServer == "검색 중...") return;
             if (!chromeDriverManager.IsDriverReady(_driver)) return;
             if (!Util.SwitchToMainHandle(_driver, mainHandle)) return;
 
@@ -1649,7 +1648,7 @@ namespace GateHelper
 
             try
             {
-                // 💡 통합된 스마트 접속 엔진 호출
+                // 통합된 스마트 접속 엔진 호출
                 ExecuteSmartConnection(targetServer);
             }
             catch (Exception ex)
@@ -1659,6 +1658,10 @@ namespace GateHelper
             finally
             {
                 BtnQuickConnect.Enabled = true;
+
+                // 💡 [선택 사항] 접속을 누른 후 텍스트창과 버튼을 초기화하고 싶다면 주석 해제
+                // TxtQuickSearch.Text = "";
+                // BtnQuickConnect.Text = "Quick Connect";
             }
         }
 
