@@ -303,6 +303,68 @@ namespace GateHelper
             return false;
         }
 
+        /// <summary>
+        /// 💡 [신규 엔진] 클립보드(Ctrl+A, C)를 전혀 쓰지 않고 JS로 DOM에서 데이터를 즉시 파싱하여 반환합니다.
+        /// </summary>
+        /// <summary>
+        /// 💡 [신규 엔진] 클립보드(Ctrl+A, C)를 전혀 쓰지 않고 JS로 DOM에서 데이터를 즉시 파싱하여 반환합니다.
+        /// (SaveDataToExcel과 완벽히 호환되도록 List<string[]> 형태로 반환)
+        /// </summary>
+        public static List<string[]> GetTableDataByJavaScriptFast(IWebDriver driver)
+        {
+            try
+            {
+                var jsExecutor = (IJavaScriptExecutor)driver;
+
+                // 1. 화면의 Wijmo 그리드 또는 일반 테이블을 찾아 데이터를 TSV(탭 분리) 텍스트로 즉각 탈취
+                string jsScript = @"
+            var grid = document.querySelector('.wj-flexgrid') || document.querySelector('table');
+            if (!grid) return '';
+
+            var rows = grid.querySelectorAll('.wj-row, tr');
+            if (rows.length === 0) return grid.innerText; 
+
+            var result = '';
+            for (var i = 0; i < rows.length; i++) {
+                var cells = rows[i].querySelectorAll('.wj-cell, td, th');
+                var rowData = [];
+                for (var j = 0; j < cells.length; j++) {
+                    rowData.push(cells[j].innerText.replace(/\n/g, ' ').trim()); 
+                }
+                if (rowData.length > 0) {
+                    result += rowData.join('\t') + '\n';
+                }
+            }
+            return result.trim();
+        ";
+
+                string rawData = (string)jsExecutor.ExecuteScript(jsScript);
+
+                if (string.IsNullOrWhiteSpace(rawData))
+                    return new List<string[]>();
+
+                // 2. 💡 [수정됨] 획득한 텍스트를 List<string[]> 형태로 파싱
+                var parsedData = new List<string[]>();
+                string[] lines = rawData.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
+
+                foreach (var line in lines)
+                {
+                    // Split('\t')은 기본적으로 string[] 배열을 반환하므로, ToList() 없이 그대로 Add 합니다.
+                    parsedData.Add(line.Split('\t'));
+                }
+
+                // 메모리 강제 최적화
+                GC.Collect();
+
+                return parsedData;
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"JS 데이터 추출 실패: {ex.Message}", Level.Error);
+                return new List<string[]>(); // 에러 시 빈 리스트 반환하여 시스템 다운 방지
+            }
+        }
+
         ////////////////////////////////////////////////////통합모니터링(Management) 전용 끝/////////////////////////////////////////////////////////////////
 
     }

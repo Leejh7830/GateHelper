@@ -186,10 +186,15 @@ namespace GateHelper.Utils
             return ("StockerSEM", "StockerPorts", "STOCKERPORT:");
         }
 
-        // 2. [서브루틴] SEM 데이터 단일 수집 및 저장
+        // 2. [서브루틴] SEM 데이터 수집
         public static async Task<int> CollectSemDataAsync(IWebDriver driver, string eqpType, string machineName, string targetSemName)
         {
-            var tableData = await Task.Run(() => Util_Element.GetTableDataByClipboardFast(driver));
+            // 기존 클립보드 방식
+            // var tableData = await Task.Run(() => Util_Element.GetTableDataByClipboardFast(driver));
+
+            // JS 직접 추출 방식 (클립보드 우회, 속도 저하 원천 차단)
+            var tableData = await Task.Run(() => Util_Element.GetTableDataByJavaScriptFast(driver));
+
             if (tableData != null && tableData.Count > 0)
             {
                 await Task.Run(() => SaveDataToExcel(eqpType, machineName, targetSemName, tableData));
@@ -222,10 +227,16 @@ namespace GateHelper.Utils
                         var targetPort = refreshedPorts[j];
                         string portName = targetPort.Text;
 
+                        // 클릭 후 1.5초 대기하여 JS가 긁어갈 대상 DOM(표) 렌더링 시간 확보
                         bool portClicked = await Util_Element.ScrollAndClickAsync(driver, targetPort, 1500);
                         if (portClicked)
                         {
-                            var tableData = await Task.Run(() => Util_Element.GetTableDataByClipboardFast(driver));
+                            // 기존 클립보드 방식
+                            // var tableData = await Task.Run(() => Util_Element.GetTableDataByClipboardFast(driver));
+
+                            // [신규 엔진] JS 직접 추출 방식
+                            var tableData = await Task.Run(() => Util_Element.GetTableDataByJavaScriptFast(driver)); 
+
                             if (tableData != null && tableData.Count > 0)
                             {
                                 await Task.Run(() => SaveDataToExcel(eqpType, machineName, portName, tableData));
@@ -405,7 +416,7 @@ namespace GateHelper.Utils
         }
 
 
-
+        
 
 
 

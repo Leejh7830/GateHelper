@@ -384,6 +384,9 @@ v2.3.2 / 26.06.10 (안정화버전) 신규 - 통합모니터링(MGMT) STO 데이
                 return;
             }
 
+            // 중복 발생 내역을 메모리에 임시 수집할 리스트 생성
+            List<string> conflictLogs = new List<string>();
+
             try
             {
                 // 딕셔너리 초기화 (새로고침 대응)
@@ -410,21 +413,52 @@ v2.3.2 / 26.06.10 (안정화버전) 신규 - 통합모니터링(MGMT) STO 데이
 
                             foreach (string kw in keywords)
                             {
-                                string cleanKeyword = kw.Trim();
+                                // 대소문자 차이로 인한 검색 실패 및 중복을 막기 위해 무조건 소문자로 통일
+                                string cleanKeyword = kw.Trim().ToLower();
                                 if (string.IsNullOrEmpty(cleanKeyword)) continue;
 
-                                // 중복 키워드 방어: 먼저 등록된 키워드가 우선권을 가짐
                                 if (!_serverMappingCache.ContainsKey(cleanKeyword))
                                 {
                                     _serverMappingCache.Add(cleanKeyword, targetServer);
                                 }
                                 else
                                 {
-                                    LogMessage($"[캐시 경고] 중복된 키워드가 발견되어 제외되었습니다: {cleanKeyword} (서버: {targetServer})", Level.Warning);
+                                    // 이미 등록된 키워드일 경우, 동일한 서버를 가리키는지 확인
+                                    string existingServer = _serverMappingCache[cleanKeyword];
+
+                                    if (existingServer != targetServer)
+                                    {
+                                        string conflictInfo = $"'{cleanKeyword}' ➔ [{existingServer}] vs [{targetServer}]";
+                                        LogMessage($"[캐시 경고] 중복 키워드 충돌: {conflictInfo} (우선 적용: {existingServer})", Level.Warning);
+                                        conflictLogs.Add(conflictInfo);
+                                    }
                                 }
                             }
                         }
                     }
+                }
+                // 루프가 종료된 후, 수집된 충돌 내역이 있다면 사용자에게 1회 경고 팝업
+                if (conflictLogs.Count > 0)
+                {
+                    // 화면 밖으로 창이 길어지는 것을 방지하기 위해 최대 10건만 팝업에 표시
+                    var displayConflicts = conflictLogs.Take(10).ToList();
+                    string alertMessage = $"엑셀 매핑 데이터에서 {conflictLogs.Count}건의 중복 서버가 발견되었습니다.\n" +
+                                          "시스템 보호를 위해 상단에 먼저 기록된 서버가 유지됩니다.\n\n" +
+                                          "[중복 충돌 상세 내역]\n" +
+                                          string.Join("\n", displayConflicts);
+
+                    if (conflictLogs.Count > 10)
+                    {
+                        alertMessage += $"\n...외 {conflictLogs.Count - 10}건 (상세 내역은 로그 참조)";
+                    }
+
+                    alertMessage += "\n\n사용자가 직접 엑셀 파일을 열어 중복을 정리해 주십시오.";
+
+                    MessageBox.Show(alertMessage, "매핑 캐시 중복 경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+                else
+                {
+                    LogMessage("[캐시 로드 완료] 매핑 파일이 정상적으로 메모리에 적재되었습니다.", Level.Info);
                 }
             }
             catch (Exception ex)
