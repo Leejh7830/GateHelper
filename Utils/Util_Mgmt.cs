@@ -290,9 +290,119 @@ namespace GateHelper.Utils
         }
 
 
+        /// <summary>
+        /// 💡 [엑셀 인터락] 수집 시작 전, 바탕화면 엑셀 파일의 중복 및 잠금 상태를 사전 검증합니다.
+        /// </summary>
+        /// <param name="filePath">검증할 엑셀 파일 전체 경로</param>
+        /// <returns>true(진행 가능), false(수집 중단)</returns>
+        public static bool CheckExcelFileInterlock(string filePath)
+        {
+            if (!File.Exists(filePath)) return true; // 파일이 없으면 즉시 통과
 
+            try
+            {
+                // 1. 파일이 다른 프로그램(엑셀 등)에 의해 열려 있는지 잠금 상태 체크
+                using (FileStream fs = File.Open(filePath, FileMode.Open, FileAccess.ReadWrite, FileShare.None)) { }
+            }
+            catch (IOException)
+            {
+                LogMessage("엑셀 파일이 열려 있어 수집을 시작할 수 없습니다.", Level.Error);
+                MessageBox.Show("저장 대상 엑셀 파일이 현재 실행(열림) 중입니다.\n\n" +
+                                "데이터 증발 및 충돌을 방지하기 위해 엑셀 파일을 완전히 닫은 후 다시 시도해 주십시오.",
+                                "파일 잠김 에러", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false; // 진행 불가
+            }
 
+            // 2. 파일 초기화 여부 결정 팝업창 출력
+            DialogResult fileCheckResult = MessageBox.Show(
+                "바탕화면에 이미 수집된 엑셀 파일이 존재합니다.\n기존 데이터에 이어서 누적(Append) 하시겠습니까?\n\n" +
+                "• [예(Yes)] : 기존 파일 유지 및 하단에 데이터 누적\n" +
+                "• [아니요(No)] : 기존 파일 초기화(삭제) 후 새 파일로 시작\n" +
+                "• [취소(Cancel)] : 수집 작업 중단",
+                "중복 파일 인터락", MessageBoxButtons.YesNoCancel, MessageBoxIcon.Question);
 
+            if (fileCheckResult == DialogResult.Cancel)
+            {
+                LogMessage("중복 파일 인터락 - 사용자가 수집을 취소했습니다.", Level.Info);
+                return false; // 진행 불가
+            }
+            else if (fileCheckResult == DialogResult.No)
+            {
+                try
+                {
+                    File.Delete(filePath);
+                    LogMessage("중복 파일 인터락 - 기존 파일을 삭제하고 초기화했습니다.", Level.Info);
+                }
+                catch (Exception ex)
+                {
+                    LogException(ex, Level.Error, "기존 파일 초기화 중 예외 발생");
+                    return false;
+                }
+            }
+            else
+            {
+                LogMessage("중복 파일 인터락 - 기존 파일에 데이터를 누적합니다.", Level.Info);
+            }
+
+            return true; // 모든 검증 통과 (진행 가능)
+        }
+
+        /// <summary>
+        /// 루프 내부의 단일 호기(Machine)에 대한 DOM 탐색, 클릭, 데이터 수집을 전담합니다.
+        /// </summary>
+        public static async Task<(bool isSuccess, string machineName, int semCount, int portCount, string errorMessage)>
+            ProcessSingleMachineAsync(IWebDriver driver, int index, string targetXPath, string eqpType,
+                                     (string semName, string portParentName, string childPortPrefix) keys,
+                                     bool isSemChecked, bool isPortChecked)
+        {
+            int semCount = 0;
+            int portCount = 0;
+            string machineName = "Unknown";
+
+            try
+            {
+                // 1. 최신 DOM에서 대상 호기 탐색 (Stale 방지)
+                var currentMachines = driver.FindElements(By.XPath(targetXPath)).Where(el => el.Displayed).ToList();
+
+                if (index >= currentMachines.Count)
+                    return (false, machineName, 0, 0, "화면에서 호기 노드가 유실되었습니다.");
+
+                var targetMachine = currentMachines[index];
+                machineName = targetMachine.Text;
+
+                // 2. 호기 클릭
+                bool machineClicked = await Util_Element.ScrollAndClickAsync(driver, targetMachine, 1000);
+                if (!machineClicked) return (false, machineName, 0, 0, "호기 노드 클릭 실패");
+
+                // 3. SEM 폴더 탐색 및 클릭
+                string semXPath = $"//span[contains(@class, 'wj-node-text') and text()='{keys.semName}']";
+                var semElement = driver.FindElements(By.XPath(semXPath)).FirstOrDefault(el => el.Displayed);
+
+                if (semElement != null)
+                {
+                    bool semClicked = await Util_Element.ScrollAndClickAsync(driver, semElement, 1000);
+                    if (!semClicked) return (false, machineName, 0, 0, $"{keys.semName} 노드 클릭 실패");
+
+                    // 4. 실제 수집 엔진 위임
+                    if (isSemChecked)
+                        semCount += await CollectSemDataAsync(driver, eqpType, machineName, keys.semName);
+
+                    if (isPortChecked)
+                        portCount += await CollectPortDataAsync(driver, eqpType, machineName, keys.portParentName, keys.childPortPrefix);
+
+                    // 정상 처리 완료 반환
+                    return (true, machineName, semCount, portCount, string.Empty);
+                }
+                else
+                {
+                    return (false, machineName, 0, 0, $"{keys.semName} 탐색 실패");
+                }
+            }
+            catch (Exception ex)
+            {
+                return (false, machineName, 0, 0, ex.Message); // 예기치 못한 에러 반환
+            }
+        }
 
 
 

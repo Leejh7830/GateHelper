@@ -15,6 +15,9 @@ namespace GateHelper
 {
     class Util_Element
     {
+        // [MGMT] 이전 복사본을 기억하여 고스트 카피를 판별하기 위한 해시 메모리
+        private static string _lastCopiedHash = string.Empty;
+
         public static bool ClickElementByXPath(IWebDriver driver, string xpath)
         {
             try
@@ -156,6 +159,11 @@ namespace GateHelper
 
                 parsedData.Add(columns);
             }
+            // [메모리 최적화] 거대 문자열 변수들의 연결을 끊고 가비지 컬렉터(GC)를 통해 즉시 RAM에서 강제 소각
+            rawText = null;
+            rows = null;
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
 
             return parsedData;
         }
@@ -168,39 +176,61 @@ namespace GateHelper
         {
             try
             {
-                // 1. 그리드 영역 찾기 및 포커스 클릭 (3단 콤보 방어 로직 사용)
                 var gridElement = driver.FindElement(By.XPath(gridXPath));
-                await ScrollAndClickAsync(driver, gridElement, 500);
-
-                // 2. 기존 클립보드 완전히 비우기 (충돌 방지)
-                RunInSTA(() => Clipboard.Clear());
-
-                // 3. 단축키 전송 (Action 객체가 단순 SendKeys보다 훨씬 안정적임)
-                new OpenQA.Selenium.Interactions.Actions(driver)
-                    .KeyDown(OpenQA.Selenium.Keys.Control).SendKeys("a").KeyUp(OpenQA.Selenium.Keys.Control)
-                    .KeyDown(OpenQA.Selenium.Keys.Control).SendKeys("c").KeyUp(OpenQA.Selenium.Keys.Control)
-                    .Perform();
-
-                // 4. 클립보드에 데이터가 찰 때까지 최대 3초(15회) 대기
-                int waitCount = 0;
-                bool hasText = false;
-                while (waitCount < 15)
-                {
-                    await Task.Delay(200);
-                    RunInSTA(() => hasText = Clipboard.ContainsText());
-                    if (hasText) break;
-                    waitCount++;
-                }
-
-                // 5. 메모리 탈취 및 클립보드 초기화
                 string rawData = string.Empty;
-                if (hasText)
+                int maxAttempts = 3; // 로딩 지연 시 최대 3회 재시도
+
+                // 💡 [방어 1] 데이터 로딩 지연을 극복하기 위한 재시도 루프
+                for (int attempt = 1; attempt <= maxAttempts; attempt++)
                 {
-                    RunInSTA(() => {
-                        rawData = Clipboard.GetText();
-                        Clipboard.Clear(); // 다음 호기 수집을 위해 무조건 비워야 함
-                    });
+                    await ScrollAndClickAsync(driver, gridElement, 500);
+
+                    RunInSTA(() => Clipboard.Clear());
+
+                    // 단축키 전송 (전체 선택 -> 복사)
+                    new OpenQA.Selenium.Interactions.Actions(driver)
+                        .KeyDown(OpenQA.Selenium.Keys.Control).SendKeys("a").KeyUp(OpenQA.Selenium.Keys.Control)
+                        .KeyDown(OpenQA.Selenium.Keys.Control).SendKeys("c").KeyUp(OpenQA.Selenium.Keys.Control)
+                        .Perform();
+
+                    // 클립보드에 데이터가 찰 때까지 최대 3초 대기
+                    int waitCount = 0;
+                    bool hasText = false;
+                    while (waitCount < 15)
+                    {
+                        await Task.Delay(200);
+                        RunInSTA(() => hasText = Clipboard.ContainsText());
+                        if (hasText) break;
+                        waitCount++;
+                    }
+
+                    if (hasText)
+                    {
+                        RunInSTA(() => {
+                            rawData = Clipboard.GetText();
+                            Clipboard.Clear();
+                        });
+                    }
+
+                    // 💡 [방어 2] 속도 저하 차단: ESC 키를 전송하여 브라우저의 파란색 블록(전체 선택) 강제 해제
+                    new OpenQA.Selenium.Interactions.Actions(driver).SendKeys(OpenQA.Selenium.Keys.Escape).Perform();
+
+                    // 💡 [방어 3] 중복 데이터 차단: 지금 복사한 내용이 방금 전 호기의 데이터와 100% 동일한지 검증
+                    if (attempt < maxAttempts && !string.IsNullOrEmpty(rawData) && rawData == _lastCopiedHash)
+                    {
+                        LogManager.LogMessage($"[데이터 동기화 지연] 이전 표의 데이터가 복사되었습니다. 웹 로딩을 대기하고 재시도합니다. ({attempt}/{maxAttempts})", LogManager.Level.Warning);
+                        await Task.Delay(1500); // 1.5초 서버 응답 대기 후 다시 시도
+                        continue;
+                    }
+                    else
+                    {
+                        _lastCopiedHash = rawData; // 검증 통과 시 새 데이터로 메모리 갱신
+                        break; // 정상 수집 루프 탈출
+                    }
                 }
+
+                // C# 메모리 릭(가비지 컬렉터 부하) 방지
+                GC.Collect();
 
                 return rawData;
             }

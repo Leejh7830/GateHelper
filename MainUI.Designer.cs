@@ -50,6 +50,7 @@ namespace GateHelper
             this.TabControl1 = new MaterialSkin.Controls.MaterialTabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.GroupManagement1 = new System.Windows.Forms.GroupBox();
+            this.BtnStopCollect = new MaterialSkin.Controls.MaterialButton();
             this.BtnStoCollect = new MaterialSkin.Controls.MaterialButton();
             this.BtnPauseCollect = new MaterialSkin.Controls.MaterialButton();
             this.BtnMoveVariable = new MaterialSkin.Controls.MaterialButton();
@@ -96,7 +97,6 @@ namespace GateHelper
             this.BtnStartManagement = new MaterialSkin.Controls.MaterialButton();
             this.TxtQuickSearch = new MaterialSkin.Controls.MaterialTextBox2();
             this.BtnQuickConnect = new MaterialSkin.Controls.MaterialButton();
-            this.BtnStopCollect = new MaterialSkin.Controls.MaterialButton();
             this.GroupConnect1.SuspendLayout();
             this.GroupPreset1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
@@ -457,6 +457,27 @@ namespace GateHelper
             this.GroupManagement1.TabIndex = 103;
             this.GroupManagement1.TabStop = false;
             this.GroupManagement1.Text = "Management";
+            // 
+            // BtnStopCollect
+            // 
+            this.BtnStopCollect.AutoSize = false;
+            this.BtnStopCollect.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnStopCollect.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnStopCollect.Depth = 0;
+            this.BtnStopCollect.HighEmphasis = true;
+            this.BtnStopCollect.Icon = null;
+            this.BtnStopCollect.Location = new System.Drawing.Point(14, 219);
+            this.BtnStopCollect.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnStopCollect.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnStopCollect.Name = "BtnStopCollect";
+            this.BtnStopCollect.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnStopCollect.Size = new System.Drawing.Size(136, 40);
+            this.BtnStopCollect.TabIndex = 106;
+            this.BtnStopCollect.Text = "STOP";
+            this.BtnStopCollect.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnStopCollect.UseAccentColor = false;
+            this.BtnStopCollect.UseVisualStyleBackColor = true;
+            this.BtnStopCollect.Click += new System.EventHandler(this.BtnStopCollect_Click);
             // 
             // BtnStoCollect
             // 
@@ -1135,26 +1156,6 @@ namespace GateHelper
             this.BtnQuickConnect.UseAccentColor = false;
             this.BtnQuickConnect.UseVisualStyleBackColor = true;
             this.BtnQuickConnect.Click += new System.EventHandler(this.BtnQuickConnect_Click);
-            // 
-            // BtnStopCollect
-            // 
-            this.BtnStopCollect.AutoSize = false;
-            this.BtnStopCollect.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnStopCollect.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnStopCollect.Depth = 0;
-            this.BtnStopCollect.HighEmphasis = true;
-            this.BtnStopCollect.Icon = null;
-            this.BtnStopCollect.Location = new System.Drawing.Point(14, 219);
-            this.BtnStopCollect.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.BtnStopCollect.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnStopCollect.Name = "BtnStopCollect";
-            this.BtnStopCollect.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnStopCollect.Size = new System.Drawing.Size(136, 40);
-            this.BtnStopCollect.TabIndex = 106;
-            this.BtnStopCollect.Text = "STOP";
-            this.BtnStopCollect.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnStopCollect.UseAccentColor = false;
-            this.BtnStopCollect.UseVisualStyleBackColor = true;
             // 
             // MainUI
             // 

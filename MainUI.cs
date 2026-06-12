@@ -1338,7 +1338,7 @@ namespace GateHelper
             }
         }
 
-        // 통합관리시스템 자동오픈
+        // [MGMT] 통합관리시스템 자동오픈
         private async void BtnStartManagement_Click(object sender, EventArgs e)
         {
             MessageBox.Show(
@@ -1490,37 +1490,31 @@ namespace GateHelper
 
 
         // ==========================================================
-        // 🚀 [메인 수집 루틴] 72대 설비 초고속 순회 + 소프트웨어 인터락 내장
+        // [MGMT] 설비 고속 순회 + 소프트웨어 인터락 내장
         // ==========================================================
         private async void BtnStoCollect_Click(object sender, EventArgs e)
         {
-            // 1. 브라우저 및 보조 사이트(MGMT) 탭 생존 여부 엄격 검증
+            // 1. 기본 검증 및 인터락
             if (_driver == null || string.IsNullOrEmpty(managementHandle))
             {
                 LogMessage("MGMT가 열려있지 않습니다.", Level.Error);
-                MessageBox.Show("The MGMT screen is not open or the browser connection is lost.\n\nPlease open the tab first and try again.",
-                                "Data Collection Unavailable", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("The MGMT screen is not open or the browser connection is lost.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // 2. 수집 옵션 다이얼로그 호출
+            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
+            string filePath = Path.Combine(desktopPath, "Integrated_Equipment_Data.xlsx");
+            if (!Util_Mgmt.CheckExcelFileInterlock(filePath)) return;
+
             var (eqpType, isSemChecked, isPortChecked) = Util_Mgmt.ShowCollectionSelectDialog();
-
-            if (string.IsNullOrEmpty(eqpType) || (!isSemChecked && !isPortChecked))
-            {
-                LogMessage("선택된 수집 항목이 없거나 사용자에 의해 작업이 취소되었습니다.", Level.Info);
-                return;
-            }
+            if (string.IsNullOrEmpty(eqpType) || (!isSemChecked && !isPortChecked)) return;
 
             LogMessage($"[수집 옵션] 대상: {eqpType}, SEM: {isSemChecked}, Port: {isPortChecked}", Level.Info);
 
             try
             {
-                // 💡 [인터락 가드 가동] 수집 도중 다른 버튼 클릭으로 인한 충돌을 원천 차단
                 SetCollectionInterlock(false);
-                LogMessage($"{eqpType} 설비 다중 순회 수집 루틴 시작 (UI 조작 잠금)", Level.Info);
-
-                // MGMT 탭으로 시선 강제 고정
+                _cancelTokenSource = new System.Threading.CancellationTokenSource();
                 _driver.SwitchTo().Window(managementHandle);
 
                 string targetXPath = $"//span[contains(@class, 'wj-node-text') and contains(text(), '{eqpType}')]";
@@ -1530,8 +1524,6 @@ namespace GateHelper
                 if (machineCount == 0)
                 {
                     LogMessage($"화면에서 {eqpType} 설비를 찾을 수 없습니다.", Level.Error);
-                    MessageBox.Show($"{eqpType} equipment could not be found on the screen.\n\nPlease expand the tree and try again.",
-                                    "Equipment Search Failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
                 }
 
@@ -1541,78 +1533,61 @@ namespace GateHelper
                 int collectedPortCount = 0;
                 List<string> failedMachines = new List<string>();
 
-                // 키워드 팩토리 호출
                 var keys = Util_Mgmt.GetEquipmentKeywords(eqpType);
 
-                // 3. 메인 순회 루프 가동
+                // 2. 메인 순회 루프
                 for (int i = 0; i < machineCount; i++)
                 {
-                    string currentMachineName = "Unknown";
+                    // UI 스레드 프리징(멈춤) 원천 차단
+                    // 백그라운드 스레드에서 안전하게 신호등을 기다리므로 화면 버튼이 정상적으로 눌립니다.
                     try
                     {
-                        // DOM 변경에 대비하여 매 루프마다 엘리먼트 리스트 최신화 (Stale 방지)
-                        var currentMachines = _driver.FindElements(By.XPath(targetXPath)).Where(el => el.Displayed).ToList();
-                        if (i >= currentMachines.Count) break;
-
-                        var targetMachine = currentMachines[i];
-                        currentMachineName = targetMachine.Text;
-
-                        // 💡 업그레이드된 3단 방어 클릭 엔진 가동 (유실 방지)
-                        bool machineClicked = await Util_Element.ScrollAndClickAsync(_driver, targetMachine, 1000);
-                        if (!machineClicked) throw new Exception("호기 노드 클릭 실패");
-
-                        // SEM 폴더 진입
-                        string semXPath = $"//span[contains(@class, 'wj-node-text') and text()='{keys.semName}']";
-                        var semElement = _driver.FindElements(By.XPath(semXPath)).FirstOrDefault(el => el.Displayed);
-
-                        if (semElement != null)
-                        {
-                            bool semClicked = await Util_Element.ScrollAndClickAsync(_driver, semElement, 1000);
-                            if (!semClicked) throw new Exception($"{keys.semName} 노드 클릭 실패");
-
-                            // 💡 서브루틴 위임: 내부적으로 초고속 클립보드 덤프 엔진 가동됨
-                            if (isSemChecked)
-                            {
-                                collectedSemCount += await Util_Mgmt.CollectSemDataAsync(_driver, eqpType, currentMachineName, keys.semName);
-                            }
-
-                            if (isPortChecked)
-                            {
-                                collectedPortCount += await Util_Mgmt.CollectPortDataAsync(_driver, eqpType, currentMachineName, keys.portParentName, keys.childPortPrefix);
-                            }
-
-                            LogMessage($"[{i + 1}/{machineCount}] {currentMachineName} 정상 데이터 수집 완료", Level.Info);
-                            successMachineCount++;
-                        }
-                        else
-                        {
-                            LogMessage($"[{i + 1}/{machineCount}] {currentMachineName} : {keys.semName} 탐색 실패", Level.Error);
-                            failedMachines.Add(currentMachineName);
-                        }
+                        await Task.Run(() => _pauseEvent.Wait(_cancelTokenSource.Token));
                     }
-                    catch (Exception ex)
+                    catch (OperationCanceledException)
                     {
-                        LogMessage($"[{i + 1}/{machineCount}] {currentMachineName} 처리 중 오류 발생 (스킵): {ex.Message}", Level.Error);
-                        failedMachines.Add(currentMachineName);
-                        continue;
+                        LogMessage("일시 정지 상태에서 수집이 강제 취소되었습니다.", Level.Warning);
+                        break;
+                    }
+
+                    if (_cancelTokenSource.Token.IsCancellationRequested)
+                    {
+                        LogMessage("수집 루프가 사용자에 의해 강제 중단되었습니다.", Level.Warning);
+                        break;
+                    }
+
+                    // 💡 단일 호기 처리 로직을 Util_Mgmt로 외부 위임하고 결과(Tuple)만 받아옴
+                    var result = await Util_Mgmt.ProcessSingleMachineAsync(_driver, i, targetXPath, eqpType, keys, isSemChecked, isPortChecked);
+
+                    if (result.isSuccess)
+                    {
+                        LogMessage($"[{i + 1}/{machineCount}] {result.machineName} 정상 데이터 수집 완료", Level.Info);
+                        successMachineCount++;
+                        collectedSemCount += result.semCount;
+                        collectedPortCount += result.portCount;
+                    }
+                    else
+                    {
+                        LogMessage($"[{i + 1}/{machineCount}] {result.machineName} 처리 중 오류 발생 (스킵): {result.errorMessage}", Level.Error);
+                        failedMachines.Add(result.machineName);
                     }
                 }
                 sw.Stop();
 
-                // 4. 최종 집계 및 한국어 리포트 팝업 출력
+                // 3. 최종 리포트 출력
                 Util_Mgmt.ShowFinalReport(eqpType, machineCount, successMachineCount, collectedSemCount, collectedPortCount, sw.Elapsed, failedMachines);
             }
             catch (Exception ex)
             {
-                LogException(ex, Level.Error, $"{eqpType} 다중 수집 루프 실행 중 치명적 오류 발생");
-                MessageBox.Show($"An error occurred during the collection loop.\n\nError details: {ex.Message}",
-                                "Process Interrupted", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                LogException(ex, Level.Error, "수집 루프 치명적 오류");
             }
             finally
             {
-                // [인터락 가드 해제] 에러가 나거나 수집이 끝나면 무조건 UI 조작 권한 복구
+                _cancelTokenSource?.Dispose();
+                _cancelTokenSource = null;
+                _pauseEvent.Set();
                 SetCollectionInterlock(true);
-                LogMessage("데이터 수집 루틴 종료 (UI 조작 잠금 해제)", Level.Info);
+                LogMessage("데이터 수집 루틴 종료", Level.Info);
             }
         }
 
@@ -1653,9 +1628,7 @@ namespace GateHelper
             }
         }
 
-        // ==========================================================
         // [MGMT] 수집 일시 정지 / 재개 토글
-        // ==========================================================
         private void BtnPauseCollect_Click(object sender, EventArgs e)
         {
             // 신호등이 파란불(진행 중)일 때 누르면 -> 빨간불(정지)로 변경
@@ -1674,7 +1647,22 @@ namespace GateHelper
             }
         }
 
+        // [MGMT] 수집 강제 중지
+        private void BtnStopCollect_Click(object sender, EventArgs e)
+        {
+            // 취소 토큰이 살아있고, 아직 취소 명령이 내려지지 않은 상태일 때만 작동
+            if (_cancelTokenSource != null && !_cancelTokenSource.IsCancellationRequested)
+            {
+                LogMessage("[긴급 정지] 사용자가 수집 중단 명령을 내렸습니다. 현재 진행 중인 호기까지만 저장 후 종료합니다.", Level.Warning);
 
+                // 중복 클릭 방지 및 시각적 피드백
+                BtnStopCollect.Text = "중지하는 중...";
+                BtnStopCollect.Enabled = false;
+
+                // 전역 취소 신호 발송 (이 신호가 루프 안의 IsCancellationRequested를 true로 만듭니다)
+                _cancelTokenSource.Cancel();
+            }
+        }
 
 
 
@@ -1782,8 +1770,6 @@ namespace GateHelper
         }
 
         
-
-
 
 
 
