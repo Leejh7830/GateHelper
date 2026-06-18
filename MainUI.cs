@@ -11,6 +11,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static GateHelper.LogManager;
@@ -42,10 +43,9 @@ namespace GateHelper
 
         /// Option 전용
         private int _popupCount = 0; // 팝업 처리 횟수 카운터
-        private readonly Timer timer1;
+        private readonly System.Windows.Forms.Timer timer1;
 
         private AppSettings _appSettings;
-
 
         // 연결상태 감지용
         private string _lastDriverStatus = "";
@@ -64,14 +64,17 @@ namespace GateHelper
         // 컨텍스트메뉴 (우클릭)
         private ContextMenuStrip contextMenuStrip;
 
-        // Work Log 관리용
+        // [WorkLog] 관리용
         private WorkLogForm _workLogForm;
 
-        // SandBox 관리용
+        // [SandBox] 관리용
         private SandBox _sandbox = null;
 
-        // ServerMapping 엔터연타방지
+        // [ServerMapping] 엔터연타방지
         private bool _isQuickSearching = false;
+
+        // [ServerMapping] 타이머 제어용 취소 토큰 소스
+        private CancellationTokenSource _btnDisableTokenSource;
 
 
         // [MGMT] 수집 루프 긴급 정지를 위한 전역 취소 토큰
@@ -79,6 +82,8 @@ namespace GateHelper
 
         // [MGMT] 수집 일시 정지를 위한 전역 신호등 (초기값 true: 통과)
         private System.Threading.ManualResetEventSlim _pauseEvent = new System.Threading.ManualResetEventSlim(true);
+
+
 
 
         private enum PresetSelection { None, A, B }
@@ -1764,7 +1769,7 @@ namespace GateHelper
                 {
                     _isQuickSearching = true;            // 빗장 잠금
                     TxtQuickSearch.Enabled = false;      // 입력창 잠금
-                    BtnQuickConnect.Text = "검색 중..."; // 💡 [추가] 시각적 피드백
+                    BtnQuickConnect.Text = "검색 중..."; // 시각적 피드백
 
                     // 1. [실시간 엑셀 동기화] 비동기 처리
                     await Task.Run(() => Util.LoadServerMappingCache());
@@ -1772,18 +1777,26 @@ namespace GateHelper
                     // 2. 메모리 검색
                     string targetServer = Util.SearchServerByKeyword(keyword);
 
-                    // 3. 💡 UI 상태 업데이트 (라벨 대신 버튼 텍스트 변경)
+                    // 3. UI 상태 업데이트
                     if (!string.IsNullOrEmpty(targetServer))
                     {
                         BtnQuickConnect.Text = targetServer; // 성공: 버튼 글씨를 서버명으로 변경
                         BtnQuickConnect.Enabled = true;
                         LogMessage($"[매핑 검색] '{keyword}' ➔ '{targetServer}' 발견", Level.Info);
+
+                        // 💡 [인터락] 기존에 돌고 있던 5초 타이머가 있다면 즉시 취소하고 새로 시작
+                        _btnDisableTokenSource?.Cancel();
+                        _btnDisableTokenSource = new CancellationTokenSource();
+                        StartButtonDisableTimer(_btnDisableTokenSource.Token);
                     }
                     else
                     {
                         BtnQuickConnect.Text = "결과 없음";  // 실패: 버튼 글씨를 결과 없음으로 변경
                         BtnQuickConnect.Enabled = false;
                         LogMessage($"[매핑 검색] '{keyword}'에 대한 매핑 서버가 없습니다.", Level.Warning);
+
+                        // 검색 실패 시에도 기존 타이머는 소각
+                        _btnDisableTokenSource?.Cancel();
                     }
 
                     // 물리적인 0.5초 쿨타임 부여 (하드디스크 보호)
@@ -1803,14 +1816,19 @@ namespace GateHelper
         // ==========================================================
         private void BtnQuickConnect_Click(object sender, EventArgs e)
         {
-            // 💡 [수정] 라벨이 아닌 버튼 자신의 텍스트를 타겟 서버명으로 사용
+            // 💡 [인터락] 사용자가 버튼을 클릭했으므로 뒤에서 대기 중인 5초 비활성화 타이머를 완전히 취소
+            _btnDisableTokenSource?.Cancel();
+
             string targetServer = BtnQuickConnect.Text;
 
-            // 방어 코드 ("결과 없음", "검색 중..." 등 예외 텍스트일 때 클릭 방지)
-            if (string.IsNullOrEmpty(targetServer) || targetServer == "결과 없음" || targetServer == "검색 중...") return;
+            // 방어 코드 ("결과 없음", "검색 중...", "검색 대기" 등 예외 텍스트일 때 클릭 방지)
+            if (string.IsNullOrEmpty(targetServer) || targetServer == "결과 없음" ||
+                targetServer == "검색 중..." || targetServer == "검색 대기") return;
+
             if (!chromeDriverManager.IsDriverReady(_driver)) return;
             if (!Util.SwitchToMainHandle(_driver, mainHandle)) return;
 
+            // 중복 클릭 방지를 위해 즉시 비활성화
             BtnQuickConnect.Enabled = false;
 
             try
@@ -1824,11 +1842,37 @@ namespace GateHelper
             }
             finally
             {
+                // 접속 시도가 끝나면 텍스트를 복구하고 완전히 비활성화 상태로 유지
                 BtnQuickConnect.Text = "검색 대기";
+                BtnQuickConnect.Enabled = false;
             }
         }
 
-        
+        /// <summary>
+        /// [비동기 타이머] 5초간 대기 후 사용자의 입력 액션이 없으면 버튼을 초기화합니다.
+        /// </summary>
+        private async void StartButtonDisableTimer(CancellationToken token)
+        {
+            try
+            {
+                // UI 스레드를 굳히지 않고 백그라운드에서 정확히 5초(5000ms) 대기
+                await Task.Delay(5000, token);
+
+                // 제한 시간 동안 취소 요청이 없었을 경우에만 안전하게 UI 업데이트 수행
+                if (!token.IsCancellationRequested)
+                {
+                    BtnQuickConnect.Enabled = false;
+                    BtnQuickConnect.Text = "검색 대기";
+                    LogMessage("[시간 초과] 사용자가 5초간 접속 버튼을 누르지 않아 검색 대기 상태로 초기화되었습니다.", Level.Info);
+                }
+            }
+            catch (TaskCanceledException)
+            {
+                // 사용자가 5초 이내에 버튼을 누르거나, 다른 검색을 수행하여 타이머가 취소된 경우 예외를 터뜨리지 않고 조용히 소각
+            }
+        }
+
+
 
 
 
