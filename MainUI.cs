@@ -233,11 +233,35 @@ namespace GateHelper
                     }
                 }
             }
-            catch (Exception ex)
+            // Selenium 전용 예외를 먼저 캐치
+            catch (WebDriverException ex)
             {
                 _isManagementActive = false;
                 managementHandle = null;
-                LogMessage($"[인터락 예외] 탭 검사 중 브라우저 예외 발생: {ex.Message}", Level.Error);
+
+                // 에러 메시지에 세션 만료, 브라우저 닫힘 등의 키워드가 포함된 경우
+                if (ex.Message.ToLower().Contains("invalid session id") ||
+                    ex.Message.ToLower().Contains("not reachable") ||
+                    ex.Message.ToLower().Contains("disconnected") ||
+                    ex.Message.ToLower().Contains("no such window"))
+                {
+                    LogMessage("[세션 종료 감지] 클라우드 환경에 의해 크롬 브라우저가 닫혔습니다. 연결을 초기화합니다.", Level.Warning);
+
+                    // 드라이버를 null로 만들어, 다음 Tick부터는 이 로직에 진입하지 못하게 차단
+                    try { _driver.Quit(); } catch { }
+                    _driver = null;
+                }
+                else
+                {
+                    // 그 외의 일시적인 셀레니움 통신 에러
+                    LogMessage($"[인터락 예외] 탭 검사 중 통신 예외 발생: {ex.Message}", Level.Error);
+                }
+            }
+            catch (Exception ex) // 셀레니움 외의 일반 C# 런타임 에러
+            {
+                _isManagementActive = false;
+                managementHandle = null;
+                LogMessage($"[인터락 예외] 탭 검사 중 알 수 없는 브라우저 예외 발생: {ex.Message}", Level.Error);
             }
 
             // --- (이 아래부터는 평상시 5초마다 도는 메인 전용 로직) ---
@@ -1490,11 +1514,11 @@ namespace GateHelper
 
 
         // ==========================================================
-        // [MGMT] 설비 고속 순회 + 소프트웨어 인터락 내장
+        // [MGMT] 설비 고속 순회 + 소프트웨어 인터락 내장 (다중 타겟 동시 수집 지원)
         // ==========================================================
         private async void BtnStoCollect_Click(object sender, EventArgs e)
         {
-            // 1. 기본 검증 및 인터락
+            // 1. 기본 검증 및 엑셀 파일 인터락
             if (_driver == null || string.IsNullOrEmpty(managementHandle))
             {
                 LogMessage("MGMT가 열려있지 않습니다.", Level.Error);
@@ -1506,24 +1530,46 @@ namespace GateHelper
             string filePath = Path.Combine(desktopPath, "Integrated_Equipment_Data.xlsx");
             if (!Util_Mgmt.CheckExcelFileInterlock(filePath)) return;
 
-            var (eqpType, isSemChecked, isPortChecked) = Util_Mgmt.ShowCollectionSelectDialog();
-            if (string.IsNullOrEmpty(eqpType) || (!isSemChecked && !isPortChecked)) return;
-
-            LogMessage($"[수집 옵션] 대상: {eqpType}, SEM: {isSemChecked}, Port: {isPortChecked}", Level.Info);
-
             try
             {
-                SetCollectionInterlock(false);
-                _cancelTokenSource = new System.Threading.CancellationTokenSource();
                 _driver.SwitchTo().Window(managementHandle);
 
-                string targetXPath = $"//span[contains(@class, 'wj-node-text') and contains(text(), '{eqpType}')]";
+                // 💡 1. 화면 스캔 및 다이얼로그 호출 (동적 다중 타겟팅)
+                LogMessage("현재 화면의 설비 목록을 스캔합니다...", Level.Info);
+                var scannedTypes = await Util_Element.ScanEquipmentTypesAsync(_driver);
+
+                var (selectedTypes, isSemChecked, isPortChecked) = Util_Mgmt.ShowCollectionSelectDialog(scannedTypes);
+
+                // 사용자가 아무것도 선택하지 않거나 취소한 경우 탈출
+                if (selectedTypes.Count == 0 || (!isSemChecked && !isPortChecked))
+                {
+                    LogMessage("선택된 수집 항목이 없거나 작업이 취소되었습니다.", Level.Info);
+                    return;
+                }
+
+                string eqpTypesString = string.Join(", ", selectedTypes);
+                LogMessage($"[수집 옵션] 다중 대상: {eqpTypesString}, SEM: {isSemChecked}, Port: {isPortChecked}", Level.Info);
+
+                SetCollectionInterlock(false);
+                _cancelTokenSource = new System.Threading.CancellationTokenSource();
+
+                // 💡 2. 다중 타겟팅 XPath 동적 생성 (순정 로직 롤백)
+                // 오작동을 유발하던 언더바(_) 강제 검사 및 대소문자 치환 방어막을 전면 철거합니다.
+                // 기존에 완벽하게 작동했던 순정 검색 방식( text() )에 다중 선택(OR) 로직만 결합합니다.
+
+                var conditions = selectedTypes.Select(t => $"contains(text(), '{t}')");
+                string xpathConditions = string.Join(" or ", conditions);
+
+                // 최종 생성 예시: //span[contains(@class, 'wj-node-text') and (contains(text(), 'STO') or contains(text(), 'OHS'))]
+                string targetXPath = $"//span[contains(@class, 'wj-node-text') and ({xpathConditions})]";
+
                 var initialTargetList = _driver.FindElements(By.XPath(targetXPath)).Where(el => el.Displayed).ToList();
                 int machineCount = initialTargetList.Count;
 
                 if (machineCount == 0)
                 {
-                    LogMessage($"화면에서 {eqpType} 설비를 찾을 수 없습니다.", Level.Error);
+                    LogMessage($"화면에서 [{eqpTypesString}] 설비를 찾을 수 없습니다.", Level.Error);
+                    MessageBox.Show($"[{eqpTypesString}] 설비를 화면에서 찾을 수 없습니다.\n\n트리를 확장한 후 다시 시도해 주십시오.", "검색 실패", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     return;
                 }
 
@@ -1533,31 +1579,47 @@ namespace GateHelper
                 int collectedPortCount = 0;
                 List<string> failedMachines = new List<string>();
 
-                var keys = Util_Mgmt.GetEquipmentKeywords(eqpType);
-
-                // 2. 메인 순회 루프
+                // 3. 메인 순회 루프
                 for (int i = 0; i < machineCount; i++)
                 {
-                    // UI 스레드 프리징(멈춤) 원천 차단
-                    // 백그라운드 스레드에서 안전하게 신호등을 기다리므로 화면 버튼이 정상적으로 눌립니다.
-                    try
+                    // UI 스레드 프리징 원천 차단
+                    try { await Task.Run(() => _pauseEvent.Wait(_cancelTokenSource.Token)); }
+                    catch (OperationCanceledException) { break; }
+                    if (_cancelTokenSource.Token.IsCancellationRequested) { break; }
+
+                    // DOM 렌더링 충돌 방어 (Stale Element Reference 원천 차단)
+                    string currentMachineName = string.Empty;
+                    for (int retry = 0; retry < 3; retry++)
                     {
-                        await Task.Run(() => _pauseEvent.Wait(_cancelTokenSource.Token));
+                        try
+                        {
+                            var currentMachines = _driver.FindElements(By.XPath(targetXPath)).Where(el => el.Displayed).ToList();
+                            if (i >= currentMachines.Count) break;
+
+                            var targetMachine = currentMachines[i];
+                            // 이 부분에서 뻗는 것을 방지하기 위해 try-catch 내부에 배치
+                            currentMachineName = targetMachine.Text;
+                            break; // 성공 시 재시도 루프 탈출
+                        }
+                        catch (StaleElementReferenceException)
+                        {
+                            // DOM이 렌더링되는 중이라면 0.5초 대기 후 다시 시도
+                            await Task.Delay(500);
+                        }
                     }
-                    catch (OperationCanceledException)
+
+                    // 3번 재시도 후에도 이름을 못 읽었다면 치명적 에러이므로 탈출
+                    if (string.IsNullOrEmpty(currentMachineName))
                     {
-                        LogMessage("일시 정지 상태에서 수집이 강제 취소되었습니다.", Level.Warning);
+                        LogMessage($"[{i + 1}/{machineCount}] 호기명을 읽는 중 DOM 충돌이 발생하여 루프를 중단합니다.", Level.Error);
                         break;
                     }
 
-                    if (_cancelTokenSource.Token.IsCancellationRequested)
-                    {
-                        LogMessage("수집 루프가 사용자에 의해 강제 중단되었습니다.", Level.Warning);
-                        break;
-                    }
+                    // 💡 현재 순회 중인 호기명을 분석하여 동적으로 하위 폴더명 판단
+                    var keys = Util_Mgmt.GetEquipmentKeywords(currentMachineName);
 
-                    // 💡 단일 호기 처리 로직을 Util_Mgmt로 외부 위임하고 결과(Tuple)만 받아옴
-                    var result = await Util_Mgmt.ProcessSingleMachineAsync(_driver, i, targetXPath, eqpType, keys, isSemChecked, isPortChecked);
+                    // 단일 호기 처리 엔진 호출
+                    var result = await Util_Mgmt.ProcessSingleMachineAsync(_driver, i, targetXPath, currentMachineName, keys, isSemChecked, isPortChecked);
 
                     if (result.isSuccess)
                     {
@@ -1574,12 +1636,13 @@ namespace GateHelper
                 }
                 sw.Stop();
 
-                // 3. 최종 리포트 출력
-                Util_Mgmt.ShowFinalReport(eqpType, machineCount, successMachineCount, collectedSemCount, collectedPortCount, sw.Elapsed, failedMachines);
+                // 4. 최종 리포트 출력
+                Util_Mgmt.ShowFinalReport(eqpTypesString, machineCount, successMachineCount, collectedSemCount, collectedPortCount, sw.Elapsed, failedMachines);
             }
             catch (Exception ex)
             {
                 LogException(ex, Level.Error, "수집 루프 치명적 오류");
+                MessageBox.Show($"수집 루프 실행 중 오류가 발생했습니다.\n\n{ex.Message}", "에러 발생", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
             finally
             {
@@ -1761,11 +1824,7 @@ namespace GateHelper
             }
             finally
             {
-                BtnQuickConnect.Enabled = true;
-
-                // 💡 [선택 사항] 접속을 누른 후 텍스트창과 버튼을 초기화하고 싶다면 주석 해제
-                // TxtQuickSearch.Text = "";
-                // BtnQuickConnect.Text = "Quick Connect";
+                BtnQuickConnect.Text = "검색 대기";
             }
         }
 

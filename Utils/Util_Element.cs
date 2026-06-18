@@ -303,65 +303,171 @@ namespace GateHelper
             return false;
         }
 
-        /// <summary>
-        /// 💡 [신규 엔진] 클립보드(Ctrl+A, C)를 전혀 쓰지 않고 JS로 DOM에서 데이터를 즉시 파싱하여 반환합니다.
-        /// </summary>
-        /// <summary>
-        /// 💡 [신규 엔진] 클립보드(Ctrl+A, C)를 전혀 쓰지 않고 JS로 DOM에서 데이터를 즉시 파싱하여 반환합니다.
-        /// (SaveDataToExcel과 완벽히 호환되도록 List<string[]> 형태로 반환)
-        /// </summary>
-        public static List<string[]> GetTableDataByJavaScriptFast(IWebDriver driver)
+        public static async Task<List<string[]>> GetTableDataBySmartScrollAsync(IWebDriver driver, string targetXPath)
         {
             try
             {
                 var jsExecutor = (IJavaScriptExecutor)driver;
+                var targetElement = driver.FindElement(By.XPath(targetXPath));
 
-                // 1. 화면의 Wijmo 그리드 또는 일반 테이블을 찾아 데이터를 TSV(탭 분리) 텍스트로 즉각 탈취
-                string jsScript = @"
-            var grid = document.querySelector('.wj-flexgrid') || document.querySelector('table');
-            if (!grid) return '';
+                // 💡 [아키텍처 전면 수정] HashSet을 제거하고 Dictionary(Key-Value) 방식을 도입합니다.
+                // Key: 1열 데이터(Name), Value: 줄 전체 데이터
+                Dictionary<string, string> rowDict = new Dictionary<string, string>();
+                List<string> orderedKeys = new List<string>(); // 데이터 순서 유지를 위한 리스트
 
-            var rows = grid.querySelectorAll('.wj-row, tr');
-            if (rows.length === 0) return grid.innerText; 
+                bool isBottom = false;
+                int maxAttempts = 100;
+                int attempt = 0;
 
-            var result = '';
-            for (var i = 0; i < rows.length; i++) {
-                var cells = rows[i].querySelectorAll('.wj-cell, td, th');
-                var rowData = [];
-                for (var j = 0; j < cells.length; j++) {
-                    rowData.push(cells[j].innerText.replace(/\n/g, ' ').trim()); 
-                }
-                if (rowData.length > 0) {
-                    result += rowData.join('\t') + '\n';
-                }
-            }
-            return result.trim();
+                string initScrollJs = @"
+            var scrollContainer = arguments[0].querySelector('[wj-part=""root""]') || arguments[0];
+            scrollContainer.scrollTop = 0;
         ";
+                jsExecutor.ExecuteScript(initScrollJs, targetElement);
+                await Task.Delay(500);
 
-                string rawData = (string)jsExecutor.ExecuteScript(jsScript);
-
-                if (string.IsNullOrWhiteSpace(rawData))
-                    return new List<string[]>();
-
-                // 2. 💡 [수정됨] 획득한 텍스트를 List<string[]> 형태로 파싱
-                var parsedData = new List<string[]>();
-                string[] lines = rawData.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-
-                foreach (var line in lines)
+                while (!isBottom && attempt < maxAttempts)
                 {
-                    // Split('\t')은 기본적으로 string[] 배열을 반환하므로, ToList() 없이 그대로 Add 합니다.
-                    parsedData.Add(line.Split('\t'));
+                    attempt++;
+
+                    string extractJs = @"
+                var grid = arguments[0];
+                var rows = grid.querySelectorAll('.wj-row:not(.wj-header), tbody tr');
+                var res = '';
+                for (var i = 0; i < rows.length; i++) {
+                    var cells = rows[i].querySelectorAll('.wj-cell:not(.wj-header), td');
+                    if (cells.length === 0) continue; 
+
+                    var rd = [];
+                    for (var j = 0; j < cells.length; j++) {
+                        rd.push(cells[j].innerText.replace(/\n/g, ' ').trim());
+                    }
+                    if (rd.length > 0) res += rd.join('\t') + '\n';
+                }
+                return res.trim();
+            ";
+
+                    string chunkData = (string)jsExecutor.ExecuteScript(extractJs, targetElement);
+
+                    // 💡 [수정] Dictionary 기반 무결성 덮어쓰기 로직
+                    if (!string.IsNullOrWhiteSpace(chunkData))
+                    {
+                        string[] lines = chunkData.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries);
+                        foreach (var line in lines)
+                        {
+                            string cleanLine = line.Trim();
+                            if (string.IsNullOrEmpty(cleanLine)) continue;
+
+                            string[] columns = cleanLine.Split('\t');
+                            if (columns.Length == 0) continue;
+
+                            // 1열(Name) 데이터를 고유 키(PK)로 지정
+                            string pkKey = columns[0].Trim();
+                            if (string.IsNullOrEmpty(pkKey)) continue;
+
+                            // 💡 [헤더 중복 방어막] 표의 껍데기 제목(Name, Value 등)이 데이터로 위장해 들어오는 것을 원천 차단
+                            if (pkKey.Equals("Name", StringComparison.OrdinalIgnoreCase) ||
+                                pkKey.Equals("Value", StringComparison.OrdinalIgnoreCase))
+                            {
+                                continue; // 딕셔너리에 넣지 않고 즉시 소각
+                            }
+
+                            // 처음 보는 Name이면 순서 리스트에 등록
+                            if (!rowDict.ContainsKey(pkKey))
+                            {
+                                orderedKeys.Add(pkKey);
+                            }
+
+                            // 온전한 데이터 무조건 덮어쓰기(Overwrite)
+                            rowDict[pkKey] = cleanLine;
+                        }
+                    }
+
+                    string scrollJs = @"
+                var scrollContainer = arguments[0].querySelector('[wj-part=""root""]') || arguments[0];
+                var before = Math.ceil(scrollContainer.scrollTop);
+                scrollContainer.scrollTop += (scrollContainer.clientHeight * 0.8); 
+                var after = Math.ceil(scrollContainer.scrollTop);
+                return before === after; 
+            ";
+
+                    isBottom = (bool)jsExecutor.ExecuteScript(scrollJs, targetElement);
+                    if (!isBottom) await Task.Delay(300);
                 }
 
-                // 메모리 강제 최적화
+                // 💡 [수정] Dictionary의 Value들을 순서대로 꺼내어 최종 반환 포맷으로 파싱
+                var parsedData = new List<string[]>();
+                foreach (var key in orderedKeys)
+                {
+                    parsedData.Add(rowDict[key].Split('\t'));
+                }
+
                 GC.Collect();
+
+                LogManager.LogMessage($"[스마트 스크롤 완료] 총 {orderedKeys.Count}줄의 데이터 추출 성공 (스크롤 횟수: {attempt}회)", LogManager.Level.Info);
 
                 return parsedData;
             }
             catch (Exception ex)
             {
-                LogMessage($"JS 데이터 추출 실패: {ex.Message}", Level.Error);
-                return new List<string[]>(); // 에러 시 빈 리스트 반환하여 시스템 다운 방지
+                LogManager.LogMessage($"스마트 스크롤 데이터 추출 실패: {ex.Message}", LogManager.Level.Error);
+                return new List<string[]>();
+            }
+        }
+
+        /// <summary>
+        /// 💡 [신규 엔진] 현재 화면에 렌더링된 호기 노드를 스캔하여 설비 타입만 추출합니다.
+        /// (Task.Run을 통해 완벽한 백그라운드 비동기로 작동하여 UI 멈춤을 방지합니다.)
+        /// </summary>
+        public static async Task<List<string>> ScanEquipmentTypesAsync(IWebDriver driver)
+        {
+            try
+            {
+                // 💡 [수정] 무거운 셀레니움 통신과 파싱 로직을 통째로 백그라운드 스레드로 던집니다.
+                return await Task.Run(() =>
+                {
+                    var jsExecutor = (IJavaScriptExecutor)driver;
+                    string jsScript = @"
+                var nodes = document.querySelectorAll('.wj-node-text');
+                var types = new Set();
+                for(var i=0; i<nodes.length; i++) {
+                    var text = nodes[i].innerText.trim();
+                    if(text.indexOf('_') > 0) {
+                        // FSTO_01 이라면 앞부분인 FSTO만 추출
+                        var prefix = text.split('_')[0]; 
+                        if(prefix.length > 0) types.add(prefix);
+                    }
+                }
+                return Array.from(types).join(',');
+            ";
+
+                    string result = (string)jsExecutor.ExecuteScript(jsScript);
+                    if (string.IsNullOrWhiteSpace(result)) return new List<string>();
+
+                    var rawPrefixes = result.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    var cleanSet = new HashSet<string>();
+
+                    foreach (var prefix in rawPrefixes)
+                    {
+                        string upper = prefix.ToUpper();
+                        // FSTO, LOHS 등 라인명(1글자) + 설비명(3글자) 구조일 경우 앞글자를 떼고 순수 설비명만 추출
+                        if (upper.Length >= 4)
+                        {
+                            cleanSet.Add(upper.Substring(upper.Length - 3)); // STO, OHS 등 3글자 추출
+                        }
+                        else
+                        {
+                            cleanSet.Add(upper);
+                        }
+                    }
+
+                    return cleanSet.OrderBy(x => x).ToList(); // 알파벳 순 정렬 반환
+                });
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogMessage($"설비 타입 스캔 실패: {ex.Message}", LogManager.Level.Error);
+                return new List<string>();
             }
         }
 
