@@ -25,6 +25,9 @@ namespace GateHelper
         private bool _isDatePickerDropDownOpen = false;
         private DateTime _lastPasteTime = DateTime.MinValue;
 
+        // 자소 분리 방지용 디바운스 타이머
+        private Timer _searchTimer;
+
         // Model Data
         private WorkLogData _data;
 
@@ -120,6 +123,15 @@ namespace GateHelper
                     ChangeFontSize(e.Delta > 0 ? 1f : -1f);
                     ((HandledMouseEventArgs)e).Handled = true;
                 }
+            };
+
+            // [추가] 타이머 설정 (300ms 동안 추가 입력이 없으면 필터링 실행)
+            _searchTimer = new Timer();
+            _searchTimer.Interval = 300;
+            _searchTimer.Tick += (s, e) =>
+            {
+                _searchTimer.Stop(); // 타이머를 멈추고
+                ApplyFilter(TxtWorkLog.Text); // 필터링 1회 실행
             };
         }
 
@@ -449,7 +461,15 @@ namespace GateHelper
             SaveData();
         }
 
-        private void TxtWorkLog_TextChanged(object sender, EventArgs e) => ApplyFilter(TxtWorkLog.Text);
+        private void TxtWorkLog_TextChanged(object sender, EventArgs e)
+        {
+            if (_searchTimer == null) return;
+
+            // 글자가 입력될 때마다 기존 타이머를 취소하고 다시 0초부터 셉니다.
+            _searchTimer.Stop();
+            _searchTimer.Start();
+        }
+
         private void TxtWorkLog_KeyUp(object sender, KeyEventArgs e) { if (e.KeyCode == Keys.Enter) ApplyFilter(TxtWorkLog.Text); }
 
         private void ApplyFilter(string q)

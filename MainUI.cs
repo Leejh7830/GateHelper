@@ -76,12 +76,14 @@ namespace GateHelper
         // [ServerMapping] 타이머 제어용 취소 토큰 소스
         private CancellationTokenSource _btnDisableTokenSource;
 
-
         // [MGMT] 수집 루프 긴급 정지를 위한 전역 취소 토큰
         private System.Threading.CancellationTokenSource _cancelTokenSource;
 
         // [MGMT] 수집 일시 정지를 위한 전역 신호등 (초기값 true: 통과)
         private System.Threading.ManualResetEventSlim _pauseEvent = new System.Threading.ManualResetEventSlim(true);
+
+        // [Drag & Drop]
+        private ShortcutManager _shortcutManager = new ShortcutManager();
 
 
 
@@ -930,7 +932,7 @@ namespace GateHelper
             ExecuteSmartConnection(serverName);
         }
 
-        //////////////////////////////////////////////////////////////////////////////// 옵션 전용 끝
+        //////////////////////////////////////////////////////////////////////////////// 옵션 전용 끝 //////////////////////////////////////////////////////////
 
 
 
@@ -970,8 +972,12 @@ namespace GateHelper
             string version = Util.GetCurrentVersionFromReleaseNotes();
             lblVersion.Text = $"{version}";
 
-            // Server Keyword Mapping
+            // [Server Mapping]
             Util.LoadServerMappingCache();
+
+            // [Drag & Drop]
+            _shortcutManager.BindPanel(flowLayoutPanel_DropZone);
+
         }
 
         private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
@@ -1733,22 +1739,6 @@ namespace GateHelper
         }
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
         // ==========================================================
         // [이벤트 1] 텍스트박스 엔터 키 입력 (실시간 로드 + 검색)
         // ==========================================================
@@ -1871,7 +1861,6 @@ namespace GateHelper
                 // 사용자가 5초 이내에 버튼을 누르거나, 다른 검색을 수행하여 타이머가 취소된 경우 예외를 터뜨리지 않고 조용히 소각
             }
         }
-
 
 
 

@@ -97,6 +97,7 @@ namespace GateHelper
             this.BtnStartManagement = new MaterialSkin.Controls.MaterialButton();
             this.TxtQuickSearch = new MaterialSkin.Controls.MaterialTextBox2();
             this.BtnQuickConnect = new MaterialSkin.Controls.MaterialButton();
+            this.flowLayoutPanel_DropZone = new System.Windows.Forms.FlowLayoutPanel();
             this.GroupConnect1.SuspendLayout();
             this.GroupPreset1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
@@ -659,6 +660,7 @@ namespace GateHelper
             // 
             // tabPage3
             // 
+            this.tabPage3.Controls.Add(this.flowLayoutPanel_DropZone);
             this.tabPage3.Controls.Add(this.btnSandBox);
             this.tabPage3.Controls.Add(this.BtnWorkLog1);
             this.tabPage3.Controls.Add(this.dummyControlOutsideTab);
@@ -1157,6 +1159,17 @@ namespace GateHelper
             this.BtnQuickConnect.UseVisualStyleBackColor = true;
             this.BtnQuickConnect.Click += new System.EventHandler(this.BtnQuickConnect_Click);
             // 
+            // flowLayoutPanel_DropZone
+            // 
+            this.flowLayoutPanel_DropZone.AllowDrop = true;
+            this.flowLayoutPanel_DropZone.AutoScroll = true;
+            this.flowLayoutPanel_DropZone.Location = new System.Drawing.Point(395, 8);
+            this.flowLayoutPanel_DropZone.Margin = new System.Windows.Forms.Padding(2);
+            this.flowLayoutPanel_DropZone.Name = "flowLayoutPanel_DropZone";
+            this.flowLayoutPanel_DropZone.Padding = new System.Windows.Forms.Padding(3);
+            this.flowLayoutPanel_DropZone.Size = new System.Drawing.Size(182, 298);
+            this.flowLayoutPanel_DropZone.TabIndex = 106;
+            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -1281,6 +1294,7 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialTextBox2 TxtQuickSearch;
         private MaterialSkin.Controls.MaterialButton BtnQuickConnect;
         private MaterialSkin.Controls.MaterialButton BtnStopCollect;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel_DropZone;
     }
 }
 

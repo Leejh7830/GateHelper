@@ -215,6 +215,7 @@
     <Compile Include="SandBox\SandBox.Designer.cs">
       <DependentUpon>SandBox.cs</DependentUpon>
     </Compile>
+    <Compile Include="ShortcutManager.cs" />
     <Compile Include="ThemeManager.cs" />
     <Compile Include="TransparentPictureBox.cs">
       <SubType>Component</SubType>
