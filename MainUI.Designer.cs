@@ -66,6 +66,7 @@ namespace GateHelper
             this.MenuItem2_Favorite = new System.Windows.Forms.ToolStripMenuItem();
             this.txtMemoEditor = new System.Windows.Forms.TextBox();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.flowLayoutPanel_DropZone = new System.Windows.Forms.FlowLayoutPanel();
             this.btnSandBox = new MaterialSkin.Controls.MaterialButton();
             this.BtnWorkLog1 = new MaterialSkin.Controls.MaterialButton();
             this.dummyControlOutsideTab = new MaterialSkin.Controls.MaterialButton();
@@ -97,7 +98,7 @@ namespace GateHelper
             this.BtnStartManagement = new MaterialSkin.Controls.MaterialButton();
             this.TxtQuickSearch = new MaterialSkin.Controls.MaterialTextBox2();
             this.BtnQuickConnect = new MaterialSkin.Controls.MaterialButton();
-            this.flowLayoutPanel_DropZone = new System.Windows.Forms.FlowLayoutPanel();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.GroupConnect1.SuspendLayout();
             this.GroupPreset1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
@@ -112,6 +113,7 @@ namespace GateHelper
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Setting)).BeginInit();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // BtnGateOneLogin1
@@ -660,7 +662,7 @@ namespace GateHelper
             // 
             // tabPage3
             // 
-            this.tabPage3.Controls.Add(this.flowLayoutPanel_DropZone);
+            this.tabPage3.Controls.Add(this.groupBox1);
             this.tabPage3.Controls.Add(this.btnSandBox);
             this.tabPage3.Controls.Add(this.BtnWorkLog1);
             this.tabPage3.Controls.Add(this.dummyControlOutsideTab);
@@ -675,6 +677,17 @@ namespace GateHelper
             this.tabPage3.TabIndex = 2;
             this.tabPage3.Text = "REFERENCE";
             this.tabPage3.UseVisualStyleBackColor = true;
+            // 
+            // flowLayoutPanel_DropZone
+            // 
+            this.flowLayoutPanel_DropZone.AllowDrop = true;
+            this.flowLayoutPanel_DropZone.AutoScroll = true;
+            this.flowLayoutPanel_DropZone.Location = new System.Drawing.Point(5, 19);
+            this.flowLayoutPanel_DropZone.Margin = new System.Windows.Forms.Padding(2);
+            this.flowLayoutPanel_DropZone.Name = "flowLayoutPanel_DropZone";
+            this.flowLayoutPanel_DropZone.Padding = new System.Windows.Forms.Padding(3);
+            this.flowLayoutPanel_DropZone.Size = new System.Drawing.Size(169, 279);
+            this.flowLayoutPanel_DropZone.TabIndex = 106;
             // 
             // btnSandBox
             // 
@@ -1159,16 +1172,15 @@ namespace GateHelper
             this.BtnQuickConnect.UseVisualStyleBackColor = true;
             this.BtnQuickConnect.Click += new System.EventHandler(this.BtnQuickConnect_Click);
             // 
-            // flowLayoutPanel_DropZone
+            // groupBox1
             // 
-            this.flowLayoutPanel_DropZone.AllowDrop = true;
-            this.flowLayoutPanel_DropZone.AutoScroll = true;
-            this.flowLayoutPanel_DropZone.Location = new System.Drawing.Point(395, 8);
-            this.flowLayoutPanel_DropZone.Margin = new System.Windows.Forms.Padding(2);
-            this.flowLayoutPanel_DropZone.Name = "flowLayoutPanel_DropZone";
-            this.flowLayoutPanel_DropZone.Padding = new System.Windows.Forms.Padding(3);
-            this.flowLayoutPanel_DropZone.Size = new System.Drawing.Size(182, 298);
-            this.flowLayoutPanel_DropZone.TabIndex = 106;
+            this.groupBox1.Controls.Add(this.flowLayoutPanel_DropZone);
+            this.groupBox1.Location = new System.Drawing.Point(397, 3);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(179, 303);
+            this.groupBox1.TabIndex = 107;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Favorite";
             // 
             // MainUI
             // 
@@ -1223,6 +1235,7 @@ namespace GateHelper
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Setting)).EndInit();
+            this.groupBox1.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1295,6 +1308,7 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton BtnQuickConnect;
         private MaterialSkin.Controls.MaterialButton BtnStopCollect;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel_DropZone;
+        private System.Windows.Forms.GroupBox groupBox1;
     }
 }
 
