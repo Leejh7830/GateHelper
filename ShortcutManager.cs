@@ -141,7 +141,7 @@ namespace GateHelper
             }
         }
 
-        // 💡 [수정 핵심 인터락] 무결성 업데이트 시 테마에 의해 오버라이드된 폰트 크기까지 강제로 재연산 복원
+        // 무결성 업데이트 시 테마에 의해 오버라이드된 폰트 크기까지 강제로 재연산 복원
         private void UpdateButtonIntegrityUI(Button btn, bool exists)
         {
             // 1. 색상 복원
