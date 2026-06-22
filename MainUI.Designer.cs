@@ -66,6 +66,7 @@ namespace GateHelper
             this.MenuItem2_Favorite = new System.Windows.Forms.ToolStripMenuItem();
             this.txtMemoEditor = new System.Windows.Forms.TextBox();
             this.tabPage3 = new System.Windows.Forms.TabPage();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.flowLayoutPanel_DropZone = new System.Windows.Forms.FlowLayoutPanel();
             this.btnSandBox = new MaterialSkin.Controls.MaterialButton();
             this.BtnWorkLog1 = new MaterialSkin.Controls.MaterialButton();
@@ -78,13 +79,10 @@ namespace GateHelper
             this.BtnStart2 = new MaterialSkin.Controls.MaterialButton();
             this.BtnOpenConfig1 = new MaterialSkin.Controls.MaterialButton();
             this.toolTip_Question1 = new System.Windows.Forms.ToolTip(this.components);
-            this.PicBox_Question = new System.Windows.Forms.PictureBox();
             this.toolTip_FavOneClickConnect1 = new System.Windows.Forms.ToolTip(this.components);
             this.BtnStart1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnReConfig1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnOpenLog1 = new MaterialSkin.Controls.MaterialButton();
-            this.PicBox_Arrow = new System.Windows.Forms.PictureBox();
-            this.PicBox_Setting = new System.Windows.Forms.PictureBox();
             this.lblDriverStatus = new System.Windows.Forms.Label();
             this.lblInternetStatus = new System.Windows.Forms.Label();
             this.BtnOption1 = new MaterialSkin.Controls.MaterialButton();
@@ -98,7 +96,10 @@ namespace GateHelper
             this.BtnStartManagement = new MaterialSkin.Controls.MaterialButton();
             this.TxtQuickSearch = new MaterialSkin.Controls.MaterialTextBox2();
             this.BtnQuickConnect = new MaterialSkin.Controls.MaterialButton();
-            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.BtnLogValidator = new MaterialSkin.Controls.MaterialButton();
+            this.PicBox_Arrow = new System.Windows.Forms.PictureBox();
+            this.PicBox_Setting = new System.Windows.Forms.PictureBox();
+            this.PicBox_Question = new System.Windows.Forms.PictureBox();
             this.GroupConnect1.SuspendLayout();
             this.GroupPreset1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
@@ -109,11 +110,11 @@ namespace GateHelper
             ((System.ComponentModel.ISupportInitialize)(this.OlvServerList)).BeginInit();
             this.ListViewContext1.SuspendLayout();
             this.tabPage3.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.GroupRef2.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Setting)).BeginInit();
-            this.groupBox1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).BeginInit();
             this.SuspendLayout();
             // 
             // BtnGateOneLogin1
@@ -678,6 +679,16 @@ namespace GateHelper
             this.tabPage3.Text = "REFERENCE";
             this.tabPage3.UseVisualStyleBackColor = true;
             // 
+            // groupBox1
+            // 
+            this.groupBox1.Controls.Add(this.flowLayoutPanel_DropZone);
+            this.groupBox1.Location = new System.Drawing.Point(397, 3);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(179, 303);
+            this.groupBox1.TabIndex = 107;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Favorite";
+            // 
             // flowLayoutPanel_DropZone
             // 
             this.flowLayoutPanel_DropZone.AllowDrop = true;
@@ -816,7 +827,7 @@ namespace GateHelper
             this.TabSelector1.BaseTabControl = this.TabControl1;
             this.TabSelector1.CharacterCasing = MaterialSkin.Controls.MaterialTabSelector.CustomCharacterCasing.Normal;
             this.TabSelector1.Depth = 0;
-            this.TabSelector1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.TabSelector1.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
             this.TabSelector1.ForeColor = System.Drawing.SystemColors.Control;
             this.TabSelector1.Location = new System.Drawing.Point(20, 135);
             this.TabSelector1.Margin = new System.Windows.Forms.Padding(2);
@@ -841,7 +852,7 @@ namespace GateHelper
             this.BtnStart2.Name = "BtnStart2";
             this.BtnStart2.NoAccentTextColor = System.Drawing.Color.Empty;
             this.BtnStart2.Size = new System.Drawing.Size(147, 40);
-            this.BtnStart2.TabIndex = 17;
+            this.BtnStart2.TabIndex = 11111;
             this.BtnStart2.Text = "Auto Login";
             this.BtnStart2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.BtnStart2.UseAccentColor = false;
@@ -868,18 +879,6 @@ namespace GateHelper
             this.BtnOpenConfig1.UseAccentColor = false;
             this.BtnOpenConfig1.UseVisualStyleBackColor = true;
             this.BtnOpenConfig1.Click += new System.EventHandler(this.BtnOpenConfig1_Click);
-            // 
-            // PicBox_Question
-            // 
-            this.PicBox_Question.Image = global::GateHelper.Properties.Resources.question;
-            this.PicBox_Question.Location = new System.Drawing.Point(351, 653);
-            this.PicBox_Question.Name = "PicBox_Question";
-            this.PicBox_Question.Size = new System.Drawing.Size(35, 33);
-            this.PicBox_Question.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.PicBox_Question.TabIndex = 95;
-            this.PicBox_Question.TabStop = false;
-            this.toolTip_Question1.SetToolTip(this.PicBox_Question, "C# Windows Forms based Selenium V");
-            this.PicBox_Question.Click += new System.EventHandler(this.PicBox_Question_Click);
             // 
             // BtnStart1
             // 
@@ -944,28 +943,6 @@ namespace GateHelper
             this.BtnOpenLog1.UseAccentColor = false;
             this.BtnOpenLog1.UseVisualStyleBackColor = true;
             this.BtnOpenLog1.Click += new System.EventHandler(this.BtnOpenLog1_Click);
-            // 
-            // PicBox_Arrow
-            // 
-            this.PicBox_Arrow.Image = global::GateHelper.Properties.Resources.arrow_right;
-            this.PicBox_Arrow.Location = new System.Drawing.Point(269, 653);
-            this.PicBox_Arrow.Name = "PicBox_Arrow";
-            this.PicBox_Arrow.Size = new System.Drawing.Size(35, 33);
-            this.PicBox_Arrow.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.PicBox_Arrow.TabIndex = 26;
-            this.PicBox_Arrow.TabStop = false;
-            this.PicBox_Arrow.Click += new System.EventHandler(this.PicBox_Arrow_Click);
-            // 
-            // PicBox_Setting
-            // 
-            this.PicBox_Setting.Image = global::GateHelper.Properties.Resources.sun;
-            this.PicBox_Setting.Location = new System.Drawing.Point(310, 653);
-            this.PicBox_Setting.Name = "PicBox_Setting";
-            this.PicBox_Setting.Size = new System.Drawing.Size(35, 33);
-            this.PicBox_Setting.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.PicBox_Setting.TabIndex = 25;
-            this.PicBox_Setting.TabStop = false;
-            this.PicBox_Setting.Click += new System.EventHandler(this.PicBox_Setting_Click);
             // 
             // lblDriverStatus
             // 
@@ -1129,7 +1106,7 @@ namespace GateHelper
             this.TxtQuickSearch.HideSelection = true;
             this.TxtQuickSearch.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.TxtQuickSearch.LeadingIcon = null;
-            this.TxtQuickSearch.Location = new System.Drawing.Point(162, 544);
+            this.TxtQuickSearch.Location = new System.Drawing.Point(162, 547);
             this.TxtQuickSearch.Margin = new System.Windows.Forms.Padding(2);
             this.TxtQuickSearch.MaxLength = 32767;
             this.TxtQuickSearch.MouseState = MaterialSkin.MouseState.OUT;
@@ -1159,7 +1136,7 @@ namespace GateHelper
             this.BtnQuickConnect.Enabled = false;
             this.BtnQuickConnect.HighEmphasis = true;
             this.BtnQuickConnect.Icon = null;
-            this.BtnQuickConnect.Location = new System.Drawing.Point(280, 544);
+            this.BtnQuickConnect.Location = new System.Drawing.Point(280, 547);
             this.BtnQuickConnect.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnQuickConnect.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnQuickConnect.Name = "BtnQuickConnect";
@@ -1172,15 +1149,60 @@ namespace GateHelper
             this.BtnQuickConnect.UseVisualStyleBackColor = true;
             this.BtnQuickConnect.Click += new System.EventHandler(this.BtnQuickConnect_Click);
             // 
-            // groupBox1
+            // BtnLogValidator
             // 
-            this.groupBox1.Controls.Add(this.flowLayoutPanel_DropZone);
-            this.groupBox1.Location = new System.Drawing.Point(397, 3);
-            this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(179, 303);
-            this.groupBox1.TabIndex = 107;
-            this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Favorite";
+            this.BtnLogValidator.AutoSize = false;
+            this.BtnLogValidator.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnLogValidator.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnLogValidator.Depth = 0;
+            this.BtnLogValidator.HighEmphasis = true;
+            this.BtnLogValidator.Icon = null;
+            this.BtnLogValidator.Location = new System.Drawing.Point(226, 613);
+            this.BtnLogValidator.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnLogValidator.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnLogValidator.Name = "BtnLogValidator";
+            this.BtnLogValidator.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnLogValidator.Size = new System.Drawing.Size(80, 33);
+            this.BtnLogValidator.TabIndex = 106;
+            this.BtnLogValidator.Text = "Log - V";
+            this.BtnLogValidator.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnLogValidator.UseAccentColor = false;
+            this.BtnLogValidator.UseVisualStyleBackColor = true;
+            this.BtnLogValidator.Click += new System.EventHandler(this.BtnLV_Click);
+            // 
+            // PicBox_Arrow
+            // 
+            this.PicBox_Arrow.Image = global::GateHelper.Properties.Resources.arrow_right;
+            this.PicBox_Arrow.Location = new System.Drawing.Point(269, 653);
+            this.PicBox_Arrow.Name = "PicBox_Arrow";
+            this.PicBox_Arrow.Size = new System.Drawing.Size(35, 33);
+            this.PicBox_Arrow.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.PicBox_Arrow.TabIndex = 26;
+            this.PicBox_Arrow.TabStop = false;
+            this.PicBox_Arrow.Click += new System.EventHandler(this.PicBox_Arrow_Click);
+            // 
+            // PicBox_Setting
+            // 
+            this.PicBox_Setting.Image = global::GateHelper.Properties.Resources.sun;
+            this.PicBox_Setting.Location = new System.Drawing.Point(310, 653);
+            this.PicBox_Setting.Name = "PicBox_Setting";
+            this.PicBox_Setting.Size = new System.Drawing.Size(35, 33);
+            this.PicBox_Setting.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.PicBox_Setting.TabIndex = 25;
+            this.PicBox_Setting.TabStop = false;
+            this.PicBox_Setting.Click += new System.EventHandler(this.PicBox_Setting_Click);
+            // 
+            // PicBox_Question
+            // 
+            this.PicBox_Question.Image = global::GateHelper.Properties.Resources.question;
+            this.PicBox_Question.Location = new System.Drawing.Point(351, 653);
+            this.PicBox_Question.Name = "PicBox_Question";
+            this.PicBox_Question.Size = new System.Drawing.Size(35, 33);
+            this.PicBox_Question.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.PicBox_Question.TabIndex = 95;
+            this.PicBox_Question.TabStop = false;
+            this.toolTip_Question1.SetToolTip(this.PicBox_Question, "C# Windows Forms based Selenium V");
+            this.PicBox_Question.Click += new System.EventHandler(this.PicBox_Question_Click);
             // 
             // MainUI
             // 
@@ -1188,6 +1210,7 @@ namespace GateHelper
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
             this.ClientSize = new System.Drawing.Size(1114, 714);
+            this.Controls.Add(this.BtnLogValidator);
             this.Controls.Add(this.BtnQuickConnect);
             this.Controls.Add(this.TxtQuickSearch);
             this.Controls.Add(this.BtnStartManagement);
@@ -1231,11 +1254,11 @@ namespace GateHelper
             this.ListViewContext1.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
             this.tabPage3.PerformLayout();
+            this.groupBox1.ResumeLayout(false);
             this.GroupRef2.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Setting)).EndInit();
-            this.groupBox1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -1309,6 +1332,7 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton BtnStopCollect;
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel_DropZone;
         private System.Windows.Forms.GroupBox groupBox1;
+        private MaterialSkin.Controls.MaterialButton BtnLogValidator;
     }
 }
 

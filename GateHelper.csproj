@@ -179,6 +179,29 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppSettings.cs" />
+    <Compile Include="LogValidator\Core\LogMasker.cs" />
+    <Compile Include="LogValidator\Core\LogParser.cs" />
+    <Compile Include="LogValidator\Forms\LogValidatorMain.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LogValidator\Forms\LogValidatorMain.Designer.cs">
+      <DependentUpon>LogValidatorMain.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LogValidator\Forms\LogScenarioForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LogValidator\Forms\LogScenarioForm.Designer.cs">
+      <DependentUpon>LogScenarioForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LogValidator\Forms\LogValidatorForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LogValidator\Forms\LogValidatorForm.Designer.cs">
+      <DependentUpon>LogValidatorForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LogValidator\Models\RawLogModel.cs" />
+    <Compile Include="LogValidator\Models\ScenarioModel.cs" />
+    <Compile Include="LogValidator\Models\ValidationModel.cs" />
     <Compile Include="SandBox\1. BitFlip\BitFlipControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -256,6 +279,15 @@
     <Compile Include="WorkLog\WorkLogModel.cs" />
     <Compile Include="WorkLog\WorkLogRepository.cs" />
     <Compile Include="WorkLog\WorkLogService.cs" />
+    <EmbeddedResource Include="LogValidator\Forms\LogScenarioForm.resx">
+      <DependentUpon>LogScenarioForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LogValidator\Forms\LogValidatorForm.resx">
+      <DependentUpon>LogValidatorForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LogValidator\Forms\LogValidatorMain.resx">
+      <DependentUpon>LogValidatorMain.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="SandBox\1. BitFlip\BitFlipControl.resx">
       <DependentUpon>BitFlipControl.cs</DependentUpon>
     </EmbeddedResource>

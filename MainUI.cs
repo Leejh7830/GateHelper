@@ -1,4 +1,5 @@
-﻿using GateHelper.Utils;
+﻿using GateHelper.LogAnalyzer;
+using GateHelper.Utils;
 using MaterialSkin;
 using MaterialSkin.Controls;
 using OpenQA.Selenium;
@@ -1862,8 +1863,14 @@ namespace GateHelper
             }
         }
 
-
-
+        private void BtnLV_Click(object sender, EventArgs e)
+        {
+            using (LogValidatorMain laMain = new LogValidatorMain())
+            {
+                laMain.StartPosition = FormStartPosition.CenterParent;
+                laMain.ShowDialog(this);
+            }
+        }
 
     } // MainUI.cs END
 }
