@@ -79,6 +79,7 @@ namespace GateHelper
             this.BtnStart2 = new MaterialSkin.Controls.MaterialButton();
             this.BtnOpenConfig1 = new MaterialSkin.Controls.MaterialButton();
             this.toolTip_Question1 = new System.Windows.Forms.ToolTip(this.components);
+            this.PicBox_Question = new System.Windows.Forms.PictureBox();
             this.toolTip_FavOneClickConnect1 = new System.Windows.Forms.ToolTip(this.components);
             this.BtnStart1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnReConfig1 = new MaterialSkin.Controls.MaterialButton();
@@ -99,7 +100,6 @@ namespace GateHelper
             this.BtnLogValidator = new MaterialSkin.Controls.MaterialButton();
             this.PicBox_Arrow = new System.Windows.Forms.PictureBox();
             this.PicBox_Setting = new System.Windows.Forms.PictureBox();
-            this.PicBox_Question = new System.Windows.Forms.PictureBox();
             this.GroupConnect1.SuspendLayout();
             this.GroupPreset1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
@@ -112,9 +112,9 @@ namespace GateHelper
             this.tabPage3.SuspendLayout();
             this.groupBox1.SuspendLayout();
             this.GroupRef2.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Setting)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).BeginInit();
             this.SuspendLayout();
             // 
             // BtnGateOneLogin1
@@ -827,7 +827,7 @@ namespace GateHelper
             this.TabSelector1.BaseTabControl = this.TabControl1;
             this.TabSelector1.CharacterCasing = MaterialSkin.Controls.MaterialTabSelector.CustomCharacterCasing.Normal;
             this.TabSelector1.Depth = 0;
-            this.TabSelector1.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.TabSelector1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
             this.TabSelector1.ForeColor = System.Drawing.SystemColors.Control;
             this.TabSelector1.Location = new System.Drawing.Point(20, 135);
             this.TabSelector1.Margin = new System.Windows.Forms.Padding(2);
@@ -879,6 +879,18 @@ namespace GateHelper
             this.BtnOpenConfig1.UseAccentColor = false;
             this.BtnOpenConfig1.UseVisualStyleBackColor = true;
             this.BtnOpenConfig1.Click += new System.EventHandler(this.BtnOpenConfig1_Click);
+            // 
+            // PicBox_Question
+            // 
+            this.PicBox_Question.Image = global::GateHelper.Properties.Resources.question;
+            this.PicBox_Question.Location = new System.Drawing.Point(351, 653);
+            this.PicBox_Question.Name = "PicBox_Question";
+            this.PicBox_Question.Size = new System.Drawing.Size(35, 33);
+            this.PicBox_Question.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
+            this.PicBox_Question.TabIndex = 95;
+            this.PicBox_Question.TabStop = false;
+            this.toolTip_Question1.SetToolTip(this.PicBox_Question, "C# Windows Forms based Selenium V");
+            this.PicBox_Question.Click += new System.EventHandler(this.PicBox_Question_Click);
             // 
             // BtnStart1
             // 
@@ -1106,7 +1118,7 @@ namespace GateHelper
             this.TxtQuickSearch.HideSelection = true;
             this.TxtQuickSearch.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.TxtQuickSearch.LeadingIcon = null;
-            this.TxtQuickSearch.Location = new System.Drawing.Point(162, 547);
+            this.TxtQuickSearch.Location = new System.Drawing.Point(138, 547);
             this.TxtQuickSearch.Margin = new System.Windows.Forms.Padding(2);
             this.TxtQuickSearch.MaxLength = 32767;
             this.TxtQuickSearch.MouseState = MaterialSkin.MouseState.OUT;
@@ -1119,7 +1131,7 @@ namespace GateHelper
             this.TxtQuickSearch.SelectionLength = 0;
             this.TxtQuickSearch.SelectionStart = 0;
             this.TxtQuickSearch.ShortcutsEnabled = true;
-            this.TxtQuickSearch.Size = new System.Drawing.Size(111, 48);
+            this.TxtQuickSearch.Size = new System.Drawing.Size(135, 48);
             this.TxtQuickSearch.TabIndex = 104;
             this.TxtQuickSearch.TabStop = false;
             this.TxtQuickSearch.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
@@ -1192,18 +1204,6 @@ namespace GateHelper
             this.PicBox_Setting.TabStop = false;
             this.PicBox_Setting.Click += new System.EventHandler(this.PicBox_Setting_Click);
             // 
-            // PicBox_Question
-            // 
-            this.PicBox_Question.Image = global::GateHelper.Properties.Resources.question;
-            this.PicBox_Question.Location = new System.Drawing.Point(351, 653);
-            this.PicBox_Question.Name = "PicBox_Question";
-            this.PicBox_Question.Size = new System.Drawing.Size(35, 33);
-            this.PicBox_Question.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.PicBox_Question.TabIndex = 95;
-            this.PicBox_Question.TabStop = false;
-            this.toolTip_Question1.SetToolTip(this.PicBox_Question, "C# Windows Forms based Selenium V");
-            this.PicBox_Question.Click += new System.EventHandler(this.PicBox_Question_Click);
-            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -1256,9 +1256,9 @@ namespace GateHelper
             this.tabPage3.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.GroupRef2.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Setting)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 

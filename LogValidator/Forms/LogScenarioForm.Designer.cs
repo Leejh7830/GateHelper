@@ -195,19 +195,19 @@
             // 
             this.groupBox1.Controls.Add(this.txtEventName);
             this.groupBox1.Controls.Add(this.rtbMaskedPreview);
-            this.groupBox1.Location = new System.Drawing.Point(12, 12);
+            this.groupBox1.Location = new System.Drawing.Point(3, 3);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(319, 180);
+            this.groupBox1.Size = new System.Drawing.Size(347, 209);
             this.groupBox1.TabIndex = 0;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Event Builder";
             // 
             // txtEventName
             // 
-            this.txtEventName.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.txtEventName.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtEventName.Location = new System.Drawing.Point(6, 32);
             this.txtEventName.Name = "txtEventName";
-            this.txtEventName.Size = new System.Drawing.Size(307, 14);
+            this.txtEventName.Size = new System.Drawing.Size(307, 21);
             this.txtEventName.TabIndex = 109;
             // 
             // rtbMaskedPreview
@@ -223,12 +223,13 @@
             this.olvUnitRepository.CellEditUseWholeCell = false;
             this.olvUnitRepository.Cursor = System.Windows.Forms.Cursors.Default;
             this.olvUnitRepository.HideSelection = false;
-            this.olvUnitRepository.Location = new System.Drawing.Point(37, 41);
+            this.olvUnitRepository.Location = new System.Drawing.Point(3, 2);
             this.olvUnitRepository.Name = "olvUnitRepository";
-            this.olvUnitRepository.Size = new System.Drawing.Size(149, 145);
+            this.olvUnitRepository.Size = new System.Drawing.Size(395, 210);
             this.olvUnitRepository.TabIndex = 0;
             this.olvUnitRepository.UseCompatibleStateImageBehavior = false;
             this.olvUnitRepository.View = System.Windows.Forms.View.Details;
+            this.olvUnitRepository.DoubleClick += new System.EventHandler(this.olvUnitRepository_DoubleClick);
             this.olvUnitRepository.MouseDown += new System.Windows.Forms.MouseEventHandler(this.olvUnitRepository_MouseDown);
             // 
             // pnlControlButtons
@@ -247,10 +248,10 @@
             // 
             // txtScenarioName
             // 
-            this.txtScenarioName.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.txtScenarioName.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtScenarioName.Location = new System.Drawing.Point(17, 29);
             this.txtScenarioName.Name = "txtScenarioName";
-            this.txtScenarioName.Size = new System.Drawing.Size(168, 14);
+            this.txtScenarioName.Size = new System.Drawing.Size(168, 21);
             this.txtScenarioName.TabIndex = 114;
             // 
             // lblCurrentScenario

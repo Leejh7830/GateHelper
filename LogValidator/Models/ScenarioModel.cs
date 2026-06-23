@@ -21,5 +21,6 @@ namespace GateHelper.LogValidator.Models
         public int StepNo { get; set; }             // 사다리 칸 순번 (1, 2, 3...)
         public string EventName { get; set; }        // 할당된 유닛의 이름
         public string MaskingPattern { get; set; }   // 검증에 사용될 최종 패턴 규칙
+        public string Direction { get; set; } // 통신 방향 ("TX" 또는 "RX")
     }
 }

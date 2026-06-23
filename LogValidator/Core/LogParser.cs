@@ -10,30 +10,35 @@ namespace GateHelper.LogValidator.Core
         public List<RawLogModel> ParseLogFile(string filePath)
         {
             var logList = new List<RawLogModel>();
-            string[] allLines = File.ReadAllLines(filePath);
 
-            for (int i = 0; i < allLines.Length; i++)
+            if (!File.Exists(filePath)) return logList;
+
+            try
             {
-                string currentLine = allLines[i];
-                string timestamp = "*";
+                // 💡 파일의 모든 행을 원본 유실 없이 순정 상태로 판독
+                string[] allLines = File.ReadAllLines(filePath);
 
-                // 시간 문자열 수동 스플릿 엔진 가동
-                if (currentLine.Length > 23 && currentLine.Contains("-") && currentLine.Contains(":"))
+                for (int i = 0; i < allLines.Length; i++)
                 {
-                    int firstSpaceIndex = currentLine.IndexOf(' ', currentLine.IndexOf(' ') + 1);
-                    if (firstSpaceIndex > 0)
+                    string currentLine = allLines[i];
+
+                    // 💡 공백 유무에 따른 데이터 누락을 완전 방지
+                    if (string.IsNullOrEmpty(currentLine)) continue;
+
+                    // 💡 [아키텍처 정렬] 타임스탬프 분절 엔진을 완전히 폐기하고
+                    // LogMessage 필드에 한 줄 전체 내용을 훼손 없이 통째로 덤프합니다.
+                    logList.Add(new RawLogModel
                     {
-                        timestamp = currentLine.Substring(0, firstSpaceIndex).Trim();
-                        currentLine = currentLine.Substring(firstSpaceIndex).Trim();
-                    }
+                        LineNo = i + 1,
+                        Timestamp = "*", // 스펙 변경으로 타임스탬프 단독 컬럼은 마스킹 기본값 처리
+                        LogMessage = currentLine
+                    });
                 }
-
-                logList.Add(new RawLogModel
-                {
-                    LineNo = i + 1,
-                    Timestamp = timestamp,
-                    LogMessage = currentLine
-                });
+            }
+            catch (Exception)
+            {
+                // 폼 레이어의 예외 포착 스위치로 제어권을 위임하기 위해 상위로 throw
+                throw;
             }
 
             return logList;

@@ -4,6 +4,7 @@ namespace GateHelper.LogValidator.Core
 {
     public class LogMasker
     {
+        /*
         // 마스킹/하이라이트 대상 고정 정규식 패턴 어레이
         private readonly string[] _patterns = new string[]
         {
@@ -20,5 +21,6 @@ namespace GateHelper.LogValidator.Core
             string combinedPattern = string.Join("|", _patterns);
             return Regex.Matches(text, combinedPattern);
         }
+        */
     }
 }
