@@ -43,16 +43,16 @@ namespace GateHelper.LogValidator
 
         private void InitializeRawLogGridView()
         {
-            olvRawLog.Columns.Clear();
+            olvScenarioRawLog.Columns.Clear();
 
             var colLineNo = new OLVColumn("Line", "LineNo") { Width = 60, TextAlign = HorizontalAlignment.Center };
             var colMessage = new OLVColumn("Log Message", "LogMessage") { Width = 750 };
 
-            olvRawLog.Columns.AddRange(new ColumnHeader[] { colLineNo, colMessage });
-            olvRawLog.View = View.Details;
-            olvRawLog.FullRowSelect = true;
-            olvRawLog.GridLines = true;
-            olvRawLog.Visible = false;
+            olvScenarioRawLog.Columns.AddRange(new ColumnHeader[] { colLineNo, colMessage });
+            olvScenarioRawLog.View = View.Details;
+            olvScenarioRawLog.FullRowSelect = true;
+            olvScenarioRawLog.GridLines = true;
+            olvScenarioRawLog.Visible = false;
         }
 
         private void InitializeUnitRepositoryGridView()
@@ -170,8 +170,8 @@ namespace GateHelper.LogValidator
                 // 💡 Raw 로그 파서에서 번호와 전체 텍스트만 깔끔하게 받아와 바인딩
                 _rawLogList = _logParser.ParseLogFile(files[0]);
                 pnlDropZone.Visible = false;
-                olvRawLog.Visible = true;
-                olvRawLog.SetObjects(_rawLogList);
+                olvScenarioRawLog.Visible = true;
+                olvScenarioRawLog.SetObjects(_rawLogList);
             }
             catch (Exception ex)
             {
@@ -181,9 +181,9 @@ namespace GateHelper.LogValidator
 
         private void olvRawLog_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (olvRawLog.SelectedObject == null) return;
+            if (olvScenarioRawLog.SelectedObject == null) return;
 
-            var selectedRow = olvRawLog.SelectedObject as RawLogModel;
+            var selectedRow = olvScenarioRawLog.SelectedObject as RawLogModel;
             if (selectedRow == null || string.IsNullOrEmpty(selectedRow.LogMessage) || selectedRow.LogMessage == "*") return;
 
             _selectedTemplateForEdit = null;
@@ -551,7 +551,7 @@ namespace GateHelper.LogValidator
                 // 폼이 파괴되기 전에 ObjectListView가 소유한 내부 툴팁 컨트롤 자원을 
                 // 강제로 물리적 디스포즈 처리하여 무효한 폰트 핸들(HDC) 참조 연산을 전면 차단합니다.
 
-                if (olvRawLog != null) olvRawLog.CellToolTipShowing -= null;
+                if (olvScenarioRawLog != null) olvScenarioRawLog.CellToolTipShowing -= null;
                 if (olvUnitRepository != null) olvUnitRepository.CellToolTipShowing -= null;
 
                 if (olvScenarioLadder != null)
@@ -563,7 +563,7 @@ namespace GateHelper.LogValidator
 
                 // 💡 ObjectListView 내부의 가상 윈도우 핸들 파괴 시점 충돌을 막기 위해 
                 // 컨트롤 자체의 상위 디스포즈 파이프라인을 선행 트리거합니다.
-                olvRawLog?.Dispose();
+                olvScenarioRawLog?.Dispose();
                 olvUnitRepository?.Dispose();
                 olvScenarioLadder?.Dispose();
             }

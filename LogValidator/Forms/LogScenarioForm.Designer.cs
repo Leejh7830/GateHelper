@@ -31,7 +31,7 @@
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
             this.pnlDropZone = new System.Windows.Forms.Panel();
             this.lblRawLogDrag = new MaterialSkin.Controls.MaterialLabel();
-            this.olvRawLog = new BrightIdeasSoftware.FastObjectListView();
+            this.olvScenarioRawLog = new BrightIdeasSoftware.FastObjectListView();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.splitContainer3 = new System.Windows.Forms.SplitContainer();
             this.btnRegisterUnit = new MaterialSkin.Controls.MaterialButton();
@@ -51,7 +51,7 @@
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
             this.pnlDropZone.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.olvRawLog)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.olvScenarioRawLog)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
             this.splitContainer2.Panel2.SuspendLayout();
@@ -76,7 +76,7 @@
             // splitContainer1.Panel1
             // 
             this.splitContainer1.Panel1.Controls.Add(this.pnlDropZone);
-            this.splitContainer1.Panel1.Controls.Add(this.olvRawLog);
+            this.splitContainer1.Panel1.Controls.Add(this.olvScenarioRawLog);
             // 
             // splitContainer1.Panel2
             // 
@@ -111,23 +111,23 @@
             this.lblRawLogDrag.DragDrop += new System.Windows.Forms.DragEventHandler(this.PnlDropZone_DragDrop);
             this.lblRawLogDrag.DragEnter += new System.Windows.Forms.DragEventHandler(this.PnlDropZone_DragEnter);
             // 
-            // olvRawLog
+            // olvScenarioRawLog
             // 
-            this.olvRawLog.AllowDrop = true;
-            this.olvRawLog.CellEditUseWholeCell = false;
-            this.olvRawLog.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.olvRawLog.FullRowSelect = true;
-            this.olvRawLog.GridLines = true;
-            this.olvRawLog.HideSelection = false;
-            this.olvRawLog.Location = new System.Drawing.Point(0, 0);
-            this.olvRawLog.Name = "olvRawLog";
-            this.olvRawLog.ShowGroups = false;
-            this.olvRawLog.Size = new System.Drawing.Size(383, 774);
-            this.olvRawLog.TabIndex = 0;
-            this.olvRawLog.UseCompatibleStateImageBehavior = false;
-            this.olvRawLog.View = System.Windows.Forms.View.Details;
-            this.olvRawLog.VirtualMode = true;
-            this.olvRawLog.SelectedIndexChanged += new System.EventHandler(this.olvRawLog_SelectedIndexChanged);
+            this.olvScenarioRawLog.AllowDrop = true;
+            this.olvScenarioRawLog.CellEditUseWholeCell = false;
+            this.olvScenarioRawLog.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.olvScenarioRawLog.FullRowSelect = true;
+            this.olvScenarioRawLog.GridLines = true;
+            this.olvScenarioRawLog.HideSelection = false;
+            this.olvScenarioRawLog.Location = new System.Drawing.Point(0, 0);
+            this.olvScenarioRawLog.Name = "olvScenarioRawLog";
+            this.olvScenarioRawLog.ShowGroups = false;
+            this.olvScenarioRawLog.Size = new System.Drawing.Size(383, 774);
+            this.olvScenarioRawLog.TabIndex = 0;
+            this.olvScenarioRawLog.UseCompatibleStateImageBehavior = false;
+            this.olvScenarioRawLog.View = System.Windows.Forms.View.Details;
+            this.olvScenarioRawLog.VirtualMode = true;
+            this.olvScenarioRawLog.SelectedIndexChanged += new System.EventHandler(this.olvRawLog_SelectedIndexChanged);
             // 
             // splitContainer2
             // 
@@ -361,7 +361,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
             this.pnlDropZone.ResumeLayout(false);
-            ((System.ComponentModel.ISupportInitialize)(this.olvRawLog)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.olvScenarioRawLog)).EndInit();
             this.splitContainer2.Panel1.ResumeLayout(false);
             this.splitContainer2.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).EndInit();
@@ -383,7 +383,7 @@
         #endregion
 
         private System.Windows.Forms.SplitContainer splitContainer1;
-        private BrightIdeasSoftware.FastObjectListView olvRawLog;
+        private BrightIdeasSoftware.FastObjectListView olvScenarioRawLog;
         private System.Windows.Forms.Panel pnlDropZone;
         private MaterialSkin.Controls.MaterialLabel lblRawLogDrag;
         private System.Windows.Forms.GroupBox groupBox1;
