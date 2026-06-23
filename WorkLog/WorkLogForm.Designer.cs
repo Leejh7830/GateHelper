@@ -58,8 +58,8 @@
             this.OlvWorkLog.AllColumns.Add(this.Memo);
             this.OlvWorkLog.AllColumns.Add(this.LastUpdated);
             this.OlvWorkLog.AllColumns.Add(this.Images);
-            this.OlvWorkLog.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
+            this.OlvWorkLog.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom)
+            | System.Windows.Forms.AnchorStyles.Left)
             | System.Windows.Forms.AnchorStyles.Right)));
             this.OlvWorkLog.CellEditUseWholeCell = false;
             this.OlvWorkLog.Columns.AddRange(new System.Windows.Forms.ColumnHeader[] {
