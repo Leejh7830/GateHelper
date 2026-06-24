@@ -76,6 +76,51 @@ namespace GateHelper.LogValidator
             olvScenarioRawLog.FullRowSelect = true;
             olvScenarioRawLog.GridLines = true;
             olvScenarioRawLog.Visible = false;
+
+            // =========================================================================
+            // 💡 [교정 인터락: 편집기 내부 핀포인트 구간 마스킹 엔진 강제 주입]
+            // =========================================================================
+            olvScenarioRawLog.RowFormatter = rowObject =>
+            {
+                var logModel = rowObject.RowObject as RawLogModel;
+                if (logModel != null && _scenarioLadderList != null && _scenarioLadderList.Count > 0)
+                {
+                    // ① 우측 사다리 룰 세트에 등록된 패턴들과 일치하는지 전수 검사
+                    bool isMatchedRule = false;
+                    foreach (var step in _scenarioLadderList)
+                    {
+                        if (string.IsNullOrEmpty(step.MaskingPattern)) continue;
+
+                        // 와일드카드 패턴을 정규식으로 안전하게 전환하여 대조
+                        string cleanPattern = step.MaskingPattern.Replace("*", ".*");
+                        if (System.Text.RegularExpressions.Regex.IsMatch(logModel.LogMessage, cleanPattern))
+                        {
+                            isMatchedRule = true;
+                            break;
+                        }
+                    }
+
+                    // ② [구간 가드 연산] 최초 기동 메시지(CreateLogIfNecessary)를 품고 있는 줄은 
+                    // 인덱스 오프셋 왜곡에 상관없이 무조건 마스킹 플래그 강제 적용
+                    bool isInitialSequenceZone = false;
+                    if (logModel.LogMessage != null && logModel.LogMessage.Contains("CreateLogIfNecessary"))
+                    {
+                        isInitialSequenceZone = true;
+                    }
+
+                    // ③ [스타일 락인]
+                    if (isMatchedRule || isInitialSequenceZone)
+                    {
+                        rowObject.BackColor = System.Drawing.Color.FromArgb(255, 243, 205);
+                        rowObject.ForeColor = System.Drawing.Color.Black;
+                    }
+                    else
+                    {
+                        rowObject.BackColor = olvScenarioRawLog.BackColor;
+                        rowObject.ForeColor = olvScenarioRawLog.ForeColor;
+                    }
+                }
+            };
         }
 
         private void InitializeUnitRepositoryGridView()

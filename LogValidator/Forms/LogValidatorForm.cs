@@ -159,12 +159,12 @@ namespace GateHelper.LogValidator
                 return string.Empty;
             };
 
-            // [컬럼 2: 검증 상태 명세]
+            // [컬럼 2: 검증 상태 명세 보정 - 가시성을 위해 대문자 강제 정렬]
             var colStatus = new OLVColumn("Status", "Status") { Width = 100, TextAlign = HorizontalAlignment.Center };
             colStatus.AspectGetter = row =>
             {
-                if (row is ScenarioEvaluator parent) return parent.Status.ToString();
-                if (row is StepValidationReport child) return child.StepStatus;
+                if (row is ScenarioEvaluator parent) return parent.Status.ToString().ToUpper();
+                if (row is StepValidationReport child) return child.StepStatus?.ToUpper();
                 return string.Empty;
             };
 
@@ -190,6 +190,57 @@ namespace GateHelper.LogValidator
             olvValidationResult.View = View.Details;
             olvValidationResult.FullRowSelect = true;
             olvValidationResult.GridLines = true;
+
+            // =========================================================================
+            // 💡 [Material Skin 탈취 방어 및 포맷 이벤트 엔진 강제 기동]
+            // =========================================================================
+            olvValidationResult.UseCellFormatEvents = true; // 👈 1. 컴포넌트의 포맷 이벤트 발생 잠금 해제 (핵심 필수)
+            olvValidationResult.OwnerDraw = true;           // 👈 2. Material Skin의 테마 배경색 덮어쓰기를 찢고 나오는 자체 렌더링 권한 확보
+
+            // =========================================================================
+            // 💡 [인지 공학 UX 적용: Status 컬럼 한정 정밀 셀 타겟팅 뱃지 시스템]
+            // =========================================================================
+            // 행 전체를 물들이는 원시적 방식을 차단하고, 오직 Status 셀 1개만 위계별로 도색합니다.
+            olvValidationResult.FormatCell += (s, e) =>
+            {
+                if (e.Column == colStatus)
+                {
+                    if (e.Model is ScenarioEvaluator parent)
+                    {
+                        // 💡 [CS0117 에러 원천 봉쇄] 실제 모델에 정의된 대문자 식별자(FAILED, SUCCESS)로 완벽 매핑
+                        if (parent.Status == EvaluationResultStatus.FAILED)
+                        {
+                            // 🚨 위계 1 (부모 불량): 명시적인 알러트 레드 꽉 찬 뱃지
+                            e.SubItem.BackColor = System.Drawing.Color.FromArgb(220, 53, 69);
+                            e.SubItem.ForeColor = System.Drawing.Color.White;
+                            e.SubItem.Font = new System.Drawing.Font(olvValidationResult.Font, System.Drawing.FontStyle.Bold);
+                        }
+                        else if (parent.Status == EvaluationResultStatus.SUCCESS)
+                        {
+                            // 🍃 위계 3 (부모 정상): 차분한 소프트 민트 텍스트 (정상의 침묵)
+                            e.SubItem.BackColor = olvValidationResult.BackColor;
+                            e.SubItem.ForeColor = System.Drawing.Color.MediumSeaGreen;
+                            e.SubItem.Font = new System.Drawing.Font(olvValidationResult.Font, System.Drawing.FontStyle.Bold);
+                        }
+                    }
+                    else if (e.Model is StepValidationReport child)
+                    {
+                        if (child.StepStatus == "FAILED")
+                        {
+                            // 🔍 위계 2 (자식 불량 스텝): 버건디 레드 텍스트 하이라이트
+                            e.SubItem.BackColor = olvValidationResult.BackColor;
+                            e.SubItem.ForeColor = System.Drawing.Color.FromArgb(176, 42, 55);
+                            e.SubItem.Font = new System.Drawing.Font(olvValidationResult.Font, System.Drawing.FontStyle.Bold);
+                        }
+                        else if (child.StepStatus == "SUCCESS")
+                        {
+                            // 🔇 위계 4 (자식 정상 스텝): 순정 기본 텍스트 컬러 유지
+                            e.SubItem.BackColor = olvValidationResult.BackColor;
+                            e.SubItem.ForeColor = olvValidationResult.ForeColor;
+                        }
+                    }
+                }
+            };
 
             // =========================================================================
             // 💡 2. [TreeListView 핵심 계층형 트리 파이프라인 구성]
@@ -225,102 +276,92 @@ namespace GateHelper.LogValidator
                 {
                     if (childReport.StartLineNo <= 0) return;
 
-                    // 💡 [전역 락 전이] 더블클릭한 사이클의 시작 줄 번호를 클래스 멤버 변수에 확실하게 박아둡니다.
-                    _currentSelectedStartLineNo = childReport.StartLineNo;
+                    // 💡 [클로저 캡처 락인] 가상 모드 재사용 스레드 오류를 차단하기 위해 값을 로컬 상수로 전이 보존
+                    int targetStartLineNo = childReport.StartLineNo;
+                    _currentSelectedStartLineNo = targetStartLineNo;
+
+                    // 💡 [참조 복사 가드] 성공 행 번호 컬렉션을 해시셋(HashSet)으로 전환하여 검색 속도를 O(1)로 극대화합니다.
+                    var matchedLinesSet = new HashSet<int>(childReport.MatchedLineNumbers ?? new List<int>());
 
                     // [고속 인덱스 역추적] 첫 번째 행의 물리 인덱스 추출
                     int targetJumpIndex = -1;
                     int actualLogicalStartLine = childReport.StartLineNo;
 
-                    for (int i = 0; i < _validatorRawLogList.Count; i++)
-                    {
-                        // 리스트를 돌며 헤더 번호와 일치하거나, 혹은 파서 오차로 밀린 진짜 시작 줄(CreateLogIfNecessary) 객체를 인덱스로 선점
-                        if (_validatorRawLogList[i].LineNo == actualLogicalStartLine ||
-                            _validatorRawLogList[i].LineNo == actualLogicalStartLine - 1 ||
-                            _validatorRawLogList[i].LineNo == actualLogicalStartLine - 2)
-                        {
-                            if (_validatorRawLogList[i].LogMessage != null && _validatorRawLogList[i].LogMessage.Contains("CreateLogIfNecessary"))
-                            {
-                                targetJumpIndex = i; // 진짜 기동 행 인덱스 강탈 확정
-                                break;
-                            }
-                        }
-                    }
-
-                    // 만약 위 정밀 필터로도 못 잡았다면 순정 동기화 백업 처리
-                    if (targetJumpIndex == -1)
+                    if (_validatorRawLogList != null && _validatorRawLogList.Count > 0)
                     {
                         for (int i = 0; i < _validatorRawLogList.Count; i++)
                         {
-                            if (_validatorRawLogList[i].LineNo == childReport.StartLineNo)
+                            if (_validatorRawLogList[i] == null) continue;
+
+                            if (_validatorRawLogList[i].LineNo == actualLogicalStartLine ||
+                                _validatorRawLogList[i].LineNo == actualLogicalStartLine - 1 ||
+                                _validatorRawLogList[i].LineNo == actualLogicalStartLine - 2)
                             {
-                                targetJumpIndex = i;
-                                break;
+                                if (_validatorRawLogList[i].LogMessage != null &&
+                                    _validatorRawLogList[i].LogMessage.Contains("CreateLogIfNecessary"))
+                                {
+                                    targetJumpIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+
+                        if (targetJumpIndex == -1)
+                        {
+                            for (int i = 0; i < _validatorRawLogList.Count; i++)
+                            {
+                                if (_validatorRawLogList[i] != null && _validatorRawLogList[i].LineNo == childReport.StartLineNo)
+                                {
+                                    targetJumpIndex = i;
+                                    break;
+                                }
                             }
                         }
                     }
 
                     if (targetJumpIndex != -1)
                     {
-                        // =========================================================================
-                        // 💡 1. [스크롤 센터링 / 최상단 리포지셔닝 정밀 제어 인터락]
-                        // =========================================================================
+                        // 💡 [1순위 원인 제거: OS 선택 박스의 렌더링 덮어쓰기 개입 원천 차단]
+                        // olvValidatorRawLog.SelectedIndex = targetJumpIndex; 구문을 완전히 삭제합니다.
+                        // 행을 '선택(Select)' 상태로 만들지 않아야 Windows 공통 컨트롤이 노란색 커스텀 배경을 흰색/회색으로 지우지 않습니다.
                         olvValidatorRawLog.SelectedObject = null;
-                        olvValidatorRawLog.SelectedIndex = targetJumpIndex; // 타겟 행 파랗게 선택
 
-                        // 단순 EnsureVisible을 사용하면 타겟 행이 화면 최하단에 간신히 걸치게 됩니다.
-                        // 이를 방지하기 위해 가상 렌더링 엔진 내부의 TopItemIndex(화면 맨 위에 보여줄 인덱스)를 
-                        // 우리가 찾은 진짜 첫 행 인덱스로 강제 고정(Override)해 버립니다.
-
-                        // 첫 행을 화면 맨 위보다 살짝 아래(예: 위에서 3~4번째 줄)에 배치하여 
-                        // 문맥을 더 쉽게 인지하고 싶다면 `targetJumpIndex - 3` 정도로 오프셋을 뺄 수 있습니다.
                         int preferredTopIndex = targetJumpIndex - 3;
                         if (preferredTopIndex < 0) preferredTopIndex = 0;
 
-                        // 가상 리스트 뷰의 스크롤 위치를 물리적으로 강제 점프시킵니다.
                         olvValidatorRawLog.TopItemIndex = preferredTopIndex;
-
-                        // 백업 가드로 컴포넌트 렌더링 영역 가시성 확정
                         olvValidatorRawLog.EnsureVisible(targetJumpIndex);
 
                         // =========================================================================
-                        // 💡 2. [핀포인트 마스킹 인터락 셋업]
+                        // 💡 2. [핀포인트 마스킹 인터락 셋업 - 무결성 해시 매칭 명세]
                         // =========================================================================
                         olvValidatorRawLog.RowFormatter = rowObject =>
                         {
                             var logModel = rowObject.RowObject as RawLogModel;
-                            if (logModel != null && childReport.MatchedLineNumbers != null)
+                            if (logModel != null)
                             {
-                                // A. 엔진이 수집한 성공 목록에 정확히 포함되어 있는지 검사
-                                bool isMatchedLine = childReport.MatchedLineNumbers.Contains(logModel.LineNo);
+                                // A. 백엔드 엔진이 검증 완료한 '진짜 성공 라인 번호 세트'에 존재하는지 O(1) 대조
+                                bool isMatchedLine = matchedLinesSet.Contains(logModel.LineNo);
 
-                                // B. 헤더에 표시된 공식 시작 줄 번호와 완벽히 일치하는지 검사
-                                bool isExplicitStartLine = (logModel.LineNo == _currentSelectedStartLineNo);
+                                // B. 파서 오차 가드: 사이클의 명시적 첫 기동 줄인지 대조
+                                bool isExplicitStartLine = (logModel.LineNo == targetStartLineNo);
 
-                                // C. [정밀 범위 가드] 파서 오차로 인해 누수된 '바로 직전 1~2줄 범위' 내에 존재하는지 검사
-                                bool isWithinOffsetRange = (logModel.LineNo == _currentSelectedStartLineNo - 1 || logModel.LineNo == _currentSelectedStartLineNo - 2);
-
-                                // D. 해당 행이 실제 최초 공정 기동 메시지 포맷인지 인지 검사
-                                bool isActualStartMessage = logModel.LogMessage != null && logModel.LogMessage.Contains("CreateLogIfNecessary");
-
-                                // 💡 [최종 인터락 조건] 
-                                // 매칭 성공 라인이거나, 공식 시작 줄이거나, 
-                                // '오프셋 범위 안(상방 2줄 이내)에 있으면서 동시에 기동 메시지인 경우'만 핀포인트 마스킹 허용
-                                if (isMatchedLine || isExplicitStartLine || (isWithinOffsetRange && isActualStartMessage))
+                                // 💡 시각적 다리 역할을 하던 이물질 로직(isSeparationLineNoise)을 전면 삭제했습니다.
+                                // 이제 155(참) -> 156(거짓) -> 157(참) 순서로 데이터에 적힌 6개 행만 정직하게 물듭니다.
+                                if (isMatchedLine || isExplicitStartLine)
                                 {
                                     rowObject.BackColor = System.Drawing.Color.FromArgb(255, 243, 205);
                                     rowObject.ForeColor = System.Drawing.Color.Black;
                                 }
                                 else
                                 {
-                                    // 조건에 맞지 않는 상단의 무관한 행(RenderButton 등)들은 확실하게 화이트/다크 순정 스타일로 환원
                                     rowObject.BackColor = olvValidatorRawLog.BackColor;
                                     rowObject.ForeColor = olvValidatorRawLog.ForeColor;
                                 }
                             }
                         };
 
-                        // 뷰 레이어 즉시 강제 리프레시
+                        // 뷰 레이어 즉시 리프레시 강제 명령
                         olvValidatorRawLog.Refresh();
                     }
                 }
@@ -441,6 +482,12 @@ namespace GateHelper.LogValidator
 
         private void btnStartValidation_Click(object sender, EventArgs e)
         {
+            // 새 검증이 가동되는 순간, 좌측 대용량 뷰어에 걸려있던 RowFormatter 규칙을 완전히 무효화하고
+            // 그래픽 카드를 새로고침하여 이전 사이클의 노란색 마스킹 흔적을 깨끗하게 청소합니다.
+            olvValidatorRawLog.RowFormatter = null;
+            _currentSelectedStartLineNo = -1; // 전역 필드 버퍼도 완전히 리셋
+            olvValidatorRawLog.Refresh();
+
             if (_validatorRawLogList == null || _validatorRawLogList.Count == 0)
             {
                 MessageBox.Show("검증을 진행할 현장 Raw 로그 파일이 로드되지 않았습니다.\n좌측 그리드에 로그 파일을 드롭해 주십시오.", "Validation Guard", MessageBoxButtons.OK, MessageBoxIcon.Warning);
