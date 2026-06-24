@@ -11,7 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace GateHelper.LogAnalyzer
+namespace GateHelper.LogValidator
 {
     public partial class LogValidatorMain : MaterialForm
     {

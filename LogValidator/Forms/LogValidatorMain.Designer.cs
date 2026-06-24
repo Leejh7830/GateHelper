@@ -1,4 +1,4 @@
-﻿namespace GateHelper.LogAnalyzer
+﻿namespace GateHelper.LogValidator
 {
     partial class LogValidatorMain
     {

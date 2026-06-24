@@ -1,47 +1,54 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace GateHelper.LogValidator.Models
 {
+    public enum EvaluationResultStatus
+    {
+        Ready,
+        SUCCESS,
+        FAILED
+    }
+
     /// <summary>
-    /// 단일 패스 순회 중 각 시나리오의 진행 상태를 독립적으로 추적하는 상태 머신 래퍼
+    /// 💡 [부모 노드] TreeListView의 최상위 시나리오 마스터 통계 행 모델
     /// </summary>
     public class ScenarioEvaluator
     {
         public string ScenarioName { get; set; }
-        public List<ScenarioStepModel> Steps { get; set; }
+        public EvaluationResultStatus Status { get; set; }
 
-        // 현재 매칭을 대기 중인 스텝의 인덱스
-        public int CurrentStepIndex { get; set; } = 0;
+        // 💡 [변경] 통계적 진척도 표현 (예: "성공 12건 / 총 14건")
+        public string Progress { get; set; }
 
-        // 이전 스텝이 매칭 완료된 시점의 타임스탬프 (TimeoutMs 검증용)
-        public DateTime? LastMatchedTimestamp { get; set; }
+        // 💡 [변경] 전체 발생 횟수 카운트 매핑 컬럼용 프로퍼티
+        public string Message { get; set; }
 
-        // 최종 검증 상태 결과
-        public EvaluationResultStatus Status { get; set; } = EvaluationResultStatus.Ready;
-        public string FailureReason { get; set; } = string.Empty;
-        public int ErrorLineNo { get; set; } = -1;
+        // 원본 시나리오 세부 스텝 규칙 자산
+        public List<ScenarioStepModel> Steps { get; set; } = new List<ScenarioStepModel>();
 
-        public bool IsCompleted => CurrentStepIndex >= Steps.Count;
-    }
+        // 런타임 연산용 가변 버퍼 포인터
+        public int CurrentStepIndex { get; set; }
 
-    public enum EvaluationResultStatus
-    {
-        Ready,
-        Processing,
-        Success,
-        FailedTimeout,
-        FailedMissingStep
+        /// <summary>
+        /// 💡 [자식 노드 컬렉션] 더블클릭 시 아래로 펼쳐질 "각 회차별 실행 사이클 리포트"
+        /// </summary>
+        public List<StepValidationReport> StepReports { get; set; } = new List<StepValidationReport>();
     }
 
     /// <summary>
-    /// UI 리포트 그리드에 최종 출력할 결과 행 모델
+    /// 💡 [자식 노드] 각 회차별(Cycle) 실행 결과 상세 리포트 모델
     /// </summary>
-    public class ScenarioReportModel
+    public class StepValidationReport
     {
-        public string ScenarioName { get; set; }
-        public string Status { get; set; } // SUCCESS, TIMEOUT_FAIL, MISSING_FAIL 등
-        public string Progress { get; set; } // 예: "4 / 4" 또는 "2 / 5 (Line: 140)"
-        public string Message { get; set; }
+        public string StepDisplayHeader { get; set; }
+        public string StepStatus { get; set; }
+        public string StepProgress { get; set; }
+        public string StepMessage { get; set; }
+
+        // 💡 [변경] 해당 사이클 내에서 매칭에 성공한 실제 로그 라인 번호들을 보존하는 전용 마스터 버퍼
+        public List<int> MatchedLineNumbers { get; set; } = new List<int>();
+
+        // 💡 [변경] 스크롤 점프 연산을 위해 해당 사이클의 시작 지점(첫 행) 라인 번호를 명시적으로 분리 보존
+        public int StartLineNo { get; set; }
     }
 }

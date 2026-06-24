@@ -1,4 +1,4 @@
-﻿using GateHelper.LogAnalyzer;
+﻿using GateHelper.LogValidator;
 using GateHelper.Utils;
 using MaterialSkin;
 using MaterialSkin.Controls;

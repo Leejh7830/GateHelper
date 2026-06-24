@@ -39,6 +39,29 @@ namespace GateHelper.LogValidator
             InitializeDropZone();
         }
 
+        // 💡 [신규 UX 고도화 인터락] 검증기에서 우클릭 소환 시 파일 경로를 직접 물고 열리는 생성자
+        public LogScenarioForm(string autoLoadFilePath) : this()
+        {
+            // 폼이 로드되어 완전히 활성화된 시점에 안전하게 파일 로드 엔진 트리거
+            this.Load += (s, e) =>
+            {
+                if (!string.IsNullOrEmpty(autoLoadFilePath) && File.Exists(autoLoadFilePath))
+                {
+                    try
+                    {
+                        // 💡 기존 편집기 내부에 이미 무결하게 구현되어 있는 
+                        // "파일 선택 후 리스트뷰에 세팅하는 로직"의 핵심 메서드를 직접 강제 호출합니다.
+                        // (메서드명이 다를 경우 현재 편집기 내부의 JSON 로드 실행 메서드명으로 매핑해 주십시오)
+                        LoadScenarioFile(autoLoadFilePath);
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"시나리오 자동 타겟 로드 실패: {ex.Message}");
+                    }
+                }
+            };
+        }
+
         #region 🛠 1. 그리드 뼈대 셋업 및 통신형 컬럼 세팅 (폰트 스케일 및 화살표 대칭 정렬 교정)
 
         private void InitializeRawLogGridView()
@@ -92,14 +115,28 @@ namespace GateHelper.LogValidator
             var colStep = new OLVColumn("Step", "StepNo") { Width = 50, TextAlign = HorizontalAlignment.Center };
 
             var colEQP = new OLVColumn("EQP", "EventName") { Width = 130, TextAlign = HorizontalAlignment.Center };
-            colEQP.AspectGetter = row => ((ScenarioStepModel)row).Direction == "TX" ? ((ScenarioStepModel)row).EventName : string.Empty;
-
-            // 💡 [화살표 왜곡 교정] 픽셀이 비뚤어지던 유니코드 문자대신 정중앙 대칭이 완벽히 유지되는 지시선 기호로 교체
-            var colLine = new OLVColumn("Flow Line", "Direction") { Width = 90, TextAlign = HorizontalAlignment.Center };
-            colLine.AspectGetter = row => ((ScenarioStepModel)row).Direction == "TX" ? "───▶" : "◀───";
+            // 1. EQP 컬럼 보정
+            colEQP.AspectGetter = row => {
+                var step = (ScenarioStepModel)row;
+                string dir = step.Direction?.Trim().ToUpper(); // 💡 공백 제거 및 대문자 강제 변환
+                return dir == "TX" ? step.EventName : string.Empty;
+            };
 
             var colServer = new OLVColumn("SERVER", "EventName") { Width = 130, TextAlign = HorizontalAlignment.Center };
-            colServer.AspectGetter = row => ((ScenarioStepModel)row).Direction == "RX" ? ((ScenarioStepModel)row).EventName : string.Empty;
+            // 2. SERVER 컬럼 보정
+            colServer.AspectGetter = row => {
+                var step = (ScenarioStepModel)row;
+                string dir = step.Direction?.Trim().ToUpper(); // 💡 공백 제거 및 대문자 강제 변환
+                return dir == "RX" ? step.EventName : string.Empty;
+            };
+
+            var colLine = new OLVColumn("Flow Line", "Direction") { Width = 90, TextAlign = HorizontalAlignment.Center };
+            // 3. Flow Line(화살표) 컬럼 보정
+            colLine.AspectGetter = row => {
+                string dir = ((ScenarioStepModel)row).Direction?.Trim().ToUpper();
+                return dir == "TX" ? "───▶" : "◀───";
+            };
+
 
             var colPattern = new OLVColumn("Message Format / Rules", "MaskingPattern") { Width = 480 };
             colPattern.AspectGetter = row =>
@@ -496,6 +533,9 @@ namespace GateHelper.LogValidator
                 File.WriteAllText(targetFilePath, jsonString);
 
                 MessageBox.Show($"시나리오가 자동으로 저장되었습니다.\n📂 위치: _meta/Scenarios/{scenarioName}.json", "Auto Save Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                // 💡 [실시간 크로스 폼 인터락] 저장이 완료되었음을 글로벌 브로커를 통해 검증기 창에 즉각 통지
+                Core.ScenarioEventBroker.PublishScenarioSaved();
             }
             catch (Exception ex)
             {
@@ -505,6 +545,7 @@ namespace GateHelper.LogValidator
 
         private void btnLoad_Click(object sender, EventArgs e)
         {
+            // 💡 1. [기존 안전 인터락 보존] 데이터 덮어쓰기 사전 가드
             if (_scenarioLadderList.Count > 0)
             {
                 var dialogResult = MessageBox.Show("불러오기를 진행하면 현재 사다리가 덮어써집니다. 진행하시겠습니까?", "Warning", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
@@ -521,25 +562,40 @@ namespace GateHelper.LogValidator
 
                 if (openFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    try
-                    {
-                        string jsonString = File.ReadAllText(openFileDialog.FileName);
-                        var loadedSteps = JsonSerializer.Deserialize<List<ScenarioStepModel>>(jsonString);
-
-                        if (loadedSteps != null)
-                        {
-                            _scenarioLadderList = loadedSteps;
-                            olvScenarioLadder.SetObjects(_scenarioLadderList);
-                            txtScenarioName.Text = Path.GetFileNameWithoutExtension(openFileDialog.FileName);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"시나리오 로드 결함 발생:\n{ex.Message}", "Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    // 💡 2. 추출한 독립 로드 메서드로 파일 경로만 패스
+                    LoadScenarioFile(openFileDialog.FileName);
                 }
             }
         }
+
+        /// <summary>
+        /// 💡 [추출된 독립 로드 마스터 엔진]
+        /// 주입된 파일 경로를 기반으로 JSON 시나리오 자산을 파싱하여 사다리 그리드 및 UI에 매핑합니다.
+        /// 일반 버튼 로드와 검증기(Validator) 우클릭 자동 소환 양쪽에서 이 메서드를 공유합니다.
+        /// </summary>
+        public void LoadScenarioFile(string filePath)
+        {
+            if (string.IsNullOrEmpty(filePath) || !File.Exists(filePath)) return;
+
+            try
+            {
+                string jsonString = File.ReadAllText(filePath);
+                var loadedSteps = JsonSerializer.Deserialize<List<ScenarioStepModel>>(jsonString);
+
+                if (loadedSteps != null)
+                {
+                    // 💡 3. 기존 순정 바인딩 알고리즘 및 텍스트박스 맵 명세 완벽 보존
+                    _scenarioLadderList = loadedSteps;
+                    olvScenarioLadder.SetObjects(_scenarioLadderList);
+                    txtScenarioName.Text = Path.GetFileNameWithoutExtension(filePath);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"시나리오 파일 자동 로드 파싱 결함:\n{ex.Message}", "Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
 
         #endregion
 

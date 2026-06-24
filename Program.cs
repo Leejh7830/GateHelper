@@ -1,4 +1,5 @@
-﻿using System;
+﻿using GateHelper.LogValidator;
+using System;
 using System.Windows.Forms;
 
 namespace GateHelper
@@ -13,7 +14,8 @@ namespace GateHelper
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainUI());
+            // Application.Run(new MainUI());
+            Application.Run(new LogValidatorMain());
         }
     }
 }

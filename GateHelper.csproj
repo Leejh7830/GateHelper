@@ -182,6 +182,7 @@
     <Compile Include="LogValidator\Core\LogMasker.cs" />
     <Compile Include="LogValidator\Core\LogParser.cs" />
     <Compile Include="LogValidator\Core\LogValidatorEngine.cs" />
+    <Compile Include="LogValidator\Core\ScenarioEventBroker.cs" />
     <Compile Include="LogValidator\Forms\LogValidatorMain.cs">
       <SubType>Form</SubType>
     </Compile>
