@@ -43,6 +43,9 @@
             this.panel2 = new System.Windows.Forms.Panel();
             this.materialButton2 = new MaterialSkin.Controls.MaterialButton();
             this.olvValidationResult = new BrightIdeasSoftware.TreeListView();
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabPage1 = new System.Windows.Forms.TabPage();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -64,6 +67,8 @@
             ((System.ComponentModel.ISupportInitialize)(this.olvScenarioRepository)).BeginInit();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.olvValidationResult)).BeginInit();
+            this.tabControl1.SuspendLayout();
+            this.tabPage1.SuspendLayout();
             this.SuspendLayout();
             // 
             // splitContainer1
@@ -74,7 +79,7 @@
             // 
             // splitContainer1.Panel1
             // 
-            this.splitContainer1.Panel1.Controls.Add(this.olvValidatorRawLog);
+            this.splitContainer1.Panel1.Controls.Add(this.tabControl1);
             // 
             // splitContainer1.Panel2
             // 
@@ -91,10 +96,10 @@
             this.olvValidatorRawLog.FullRowSelect = true;
             this.olvValidatorRawLog.GridLines = true;
             this.olvValidatorRawLog.HideSelection = false;
-            this.olvValidatorRawLog.Location = new System.Drawing.Point(0, 0);
+            this.olvValidatorRawLog.Location = new System.Drawing.Point(3, 3);
             this.olvValidatorRawLog.Name = "olvValidatorRawLog";
             this.olvValidatorRawLog.ShowGroups = false;
-            this.olvValidatorRawLog.Size = new System.Drawing.Size(385, 776);
+            this.olvValidatorRawLog.Size = new System.Drawing.Size(371, 744);
             this.olvValidatorRawLog.TabIndex = 1;
             this.olvValidatorRawLog.UseCompatibleStateImageBehavior = false;
             this.olvValidatorRawLog.View = System.Windows.Forms.View.Details;
@@ -266,6 +271,38 @@
             this.olvValidationResult.View = System.Windows.Forms.View.Details;
             this.olvValidationResult.VirtualMode = true;
             // 
+            // tabControl1
+            // 
+            this.tabControl1.Controls.Add(this.tabPage1);
+            this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl1.Location = new System.Drawing.Point(0, 0);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(385, 776);
+            this.tabControl1.TabIndex = 2;
+            // 
+            // tabPage1
+            // 
+            this.tabPage1.Controls.Add(this.olvValidatorRawLog);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Name = "tabPage1";
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage1.Size = new System.Drawing.Size(377, 750);
+            this.tabPage1.TabIndex = 0;
+            this.tabPage1.Text = "tabPage1";
+            this.tabPage1.UseVisualStyleBackColor = true;
+            // 
+            // tabPage2
+            // 
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Name = "tabPage2";
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage2.Size = new System.Drawing.Size(192, 74);
+            this.tabPage2.TabIndex = 1;
+            this.tabPage2.Text = "tabPage2";
+            this.tabPage2.UseVisualStyleBackColor = true;
+            // 
             // LogValidatorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -298,6 +335,8 @@
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.olvValidationResult)).EndInit();
+            this.tabControl1.ResumeLayout(false);
+            this.tabPage1.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -319,5 +358,8 @@
         private System.Windows.Forms.SplitContainer splitContainer4;
         private System.Windows.Forms.TreeView treeScenarioGroup;
         private MaterialSkin.Controls.MaterialButton materialButton2;
+        private System.Windows.Forms.TabControl tabControl1;
+        private System.Windows.Forms.TabPage tabPage1;
+        private System.Windows.Forms.TabPage tabPage2;
     }
 }

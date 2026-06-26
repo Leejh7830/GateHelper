@@ -36,16 +36,16 @@
             this.splitContainer3 = new System.Windows.Forms.SplitContainer();
             this.btnRegisterUnit = new MaterialSkin.Controls.MaterialButton();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.txtEventName = new System.Windows.Forms.TextBox();
             this.rtbMaskedPreview = new System.Windows.Forms.RichTextBox();
             this.olvUnitRepository = new BrightIdeasSoftware.ObjectListView();
             this.pnlControlButtons = new System.Windows.Forms.Panel();
-            this.txtScenarioName = new System.Windows.Forms.TextBox();
             this.lblCurrentScenario = new MaterialSkin.Controls.MaterialLabel();
             this.btnLoadScenario = new MaterialSkin.Controls.MaterialButton();
             this.btnSaveScenario = new MaterialSkin.Controls.MaterialButton();
             this.btnNewScenario = new MaterialSkin.Controls.MaterialButton();
             this.olvScenarioLadder = new BrightIdeasSoftware.ObjectListView();
+            this.txtEventName = new MaterialSkin.Controls.MaterialTextBox2();
+            this.txtScenarioName = new MaterialSkin.Controls.MaterialTextBox2();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -202,14 +202,6 @@
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Event Builder";
             // 
-            // txtEventName
-            // 
-            this.txtEventName.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtEventName.Location = new System.Drawing.Point(6, 32);
-            this.txtEventName.Name = "txtEventName";
-            this.txtEventName.Size = new System.Drawing.Size(307, 21);
-            this.txtEventName.TabIndex = 109;
-            // 
             // rtbMaskedPreview
             // 
             this.rtbMaskedPreview.Location = new System.Drawing.Point(6, 85);
@@ -245,14 +237,6 @@
             this.pnlControlButtons.Name = "pnlControlButtons";
             this.pnlControlButtons.Size = new System.Drawing.Size(200, 553);
             this.pnlControlButtons.TabIndex = 1;
-            // 
-            // txtScenarioName
-            // 
-            this.txtScenarioName.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.txtScenarioName.Location = new System.Drawing.Point(17, 29);
-            this.txtScenarioName.Name = "txtScenarioName";
-            this.txtScenarioName.Size = new System.Drawing.Size(168, 21);
-            this.txtScenarioName.TabIndex = 114;
             // 
             // lblCurrentScenario
             // 
@@ -347,6 +331,62 @@
             this.olvScenarioLadder.DragDrop += new System.Windows.Forms.DragEventHandler(this.olvScenarioLadder_DragDrop);
             this.olvScenarioLadder.DragEnter += new System.Windows.Forms.DragEventHandler(this.olvScenarioLadder_DragEnter);
             // 
+            // txtEventName
+            // 
+            this.txtEventName.AnimateReadOnly = false;
+            this.txtEventName.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.txtEventName.CharacterCasing = System.Windows.Forms.CharacterCasing.Normal;
+            this.txtEventName.Depth = 0;
+            this.txtEventName.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.txtEventName.HideSelection = true;
+            this.txtEventName.LeadingIcon = null;
+            this.txtEventName.Location = new System.Drawing.Point(6, 31);
+            this.txtEventName.MaxLength = 32767;
+            this.txtEventName.MouseState = MaterialSkin.MouseState.OUT;
+            this.txtEventName.Name = "txtEventName";
+            this.txtEventName.PasswordChar = '\0';
+            this.txtEventName.PrefixSuffixText = null;
+            this.txtEventName.ReadOnly = false;
+            this.txtEventName.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.txtEventName.SelectedText = "";
+            this.txtEventName.SelectionLength = 0;
+            this.txtEventName.SelectionStart = 0;
+            this.txtEventName.ShortcutsEnabled = true;
+            this.txtEventName.Size = new System.Drawing.Size(307, 48);
+            this.txtEventName.TabIndex = 109;
+            this.txtEventName.TabStop = false;
+            this.txtEventName.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.txtEventName.TrailingIcon = null;
+            this.txtEventName.UseSystemPasswordChar = false;
+            // 
+            // txtScenarioName
+            // 
+            this.txtScenarioName.AnimateReadOnly = false;
+            this.txtScenarioName.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.txtScenarioName.CharacterCasing = System.Windows.Forms.CharacterCasing.Normal;
+            this.txtScenarioName.Depth = 0;
+            this.txtScenarioName.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.txtScenarioName.HideSelection = true;
+            this.txtScenarioName.LeadingIcon = null;
+            this.txtScenarioName.Location = new System.Drawing.Point(17, 29);
+            this.txtScenarioName.MaxLength = 32767;
+            this.txtScenarioName.MouseState = MaterialSkin.MouseState.OUT;
+            this.txtScenarioName.Name = "txtScenarioName";
+            this.txtScenarioName.PasswordChar = '\0';
+            this.txtScenarioName.PrefixSuffixText = null;
+            this.txtScenarioName.ReadOnly = false;
+            this.txtScenarioName.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.txtScenarioName.SelectedText = "";
+            this.txtScenarioName.SelectionLength = 0;
+            this.txtScenarioName.SelectionStart = 0;
+            this.txtScenarioName.ShortcutsEnabled = true;
+            this.txtScenarioName.Size = new System.Drawing.Size(168, 48);
+            this.txtScenarioName.TabIndex = 110;
+            this.txtScenarioName.TabStop = false;
+            this.txtScenarioName.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.txtScenarioName.TrailingIcon = null;
+            this.txtScenarioName.UseSystemPasswordChar = false;
+            // 
             // LogScenarioForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -371,7 +411,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).EndInit();
             this.splitContainer3.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
-            this.groupBox1.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.olvUnitRepository)).EndInit();
             this.pnlControlButtons.ResumeLayout(false);
             this.pnlControlButtons.PerformLayout();
@@ -398,7 +437,7 @@
         private MaterialSkin.Controls.MaterialButton btnSaveScenario;
         private MaterialSkin.Controls.MaterialButton btnNewScenario;
         private MaterialSkin.Controls.MaterialLabel lblCurrentScenario;
-        private System.Windows.Forms.TextBox txtEventName;
-        private System.Windows.Forms.TextBox txtScenarioName;
+        private MaterialSkin.Controls.MaterialTextBox2 txtEventName;
+        private MaterialSkin.Controls.MaterialTextBox2 txtScenarioName;
     }
 }

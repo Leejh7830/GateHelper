@@ -30,6 +30,7 @@
         {
             this.btnOpenValidator = new MaterialSkin.Controls.MaterialButton();
             this.btnOpenEditor = new MaterialSkin.Controls.MaterialButton();
+            this.btnSettings = new MaterialSkin.Controls.MaterialButton();
             this.SuspendLayout();
             // 
             // btnOpenValidator
@@ -74,11 +75,33 @@
             this.btnOpenEditor.UseVisualStyleBackColor = true;
             this.btnOpenEditor.Click += new System.EventHandler(this.btnOpenEditor_Click);
             // 
+            // btnSettings
+            // 
+            this.btnSettings.AutoSize = false;
+            this.btnSettings.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnSettings.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnSettings.Depth = 0;
+            this.btnSettings.HighEmphasis = true;
+            this.btnSettings.Icon = null;
+            this.btnSettings.Location = new System.Drawing.Point(374, 347);
+            this.btnSettings.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnSettings.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnSettings.Name = "btnSettings";
+            this.btnSettings.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnSettings.Size = new System.Drawing.Size(119, 43);
+            this.btnSettings.TabIndex = 109;
+            this.btnSettings.Text = "Settings";
+            this.btnSettings.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnSettings.UseAccentColor = false;
+            this.btnSettings.UseVisualStyleBackColor = true;
+            this.btnSettings.Click += new System.EventHandler(this.btnSettings_Click);
+            // 
             // LogValidatorMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(537, 415);
+            this.Controls.Add(this.btnSettings);
             this.Controls.Add(this.btnOpenEditor);
             this.Controls.Add(this.btnOpenValidator);
             this.Name = "LogValidatorMain";
@@ -91,5 +114,6 @@
 
         private MaterialSkin.Controls.MaterialButton btnOpenValidator;
         private MaterialSkin.Controls.MaterialButton btnOpenEditor;
+        private MaterialSkin.Controls.MaterialButton btnSettings;
     }
 }

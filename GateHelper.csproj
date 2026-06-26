@@ -179,6 +179,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppSettings.cs" />
+    <Compile Include="LogValidator\Core\LogValidatorConfigManager.cs" />
     <Compile Include="LogValidator\Core\LogMasker.cs" />
     <Compile Include="LogValidator\Core\LogParser.cs" />
     <Compile Include="LogValidator\Core\LogValidatorEngine.cs" />
@@ -201,6 +202,13 @@
     <Compile Include="LogValidator\Forms\LogValidatorForm.Designer.cs">
       <DependentUpon>LogValidatorForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="LogValidator\Forms\LogValidatorSettingForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LogValidator\Forms\LogValidatorSettingForm.Designer.cs">
+      <DependentUpon>LogValidatorSettingForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LogValidator\Models\LogValidatorConfig.cs" />
     <Compile Include="LogValidator\Models\RawLogModel.cs" />
     <Compile Include="LogValidator\Models\ScenarioEvaluationModels.cs" />
     <Compile Include="LogValidator\Models\ScenarioModel.cs" />
@@ -290,6 +298,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="LogValidator\Forms\LogValidatorMain.resx">
       <DependentUpon>LogValidatorMain.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LogValidator\Forms\LogValidatorSettingForm.resx">
+      <DependentUpon>LogValidatorSettingForm.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="SandBox\1. BitFlip\BitFlipControl.resx">
       <DependentUpon>BitFlipControl.cs</DependentUpon>

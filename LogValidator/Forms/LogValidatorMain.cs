@@ -1,4 +1,5 @@
 ﻿using GateHelper.LogValidator;
+using GateHelper.LogValidator.Core;
 using MaterialSkin;
 using MaterialSkin.Controls;
 using System;
@@ -51,18 +52,22 @@ namespace GateHelper.LogValidator
             }
         }
 
+        private void btnSettings_Click(object sender, EventArgs e)
+        {
+            // 💡 [입출력 동기화 가드] 설정 창을 열기 직전, 디스크에서 최신 JSON 설정을 불러와 동기화합니다.
+            LogValidatorConfigManager.Load();
 
-
-
-
-
-
-
-
-
-
-
-
-
+            // 설정 폼 인스턴스 생성 (MaterialSkin 폼이든 일반 폼이든 동일하게 작동)
+            using (LogValidatorSettingForm settingForm = new LogValidatorSettingForm())
+            {
+                // 💡 ShowDialog()로 띄워 설정 창이 닫히기 전까지 메인 화면 제어를 인터락(잠금)합니다.
+                if (settingForm.ShowDialog() == DialogResult.OK)
+                {
+                    // 사용자가 SAVE 버튼을 눌러 정상적으로 닫힌 경우
+                    // 💡 [정규식 재조립 시그널] 파서나 메인 뷰어에서 바뀐 설정을 즉시 반영하도록 리프레시 로직 유도 가능
+                    MessageBox.Show("설정이 안전하게 저장되었습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+        }
     }
 }
