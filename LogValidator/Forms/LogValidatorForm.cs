@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -36,6 +37,7 @@ namespace GateHelper.LogValidator
             InitializeValidatorDropZone();
 
             InitializeScenarioTreeViewInterlock();
+            InitializeRuntimeFilter();
 
             // 💡 [실시간 리로드 인터락] 편집기에서 저장 버튼을 누르면, 검증기가 열려있는 상태에서도 목록이 자동 동기화됩니다.
             ScenarioEventBroker.OnScenarioSaved += OnRuntimeScenarioRefresh;
@@ -343,7 +345,9 @@ namespace GateHelper.LogValidator
                     olvValidatorRawLog.SetObjects(_validatorRawLogList);
                     olvValidatorRawLog.EndUpdate();
 
-                    // 💡 정렬이 완결된 무결한 마스터 리스트를 동적 탭 엔진에 주입 수송합니다.
+                    // 디스크에 저장된 최신 세팅.dat를 강제로 읽어와 메모리를 동기화합니다.
+                    LogValidatorConfigManager.Load();
+
                     BuildUnitTabsAndGrids(_validatorRawLogList);
 
                     Cursor.Current = Cursors.Default;
@@ -518,18 +522,18 @@ namespace GateHelper.LogValidator
 
             if (combinedList == null || combinedList.Count == 0)
             {
-                // 가드: 만약 세팅 파일이 비어있거나 로드가 안 되었다면 에러 방지용 기본 패턴 락인
-                _dynamicUnitRegex = new Regex(@"J1[EAFP](?:STO|OHS|CNV)\d+-\d+", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                // 💡 [선택적 매칭(?:\-\d+)? 이식 기본 패턴 가드]
+                _dynamicUnitRegex = new Regex(@"J1[EAFP](?:STO|OHS|CNV)\d+(?:\-\d+)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
                 return;
             }
 
-            // 세팅에서 조합된 리스트(J1ESTO, J1ASTO 등)를 정규식 그룹 패턴으로 안전하게 이식
             string escapedTypes = string.Join("|", combinedList.Select(Regex.Escape));
 
-            // 명명 규칙 패턴 조립: (설비조합패턴)(호기번호)-(서브유닛번호)
-            string finalPattern = $@"\b({escapedTypes})\d+-\d+\b";
+            // 💡 [교정된 핵심 정규식 패턴]
+            // 규격: (설비조합)(숫자1자이상) + [선택부: (-숫자1자이상)]
+            // 예시: J1ESTO12345 (매칭 성공), J1ESTO12345-101 (매칭 성공)
+            string finalPattern = $@"\b({escapedTypes})\d+(?:\-\d+)?\b";
 
-            // Compiled 옵션을 주어 10만 줄이 넘는 대용량 로그 스캔 시에도 렉(Lag)이 걸리지 않도록 고속 연산 가드
             _dynamicUnitRegex = new Regex(finalPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
         }
 
@@ -614,12 +618,166 @@ namespace GateHelper.LogValidator
                 newPage.Controls.Add(unitGrid);
                 tabControl1.TabPages.Add(newPage);
             }
+            // 💡 [여기에 연동 호출부 삽입]: 탭 분할이 완결된 직후 변칙 탐지 엔진을 돌립니다.
+            RunAnomalyDetectionEngine(totalLogs);
 
             // 모든 UI 결합 공정 완료 후 레이아웃 락 해제 및 최종 출력
             tabControl1.ResumeLayout();
         }
 
         #endregion
+
+        #region 🚨 5. 변칙 로그 혼입 탐지 및 경고 인터락 엔진 (상시 표출형 부모 호기 유연 모드)
+
+        /// <summary>
+        /// 단일 파일 내에 타 설비 로그가 비정상적으로 섞여 들어왔는지 부모 호기 기준으로 검증하고 결과를 상시 표출합니다.
+        /// </summary>
+        private void RunAnomalyDetectionEngine(List<RawLogModel> totalLogs)
+        {
+            // [상태 A 방어]: 파일이 비어있거나 파싱 실패 시 초기화 가드
+            if (totalLogs == null || totalLogs.Count == 0)
+            {
+                lblAnomalyWarning.Visible = false;
+                toolTipAnomaly.RemoveAll();
+                return;
+            }
+
+            // 💡 [도메인 인터락 가드]: 하이픈(-) 뒷자리를 잘라내어 "순수 부모 호기명"을 반환하는 로컬 함수
+            string GetParentUnit(string unitId)
+            {
+                if (string.IsNullOrEmpty(unitId) || unitId == "SYSTEM") return "SYSTEM";
+                int hyphenIdx = unitId.IndexOf('-');
+                return hyphenIdx > 0 ? unitId.Substring(0, hyphenIdx) : unitId;
+            }
+
+            // 1. 순수 시스템 로그("SYSTEM")를 제외한 데이터에서 '부모 호기 ID' 기준으로 지분율 집계
+            var validParents = totalLogs
+                .Where(l => !string.IsNullOrEmpty(l.UnitID) && l.UnitID != "SYSTEM")
+                .GroupBy(l => GetParentUnit(l.UnitID))
+                .Select(g => new { ParentID = g.Key, Count = g.Count() })
+                .OrderByDescending(x => x.Count)
+                .ToList();
+
+            // 호기 식별이 불가능한 순수 공통 덤프 파일일 경우의 가드
+            if (validParents.Count == 0)
+            {
+                lblAnomalyWarning.Visible = true;
+                lblAnomalyWarning.Text = "Abnormal Logs: 0 (System Only)";
+                lblAnomalyWarning.ForeColor = System.Drawing.Color.DimGray;
+                toolTipAnomaly.RemoveAll();
+                return;
+            }
+
+            // 💡 [대표 부모 호기 락인]: 지분율 1위인 부모 호기(예: J1FSTO11308)를 이 파일의 마스터 주인으로 정의
+            string masterParentID = validParents[0].ParentID;
+
+            // 2. 부모 호기 자체가 마스터랑 다른 이질적인 행들만 "오염된 변칙 로그"로 적출
+            var abnormalLogs = totalLogs
+                .Where(l => l.UnitID != "SYSTEM" && GetParentUnit(l.UnitID) != masterParentID)
+                .OrderBy(l => l.LineNo)
+                .ToList();
+
+            int anomalyCount = abnormalLogs.Count;
+
+            // 3. [상태 B & C 분기 트리거 가동]: 결과 값에 따른 상시 가시화 제어
+            lblAnomalyWarning.Visible = true;
+            toolTipAnomaly.RemoveAll();
+
+            if (anomalyCount == 0)
+            {
+                // 🟢 [상태 B: 무결성 검증 통과 영수증 표출]
+                lblAnomalyWarning.Text = "Abnormal Logs: 0";
+                lblAnomalyWarning.ForeColor = System.Drawing.Color.SeaGreen; // 차분하고 안전한 그린 시그널
+                toolTipAnomaly.SetToolTip(lblAnomalyWarning, $"[Master Parent Unit: {masterParentID}]\n백엔드 무결성 스캔 완료: 이질적인 타 호기 데이터가 발견되지 않았습니다.");
+            }
+            else
+            {
+                // 🔴 [상태 C: 변칙 데이터 혼입 감지]
+                lblAnomalyWarning.Text = $"⚠️ Abnormal Logs: {anomalyCount}";
+                lblAnomalyWarning.ForeColor = System.Drawing.Color.Crimson; // 강렬한 경고 레드
+
+                StringBuilder tipBuilder = new StringBuilder();
+                tipBuilder.AppendLine($"[Master Parent Unit: {masterParentID}]");
+                tipBuilder.AppendLine("Detected foreign unit logs in this file:");
+                tipBuilder.AppendLine("-----------------------------------------");
+
+                var displayLimit = abnormalLogs.Take(15);
+                foreach (var ab in displayLimit)
+                {
+                    tipBuilder.AppendLine($"Line {ab.LineNo,-5} : ({ab.UnitID})");
+                }
+
+                if (anomalyCount > 15)
+                {
+                    tipBuilder.AppendLine($"... and {anomalyCount - 15} more lines.");
+                }
+
+                toolTipAnomaly.SetToolTip(lblAnomalyWarning, tipBuilder.ToString());
+            }
+        }
+
+        #endregion
+
+        #region 🔍 6. 런타임 실시간 정규식 본문 필터링 엔진
+
+        private void InitializeRuntimeFilter()
+        {
+            if (txtLogFilter == null) return;
+
+            // 💡 입력할 때마다 실시간으로 현재 보고 있는 탭 그리드의 본문을 압축합니다.
+            txtLogFilter.TextChanged += (s, e) => ApplyFilterToActiveGrid();
+
+            // 💡 탭을 전환했을 때도 검색어 필터 상태가 그대로 유지되어 동기화되도록 바인딩
+            tabControl1.SelectedIndexChanged += (s, e) => ApplyFilterToActiveGrid();
+        }
+
+        private void ApplyFilterToActiveGrid()
+        {
+            string keyword = txtLogFilter.Text;
+
+            // 현재 보고 있는 탭의 그리드 추출
+            ObjectListView activeGrid = olvValidatorRawLog;
+            if (tabControl1.SelectedIndex > 0 && tabControl1.SelectedTab != null)
+            {
+                var subGrid = tabControl1.SelectedTab.Controls.OfType<ObjectListView>().FirstOrDefault();
+                if (subGrid != null) activeGrid = subGrid;
+            }
+
+            if (string.IsNullOrWhiteSpace(keyword))
+            {
+                // 필터 해제 및 전체 복원
+                activeGrid.ModelFilter = null;
+                activeGrid.DefaultRenderer = null;
+            }
+            else
+            {
+                try
+                {
+                    // ObjectListView 순정 고속 정규식 스캐너 컴파일
+                    var filter = TextMatchFilter.Regex(activeGrid, keyword);
+                    activeGrid.ModelFilter = filter;
+
+                    // 일치하는 단어 그래픽 하일라이팅 렌더러 장착
+                    activeGrid.DefaultRenderer = new HighlightTextRenderer(filter);
+                }
+                catch (Exception)
+                {
+                    // 사용자가 정규식 대괄호 '['를 입력하고 닫지 않는 등 
+                    // 타이핑 도중 발생하는 일시적 문법 예외는 UI 멈춤 방지를 위해 침묵 흡수
+                }
+            }
+        }
+
+        #endregion
+
+
+
+
+
+
+
+
+
 
 
         private void LogValidatorForm_FormClosing(object sender, FormClosingEventArgs e)

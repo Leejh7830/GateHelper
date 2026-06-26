@@ -30,7 +30,10 @@
         {
             this.components = new System.ComponentModel.Container();
             this.splitContainer1 = new System.Windows.Forms.SplitContainer();
+            this.tabControl1 = new System.Windows.Forms.TabControl();
+            this.tabPage1 = new System.Windows.Forms.TabPage();
             this.olvValidatorRawLog = new BrightIdeasSoftware.FastObjectListView();
+            this.tabPage2 = new System.Windows.Forms.TabPage();
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.splitContainer3 = new System.Windows.Forms.SplitContainer();
             this.panel1 = new System.Windows.Forms.Panel();
@@ -43,13 +46,15 @@
             this.panel2 = new System.Windows.Forms.Panel();
             this.materialButton2 = new MaterialSkin.Controls.MaterialButton();
             this.olvValidationResult = new BrightIdeasSoftware.TreeListView();
-            this.tabControl1 = new System.Windows.Forms.TabControl();
-            this.tabPage1 = new System.Windows.Forms.TabPage();
-            this.tabPage2 = new System.Windows.Forms.TabPage();
+            this.lblAnomalyWarning = new MaterialSkin.Controls.MaterialLabel();
+            this.toolTipAnomaly = new System.Windows.Forms.ToolTip(this.components);
+            this.txtLogFilter = new MaterialSkin.Controls.MaterialTextBox2();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
             this.splitContainer1.SuspendLayout();
+            this.tabControl1.SuspendLayout();
+            this.tabPage1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.olvValidatorRawLog)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
@@ -67,8 +72,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.olvScenarioRepository)).BeginInit();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.olvValidationResult)).BeginInit();
-            this.tabControl1.SuspendLayout();
-            this.tabPage1.SuspendLayout();
             this.SuspendLayout();
             // 
             // splitContainer1
@@ -88,6 +91,28 @@
             this.splitContainer1.SplitterDistance = 385;
             this.splitContainer1.TabIndex = 0;
             // 
+            // tabControl1
+            // 
+            this.tabControl1.Controls.Add(this.tabPage1);
+            this.tabControl1.Controls.Add(this.tabPage2);
+            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.tabControl1.Location = new System.Drawing.Point(0, 0);
+            this.tabControl1.Name = "tabControl1";
+            this.tabControl1.SelectedIndex = 0;
+            this.tabControl1.Size = new System.Drawing.Size(385, 776);
+            this.tabControl1.TabIndex = 2;
+            // 
+            // tabPage1
+            // 
+            this.tabPage1.Controls.Add(this.olvValidatorRawLog);
+            this.tabPage1.Location = new System.Drawing.Point(4, 22);
+            this.tabPage1.Name = "tabPage1";
+            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage1.Size = new System.Drawing.Size(377, 750);
+            this.tabPage1.TabIndex = 0;
+            this.tabPage1.Text = "tabPage1";
+            this.tabPage1.UseVisualStyleBackColor = true;
+            // 
             // olvValidatorRawLog
             // 
             this.olvValidatorRawLog.AllowDrop = true;
@@ -104,6 +129,16 @@
             this.olvValidatorRawLog.UseCompatibleStateImageBehavior = false;
             this.olvValidatorRawLog.View = System.Windows.Forms.View.Details;
             this.olvValidatorRawLog.VirtualMode = true;
+            // 
+            // tabPage2
+            // 
+            this.tabPage2.Location = new System.Drawing.Point(4, 22);
+            this.tabPage2.Name = "tabPage2";
+            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage2.Size = new System.Drawing.Size(377, 750);
+            this.tabPage2.TabIndex = 1;
+            this.tabPage2.Text = "tabPage2";
+            this.tabPage2.UseVisualStyleBackColor = true;
             // 
             // splitContainer2
             // 
@@ -144,6 +179,7 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.lblAnomalyWarning);
             this.panel1.Controls.Add(this.materialProgressBar1);
             this.panel1.Controls.Add(this.progressBar1);
             this.panel1.Controls.Add(this.materialButton1);
@@ -271,43 +307,59 @@
             this.olvValidationResult.View = System.Windows.Forms.View.Details;
             this.olvValidationResult.VirtualMode = true;
             // 
-            // tabControl1
+            // lblAnomalyWarning
             // 
-            this.tabControl1.Controls.Add(this.tabPage1);
-            this.tabControl1.Controls.Add(this.tabPage2);
-            this.tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.tabControl1.Location = new System.Drawing.Point(0, 0);
-            this.tabControl1.Name = "tabControl1";
-            this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(385, 776);
-            this.tabControl1.TabIndex = 2;
+            this.lblAnomalyWarning.AutoSize = true;
+            this.lblAnomalyWarning.Depth = 0;
+            this.lblAnomalyWarning.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.lblAnomalyWarning.Location = new System.Drawing.Point(872, 19);
+            this.lblAnomalyWarning.MouseState = MaterialSkin.MouseState.HOVER;
+            this.lblAnomalyWarning.Name = "lblAnomalyWarning";
+            this.lblAnomalyWarning.Size = new System.Drawing.Size(126, 19);
+            this.lblAnomalyWarning.TabIndex = 2;
+            this.lblAnomalyWarning.Text = "Abnormal Logs: 0";
+            this.lblAnomalyWarning.Visible = false;
             // 
-            // tabPage1
+            // toolTipAnomaly
             // 
-            this.tabPage1.Controls.Add(this.olvValidatorRawLog);
-            this.tabPage1.Location = new System.Drawing.Point(4, 22);
-            this.tabPage1.Name = "tabPage1";
-            this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(377, 750);
-            this.tabPage1.TabIndex = 0;
-            this.tabPage1.Text = "tabPage1";
-            this.tabPage1.UseVisualStyleBackColor = true;
+            this.toolTipAnomaly.AutoPopDelay = 10000;
+            this.toolTipAnomaly.InitialDelay = 200;
+            this.toolTipAnomaly.ReshowDelay = 100;
             // 
-            // tabPage2
+            // txtLogFilter
             // 
-            this.tabPage2.Location = new System.Drawing.Point(4, 22);
-            this.tabPage2.Name = "tabPage2";
-            this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(192, 74);
-            this.tabPage2.TabIndex = 1;
-            this.tabPage2.Text = "tabPage2";
-            this.tabPage2.UseVisualStyleBackColor = true;
+            this.txtLogFilter.AnimateReadOnly = false;
+            this.txtLogFilter.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
+            this.txtLogFilter.CharacterCasing = System.Windows.Forms.CharacterCasing.Normal;
+            this.txtLogFilter.Depth = 0;
+            this.txtLogFilter.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.txtLogFilter.HideSelection = true;
+            this.txtLogFilter.LeadingIcon = null;
+            this.txtLogFilter.Location = new System.Drawing.Point(144, 10);
+            this.txtLogFilter.MaxLength = 32767;
+            this.txtLogFilter.MouseState = MaterialSkin.MouseState.OUT;
+            this.txtLogFilter.Name = "txtLogFilter";
+            this.txtLogFilter.PasswordChar = '\0';
+            this.txtLogFilter.PrefixSuffixText = null;
+            this.txtLogFilter.ReadOnly = false;
+            this.txtLogFilter.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.txtLogFilter.SelectedText = "";
+            this.txtLogFilter.SelectionLength = 0;
+            this.txtLogFilter.SelectionStart = 0;
+            this.txtLogFilter.ShortcutsEnabled = true;
+            this.txtLogFilter.Size = new System.Drawing.Size(153, 48);
+            this.txtLogFilter.TabIndex = 1;
+            this.txtLogFilter.TabStop = false;
+            this.txtLogFilter.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.txtLogFilter.TrailingIcon = null;
+            this.txtLogFilter.UseSystemPasswordChar = false;
             // 
             // LogValidatorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1420, 843);
+            this.Controls.Add(this.txtLogFilter);
             this.Controls.Add(this.splitContainer1);
             this.Name = "LogValidatorForm";
             this.Text = "Log Validator";
@@ -316,6 +368,8 @@
             this.splitContainer1.Panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
             this.splitContainer1.ResumeLayout(false);
+            this.tabControl1.ResumeLayout(false);
+            this.tabPage1.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.olvValidatorRawLog)).EndInit();
             this.splitContainer2.Panel1.ResumeLayout(false);
             this.splitContainer2.Panel2.ResumeLayout(false);
@@ -335,8 +389,6 @@
             this.panel2.ResumeLayout(false);
             this.panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.olvValidationResult)).EndInit();
-            this.tabControl1.ResumeLayout(false);
-            this.tabPage1.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -361,5 +413,8 @@
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
+        private MaterialSkin.Controls.MaterialLabel lblAnomalyWarning;
+        private System.Windows.Forms.ToolTip toolTipAnomaly;
+        private MaterialSkin.Controls.MaterialTextBox2 txtLogFilter;
     }
 }
