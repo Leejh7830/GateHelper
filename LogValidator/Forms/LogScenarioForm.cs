@@ -1,4 +1,7 @@
 ﻿using BrightIdeasSoftware;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+using GateHelper.LogValidator.Core;
+using GateHelper.LogValidator.Models;
 using MaterialSkin;
 using MaterialSkin.Controls;
 using System;
@@ -8,8 +11,6 @@ using System.IO;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using GateHelper.LogValidator.Core;
-using GateHelper.LogValidator.Models;
 
 namespace GateHelper.LogValidator
 {
@@ -37,6 +38,7 @@ namespace GateHelper.LogValidator
             InitializeUnitRepositoryGridView();
             InitializeScenarioLadderGridView();
             InitializeDropZone();
+
         }
 
         // 💡 [신규 UX 고도화 인터락] 검증기에서 우클릭 소환 시 파일 경로를 직접 물고 열리는 생성자
@@ -696,6 +698,12 @@ namespace GateHelper.LogValidator
 
             // 우클릭 컨텍스트 가드 리프레시
             InitializeScenarioLadderContextMenu();
+        }
+
+        private void rtbMaskedPreview_TextChanged(object sender, EventArgs e)
+        {
+            // 본인의 실제 RichTextBox 컨트롤 명칭으로 대입하십시오.
+            rtbMaskedPreview.ForeColor = Color.Black;
         }
     }
 }

@@ -213,6 +213,7 @@
     <Compile Include="LogValidator\Models\ScenarioEvaluationModels.cs" />
     <Compile Include="LogValidator\Models\ScenarioModel.cs" />
     <Compile Include="LogValidator\Models\ValidationModel.cs" />
+    <Compile Include="LogValidator\Services\LogValidatorService.cs" />
     <Compile Include="SandBox\1. BitFlip\BitFlipControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
