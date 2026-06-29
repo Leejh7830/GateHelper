@@ -42,7 +42,7 @@
             this.btnOpenValidator.Depth = 0;
             this.btnOpenValidator.HighEmphasis = true;
             this.btnOpenValidator.Icon = null;
-            this.btnOpenValidator.Location = new System.Drawing.Point(374, 86);
+            this.btnOpenValidator.Location = new System.Drawing.Point(32, 83);
             this.btnOpenValidator.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.btnOpenValidator.MouseState = MaterialSkin.MouseState.HOVER;
             this.btnOpenValidator.Name = "btnOpenValidator";
@@ -63,7 +63,7 @@
             this.btnOpenEditor.Depth = 0;
             this.btnOpenEditor.HighEmphasis = true;
             this.btnOpenEditor.Icon = null;
-            this.btnOpenEditor.Location = new System.Drawing.Point(374, 141);
+            this.btnOpenEditor.Location = new System.Drawing.Point(32, 138);
             this.btnOpenEditor.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.btnOpenEditor.MouseState = MaterialSkin.MouseState.HOVER;
             this.btnOpenEditor.Name = "btnOpenEditor";
@@ -84,7 +84,7 @@
             this.btnSettings.Depth = 0;
             this.btnSettings.HighEmphasis = true;
             this.btnSettings.Icon = null;
-            this.btnSettings.Location = new System.Drawing.Point(374, 288);
+            this.btnSettings.Location = new System.Drawing.Point(32, 285);
             this.btnSettings.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.btnSettings.MouseState = MaterialSkin.MouseState.HOVER;
             this.btnSettings.Name = "btnSettings";
@@ -99,14 +99,13 @@
             // 
             // btnClose
             // 
-            this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.btnClose.AutoSize = false;
             this.btnClose.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.btnClose.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.btnClose.Depth = 0;
             this.btnClose.HighEmphasis = false;
             this.btnClose.Icon = null;
-            this.btnClose.Location = new System.Drawing.Point(373, 343);
+            this.btnClose.Location = new System.Drawing.Point(32, 340);
             this.btnClose.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.btnClose.MouseState = MaterialSkin.MouseState.HOVER;
             this.btnClose.Name = "btnClose";
@@ -117,12 +116,13 @@
             this.btnClose.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
             this.btnClose.UseAccentColor = true;
             this.btnClose.UseVisualStyleBackColor = true;
+            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
             // 
             // LogValidatorMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(537, 415);
+            this.ClientSize = new System.Drawing.Size(384, 415);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.btnSettings);
             this.Controls.Add(this.btnOpenEditor);

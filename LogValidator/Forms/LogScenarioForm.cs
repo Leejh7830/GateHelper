@@ -1,5 +1,4 @@
 ﻿using BrightIdeasSoftware;
-using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using GateHelper.LogValidator.Core;
 using GateHelper.LogValidator.Models;
 using MaterialSkin;
@@ -8,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -17,12 +17,20 @@ namespace GateHelper.LogValidator
     public partial class LogScenarioForm : MaterialForm
     {
         private readonly MaterialSkinManager _skinManager = MaterialSkinManager.Instance;
-
-        private readonly LogParser _logParser = new LogParser();
+        private readonly LogParser _logParser = new LogParser(); // 💡 ScenarioForm 드롭존에서 직접 사용
 
         private List<RawLogModel> _rawLogList = new List<RawLogModel>();
         private List<UnitTemplateModel> _unitTemplateList = new List<UnitTemplateModel>();
         private List<ScenarioStepModel> _scenarioLadderList = new List<ScenarioStepModel>();
+
+        // 💡 스텝 행 드래그 순서 변경용 추적 필드
+        private ScenarioStepModel _draggingStep = null;
+        private Point _dragStartPoint;
+
+        // 💡 우측 컨트롤 패널 슬라이드 토글용 필드
+        private Button _btnSideToggle;
+        private bool _sidePanelVisible = false;
+        private const int SIDE_PANEL_WIDTH = 200; // pnlControlButtons 너비와 동일
 
         private UnitTemplateModel _selectedTemplateForEdit = null;
 
@@ -38,6 +46,7 @@ namespace GateHelper.LogValidator
             InitializeScenarioLadderGridView();
             InitializeDropZone();
             InitializeBuilderContextMenu(); // 💡 생성자에서 1회만 생성 (선택 시마다 재생성하던 버그 수정)
+            InitializeSideToggle();         // 💡 우측 컨트롤 패널 슬라이드 토글
         }
 
         // 💡 [신규 UX 고도화 인터락] 검증기에서 우클릭 소환 시 파일 경로를 직접 물고 열리는 생성자
@@ -210,6 +219,11 @@ namespace GateHelper.LogValidator
             olvScenarioLadder.GridLines = true;
             olvScenarioLadder.AllowDrop = true;
             olvScenarioLadder.ShowItemToolTips = false;
+
+            // 💡 행 드래그 순서 변경: MouseDown에서 DoDragDrop 직접 호출
+            // IsSimpleDragSource 대신 직접 제어 → AllowDrop과 충돌 없음
+            olvScenarioLadder.MouseDown += (s, me) => _dragStartPoint = me.Location;
+            olvScenarioLadder.MouseMove += olvScenarioLadder_MouseMove;
 
             olvScenarioLadder.DoubleClick += olvScenarioLadder_DoubleClick;
 
@@ -411,38 +425,77 @@ namespace GateHelper.LogValidator
             olvUnitRepository.DoDragDrop(selectedTemplate, DragDropEffects.Copy);
         }
 
+        private void olvScenarioLadder_MouseMove(object sender, MouseEventArgs e)
+        {
+            // 💡 왼쪽 버튼 누른 채로 일정 거리 이상 움직이면 드래그 시작
+            if (e.Button != MouseButtons.Left) return;
+            if (Math.Abs(e.X - _dragStartPoint.X) < 4 && Math.Abs(e.Y - _dragStartPoint.Y) < 4) return;
+
+            var item = olvScenarioLadder.GetItemAt(e.X, e.Y) as OLVListItem;
+            if (item == null) item = olvScenarioLadder.SelectedItem as OLVListItem;
+
+            var step = item?.RowObject as ScenarioStepModel;
+            if (step == null) return;
+
+            _draggingStep = step;
+            // ScenarioStepModel 자체를 DataObject에 담아 DoDragDrop 실행
+            olvScenarioLadder.DoDragDrop(step, DragDropEffects.Move);
+            _draggingStep = null;
+        }
+
         private void olvScenarioLadder_DragEnter(object sender, DragEventArgs e)
         {
-            if (e.Data.GetDataPresent(typeof(UnitTemplateModel))) e.Effect = DragDropEffects.Copy;
-            else e.Effect = DragDropEffects.None;
+            if (e.Data.GetDataPresent(typeof(UnitTemplateModel)))
+                e.Effect = DragDropEffects.Copy;        // 유닛 목록 → 스텝 추가
+            else if (e.Data.GetDataPresent(typeof(ScenarioStepModel)))
+                e.Effect = DragDropEffects.Move;        // 스텝 행 → 순서 변경
+            else
+                e.Effect = DragDropEffects.None;
         }
 
         private void olvScenarioLadder_DragDrop(object sender, DragEventArgs e)
         {
+            // ── Case 1: 유닛 목록에서 드래그 → 스텝 추가 ──
             var droppedTemplate = e.Data.GetData(typeof(UnitTemplateModel)) as UnitTemplateModel;
-            if (droppedTemplate == null) return;
-
-            // 💡 [드롭 좌표 정밀 제어 인터락] 전체 화면 절반이 아니라 'Flow Line(화살표)' 컬럼의 물리적 경계 좌표를 계산합니다.
-            Point clientPoint = olvScenarioLadder.PointToClient(new Point(e.X, e.Y));
-
-            // Step + EQP 컬럼의 폭 합산하여 화살표 시작 X좌표 산출 (50 + 130 = 180)
-            int flowLineLeftBoundary = olvScenarioLadder.Columns[0].Width + olvScenarioLadder.Columns[1].Width;
-
-            // 💡 마우스 커서가 화살표 기준 왼쪽이면 TX(EQP), 화살표를 포함한 오른쪽 영역이면 RX(SERVER)로 강제 확정
-            string determinedDirection = (clientPoint.X < flowLineLeftBoundary) ? "TX" : "RX";
-
-            var newStep = new ScenarioStepModel
+            if (droppedTemplate != null)
             {
-                StepNo = _scenarioLadderList.Count + 1,
-                EventName = droppedTemplate.EventName,
-                MaskingPattern = droppedTemplate.MaskingPattern,
-                Direction = determinedDirection
-            };
+                Point clientPoint = olvScenarioLadder.PointToClient(new Point(e.X, e.Y));
+                int flowLineLeftBoundary = olvScenarioLadder.Columns[0].Width + olvScenarioLadder.Columns[1].Width;
+                string determinedDirection = (clientPoint.X < flowLineLeftBoundary) ? "TX" : "RX";
 
-            _scenarioLadderList.Add(newStep);
-            olvScenarioLadder.SetObjects(_scenarioLadderList);
+                var newStep = new ScenarioStepModel
+                {
+                    StepNo = _scenarioLadderList.Count + 1,
+                    EventName = droppedTemplate.EventName,
+                    MaskingPattern = droppedTemplate.MaskingPattern,
+                    Direction = determinedDirection
+                };
 
-            RefreshStepTooltips(); // 💡 컨텍스트메뉴 재생성 불필요, 툴팁만 갱신
+                _scenarioLadderList.Add(newStep);
+                olvScenarioLadder.SetObjects(_scenarioLadderList);
+                RefreshStepTooltips();
+                return;
+            }
+
+            // ── Case 2: 스텝 행 드래그 → 순서 변경 ──
+            var draggedStep = e.Data.GetData(typeof(ScenarioStepModel)) as ScenarioStepModel;
+            if (draggedStep == null) return;
+
+            Point dropPoint = olvScenarioLadder.PointToClient(new Point(e.X, e.Y));
+            var targetItem = olvScenarioLadder.GetItemAt(dropPoint.X, dropPoint.Y) as OLVListItem;
+
+            int fromIndex = _scenarioLadderList.IndexOf(draggedStep);
+            int toIndex = targetItem != null
+                ? _scenarioLadderList.IndexOf(targetItem.RowObject as ScenarioStepModel)
+                : _scenarioLadderList.Count - 1;
+
+            if (fromIndex < 0 || toIndex < 0 || fromIndex == toIndex) return;
+
+            _scenarioLadderList.RemoveAt(fromIndex);
+            _scenarioLadderList.Insert(toIndex, draggedStep);
+
+            ReIndexScenarioSteps();
+            RefreshStepTooltips();
         }
 
         private void olvScenarioLadder_DoubleClick(object sender, EventArgs e)
@@ -824,6 +877,97 @@ namespace GateHelper.LogValidator
         private void btnClose_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        // ─────────────────────────────────────────────
+        // 💡 우측 컨트롤 패널 슬라이드 토글
+        // txtScenarioName, lblCurrentScenario 포함된 pnlControlButtons를 슬라이드로 열고 닫음
+        // ─────────────────────────────────────────────
+        private void InitializeSideToggle()
+        {
+            _btnSideToggle = new Button
+            {
+                Text = "〈",
+                Font = new System.Drawing.Font("Malgun Gothic", 8f, System.Drawing.FontStyle.Bold),
+                Size = new System.Drawing.Size(16, 80),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = System.Drawing.Color.FromArgb(70, 100, 160),
+                ForeColor = System.Drawing.Color.White,
+                Cursor = Cursors.Hand,
+                Dock = DockStyle.Right,
+            };
+            _btnSideToggle.FlatAppearance.BorderSize = 0;
+            _btnSideToggle.Click += (s, e) => ToggleSidePanel();
+
+            // splitContainer2.Panel2 (olvScenarioLadder + pnlControlButtons가 있는 패널)에 추가
+            splitContainer2.Panel2.Controls.Add(_btnSideToggle);
+            _btnSideToggle.BringToFront();
+
+            // 초기 상태: pnlControlButtons 숨김 (너비 0으로 시작)
+            pnlControlButtons.Visible = false;
+            pnlControlButtons.Width = 0;
+            _sidePanelVisible = false;
+        }
+
+        private void ToggleSidePanel()
+        {
+            _btnSideToggle.Enabled = false;
+            _sidePanelVisible = !_sidePanelVisible;
+            _btnSideToggle.Text = _sidePanelVisible ? "〉" : "〈";
+
+            if (_sidePanelVisible)
+            {
+                pnlControlButtons.Width = 0;
+                pnlControlButtons.Visible = true;
+                AnimateSidePanel(opening: true);
+            }
+            else
+            {
+                AnimateSidePanel(opening: false);
+            }
+        }
+
+        private void AnimateSidePanel(bool opening)
+        {
+            const int STEP = 15;
+            const int INTERVAL = 10;
+
+            var timer = new System.Windows.Forms.Timer { Interval = INTERVAL };
+            timer.Tick += (s, e) =>
+            {
+                if (opening)
+                {
+                    int next = pnlControlButtons.Width + STEP;
+                    if (next >= SIDE_PANEL_WIDTH)
+                    {
+                        pnlControlButtons.Width = SIDE_PANEL_WIDTH;
+                        timer.Stop();
+                        timer.Dispose();
+                        _btnSideToggle.Enabled = true;
+                    }
+                    else
+                    {
+                        pnlControlButtons.Width = next;
+                    }
+                }
+                else
+                {
+                    int next = pnlControlButtons.Width - STEP;
+                    if (next <= 0)
+                    {
+                        pnlControlButtons.Width = 0;
+                        pnlControlButtons.Visible = false;
+                        timer.Stop();
+                        timer.Dispose();
+                        _btnSideToggle.Enabled = true;
+                    }
+                    else
+                    {
+                        pnlControlButtons.Width = next;
+                    }
+                }
+            };
+            timer.Start();
         }
     }
 }

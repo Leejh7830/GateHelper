@@ -910,7 +910,7 @@ namespace GateHelper
             this.BtnStart1.TabIndex = 22;
             this.BtnStart1.Text = "Start Operation";
             this.BtnStart1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnStart1.UseAccentColor = false;
+            this.BtnStart1.UseAccentColor = true;
             this.BtnStart1.UseVisualStyleBackColor = true;
             this.BtnStart1.Click += new System.EventHandler(this.BtnStart1_Click);
             // 

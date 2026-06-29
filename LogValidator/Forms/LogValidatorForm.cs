@@ -33,6 +33,11 @@ namespace GateHelper.LogValidator
         private FlowLayoutPanel _fileTagContainer;
         private bool _fileListExpanded = false;
 
+        // 💡 우측 메뉴 패널 슬라이드 토글용 필드
+        private Button _btnSideToggle;
+        private bool _sidePanelVisible = false;
+        private const int SIDE_PANEL_WIDTH = 150;
+
         public LogValidatorForm()
         {
             InitializeComponent();
@@ -48,6 +53,8 @@ namespace GateHelper.LogValidator
             InitializeRuntimeFilter();
 
             btnReset.Click += btnReset_Click;
+
+            InitializeSideToggle(); // 💡 우측 메뉴 슬라이드 토글 버튼 초기화
 
             ScenarioEventBroker.OnScenarioSaved += OnRuntimeScenarioRefresh;
         }
@@ -353,6 +360,99 @@ namespace GateHelper.LogValidator
 
             ResetAllLogData();
             UpdateFileListPanel();
+        }
+
+        // 💡 우측 메뉴 슬라이드 토글
+        // ─────────────────────────────────────────────
+        private void InitializeSideToggle()
+        {
+            _btnSideToggle = new Button
+            {
+                Text = "〈",
+                Font = new System.Drawing.Font("Malgun Gothic", 8f, System.Drawing.FontStyle.Bold),
+                Size = new System.Drawing.Size(16, 80),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = System.Drawing.Color.FromArgb(70, 100, 160),
+                ForeColor = System.Drawing.Color.White,
+                Cursor = Cursors.Hand,
+                Dock = DockStyle.Right,
+            };
+            _btnSideToggle.FlatAppearance.BorderSize = 0;
+            _btnSideToggle.Click += (s, e) => ToggleSidePanel();
+
+            splitContainer2.Panel2.Controls.Add(_btnSideToggle);
+            _btnSideToggle.BringToFront();
+
+            // 초기 상태: panel2 너비 0으로 숨김
+            panel2.Visible = false;
+            panel2.Width = 0;
+            _sidePanelVisible = false;
+        }
+
+        private void ToggleSidePanel()
+        {
+            // 💡 애니메이션 중 중복 클릭 방지
+            _btnSideToggle.Enabled = false;
+
+            _sidePanelVisible = !_sidePanelVisible;
+            _btnSideToggle.Text = _sidePanelVisible ? "〉" : "〈";
+
+            if (_sidePanelVisible)
+            {
+                // 열기: 0 → SIDE_PANEL_WIDTH 로 단계적 확장
+                panel2.Width = 0;
+                panel2.Visible = true;
+                AnimateSidePanel(opening: true);
+            }
+            else
+            {
+                // 닫기: SIDE_PANEL_WIDTH → 0 으로 단계적 축소
+                AnimateSidePanel(opening: false);
+            }
+        }
+
+        private void AnimateSidePanel(bool opening)
+        {
+            // 💡 Timer로 10ms마다 15px씩 이동 → 약 100ms에 완료 (자연스럽고 빠른 속도)
+            const int STEP = 15;
+            const int INTERVAL = 10;
+
+            var timer = new System.Windows.Forms.Timer { Interval = INTERVAL };
+            timer.Tick += (s, e) =>
+            {
+                if (opening)
+                {
+                    int next = panel2.Width + STEP;
+                    if (next >= SIDE_PANEL_WIDTH)
+                    {
+                        panel2.Width = SIDE_PANEL_WIDTH;
+                        timer.Stop();
+                        timer.Dispose();
+                        _btnSideToggle.Enabled = true;
+                    }
+                    else
+                    {
+                        panel2.Width = next;
+                    }
+                }
+                else
+                {
+                    int next = panel2.Width - STEP;
+                    if (next <= 0)
+                    {
+                        panel2.Width = 0;
+                        panel2.Visible = false;
+                        timer.Stop();
+                        timer.Dispose();
+                        _btnSideToggle.Enabled = true;
+                    }
+                    else
+                    {
+                        panel2.Width = next;
+                    }
+                }
+            };
+            timer.Start();
         }
 
         // ─────────────────────────────────────────────
