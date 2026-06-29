@@ -50,6 +50,9 @@
             this.olvValidationResult = new BrightIdeasSoftware.TreeListView();
             this.toolTipAnomaly = new System.Windows.Forms.ToolTip(this.components);
             this.txtLogFilter = new MaterialSkin.Controls.MaterialTextBox2();
+            this.dtpTimeJump = new System.Windows.Forms.DateTimePicker();
+            this.btnTimeJump = new MaterialSkin.Controls.MaterialButton();
+            this.cmbDateFilter = new System.Windows.Forms.ComboBox();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -186,9 +189,10 @@
             // panel1
             // 
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel1.Controls.Add(this.btnReset);
+            this.panel1.Controls.Add(this.cmbDateFilter);
+            this.panel1.Controls.Add(this.btnTimeJump);
+            this.panel1.Controls.Add(this.dtpTimeJump);
             this.panel1.Controls.Add(this.lblAnomalyWarning);
-            this.panel1.Controls.Add(this.materialButton1);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
@@ -197,19 +201,21 @@
             // 
             // btnReset
             // 
+            this.btnReset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnReset.AutoSize = false;
             this.btnReset.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.btnReset.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.btnReset.Depth = 0;
             this.btnReset.HighEmphasis = true;
             this.btnReset.Icon = null;
-            this.btnReset.Location = new System.Drawing.Point(136, 12);
+            this.btnReset.Location = new System.Drawing.Point(17, 51);
             this.btnReset.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.btnReset.MouseState = MaterialSkin.MouseState.HOVER;
             this.btnReset.Name = "btnReset";
             this.btnReset.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.btnReset.Size = new System.Drawing.Size(65, 36);
+            this.btnReset.Size = new System.Drawing.Size(120, 36);
             this.btnReset.TabIndex = 3;
-            this.btnReset.Text = "Reset";
+            this.btnReset.Text = "↻ Reset";
             this.btnReset.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.btnReset.UseAccentColor = true;
             this.btnReset.UseVisualStyleBackColor = true;
@@ -223,24 +229,26 @@
             this.lblAnomalyWarning.Location = new System.Drawing.Point(511, 19);
             this.lblAnomalyWarning.MouseState = MaterialSkin.MouseState.HOVER;
             this.lblAnomalyWarning.Name = "lblAnomalyWarning";
-            this.lblAnomalyWarning.Size = new System.Drawing.Size(126, 19);
+            this.lblAnomalyWarning.Size = new System.Drawing.Size(142, 19);
             this.lblAnomalyWarning.TabIndex = 2;
-            this.lblAnomalyWarning.Text = "Abnormal Logs: 0";
+            this.lblAnomalyWarning.Text = "Abnormal Logs: 0    ";
             this.lblAnomalyWarning.Visible = false;
             // 
             // materialButton1
             // 
+            this.materialButton1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.materialButton1.AutoSize = false;
             this.materialButton1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.materialButton1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.materialButton1.Depth = 0;
             this.materialButton1.HighEmphasis = true;
             this.materialButton1.Icon = null;
-            this.materialButton1.Location = new System.Drawing.Point(12, 12);
+            this.materialButton1.Location = new System.Drawing.Point(19, 6);
             this.materialButton1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.materialButton1.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialButton1.Name = "materialButton1";
             this.materialButton1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.materialButton1.Size = new System.Drawing.Size(114, 36);
+            this.materialButton1.Size = new System.Drawing.Size(118, 36);
             this.materialButton1.TabIndex = 0;
             this.materialButton1.Text = "🔍 Validation";
             this.materialButton1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -295,6 +303,8 @@
             this.panel2.Controls.Add(this.btnOpenFolder);
             this.panel2.Controls.Add(this.btnOpenScenarioEditor);
             this.panel2.Controls.Add(this.btnClose);
+            this.panel2.Controls.Add(this.btnReset);
+            this.panel2.Controls.Add(this.materialButton1);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
             this.panel2.Location = new System.Drawing.Point(516, 0);
             this.panel2.Name = "panel2";
@@ -416,6 +426,48 @@
             this.txtLogFilter.TrailingIcon = null;
             this.txtLogFilter.UseSystemPasswordChar = false;
             // 
+            // dtpTimeJump
+            // 
+            this.dtpTimeJump.CustomFormat = "HH:mm:ss";
+            this.dtpTimeJump.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.dtpTimeJump.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dtpTimeJump.Location = new System.Drawing.Point(15, 29);
+            this.dtpTimeJump.Name = "dtpTimeJump";
+            this.dtpTimeJump.ShowUpDown = true;
+            this.dtpTimeJump.Size = new System.Drawing.Size(137, 23);
+            this.dtpTimeJump.TabIndex = 4;
+            // 
+            // btnTimeJump
+            // 
+            this.btnTimeJump.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnTimeJump.AutoSize = false;
+            this.btnTimeJump.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnTimeJump.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnTimeJump.Depth = 0;
+            this.btnTimeJump.HighEmphasis = true;
+            this.btnTimeJump.Icon = null;
+            this.btnTimeJump.Location = new System.Drawing.Point(159, 5);
+            this.btnTimeJump.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnTimeJump.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnTimeJump.Name = "btnTimeJump";
+            this.btnTimeJump.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnTimeJump.Size = new System.Drawing.Size(74, 40);
+            this.btnTimeJump.TabIndex = 11115;
+            this.btnTimeJump.Text = "▶ Jump";
+            this.btnTimeJump.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnTimeJump.UseAccentColor = false;
+            this.btnTimeJump.UseVisualStyleBackColor = true;
+            // 
+            // cmbDateFilter
+            // 
+            this.cmbDateFilter.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.cmbDateFilter.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.cmbDateFilter.FormattingEnabled = true;
+            this.cmbDateFilter.Location = new System.Drawing.Point(15, 4);
+            this.cmbDateFilter.Name = "cmbDateFilter";
+            this.cmbDateFilter.Size = new System.Drawing.Size(137, 23);
+            this.cmbDateFilter.TabIndex = 11117;
+            // 
             // LogValidatorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -477,5 +529,8 @@
         private MaterialSkin.Controls.MaterialButton btnOpenFolder;
         private MaterialSkin.Controls.MaterialButton btnOpenScenarioEditor;
         private MaterialSkin.Controls.MaterialButton btnClose;
+        private MaterialSkin.Controls.MaterialButton btnTimeJump;
+        private System.Windows.Forms.DateTimePicker dtpTimeJump;
+        private System.Windows.Forms.ComboBox cmbDateFilter;
     }
 }

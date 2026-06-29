@@ -66,16 +66,103 @@ namespace GateHelper.LogValidator
             olvValidatorRawLog.Columns.Clear();
             olvValidatorRawLog.Font = new System.Drawing.Font("Malgun Gothic", 10.5f, System.Drawing.FontStyle.Regular);
 
-            var colLineNo = new OLVColumn("Line", "LineNo") { Width = 60, TextAlign = HorizontalAlignment.Center };
-            var colSourceFile = new OLVColumn("Source File", "SourceFileName") { Width = 160, TextAlign = HorizontalAlignment.Center };
+            var colLineNo = new OLVColumn("Line", "LineNo") { Width = 55, TextAlign = HorizontalAlignment.Center };
+            var colTime = new OLVColumn("Time", "LogTime") { Width = 110, TextAlign = HorizontalAlignment.Center };
+            var colSourceFile = new OLVColumn("Source File", "SourceFileName") { Width = 155, TextAlign = HorizontalAlignment.Center };
             var colMessage = new OLVColumn("Log Message", "LogMessage") { Width = 500 };
 
-            olvValidatorRawLog.Columns.AddRange(new ColumnHeader[] { colLineNo, colSourceFile, colMessage });
+            // 💡 LogTime을 HH:mm:ss.fff 형식으로 표시 (날짜 제외)
+            // MinValue(파싱 실패)인 경우 빈 문자열로 표시
+            colTime.AspectGetter = row =>
+            {
+                if (row is RawLogModel log)
+                    return log.LogTime == DateTime.MinValue ? "" : log.LogTime.ToString("HH:mm:ss.fff");
+                return "";
+            };
+
+            olvValidatorRawLog.Columns.AddRange(new ColumnHeader[] { colLineNo, colTime, colSourceFile, colMessage });
             olvValidatorRawLog.View = View.Details;
             olvValidatorRawLog.FullRowSelect = true;
             olvValidatorRawLog.GridLines = true;
-
             olvValidatorRawLog.ShowItemToolTips = false;
+
+            // 💡 Time Jump UI: Designer에서 만든 컨트롤에 이벤트 연결
+            InitializeTimeJumpUI();
+        }
+
+        private void InitializeTimeJumpUI()
+        {
+            // 💡 btnTimeJump 클릭 시 cmbDateFilter(날짜) + dtpTimeJump(시간) 조합으로 점프
+            btnTimeJump.Click += (s, e) =>
+            {
+                if (_validatorRawLogList == null || _validatorRawLogList.Count == 0) return;
+                if (cmbDateFilter.SelectedItem == null) return;
+
+                // 선택된 날짜 + 시간 조합으로 DateTime 생성
+                DateTime selectedDate = (DateTime)cmbDateFilter.SelectedItem;
+                TimeSpan selectedTime = dtpTimeJump.Value.TimeOfDay;
+                DateTime target = selectedDate.Date + selectedTime;
+
+                // 💡 target과 가장 가까운 로그 행 탐색 (날짜+시간 모두 비교)
+                RawLogModel closest = null;
+                TimeSpan minDiff = TimeSpan.MaxValue;
+
+                foreach (var log in _validatorRawLogList)
+                {
+                    if (log.LogTime == DateTime.MinValue) continue;
+                    TimeSpan diff = (log.LogTime - target).Duration();
+                    if (diff < minDiff)
+                    {
+                        minDiff = diff;
+                        closest = log;
+                    }
+                }
+
+                if (closest == null) return;
+
+                int idx = _validatorRawLogList.IndexOf(closest);
+                olvValidatorRawLog.SelectedObject = closest;
+                olvValidatorRawLog.TopItemIndex = Math.Max(0, idx - 3);
+                olvValidatorRawLog.EnsureVisible(idx);
+                olvValidatorRawLog.Focus();
+            };
+        }
+
+        /// <summary>
+        /// 로그 드롭 후 cmbDateFilter에 날짜 목록을 채웁니다.
+        /// 항상 표시하고, 날짜가 1개면 자동 선택됩니다.
+        /// </summary>
+        private void RefreshDateFilter()
+        {
+            cmbDateFilter.Items.Clear();
+
+            if (_validatorRawLogList == null || _validatorRawLogList.Count == 0) return;
+
+            // 💡 로그에서 유효한 날짜만 추출 → 중복 제거 → 오름차순 정렬
+            var dates = _validatorRawLogList
+                .Where(l => l.LogTime != DateTime.MinValue)
+                .Select(l => l.LogTime.Date)
+                .Distinct()
+                .OrderBy(d => d)
+                .ToList();
+
+            // 💡 "MM/dd (ddd)" 형식으로 표시하기 위해 FormattingEnabled + Format 이벤트 사용
+            // Format 이벤트는 최초 1회만 등록 (중복 등록 방지)
+            cmbDateFilter.FormattingEnabled = true;
+            cmbDateFilter.Format -= CmbDateFilter_Format;
+            cmbDateFilter.Format += CmbDateFilter_Format;
+
+            foreach (var date in dates)
+                cmbDateFilter.Items.Add(date);
+
+            if (cmbDateFilter.Items.Count > 0)
+                cmbDateFilter.SelectedIndex = 0;
+        }
+
+        private void CmbDateFilter_Format(object sender, ListControlConvertEventArgs e)
+        {
+            if (e.Value is DateTime d)
+                e.Value = d.ToString("MM/dd (ddd)");
         }
 
         private void InitializeScenarioRepositoryGridView()
@@ -333,6 +420,7 @@ namespace GateHelper.LogValidator
                     LogValidatorConfigManager.Load();
                     BuildUnitTabsAndGrids(_validatorRawLogList);
                     UpdateFileListPanel();
+                    RefreshDateFilter(); // 💡 날짜 콤보박스 갱신
                 }
                 catch (Exception ex)
                 {
@@ -621,6 +709,9 @@ namespace GateHelper.LogValidator
 
             // 변칙 경고 레이블 초기화
             lblAnomalyWarning.Visible = false;
+
+            // 날짜 콤보박스 초기화
+            cmbDateFilter.Items.Clear();
 
             // 파일 목록 패널 접기
             _fileListExpanded = false;
