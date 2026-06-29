@@ -19,7 +19,6 @@ namespace GateHelper.LogValidator
         private readonly MaterialSkinManager _skinManager = MaterialSkinManager.Instance;
 
         private readonly LogParser _logParser = new LogParser();
-        private readonly LogMasker _logMasker = new LogMasker();
 
         private List<RawLogModel> _rawLogList = new List<RawLogModel>();
         private List<UnitTemplateModel> _unitTemplateList = new List<UnitTemplateModel>();
@@ -38,7 +37,7 @@ namespace GateHelper.LogValidator
             InitializeUnitRepositoryGridView();
             InitializeScenarioLadderGridView();
             InitializeDropZone();
-
+            InitializeBuilderContextMenu(); // 💡 생성자에서 1회만 생성 (선택 시마다 재생성하던 버그 수정)
         }
 
         // 💡 [신규 UX 고도화 인터락] 검증기에서 우클릭 소환 시 파일 경로를 직접 물고 열리는 생성자
@@ -273,11 +272,11 @@ namespace GateHelper.LogValidator
             _selectedTemplateForEdit = null;
             txtEventName.Text = $"EVT_{selectedRow.LineNo}";
 
-            // 💡 자동 마스킹 분절 간섭 없이 순정 원본 raw 데이터를 다이렉트로 버퍼에 대피 및 바인딩
+            // 💡 순정 원본 raw 데이터를 버퍼에 대피 및 바인딩
             _originalLogBackup = selectedRow.LogMessage;
 
             RenderHighlightLog(rtbMaskedPreview, selectedRow.LogMessage);
-            InitializeBuilderContextMenu();
+            // 💡 컨텍스트메뉴는 생성자에서 1회 생성 완료 - 여기서 재생성 불필요
         }
 
         private void RenderHighlightLog(RichTextBox rtb, string originalLog)
@@ -443,7 +442,7 @@ namespace GateHelper.LogValidator
             _scenarioLadderList.Add(newStep);
             olvScenarioLadder.SetObjects(_scenarioLadderList);
 
-            InitializeScenarioLadderContextMenu();
+            RefreshStepTooltips(); // 💡 컨텍스트메뉴 재생성 불필요, 툴팁만 갱신
         }
 
         private void olvScenarioLadder_DoubleClick(object sender, EventArgs e)
@@ -457,7 +456,7 @@ namespace GateHelper.LogValidator
             olvScenarioLadder.RefreshObject(clickedStep);
         }
 
-        // 💡 [우클릭 컨텍스트 메뉴] 사다리 단계 이동, 삭제 등 편집 기능 제공
+        // 💡 [우클릭 컨텍스트 메뉴] 사다리 단계 이동, 삭제, 타임아웃 설정, Optional 토글
         private void InitializeScenarioLadderContextMenu()
         {
             var cms = new ContextMenuStrip();
@@ -466,13 +465,10 @@ namespace GateHelper.LogValidator
             {
                 var selected = olvScenarioLadder.SelectedObject as ScenarioStepModel;
                 if (selected == null) return;
-
                 int index = _scenarioLadderList.IndexOf(selected);
                 if (index <= 0) return;
-
                 _scenarioLadderList.RemoveAt(index);
                 _scenarioLadderList.Insert(index - 1, selected);
-
                 ReIndexScenarioSteps();
             });
 
@@ -480,13 +476,10 @@ namespace GateHelper.LogValidator
             {
                 var selected = olvScenarioLadder.SelectedObject as ScenarioStepModel;
                 if (selected == null) return;
-
                 int index = _scenarioLadderList.IndexOf(selected);
                 if (index < 0 || index >= _scenarioLadderList.Count - 1) return;
-
                 _scenarioLadderList.RemoveAt(index);
                 _scenarioLadderList.Insert(index + 1, selected);
-
                 ReIndexScenarioSteps();
             });
 
@@ -494,9 +487,65 @@ namespace GateHelper.LogValidator
             {
                 var selected = olvScenarioLadder.SelectedObject as ScenarioStepModel;
                 if (selected == null) return;
-
                 _scenarioLadderList.Remove(selected);
                 ReIndexScenarioSteps();
+            });
+
+            // 💡 TimeOut Setting: 이 스텝 매칭 후 다음 스텝까지 허용 대기 시간(초) 입력
+            var menuTimeout = new ToolStripMenuItem("TimeOut Setting (Sec)", null, (s, e) =>
+            {
+                var selected = olvScenarioLadder.SelectedObject as ScenarioStepModel;
+                if (selected == null) return;
+
+                int index = _scenarioLadderList.IndexOf(selected);
+                if (index == _scenarioLadderList.Count - 1)
+                {
+                    MessageBox.Show("The last step has no next step. Timeout cannot be set.",
+                        "TimeOut N/A", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                string currentVal = selected.TimeoutSeconds > 0 ? selected.TimeoutSeconds.ToString() : "";
+                string input = ShowInputDialog(
+                    $"[Step {selected.StepNo}] {selected.EventName}\n\n" +
+                    $"Enter the allowed wait time (seconds) until the next step.\n" +
+                    $"(Enter 0 or leave blank to disable timeout)",
+                    "TimeOut Setting", currentVal);
+
+                if (input == null) return;
+
+                if (string.IsNullOrWhiteSpace(input) || input.Trim() == "0")
+                    selected.TimeoutSeconds = 0;
+                else if (double.TryParse(input.Trim(), out double seconds) && seconds > 0)
+                    selected.TimeoutSeconds = seconds;
+                else
+                {
+                    MessageBox.Show("Please enter a valid number.", "Invalid Input", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                olvScenarioLadder.RefreshObject(selected);
+                RefreshStepTooltips();
+            });
+
+            // 💡 Optional Step Toggle: 이 스텝이 없어도 사이클 계속 진행할지 여부 토글
+            var menuOptional = new ToolStripMenuItem("Optional Step Toggle", null, (s, e) =>
+            {
+                var selected = olvScenarioLadder.SelectedObject as ScenarioStepModel;
+                if (selected == null) return;
+
+                // 첫 스텝은 Optional 불가 (사이클 시작점이므로)
+                int index = _scenarioLadderList.IndexOf(selected);
+                if (index == 0)
+                {
+                    MessageBox.Show("The first step cannot be optional.\nIt is the cycle start point.",
+                        "Optional N/A", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                selected.IsOptional = !selected.IsOptional;
+                olvScenarioLadder.RefreshObject(selected);
+                RefreshStepTooltips();
             });
 
             cms.Opening += (s, e) =>
@@ -505,14 +554,74 @@ namespace GateHelper.LogValidator
                 menuMoveUp.Enabled = hasSelection;
                 menuMoveDown.Enabled = hasSelection;
                 menuDelete.Enabled = hasSelection;
+                menuTimeout.Enabled = hasSelection;
+                menuOptional.Enabled = hasSelection;
             };
 
             cms.Items.Add(menuMoveUp);
             cms.Items.Add(menuMoveDown);
             cms.Items.Add(new ToolStripSeparator());
+            cms.Items.Add(menuTimeout);
+            cms.Items.Add(menuOptional);
+            cms.Items.Add(new ToolStripSeparator());
             cms.Items.Add(menuDelete);
 
             olvScenarioLadder.ContextMenuStrip = cms;
+            RefreshStepTooltips();
+        }
+
+        // 💡 Timeout + Optional 설정을 통합해서 툴팁으로 표시
+        private void RefreshStepTooltips()
+        {
+            olvScenarioLadder.ShowItemToolTips = true;
+            olvScenarioLadder.CellToolTipGetter = (col, rowObj) =>
+            {
+                var step = rowObj as ScenarioStepModel;
+                if (step == null) return null;
+
+                var parts = new System.Collections.Generic.List<string>();
+
+                if (step.TimeoutSeconds > 0)
+                {
+                    int idx = _scenarioLadderList.IndexOf(step);
+                    if (idx >= 0 && idx < _scenarioLadderList.Count - 1)
+                    {
+                        var next = _scenarioLadderList[idx + 1];
+                        parts.Add($"⏱ Timeout: {step.TimeoutSeconds}s  ({step.EventName} → {next.EventName})");
+                    }
+                }
+
+                if (step.IsOptional)
+                    parts.Add("〇 Optional: this step may be skipped");
+
+                return parts.Count > 0 ? string.Join("\n", parts) : null;
+            };
+        }
+
+        // 💡 간단한 텍스트 입력 다이얼로그 (별도 Form 없이 인라인 구현)
+        private string ShowInputDialog(string message, string title, string defaultValue = "")
+        {
+            Form dlg = new Form
+            {
+                Width = 420,
+                Height = 200,
+                Text = title,
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                MaximizeBox = false,
+                MinimizeBox = false
+            };
+
+            var lbl = new Label { Text = message, Left = 12, Top = 10, Width = 380, Height = 100, AutoSize = false };
+            var txt = new TextBox { Text = defaultValue, Left = 12, Top = 118, Width = 180 };
+            var btnOk = new Button { Text = "확인", Left = 200, Top = 115, Width = 80, DialogResult = DialogResult.OK };
+            var btnCancel = new Button { Text = "취소", Left = 290, Top = 115, Width = 80, DialogResult = DialogResult.Cancel };
+
+            dlg.Controls.AddRange(new Control[] { lbl, txt, btnOk, btnCancel });
+            dlg.AcceptButton = btnOk;
+            dlg.CancelButton = btnCancel;
+
+            return dlg.ShowDialog(this) == DialogResult.OK ? txt.Text : null;
         }
 
         // 💡 [사다리 단계 재인덱싱] 드롭, 이동, 삭제 등으로 인해 StepNo가 꼬일 수 있으므로 항상 최신화
@@ -576,7 +685,14 @@ namespace GateHelper.LogValidator
                 string targetDir = GetScenarioDirectoryPath();
                 string targetFilePath = Path.Combine(targetDir, $"{scenarioName}.json");
 
-                string jsonString = JsonSerializer.Serialize(_scenarioLadderList, new JsonSerializerOptions { WriteIndented = true });
+                // 💡 DefaultIgnoreCondition: TimeoutSeconds=0, IsOptional=false처럼
+                // 기본값인 필드는 JSON에서 생략 → 기존 시나리오 파일과 포맷 혼재 방지
+                var jsonOptions = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault
+                };
+                string jsonString = JsonSerializer.Serialize(_scenarioLadderList, jsonOptions);
                 File.WriteAllText(targetFilePath, jsonString);
 
                 MessageBox.Show($"시나리오가 자동으로 저장되었습니다.\n📂 위치: _meta/Scenarios/{scenarioName}.json", "Auto Save Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -696,14 +812,18 @@ namespace GateHelper.LogValidator
             _scenarioLadderList.Add(newStep);
             olvScenarioLadder.SetObjects(_scenarioLadderList);
 
-            // 우클릭 컨텍스트 가드 리프레시
-            InitializeScenarioLadderContextMenu();
+            RefreshStepTooltips(); // 💡 컨텍스트메뉴 재생성 불필요, 툴팁만 갱신
         }
 
         private void rtbMaskedPreview_TextChanged(object sender, EventArgs e)
         {
             // 본인의 실제 RichTextBox 컨트롤 명칭으로 대입하십시오.
             rtbMaskedPreview.ForeColor = Color.Black;
+        }
+
+        private void btnClose_Click(object sender, EventArgs e)
+        {
+            this.Close();
         }
     }
 }

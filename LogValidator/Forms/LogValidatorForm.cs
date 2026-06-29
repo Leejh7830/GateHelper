@@ -1,6 +1,7 @@
 ﻿using BrightIdeasSoftware;
 using GateHelper.LogValidator.Core;
 using GateHelper.LogValidator.Models;
+using GateHelper.LogValidator.Services;
 using MaterialSkin;
 using MaterialSkin.Controls;
 using System;
@@ -8,7 +9,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
@@ -17,14 +17,21 @@ namespace GateHelper.LogValidator
     public partial class LogValidatorForm : MaterialForm
     {
         private readonly MaterialSkinManager _skinManager = MaterialSkinManager.Instance;
-        private readonly LogParser _logParser = new LogParser();
-        private readonly LogValidatorEngine _validatorEngine = new LogValidatorEngine();
+        private readonly LogValidatorService _logValidatorService = new LogValidatorService(); // 💡 파일 로딩/분류/정렬/검증 서비스
 
         private List<RawLogModel> _validatorRawLogList = new List<RawLogModel>();
         private List<ScenarioEvaluator> _currentRepositoryList = new List<ScenarioEvaluator>();
         private readonly string _scenarioBaseDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "_meta", "Scenarios");
 
         private int _currentSelectedStartLineNo = -1;
+
+        // 💡 현재 로드된 파일 경로 목록 - UI 표시 및 초기화 판단에 사용
+        private readonly List<string> _loadedFilePaths = new List<string>();
+
+        // 💡 파일 목록 패널 컨트롤 (코드에서 동적 생성 - Designer의 tabPage1 위에 올라감)
+        private Panel _fileListPanel;
+        private FlowLayoutPanel _fileTagContainer;
+        private bool _fileListExpanded = false;
 
         public LogValidatorForm()
         {
@@ -35,11 +42,13 @@ namespace GateHelper.LogValidator
             InitializeScenarioRepositoryGridView();
             InitializeValidationResultGridView();
             InitializeValidatorDropZone();
+            InitializeFileListPanel();    // 💡 파일 목록 패널 (tabPage1 상단에 코드로 생성)
 
             InitializeScenarioTreeViewInterlock();
             InitializeRuntimeFilter();
 
-            // 💡 [실시간 리로드 인터락] 편집기에서 저장 버튼을 누르면, 검증기가 열려있는 상태에서도 목록이 자동 동기화됩니다.
+            btnReset.Click += btnReset_Click;
+
             ScenarioEventBroker.OnScenarioSaved += OnRuntimeScenarioRefresh;
         }
 
@@ -51,9 +60,10 @@ namespace GateHelper.LogValidator
             olvValidatorRawLog.Font = new System.Drawing.Font("Malgun Gothic", 10.5f, System.Drawing.FontStyle.Regular);
 
             var colLineNo = new OLVColumn("Line", "LineNo") { Width = 60, TextAlign = HorizontalAlignment.Center };
+            var colSourceFile = new OLVColumn("Source File", "SourceFileName") { Width = 160, TextAlign = HorizontalAlignment.Center };
             var colMessage = new OLVColumn("Log Message", "LogMessage") { Width = 500 };
 
-            olvValidatorRawLog.Columns.AddRange(new ColumnHeader[] { colLineNo, colMessage });
+            olvValidatorRawLog.Columns.AddRange(new ColumnHeader[] { colLineNo, colSourceFile, colMessage });
             olvValidatorRawLog.View = View.Details;
             olvValidatorRawLog.FullRowSelect = true;
             olvValidatorRawLog.GridLines = true;
@@ -158,7 +168,7 @@ namespace GateHelper.LogValidator
             var colStatus = new OLVColumn("Status", "Status") { Width = 100, TextAlign = HorizontalAlignment.Center };
             colStatus.AspectGetter = row => row is ScenarioEvaluator ? ((ScenarioEvaluator)row).Status.ToString().ToUpper() : ((StepValidationReport)row).StepStatus?.ToUpper();
 
-            var colProgress = new OLVColumn("Progress", "Progress") { Width = 110, TextAlign = HorizontalAlignment.Center };
+            var colProgress = new OLVColumn("Progress", "Progress") { Width = 130, TextAlign = HorizontalAlignment.Center };
             colProgress.AspectGetter = row => row is ScenarioEvaluator ? ((ScenarioEvaluator)row).Progress : ((StepValidationReport)row).StepProgress;
 
             var colMsg = new OLVColumn("Validation Message", "Message") { Width = 450 };
@@ -247,14 +257,17 @@ namespace GateHelper.LogValidator
         {
             if (childReport == null || childReport.StartLineNo <= 0) return;
 
-            int targetStartLineNo = childReport.StartLineNo;
-            _currentSelectedStartLineNo = targetStartLineNo;
-            var matchedLinesSet = new HashSet<int>(childReport.MatchedLineNumbers ?? new List<int>());
+            _currentSelectedStartLineNo = childReport.StartLineNo;
 
+            // 💡 (LineNo, SourceFileName) 쌍으로 HashSet 구성 - 파일명이 달라도 같은 LineNo면 오하이라이팅되던 버그 수정
+            var matchedLinesSet = new HashSet<(int, string)>(childReport.MatchedLineNumbers ?? new List<(int, string)>());
+
+            // 시작 로그 탐색: LineNo + SourceFileName 모두 일치해야 정확한 위치
             int targetJumpIndex = -1;
             for (int i = 0; i < _validatorRawLogList.Count; i++)
             {
-                if (_validatorRawLogList[i] != null && _validatorRawLogList[i].LineNo == childReport.StartLineNo)
+                var l = _validatorRawLogList[i];
+                if (l != null && l.LineNo == childReport.StartLineNo && l.SourceFileName == childReport.StartSourceFileName)
                 {
                     targetJumpIndex = i;
                     break;
@@ -272,11 +285,11 @@ namespace GateHelper.LogValidator
                     var logModel = rowObject.RowObject as RawLogModel;
                     if (logModel != null)
                     {
-                        bool isMatchedLine = matchedLinesSet.Contains(logModel.LineNo);
-                        bool isExplicitStartLine = (logModel.LineNo == targetStartLineNo);
+                        // 💡 LineNo + SourceFileName 동시 비교로 다른 파일의 같은 LineNo 오하이라이팅 방지
+                        bool isMatched = matchedLinesSet.Contains((logModel.LineNo, logModel.SourceFileName));
 
-                        rowObject.BackColor = (isMatchedLine || isExplicitStartLine) ? System.Drawing.Color.FromArgb(255, 243, 205) : olvValidatorRawLog.BackColor;
-                        rowObject.ForeColor = (isMatchedLine || isExplicitStartLine) ? System.Drawing.Color.Black : olvValidatorRawLog.ForeColor;
+                        rowObject.BackColor = isMatched ? System.Drawing.Color.FromArgb(255, 243, 205) : olvValidatorRawLog.BackColor;
+                        rowObject.ForeColor = isMatched ? System.Drawing.Color.Black : olvValidatorRawLog.ForeColor;
                     }
                 };
                 olvValidatorRawLog.Refresh();
@@ -293,72 +306,240 @@ namespace GateHelper.LogValidator
                 else e.Effect = DragDropEffects.None;
             };
 
-            olvValidatorRawLog.DragDrop += (s, e) =>
+            // 💡 async void: UI 이벤트 핸들러에서 async를 쓸 때는 async void가 올바른 패턴
+            olvValidatorRawLog.DragDrop += async (s, e) =>
             {
-                string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-                if (files == null || files.Length == 0) return;
+                string[] droppedPaths = (string[])e.Data.GetData(DataFormats.FileDrop);
+                if (droppedPaths == null || droppedPaths.Length == 0) return;
 
                 try
                 {
                     Cursor.Current = Cursors.WaitCursor;
+                    ResetAllLogData();
+                    _validatorRawLogList = await _logValidatorService.LoadLogFilesAsync(droppedPaths);
+                    _loadedFilePaths.AddRange(droppedPaths);
 
-                    // 💡 [정렬 위치 교정 가드] 루프 진입 전에는 순수 데이터 누적만 진행합니다.
-                    foreach (string filePath in files)
-                    {
-                        if (!File.Exists(filePath)) continue;
-                        string fileName = Path.GetFileName(filePath).ToUpper();
-
-                        List<RawLogModel> parsedSegment = null;
-
-                        if (fileName.Contains("VARIABLE_TRACE"))
-                        {
-                            parsedSegment = _logParser.ParseLogFile(filePath);
-                            foreach (var log in parsedSegment) log.LogType = "PLC";
-                        }
-                        else if (fileName.Contains("ERROR") || fileName.Contains("ALARM"))
-                        {
-                            parsedSegment = _logParser.ParseLogFile(filePath);
-                            foreach (var log in parsedSegment) log.LogType = "ALARM";
-                        }
-                        else if (fileName.Contains("TRANSFER"))
-                        {
-                            parsedSegment = _logParser.ParseLogFile(filePath);
-                            foreach (var log in parsedSegment) log.LogType = "TRANSFER";
-                        }
-                        else
-                        {
-                            parsedSegment = _logParser.ParseLogFile(filePath);
-                            foreach (var log in parsedSegment) log.LogType = "UNKNOWN";
-                        }
-
-                        if (parsedSegment != null && parsedSegment.Count > 0)
-                        {
-                            _validatorRawLogList.AddRange(parsedSegment);
-                        }
-                    }
-
-                    // 마스터 리스트를 시간(LogTime) 정렬 구조로 확실하게 락인(Lock-in)합니다.
-                    _validatorRawLogList = _validatorRawLogList.OrderBy(log => log.LogTime).ToList();
-
-                    // 고속 마스터 렌더링 동기화
                     olvValidatorRawLog.BeginUpdate();
                     olvValidatorRawLog.SetObjects(_validatorRawLogList);
                     olvValidatorRawLog.EndUpdate();
 
-                    // 디스크에 저장된 최신 세팅.dat를 강제로 읽어와 메모리를 동기화합니다.
                     LogValidatorConfigManager.Load();
-
                     BuildUnitTabsAndGrids(_validatorRawLogList);
-
-                    Cursor.Current = Cursors.Default;
+                    UpdateFileListPanel();
                 }
                 catch (Exception ex)
                 {
-                    Cursor.Current = Cursors.Default;
                     olvValidatorRawLog.EndUpdate();
-                    MessageBox.Show($"현장 복합 로그 수신 및 타임라인 병합 결함:\n{ex.Message}", "Drop Interlock Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show($"로그 로드 오류:\n{ex.Message}", "Drop Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+                finally
+                {
+                    // 💡 finally: 예외가 발생해도 커서가 WaitCursor에 멈추지 않도록 보장
+                    Cursor.Current = Cursors.Default;
                 }
             };
+        }
+
+        // 💡 Designer에서 만든 btnReset과 연결되는 클릭 핸들러
+        private void btnReset_Click(object sender, EventArgs e)
+        {
+            if (_validatorRawLogList == null || _validatorRawLogList.Count == 0) return;
+
+            var result = MessageBox.Show(
+                "로드된 모든 로그와 검증 결과를 초기화합니다.\n계속하시겠습니까?",
+                "초기화 확인", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+
+            if (result != DialogResult.Yes) return;
+
+            ResetAllLogData();
+            UpdateFileListPanel();
+        }
+
+        // ─────────────────────────────────────────────
+        // 💡 파일 목록 패널: tabPage1(전체 탭) 상단에 접이식 UI로 추가
+        // ─────────────────────────────────────────────
+        private void InitializeFileListPanel()
+        {
+            const int TOGGLE_HEIGHT = 24;
+
+            // 토글 헤더 버튼
+            var btnToggle = new Button
+            {
+                Text = "▶  로드된 파일  (0개)",
+                Font = new System.Drawing.Font("Malgun Gothic", 8.5f),
+                Height = TOGGLE_HEIGHT,
+                FlatStyle = FlatStyle.Flat,
+                BackColor = System.Drawing.Color.FromArgb(245, 245, 245),
+                ForeColor = System.Drawing.Color.FromArgb(80, 80, 80),
+                TextAlign = System.Drawing.ContentAlignment.MiddleLeft,
+                Padding = new Padding(6, 0, 0, 0),
+                Cursor = Cursors.Hand,
+                Dock = DockStyle.Top
+            };
+            btnToggle.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(210, 210, 210);
+            btnToggle.FlatAppearance.BorderSize = 1;
+            btnToggle.Name = "btnFileListToggle";
+
+            // 파일 태그가 들어갈 FlowLayoutPanel (초기에는 숨김)
+            _fileTagContainer = new FlowLayoutPanel
+            {
+                AutoSize = true,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = true,
+                Padding = new Padding(4),
+                BackColor = System.Drawing.Color.FromArgb(250, 250, 250),
+                Visible = false,
+                Dock = DockStyle.Top
+            };
+
+            // 💡 Dock: Top/Fill 충돌 회피 전략:
+            // _fileListPanel은 tabPage1에 절대좌표(Anchor)로 배치하고,
+            // olvValidatorRawLog의 위치/크기를 패널 높이에 맞춰 직접 조정한다.
+            _fileListPanel = new Panel
+            {
+                Location = new System.Drawing.Point(0, 0),
+                Height = TOGGLE_HEIGHT,
+                Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+                Padding = new Padding(0)
+            };
+            _fileListPanel.Controls.Add(_fileTagContainer);
+            _fileListPanel.Controls.Add(btnToggle);
+
+            // olvValidatorRawLog를 Dock:Fill에서 Anchor로 전환하여 패널 아래부터 채우도록 설정
+            olvValidatorRawLog.Dock = DockStyle.None;
+            olvValidatorRawLog.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
+            // 패널 높이 반영해서 그리드 위치/크기 계산
+            Action recalcLayout = () =>
+            {
+                int panelH = _fileListPanel.Height;
+                int tabW = tabPage1.ClientSize.Width;
+                int tabH = tabPage1.ClientSize.Height;
+                _fileListPanel.Width = tabW;
+                olvValidatorRawLog.Location = new System.Drawing.Point(0, panelH);
+                olvValidatorRawLog.Size = new System.Drawing.Size(tabW, tabH - panelH);
+            };
+
+            // 토글 클릭 시 펼침/접기 + 레이아웃 재계산
+            btnToggle.Click += (s, e) =>
+            {
+                _fileListExpanded = !_fileListExpanded;
+                _fileTagContainer.Visible = _fileListExpanded;
+                _fileListPanel.Height = _fileListExpanded
+                    ? TOGGLE_HEIGHT + _fileTagContainer.Height
+                    : TOGGLE_HEIGHT;
+                btnToggle.Text = (_fileListExpanded ? "▼" : "▶") +
+                    $"  로드된 파일  ({_loadedFilePaths.Count}개)";
+                recalcLayout();
+            };
+
+            // tabPage1 크기 변경 시 레이아웃 재계산 (폼 리사이즈 대응)
+            tabPage1.SizeChanged += (s, e) => recalcLayout();
+
+            tabPage1.Controls.Add(_fileListPanel);
+            tabPage1.Controls.Add(olvValidatorRawLog);
+
+            // 초기 레이아웃 적용
+            recalcLayout();
+        }
+
+        /// <summary>
+        /// 파일 목록 패널을 현재 _loadedFilePaths 기준으로 갱신합니다.
+        /// </summary>
+        private void UpdateFileListPanel()
+        {
+            if (_fileTagContainer == null) return;
+
+            _fileTagContainer.Controls.Clear();
+
+            foreach (string path in _loadedFilePaths)
+            {
+                bool isFolder = System.IO.Directory.Exists(path);
+                string displayName = isFolder
+                    ? "📁 " + System.IO.Path.GetFileName(path)
+                    : "📄 " + System.IO.Path.GetFileName(path);
+
+                var tag = new Label
+                {
+                    Text = displayName,
+                    AutoSize = true,
+                    Font = new System.Drawing.Font("Malgun Gothic", 8.5f),
+                    ForeColor = System.Drawing.Color.FromArgb(40, 80, 140),
+                    BackColor = System.Drawing.Color.FromArgb(230, 240, 255),
+                    Padding = new Padding(6, 3, 6, 3),
+                    Margin = new Padding(3, 3, 3, 3),
+                    Cursor = Cursors.Default,
+                    BorderStyle = BorderStyle.FixedSingle
+                };
+                _fileTagContainer.Controls.Add(tag);
+            }
+
+            var btnToggle = _fileListPanel?.Controls["btnFileListToggle"] as Button;
+
+            // 💡 자동으로 펼치지 않음 - 사용자가 필요할 때 직접 펼치는 방식
+            // 파일 수는 헤더 텍스트로 표시해서 접힌 상태에서도 몇 개 로드됐는지 확인 가능
+            if (btnToggle != null)
+                btnToggle.Text = (_fileListExpanded ? "▼" : "▶") +
+                    $"  로드된 파일  ({_loadedFilePaths.Count}개)";
+
+            // 💡 태그 추가 후 FlowLayoutPanel 높이가 확정되므로 그 시점에 패널/그리드 레이아웃 재계산
+            _fileTagContainer.PerformLayout();
+            if (_fileListPanel != null)
+            {
+                const int TOGGLE_HEIGHT = 24;
+                _fileListPanel.Height = _fileListExpanded
+                    ? TOGGLE_HEIGHT + _fileTagContainer.Height
+                    : TOGGLE_HEIGHT;
+
+                int panelH = _fileListPanel.Height;
+                int tabW = tabPage1.ClientSize.Width;
+                int tabH = tabPage1.ClientSize.Height;
+                _fileListPanel.Width = tabW;
+                olvValidatorRawLog.Location = new System.Drawing.Point(0, panelH);
+                olvValidatorRawLog.Size = new System.Drawing.Size(tabW, tabH - panelH);
+            }
+        }
+
+        /// <summary>
+        /// 로드된 로그 데이터, 검증 결과, UI를 전부 초기 상태로 되돌립니다.
+        /// </summary>
+        private void ResetAllLogData()
+        {
+            // 데이터 초기화
+            _validatorRawLogList.Clear();
+            _loadedFilePaths.Clear();
+
+            // 그리드 초기화
+            olvValidatorRawLog.ClearObjects();
+            olvValidatorRawLog.RowFormatter = null;
+            olvValidationResult.ClearObjects();
+            _currentSelectedStartLineNo = -1;
+
+            // 유닛 탭 초기화 (tabPage1 제외)
+            while (tabControl1.TabPages.Count > 1)
+                tabControl1.TabPages.RemoveAt(1);
+
+            // 변칙 경고 레이블 초기화
+            lblAnomalyWarning.Visible = false;
+
+            // 파일 목록 패널 접기
+            _fileListExpanded = false;
+            if (_fileTagContainer != null) _fileTagContainer.Visible = false;
+            if (_fileTagContainer != null) _fileTagContainer.Controls.Clear();
+
+            var btnToggle = _fileListPanel?.Controls["btnFileListToggle"] as Button;
+            if (btnToggle != null) btnToggle.Text = "▶  로드된 파일  (0개)";
+
+            // 💡 패널 높이를 접힌 상태(24px)로 복원하고 그리드 레이아웃 재계산
+            if (_fileListPanel != null)
+            {
+                _fileListPanel.Height = 24;
+                int tabW = tabPage1.ClientSize.Width;
+                int tabH = tabPage1.ClientSize.Height;
+                _fileListPanel.Width = tabW;
+                olvValidatorRawLog.Location = new System.Drawing.Point(0, 24);
+                olvValidatorRawLog.Size = new System.Drawing.Size(tabW, tabH - 24);
+            }
         }
 
         #endregion
@@ -450,58 +631,35 @@ namespace GateHelper.LogValidator
 
         private void btnStartValidation_Click(object sender, EventArgs e)
         {
-            // 새 검증이 가동되는 순간, 좌측 대용량 뷰어에 걸려있던 RowFormatter 규칙을 완전히 무효화하고
-            // 그래픽 카드를 새로고침하여 이전 사이클의 노란색 마스킹 흔적을 깨끗하게 청소합니다.
             olvValidatorRawLog.RowFormatter = null;
-            _currentSelectedStartLineNo = -1; // 전역 필드 버퍼도 완전히 리셋
+            _currentSelectedStartLineNo = -1;
             olvValidatorRawLog.Refresh();
 
             if (_validatorRawLogList == null || _validatorRawLogList.Count == 0)
             {
-                MessageBox.Show("검증을 진행할 현장 Raw 로그 파일이 로드되지 않았습니다.\n좌측 그리드에 로그 파일을 드롭해 주십시오.", "Validation Guard", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("No log files loaded.\nPlease drop log files on the left grid.", "Validation Guard", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             var checkedObjects = olvScenarioRepository.CheckedObjects;
             if (checkedObjects == null || checkedObjects.Count == 0)
             {
-                MessageBox.Show("검증을 실행할 시나리오 유닛이 선택되지 않았습니다.\n체크박스를 최소 1개 이상 선택해 주십시오.", "Validation Guard", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("No scenario selected.\nPlease check at least one scenario.", "Validation Guard", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
             if (treeScenarioGroup.SelectedNode == null || treeScenarioGroup.SelectedNode.Tag == null) return;
             string currentActiveDirectory = treeScenarioGroup.SelectedNode.Tag.ToString();
 
-            var targetEvaluators = new List<ScenarioEvaluator>();
-
             try
             {
-                foreach (var obj in checkedObjects)
-                {
-                    var eval = obj as ScenarioEvaluator;
-                    if (eval == null) continue;
-
-                    string fullPath = Path.Combine(currentActiveDirectory, $"{eval.ScenarioName}.json");
-                    if (!File.Exists(fullPath)) continue;
-
-                    string jsonString = File.ReadAllText(fullPath);
-                    var loadedSteps = JsonSerializer.Deserialize<List<ScenarioStepModel>>(jsonString);
-
-                    if (loadedSteps != null)
-                    {
-                        eval.Steps = loadedSteps;
-                        eval.CurrentStepIndex = 0;
-                        eval.Status = EvaluationResultStatus.Ready;
-                        targetEvaluators.Add(eval);
-                    }
-                }
-
-                var reports = _validatorEngine.Validate(_validatorRawLogList, targetEvaluators);
+                var checkedEvaluators = checkedObjects.Cast<ScenarioEvaluator>();
+                var reports = _logValidatorService.RunValidation(_validatorRawLogList, checkedEvaluators, currentActiveDirectory);
                 olvValidationResult.SetObjects(reports);
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"일괄 검증 연산 중 아키텍처 크래시 발생:\n{ex.Message}", "Execution Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"Validation error:\n{ex.Message}", "Execution Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -807,6 +965,52 @@ namespace GateHelper.LogValidator
             {
                 // 메인 UI 스레드 종료 루프에 절대 간섭을 주지 않기 위해 예외 흡수
             }
+        }
+
+        private void btnOpenFolder_Click(object sender, EventArgs e)
+        {
+            // 현재 트리에서 선택된 시나리오 폴더를 탐색기로 열기
+            if (treeScenarioGroup.SelectedNode?.Tag == null) return;
+
+            string folderPath = treeScenarioGroup.SelectedNode.Tag.ToString();
+            if (!System.IO.Directory.Exists(folderPath))
+            {
+                MessageBox.Show("Folder not found.", "Open Folder", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            System.Diagnostics.Process.Start("explorer.exe", folderPath);
+        }
+
+        private void btnOpenScenarioEditor_Click(object sender, EventArgs e)
+        {
+            // 시나리오 편집기를 빈 상태로 열기 (파일 없이 새로 작성 모드)
+            // 기존에는 시나리오 우클릭 → 편집으로만 접근 가능했으나 여기서 바로 열 수 있음
+            if (treeScenarioGroup.SelectedNode?.Tag == null)
+            {
+                MessageBox.Show("Please select a scenario folder from the tree first.",
+                    "Scenario Editor", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            string folderPath = treeScenarioGroup.SelectedNode.Tag.ToString();
+
+            // 선택된 시나리오가 있으면 해당 파일로, 없으면 빈 편집기로 오픈
+            var selectedEval = olvScenarioRepository.SelectedObject as ScenarioEvaluator;
+            if (selectedEval != null)
+            {
+                string fullPath = System.IO.Path.Combine(folderPath, $"{selectedEval.ScenarioName}.json");
+                new LogScenarioForm(fullPath).Show();
+            }
+            else
+            {
+                new LogScenarioForm().Show();
+            }
+        }
+
+        private void btnClose_Click(object sender, EventArgs e)
+        {
+            this.Close(); // FormClosing 이벤트가 자동으로 호출되어 리소스 정리
         }
     }
 }

@@ -1,84 +1,99 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Globalization;
+using System.IO;
+using System.Text;
 using System.Text.RegularExpressions;
-using GateHelper.LogValidator.Models; // 💡 상위 레이어의 RawLogModel을 참조하기 위해 반드시 필요합니다.
+using System.Threading.Tasks;
+using GateHelper.LogValidator.Models;
 
 namespace GateHelper.LogValidator.Core
 {
     public class LogParser
     {
-        // 💡 [전역 타임스탬프 스캐너 인터락] 
-        // 문자열 내 위치를 불문하고 yyyy-MM-dd HH:mm:ss.fff 서식을 무결하게 도려내는 정규식 락인
         private static readonly Regex _timeRegex = new Regex(
             @"\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\.\d{3}",
             RegexOptions.Compiled
         );
 
+        public Task<List<RawLogModel>> ParseLogFileAsync(string filePath)
+        {
+            return Task.Run(() => ParseLogFile(filePath));
+        }
+
         public List<RawLogModel> ParseLogFile(string filePath)
         {
             var list = new List<RawLogModel>();
+            if (!File.Exists(filePath)) return list;
 
-            if (!File.Exists(filePath))
-                return list;
+            // 💡 인코딩 자동 감지: BOM이 있으면 BOM 기준, 없으면 UTF-8로 시도
+            Encoding encoding = DetectEncoding(filePath);
+            string[] lines = File.ReadAllLines(filePath, encoding);
+            string pureFileName = Path.GetFileNameWithoutExtension(filePath);
 
-            try
+            int lineIndex = 1;                      // 💡 파싱된 라인만 카운트 → 연속 번호 보장
+            DateTime lastParsedTime = DateTime.MinValue; // 💡 시간 파싱 실패 시 이어받을 기준값
+
+            foreach (var line in lines)
             {
-                // 확장자를 걷어낸 파일명 자체를 순정 식별 코드로 바인딩 (자율 책임 표시제)
-                string pureFileName = Path.GetFileNameWithoutExtension(filePath);
-                string[] lines = File.ReadAllLines(filePath);
-                int currentLineIndex = 1;
+                if (string.IsNullOrWhiteSpace(line)) continue;
 
-                foreach (var line in lines)
-                {
-                    if (string.IsNullOrWhiteSpace(line))
-                    {
-                        currentLineIndex++;
-                        continue;
-                    }
+                var model = ParseLine(line, lineIndex, pureFileName, lastParsedTime);
 
-                    var model = new RawLogModel();
-                    model.LineNo = currentLineIndex;
-                    model.LogMessage = line;
-                    model.LogType = pureFileName;
-                    model.LogTime = DateTime.Now; // 파싱 실패 시 튕김을 막는 최소한의 런타임 가드
+                // 💡 시간이 성공적으로 파싱된 경우에만 기준값 갱신
+                // Structure 하위 줄처럼 시간이 없는 줄은 직전 기준값을 유지
+                if (model.LogTime != lastParsedTime)
+                    lastParsedTime = model.LogTime;
 
-                    // 💡 [전역 위치 스캐닝] 
-                    // 시간이 대괄호 안에 있든, 문장 중간에 생뚱맞게 처박혀 있든 탐색 성공 처리
-                    Match match = _timeRegex.Match(line);
-
-                    if (match.Success)
-                    {
-                        string extractedTimeStr = match.Value;
-
-                        // 도려낸 23자리 텍스트 스트림을 순정 DateTime 자원으로 안전 변환
-                        if (DateTime.TryParseExact(
-                                extractedTimeStr,
-                                "yyyy-MM-dd HH:mm:ss.fff",
-                                CultureInfo.InvariantCulture,
-                                DateTimeStyles.None,
-                                out DateTime parsedDate))
-                        {
-                            model.LogTime = parsedDate;
-                        }
-                    }
-                    else
-                    {
-                        System.Diagnostics.Debug.WriteLine($"[Time Pattern Missing] File: {pureFileName}, Line {currentLineIndex}");
-                    }
-
-                    list.Add(model);
-                    currentLineIndex++;
-                }
-            }
-            catch (Exception ex)
-            {
-                System.Diagnostics.Debug.WriteLine($"[Parser Critical Error] {ex.Message}");
-                throw;
+                list.Add(model);
+                lineIndex++;
             }
 
             return list;
+        }
+
+        private RawLogModel ParseLine(string line, int lineNo, string logType, DateTime fallbackTime)
+        {
+            var model = new RawLogModel
+            {
+                LineNo = lineNo,
+                LogMessage = line,
+                LogType = logType,
+                LogTime = fallbackTime  // 💡 파싱 실패 시 이전 라인 시간을 기본값으로 사용
+            };
+
+            Match match = _timeRegex.Match(line);
+            if (match.Success &&
+                DateTime.TryParseExact(
+                    match.Value,
+                    "yyyy-MM-dd HH:mm:ss.fff",
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out DateTime parsed))
+            {
+                model.LogTime = parsed;
+            }
+
+            return model;
+        }
+
+        /// <summary>
+        /// 파일 첫 4바이트의 BOM을 확인하여 인코딩을 자동으로 감지합니다.
+        /// UTF-16 LE (FF FE), UTF-16 BE (FE FF), UTF-8 BOM (EF BB BF), 그 외는 UTF-8로 처리합니다.
+        /// </summary>
+        private static Encoding DetectEncoding(string filePath)
+        {
+            byte[] bom = new byte[4];
+            using (var fs = new FileStream(filePath, FileMode.Open, FileAccess.Read))
+            {
+                fs.Read(bom, 0, 4);
+            }
+
+            if (bom[0] == 0xFF && bom[1] == 0xFE) return Encoding.Unicode;        // UTF-16 LE
+            if (bom[0] == 0xFE && bom[1] == 0xFF) return Encoding.BigEndianUnicode; // UTF-16 BE
+            if (bom[0] == 0xEF && bom[1] == 0xBB && bom[2] == 0xBF) return Encoding.UTF8; // UTF-8 BOM
+
+            return Encoding.UTF8; // 기본값
         }
     }
 }

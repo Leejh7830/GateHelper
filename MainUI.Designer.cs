@@ -846,7 +846,7 @@ namespace GateHelper
             this.BtnStart2.Depth = 0;
             this.BtnStart2.HighEmphasis = true;
             this.BtnStart2.Icon = null;
-            this.BtnStart2.Location = new System.Drawing.Point(832, 64);
+            this.BtnStart2.Location = new System.Drawing.Point(856, 80);
             this.BtnStart2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnStart2.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnStart2.Name = "BtnStart2";
@@ -1030,7 +1030,7 @@ namespace GateHelper
             this.BtnRec1.Depth = 0;
             this.BtnRec1.HighEmphasis = true;
             this.BtnRec1.Icon = null;
-            this.BtnRec1.Location = new System.Drawing.Point(832, 108);
+            this.BtnRec1.Location = new System.Drawing.Point(874, 174);
             this.BtnRec1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnRec1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnRec1.Name = "BtnRec1";

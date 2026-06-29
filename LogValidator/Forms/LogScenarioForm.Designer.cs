@@ -46,6 +46,7 @@
             this.btnSaveScenario = new MaterialSkin.Controls.MaterialButton();
             this.btnNewScenario = new MaterialSkin.Controls.MaterialButton();
             this.olvScenarioLadder = new BrightIdeasSoftware.ObjectListView();
+            this.btnClose = new MaterialSkin.Controls.MaterialButton();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -256,6 +257,7 @@
             // pnlControlButtons
             // 
             this.pnlControlButtons.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlControlButtons.Controls.Add(this.btnClose);
             this.pnlControlButtons.Controls.Add(this.txtScenarioName);
             this.pnlControlButtons.Controls.Add(this.lblCurrentScenario);
             this.pnlControlButtons.Controls.Add(this.btnLoadScenario);
@@ -388,6 +390,28 @@
             this.olvScenarioLadder.DragDrop += new System.Windows.Forms.DragEventHandler(this.olvScenarioLadder_DragDrop);
             this.olvScenarioLadder.DragEnter += new System.Windows.Forms.DragEventHandler(this.olvScenarioLadder_DragEnter);
             // 
+            // btnClose
+            // 
+            this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnClose.AutoSize = false;
+            this.btnClose.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnClose.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnClose.Depth = 0;
+            this.btnClose.HighEmphasis = false;
+            this.btnClose.Icon = null;
+            this.btnClose.Location = new System.Drawing.Point(17, 509);
+            this.btnClose.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnClose.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnClose.Name = "btnClose";
+            this.btnClose.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnClose.Size = new System.Drawing.Size(168, 36);
+            this.btnClose.TabIndex = 11113;
+            this.btnClose.Text = "✕   Close";
+            this.btnClose.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
+            this.btnClose.UseAccentColor = true;
+            this.btnClose.UseVisualStyleBackColor = true;
+            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
+            // 
             // LogScenarioForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -440,5 +464,6 @@
         private MaterialSkin.Controls.MaterialLabel lblCurrentScenario;
         private MaterialSkin.Controls.MaterialTextBox2 txtEventName;
         private MaterialSkin.Controls.MaterialTextBox2 txtScenarioName;
+        private MaterialSkin.Controls.MaterialButton btnClose;
     }
 }

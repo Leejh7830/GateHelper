@@ -15,108 +15,33 @@ namespace GateHelper.LogValidator.Core
             if (rawLogs == null || rawLogs.Count == 0 || evaluators == null || evaluators.Count == 0)
                 return evaluators;
 
-            // 각 시나리오별 통계 관리를 위한 백엔드 가드 사전 빌드
             var engineContexts = new List<ScenarioBuildContext>();
             foreach (var eval in evaluators)
             {
                 eval.CurrentStepIndex = 0;
                 eval.StepReports.Clear();
-
                 engineContexts.Add(new ScenarioBuildContext(eval));
             }
 
-            // 💡 [단일 패스 루프 가동] 로그 파일 전체 영역 1회 하향 탐색 ($O(N)$)
+            // 💡 [단일 패스 루프] 로그 전체 1회 순회 O(N)
             foreach (var log in rawLogs)
             {
-                string currentLineText = log.LogMessage;
-                int currentLineNo = log.LineNo;
-
                 foreach (var ctx in engineContexts)
                 {
-                    // 1단계 규칙 매칭 검사
-                    var targetStep = ctx.Master.Steps[ctx.Master.CurrentStepIndex];
-                    string regexPattern = BuildRegexPattern(targetStep.MaskingPattern);
-
-                    // 현재 읽은 로그 라인이 대기 중인 시나리오 스텝 규칙과 일치하는지 판정
-                    if (Regex.IsMatch(currentLineText, regexPattern))
-                    {
-                        // 💡 [무결성 가드 1] 최초 첫 스텝 진입 시 시작 라인 선점
-                        if (ctx.Master.CurrentStepIndex == 0)
-                        {
-                            ctx.CurrentCycleStartLine = currentLineNo;
-                            ctx.ActiveMatchedLines.Clear(); // 👈 새 바구니 준비
-                        }
-
-                        // 💡 [무결성 가드 2: 위치 고정]
-                        // 포인터 전진이나 다른 서브 루프 연산에 간섭받지 않도록 
-                        // 성공한 라인 번호를 바구니에 인입하는 코드를 최상단에 완전 고정합니다.
-                        ctx.ActiveMatchedLines.Add(currentLineNo);
-
-                        // 라인 번호 저장이 안전하게 끝난 후 포인터 전진
-                        ctx.Master.CurrentStepIndex++;
-
-                        // [성공 사이클 포착] 시나리오의 최종 단계까지 누락 없이 도달한 경우
-                        if (ctx.Master.CurrentStepIndex >= ctx.Master.Steps.Count)
-                        {
-                            ctx.TotalCount++;
-                            ctx.SuccessCount++;
-
-                            ctx.Master.StepReports.Add(new StepValidationReport
-                            {
-                                StepDisplayHeader = $"🔄 Cycle {ctx.TotalCount} (Line {ctx.CurrentCycleStartLine} ~ {currentLineNo})",
-                                StepStatus = "SUCCESS",
-                                StepProgress = $"{ctx.Master.Steps.Count} / {ctx.Master.Steps.Count}",
-                                StepMessage = "해당 회차의 모든 통신 시퀀스가 무결하게 검측정 완료되었습니다.",
-
-                                StartLineNo = ctx.CurrentCycleStartLine,
-                                // 현재까지 수집된 라인 번호 컬렉션을 무결하게 이관
-                                MatchedLineNumbers = new List<int>(ctx.ActiveMatchedLines)
-                            });
-
-                            ctx.ActiveMatchedLines.Clear(); // 마감 클리어
-                            ctx.Master.CurrentStepIndex = 0;
-                        }
-                    }
-                    else
-                    {
-                        // 💡 [불량 사이클 포착 - 시퀀스 순서 이탈 가드]
-                        // 첫 번째 스텝을 찾아서 달리고 있는 상태가 아니라 이미 공정이 진행 중인데, 
-                        // 다음 필수 스텝 규칙이 와야 할 타이틀에 엉뚱한 로그가 섞여서 시퀀스가 깨진 경우 처리
-                        if (ctx.Master.CurrentStepIndex > 0)
-                        {
-                            // 만약 이 엉뚱한 로그가 하필이면 새로운 1번째 스텝 규칙과 매치된다면?
-                            // 기존 진행하던 사이클은 실패 처리하고, 이 라인부터 새로운 사이클로 전환시킵니다.
-                            string restartPattern = BuildRegexPattern(ctx.Master.Steps[0].MaskingPattern);
-                            if (Regex.IsMatch(currentLineText, restartPattern))
-                            {
-                                DumpFailedCycle(ctx, currentLineNo - 1); // 직전 줄까지 실패 처리 덤프
-
-                                // 새 사이클 즉시 개시
-                                ctx.CurrentCycleStartLine = currentLineNo;
-                                ctx.Master.CurrentStepIndex = 1;
-                            }
-                        }
-                    }
+                    ProcessLog(ctx, log);
                 }
             }
 
-            // 💡 [로그 종료 시점 가드] 끝까지 읽었는데 중간 단계에 멈춰있는 잔여 사이클 최종 실패 처리
+            // 💡 [로그 종료 가드] 끝까지 읽었는데 진행 중인 잔여 사이클 → 실패 처리
+            var lastLog = rawLogs[rawLogs.Count - 1];
             foreach (var ctx in engineContexts)
             {
                 if (ctx.Master.CurrentStepIndex > 0)
-                {
-                    DumpFailedCycle(ctx, rawLogs[rawLogs.Count - 1].LineNo);
-                }
+                    DumpFailedCycle(ctx, lastLog.LineNo, lastLog.SourceFileName);
 
-                // 💡 [최종 부모 노드 마스터 통계 데이터 셋업]
-                if (ctx.TotalCount > 0 && ctx.SuccessCount == ctx.TotalCount)
-                {
-                    ctx.Master.Status = EvaluationResultStatus.SUCCESS;
-                }
-                else
-                {
-                    ctx.Master.Status = EvaluationResultStatus.FAILED;
-                }
+                ctx.Master.Status = (ctx.TotalCount > 0 && ctx.SuccessCount == ctx.TotalCount)
+                    ? EvaluationResultStatus.SUCCESS
+                    : EvaluationResultStatus.FAILED;
 
                 ctx.Master.Progress = $"성공 {ctx.SuccessCount}건 / 총 {ctx.TotalCount}건";
                 ctx.Master.Message = $"로그 전체 영역 내에서 총 {ctx.TotalCount}회 발생 시퀀스가 검측정되었습니다.";
@@ -125,7 +50,122 @@ namespace GateHelper.LogValidator.Core
             return evaluators;
         }
 
-        private void DumpFailedCycle(ScenarioBuildContext ctx, int endLineNo)
+        private void ProcessLog(ScenarioBuildContext ctx, RawLogModel log)
+        {
+            var targetStep = ctx.Master.Steps[ctx.Master.CurrentStepIndex];
+            string regexPattern = BuildRegexPattern(targetStep.MaskingPattern);
+
+            // 💡 타임아웃 체크: 이전 스텝 매칭 후 현재 스텝까지 허용 시간 초과 여부 확인
+            // (사이클 진행 중이고, 이전 스텝에 타임아웃이 설정된 경우에만 검사)
+            if (ctx.Master.CurrentStepIndex > 0 && ctx.LastMatchedTime != DateTime.MinValue)
+            {
+                var prevStep = ctx.Master.Steps[ctx.Master.CurrentStepIndex - 1];
+                if (prevStep.TimeoutSeconds > 0)
+                {
+                    double elapsed = (log.LogTime - ctx.LastMatchedTime).TotalSeconds;
+
+                    // 💡 음수 방어: 로그 시간 역전(병합 오류) 또는 파싱 실패 시 타임아웃 체크 스킵
+                    if (elapsed >= 0 && elapsed > prevStep.TimeoutSeconds)
+                    {
+                        // 타임아웃 초과 → 현재 사이클 실패 처리
+                        DumpTimeoutCycle(ctx, log.LineNo, log.SourceFileName, prevStep, elapsed);
+
+                        // 이 로그가 첫 스텝과 일치하면 새 사이클로 즉시 전환
+                        string restartPattern = BuildRegexPattern(ctx.Master.Steps[0].MaskingPattern);
+                        if (Regex.IsMatch(log.LogMessage, restartPattern))
+                        {
+                            ctx.CurrentCycleStartLine = log.LineNo;
+                            ctx.CurrentCycleStartSource = log.SourceFileName;
+                            ctx.LastMatchedTime = log.LogTime;
+                            ctx.ActiveMatchedLines.Add((log.LineNo, log.SourceFileName));
+                            ctx.Master.CurrentStepIndex = 1;
+                        }
+                        return;
+                    }
+                }
+            }
+
+            if (Regex.IsMatch(log.LogMessage, regexPattern))
+            {
+                // 💡 새 사이클 시작 시 시작 위치(LineNo + SourceFileName) 기록
+                if (ctx.Master.CurrentStepIndex == 0)
+                {
+                    ctx.CurrentCycleStartLine = log.LineNo;
+                    ctx.CurrentCycleStartSource = log.SourceFileName;
+                    ctx.ActiveMatchedLines.Clear();
+                }
+
+                ctx.ActiveMatchedLines.Add((log.LineNo, log.SourceFileName));
+                ctx.LastMatchedTime = log.LogTime;
+                ctx.Master.CurrentStepIndex++;
+
+                if (ctx.Master.CurrentStepIndex >= ctx.Master.Steps.Count)
+                    DumpSuccessCycle(ctx, log.LineNo, log.SourceFileName);
+            }
+            else if (ctx.Master.CurrentStepIndex > 0)
+            {
+                // 💡 Optional 스텝 처리: 현재 대기 중인 스텝이 Optional이면 스킵하고 다음 스텝과 재비교
+                while (ctx.Master.CurrentStepIndex < ctx.Master.Steps.Count &&
+                       ctx.Master.Steps[ctx.Master.CurrentStepIndex].IsOptional)
+                {
+                    ctx.Master.CurrentStepIndex++;
+
+                    // Optional 스텝을 건너뛴 후 마지막 스텝까지 도달하면 SUCCESS
+                    if (ctx.Master.CurrentStepIndex >= ctx.Master.Steps.Count)
+                    {
+                        DumpSuccessCycle(ctx, log.LineNo, log.SourceFileName);
+                        return;
+                    }
+
+                    // 스킵 후 현재 로그가 다음 스텝과 일치하는지 재비교
+                    string nextPattern = BuildRegexPattern(ctx.Master.Steps[ctx.Master.CurrentStepIndex].MaskingPattern);
+                    if (Regex.IsMatch(log.LogMessage, nextPattern))
+                    {
+                        ctx.ActiveMatchedLines.Add((log.LineNo, log.SourceFileName));
+                        ctx.LastMatchedTime = log.LogTime;
+                        ctx.Master.CurrentStepIndex++;
+
+                        if (ctx.Master.CurrentStepIndex >= ctx.Master.Steps.Count)
+                            DumpSuccessCycle(ctx, log.LineNo, log.SourceFileName);
+                        return;
+                    }
+                }
+
+                // 진행 중인 사이클이 있는데 첫 스텝이 다시 나타나면 → 기존 사이클 실패, 새 사이클 시작
+                string restartPattern = BuildRegexPattern(ctx.Master.Steps[0].MaskingPattern);
+                if (Regex.IsMatch(log.LogMessage, restartPattern))
+                {
+                    DumpFailedCycle(ctx, log.LineNo - 1, log.SourceFileName);
+                    ctx.CurrentCycleStartLine = log.LineNo;
+                    ctx.CurrentCycleStartSource = log.SourceFileName;
+                    ctx.LastMatchedTime = log.LogTime;
+                    ctx.Master.CurrentStepIndex = 1;
+                }
+            }
+        }
+
+        private void DumpSuccessCycle(ScenarioBuildContext ctx, int endLineNo, string endSource)
+        {
+            ctx.TotalCount++;
+            ctx.SuccessCount++;
+
+            ctx.Master.StepReports.Add(new StepValidationReport
+            {
+                StepDisplayHeader = $"🔄 Cycle {ctx.TotalCount} (Line {ctx.CurrentCycleStartLine} ~ {endLineNo})",
+                StepStatus = "SUCCESS",
+                StepProgress = $"{ctx.Master.Steps.Count} / {ctx.Master.Steps.Count}",
+                StepMessage = "해당 회차의 모든 통신 시퀀스가 무결하게 검측정 완료되었습니다.",
+                StartLineNo = ctx.CurrentCycleStartLine,
+                StartSourceFileName = ctx.CurrentCycleStartSource,
+                MatchedLineNumbers = new List<(int, string)>(ctx.ActiveMatchedLines)
+            });
+
+            ctx.ActiveMatchedLines.Clear();
+            ctx.LastMatchedTime = DateTime.MinValue;
+            ctx.Master.CurrentStepIndex = 0;
+        }
+
+        private void DumpFailedCycle(ScenarioBuildContext ctx, int endLineNo, string endSource)
         {
             ctx.TotalCount++;
             var missingStep = ctx.Master.Steps[ctx.Master.CurrentStepIndex];
@@ -135,42 +175,61 @@ namespace GateHelper.LogValidator.Core
                 StepDisplayHeader = $"❌ Cycle {ctx.TotalCount} (Line {ctx.CurrentCycleStartLine} ~ {endLineNo})",
                 StepStatus = "FAILED",
                 StepProgress = $"{ctx.Master.CurrentStepIndex} / {ctx.Master.Steps.Count}",
-                StepMessage = $"스텝 {ctx.Master.CurrentStepIndex + 1} ({missingStep.EventName}) 누락 혹은 타임아웃 순서 이탈 불량 발생.",
-
+                StepMessage = $"스텝 {ctx.Master.CurrentStepIndex + 1} ({missingStep.EventName}) 누락 혹은 순서 이탈 불량 발생.",
                 StartLineNo = ctx.CurrentCycleStartLine,
-                // 💡 [리스트 복사 주입] 비록 실패했으나 중간 단계까지 성공했던 라인 번호 컬렉션을 무결하게 이관
-                MatchedLineNumbers = new List<int>(ctx.ActiveMatchedLines)
+                StartSourceFileName = ctx.CurrentCycleStartSource,
+                MatchedLineNumbers = new List<(int, string)>(ctx.ActiveMatchedLines)
             });
 
             ctx.ActiveMatchedLines.Clear();
+            ctx.LastMatchedTime = DateTime.MinValue;
             ctx.Master.CurrentStepIndex = 0;
         }
 
-        private string BuildRegexPattern(string scenarioPattern)
+        // 💡 타임아웃 초과 실패 - 어느 스텝에서 몇 초 초과했는지 메시지에 명시
+        private void DumpTimeoutCycle(ScenarioBuildContext ctx, int endLineNo, string endSource,
+            ScenarioStepModel timedOutStep, double elapsedSeconds)
+        {
+            ctx.TotalCount++;
+            var nextStep = ctx.Master.Steps[ctx.Master.CurrentStepIndex];
+
+            ctx.Master.StepReports.Add(new StepValidationReport
+            {
+                StepDisplayHeader = $"⏱ Cycle {ctx.TotalCount} (Line {ctx.CurrentCycleStartLine} ~ {endLineNo})",
+                StepStatus = "FAILED",
+                StepProgress = $"{ctx.Master.CurrentStepIndex} / {ctx.Master.Steps.Count}",
+                StepMessage = $"[TIMEOUT] {timedOutStep.EventName} 후 {elapsedSeconds:F1}초 경과 " +
+                              $"(허용: {timedOutStep.TimeoutSeconds}초) — 다음 스텝 {nextStep.EventName} 미수신.",
+                StartLineNo = ctx.CurrentCycleStartLine,
+                StartSourceFileName = ctx.CurrentCycleStartSource,
+                MatchedLineNumbers = new List<(int, string)>(ctx.ActiveMatchedLines)
+            });
+
+            ctx.ActiveMatchedLines.Clear();
+            ctx.LastMatchedTime = DateTime.MinValue;
+            ctx.Master.CurrentStepIndex = 0;
+        }
+
+        private static string BuildRegexPattern(string scenarioPattern)
         {
             if (string.IsNullOrEmpty(scenarioPattern)) return string.Empty;
             string escaped = Regex.Escape(scenarioPattern);
-            string regexPattern = escaped.Replace(@"\*", "(.*?)");
-            return $"^{regexPattern}$";
+            return $"^{escaped.Replace(@"\*", "(.*?)")}$";
         }
 
-        /// <summary>
-        /// 엔진 내부 전수 카운팅 연산 속도 최적화를 위한 격리 컨텍스트 클래스
-        /// </summary>
         private class ScenarioBuildContext
         {
             public ScenarioEvaluator Master { get; }
-            public int TotalCount { get; set; } = 0;
-            public int SuccessCount { get; set; } = 0;
-            public int CurrentCycleStartLine { get; set; } = 0;
+            public int TotalCount { get; set; }
+            public int SuccessCount { get; set; }
+            public int CurrentCycleStartLine { get; set; }
+            public string CurrentCycleStartSource { get; set; }
+            public DateTime LastMatchedTime { get; set; } = DateTime.MinValue; // 💡 타임아웃 계산 기준점
 
-            // 💡 [엔진 인프라 추가] 현재 추적 중인 사이클 안에서 성공한 라인 번호들을 실시간 수집하는 내부 컨테이너
-            public List<int> ActiveMatchedLines { get; set; } = new List<int>();
+            // 💡 (LineNo, SourceFileName) 쌍으로 저장 - 파일 간 LineNo 충돌 방지
+            public List<(int LineNo, string SourceFileName)> ActiveMatchedLines { get; } = new List<(int, string)>();
 
-            public ScenarioBuildContext(ScenarioEvaluator master)
-            {
-                Master = master;
-            }
+            public ScenarioBuildContext(ScenarioEvaluator master) { Master = master; }
         }
     }
 }

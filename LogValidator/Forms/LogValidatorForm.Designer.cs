@@ -37,16 +37,17 @@
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.splitContainer3 = new System.Windows.Forms.SplitContainer();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.materialProgressBar1 = new MaterialSkin.Controls.MaterialProgressBar();
-            this.progressBar1 = new System.Windows.Forms.ProgressBar();
+            this.btnReset = new MaterialSkin.Controls.MaterialButton();
+            this.lblAnomalyWarning = new MaterialSkin.Controls.MaterialLabel();
             this.materialButton1 = new MaterialSkin.Controls.MaterialButton();
             this.splitContainer4 = new System.Windows.Forms.SplitContainer();
             this.treeScenarioGroup = new System.Windows.Forms.TreeView();
             this.olvScenarioRepository = new BrightIdeasSoftware.ObjectListView();
             this.panel2 = new System.Windows.Forms.Panel();
-            this.materialButton2 = new MaterialSkin.Controls.MaterialButton();
+            this.btnOpenFolder = new MaterialSkin.Controls.MaterialButton();
+            this.btnOpenScenarioEditor = new MaterialSkin.Controls.MaterialButton();
+            this.btnClose = new MaterialSkin.Controls.MaterialButton();
             this.olvValidationResult = new BrightIdeasSoftware.TreeListView();
-            this.lblAnomalyWarning = new MaterialSkin.Controls.MaterialLabel();
             this.toolTipAnomaly = new System.Windows.Forms.ToolTip(this.components);
             this.txtLogFilter = new MaterialSkin.Controls.MaterialTextBox2();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
@@ -83,12 +84,14 @@
             // splitContainer1.Panel1
             // 
             this.splitContainer1.Panel1.Controls.Add(this.tabControl1);
+            this.splitContainer1.Panel1MinSize = 200;
             // 
             // splitContainer1.Panel2
             // 
             this.splitContainer1.Panel2.Controls.Add(this.splitContainer2);
+            this.splitContainer1.Panel2MinSize = 400;
             this.splitContainer1.Size = new System.Drawing.Size(1414, 776);
-            this.splitContainer1.SplitterDistance = 385;
+            this.splitContainer1.SplitterDistance = 744;
             this.splitContainer1.TabIndex = 0;
             // 
             // tabControl1
@@ -99,7 +102,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(385, 776);
+            this.tabControl1.Size = new System.Drawing.Size(744, 776);
             this.tabControl1.TabIndex = 2;
             // 
             // tabPage1
@@ -108,7 +111,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(377, 750);
+            this.tabPage1.Size = new System.Drawing.Size(736, 750);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "tabPage1";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -124,7 +127,7 @@
             this.olvValidatorRawLog.Location = new System.Drawing.Point(3, 3);
             this.olvValidatorRawLog.Name = "olvValidatorRawLog";
             this.olvValidatorRawLog.ShowGroups = false;
-            this.olvValidatorRawLog.Size = new System.Drawing.Size(371, 744);
+            this.olvValidatorRawLog.Size = new System.Drawing.Size(730, 744);
             this.olvValidatorRawLog.TabIndex = 1;
             this.olvValidatorRawLog.UseCompatibleStateImageBehavior = false;
             this.olvValidatorRawLog.View = System.Windows.Forms.View.Details;
@@ -135,7 +138,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(377, 750);
+            this.tabPage2.Size = new System.Drawing.Size(736, 750);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "tabPage2";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -150,18 +153,21 @@
             // splitContainer2.Panel1
             // 
             this.splitContainer2.Panel1.Controls.Add(this.splitContainer3);
+            this.splitContainer2.Panel1MinSize = 150;
             // 
             // splitContainer2.Panel2
             // 
             this.splitContainer2.Panel2.Controls.Add(this.panel2);
             this.splitContainer2.Panel2.Controls.Add(this.olvValidationResult);
-            this.splitContainer2.Size = new System.Drawing.Size(1025, 776);
+            this.splitContainer2.Panel2MinSize = 150;
+            this.splitContainer2.Size = new System.Drawing.Size(666, 776);
             this.splitContainer2.SplitterDistance = 265;
             this.splitContainer2.TabIndex = 0;
             // 
             // splitContainer3
             // 
             this.splitContainer3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer3.IsSplitterFixed = true;
             this.splitContainer3.Location = new System.Drawing.Point(0, 0);
             this.splitContainer3.Name = "splitContainer3";
             this.splitContainer3.Orientation = System.Windows.Forms.Orientation.Horizontal;
@@ -173,37 +179,54 @@
             // splitContainer3.Panel2
             // 
             this.splitContainer3.Panel2.Controls.Add(this.splitContainer4);
-            this.splitContainer3.Size = new System.Drawing.Size(1025, 265);
+            this.splitContainer3.Size = new System.Drawing.Size(666, 265);
             this.splitContainer3.SplitterDistance = 63;
             this.splitContainer3.TabIndex = 0;
             // 
             // panel1
             // 
+            this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel1.Controls.Add(this.btnReset);
             this.panel1.Controls.Add(this.lblAnomalyWarning);
-            this.panel1.Controls.Add(this.materialProgressBar1);
-            this.panel1.Controls.Add(this.progressBar1);
             this.panel1.Controls.Add(this.materialButton1);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(1025, 63);
+            this.panel1.Size = new System.Drawing.Size(666, 63);
             this.panel1.TabIndex = 0;
             // 
-            // materialProgressBar1
+            // btnReset
             // 
-            this.materialProgressBar1.Depth = 0;
-            this.materialProgressBar1.Location = new System.Drawing.Point(452, 37);
-            this.materialProgressBar1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.materialProgressBar1.Name = "materialProgressBar1";
-            this.materialProgressBar1.Size = new System.Drawing.Size(152, 5);
-            this.materialProgressBar1.TabIndex = 0;
+            this.btnReset.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnReset.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnReset.Depth = 0;
+            this.btnReset.HighEmphasis = true;
+            this.btnReset.Icon = null;
+            this.btnReset.Location = new System.Drawing.Point(136, 12);
+            this.btnReset.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnReset.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnReset.Name = "btnReset";
+            this.btnReset.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnReset.Size = new System.Drawing.Size(65, 36);
+            this.btnReset.TabIndex = 3;
+            this.btnReset.Text = "Reset";
+            this.btnReset.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnReset.UseAccentColor = true;
+            this.btnReset.UseVisualStyleBackColor = true;
             // 
-            // progressBar1
+            // lblAnomalyWarning
             // 
-            this.progressBar1.Location = new System.Drawing.Point(303, 19);
-            this.progressBar1.Name = "progressBar1";
-            this.progressBar1.Size = new System.Drawing.Size(100, 23);
-            this.progressBar1.TabIndex = 1;
+            this.lblAnomalyWarning.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.lblAnomalyWarning.AutoSize = true;
+            this.lblAnomalyWarning.Depth = 0;
+            this.lblAnomalyWarning.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.lblAnomalyWarning.Location = new System.Drawing.Point(511, 19);
+            this.lblAnomalyWarning.MouseState = MaterialSkin.MouseState.HOVER;
+            this.lblAnomalyWarning.Name = "lblAnomalyWarning";
+            this.lblAnomalyWarning.Size = new System.Drawing.Size(126, 19);
+            this.lblAnomalyWarning.TabIndex = 2;
+            this.lblAnomalyWarning.Text = "Abnormal Logs: 0";
+            this.lblAnomalyWarning.Visible = false;
             // 
             // materialButton1
             // 
@@ -234,12 +257,14 @@
             // splitContainer4.Panel1
             // 
             this.splitContainer4.Panel1.Controls.Add(this.treeScenarioGroup);
+            this.splitContainer4.Panel1MinSize = 150;
             // 
             // splitContainer4.Panel2
             // 
             this.splitContainer4.Panel2.Controls.Add(this.olvScenarioRepository);
-            this.splitContainer4.Size = new System.Drawing.Size(1025, 198);
-            this.splitContainer4.SplitterDistance = 448;
+            this.splitContainer4.Panel2MinSize = 150;
+            this.splitContainer4.Size = new System.Drawing.Size(666, 198);
+            this.splitContainer4.SplitterDistance = 234;
             this.splitContainer4.TabIndex = 0;
             // 
             // treeScenarioGroup
@@ -247,7 +272,7 @@
             this.treeScenarioGroup.Dock = System.Windows.Forms.DockStyle.Fill;
             this.treeScenarioGroup.Location = new System.Drawing.Point(0, 0);
             this.treeScenarioGroup.Name = "treeScenarioGroup";
-            this.treeScenarioGroup.Size = new System.Drawing.Size(448, 198);
+            this.treeScenarioGroup.Size = new System.Drawing.Size(234, 198);
             this.treeScenarioGroup.TabIndex = 0;
             // 
             // olvScenarioRepository
@@ -259,38 +284,88 @@
             this.olvScenarioRepository.HideSelection = false;
             this.olvScenarioRepository.Location = new System.Drawing.Point(0, 0);
             this.olvScenarioRepository.Name = "olvScenarioRepository";
-            this.olvScenarioRepository.Size = new System.Drawing.Size(573, 198);
+            this.olvScenarioRepository.Size = new System.Drawing.Size(428, 198);
             this.olvScenarioRepository.TabIndex = 2;
             this.olvScenarioRepository.UseCompatibleStateImageBehavior = false;
             this.olvScenarioRepository.View = System.Windows.Forms.View.Details;
             // 
             // panel2
             // 
-            this.panel2.Controls.Add(this.materialButton2);
+            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel2.Controls.Add(this.btnOpenFolder);
+            this.panel2.Controls.Add(this.btnOpenScenarioEditor);
+            this.panel2.Controls.Add(this.btnClose);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel2.Location = new System.Drawing.Point(875, 0);
+            this.panel2.Location = new System.Drawing.Point(516, 0);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(150, 507);
             this.panel2.TabIndex = 4;
             // 
-            // materialButton2
+            // btnOpenFolder
             // 
-            this.materialButton2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.materialButton2.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.materialButton2.Depth = 0;
-            this.materialButton2.HighEmphasis = true;
-            this.materialButton2.Icon = null;
-            this.materialButton2.Location = new System.Drawing.Point(23, 25);
-            this.materialButton2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.materialButton2.MouseState = MaterialSkin.MouseState.HOVER;
-            this.materialButton2.Name = "materialButton2";
-            this.materialButton2.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.materialButton2.Size = new System.Drawing.Size(98, 36);
-            this.materialButton2.TabIndex = 5;
-            this.materialButton2.Text = "🔍 Validate";
-            this.materialButton2.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.materialButton2.UseAccentColor = false;
-            this.materialButton2.UseVisualStyleBackColor = true;
+            this.btnOpenFolder.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnOpenFolder.AutoSize = false;
+            this.btnOpenFolder.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnOpenFolder.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnOpenFolder.Depth = 0;
+            this.btnOpenFolder.HighEmphasis = true;
+            this.btnOpenFolder.Icon = null;
+            this.btnOpenFolder.Location = new System.Drawing.Point(13, 276);
+            this.btnOpenFolder.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnOpenFolder.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnOpenFolder.Name = "btnOpenFolder";
+            this.btnOpenFolder.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnOpenFolder.Size = new System.Drawing.Size(120, 40);
+            this.btnOpenFolder.TabIndex = 11114;
+            this.btnOpenFolder.Text = "📂 Open Folder";
+            this.btnOpenFolder.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnOpenFolder.UseAccentColor = false;
+            this.btnOpenFolder.UseVisualStyleBackColor = true;
+            this.btnOpenFolder.Click += new System.EventHandler(this.btnOpenFolder_Click);
+            // 
+            // btnOpenScenarioEditor
+            // 
+            this.btnOpenScenarioEditor.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnOpenScenarioEditor.AutoSize = false;
+            this.btnOpenScenarioEditor.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnOpenScenarioEditor.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnOpenScenarioEditor.Depth = 0;
+            this.btnOpenScenarioEditor.HighEmphasis = true;
+            this.btnOpenScenarioEditor.Icon = null;
+            this.btnOpenScenarioEditor.Location = new System.Drawing.Point(13, 328);
+            this.btnOpenScenarioEditor.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnOpenScenarioEditor.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnOpenScenarioEditor.Name = "btnOpenScenarioEditor";
+            this.btnOpenScenarioEditor.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnOpenScenarioEditor.Size = new System.Drawing.Size(120, 40);
+            this.btnOpenScenarioEditor.TabIndex = 11113;
+            this.btnOpenScenarioEditor.Text = "🔗 Scenario Editor";
+            this.btnOpenScenarioEditor.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnOpenScenarioEditor.UseAccentColor = false;
+            this.btnOpenScenarioEditor.UseVisualStyleBackColor = true;
+            this.btnOpenScenarioEditor.Click += new System.EventHandler(this.btnOpenScenarioEditor_Click);
+            // 
+            // btnClose
+            // 
+            this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnClose.AutoSize = false;
+            this.btnClose.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnClose.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnClose.Depth = 0;
+            this.btnClose.HighEmphasis = false;
+            this.btnClose.Icon = null;
+            this.btnClose.Location = new System.Drawing.Point(13, 380);
+            this.btnClose.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnClose.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnClose.Name = "btnClose";
+            this.btnClose.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnClose.Size = new System.Drawing.Size(120, 36);
+            this.btnClose.TabIndex = 11112;
+            this.btnClose.Text = "✕   Close";
+            this.btnClose.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
+            this.btnClose.UseAccentColor = true;
+            this.btnClose.UseVisualStyleBackColor = true;
+            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
             // 
             // olvValidationResult
             // 
@@ -301,24 +376,11 @@
             this.olvValidationResult.Location = new System.Drawing.Point(0, 0);
             this.olvValidationResult.Name = "olvValidationResult";
             this.olvValidationResult.ShowGroups = false;
-            this.olvValidationResult.Size = new System.Drawing.Size(1025, 507);
+            this.olvValidationResult.Size = new System.Drawing.Size(666, 507);
             this.olvValidationResult.TabIndex = 3;
             this.olvValidationResult.UseCompatibleStateImageBehavior = false;
             this.olvValidationResult.View = System.Windows.Forms.View.Details;
             this.olvValidationResult.VirtualMode = true;
-            // 
-            // lblAnomalyWarning
-            // 
-            this.lblAnomalyWarning.AutoSize = true;
-            this.lblAnomalyWarning.Depth = 0;
-            this.lblAnomalyWarning.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.lblAnomalyWarning.Location = new System.Drawing.Point(872, 19);
-            this.lblAnomalyWarning.MouseState = MaterialSkin.MouseState.HOVER;
-            this.lblAnomalyWarning.Name = "lblAnomalyWarning";
-            this.lblAnomalyWarning.Size = new System.Drawing.Size(126, 19);
-            this.lblAnomalyWarning.TabIndex = 2;
-            this.lblAnomalyWarning.Text = "Abnormal Logs: 0";
-            this.lblAnomalyWarning.Visible = false;
             // 
             // toolTipAnomaly
             // 
@@ -332,7 +394,7 @@
             this.txtLogFilter.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.txtLogFilter.CharacterCasing = System.Windows.Forms.CharacterCasing.Normal;
             this.txtLogFilter.Depth = 0;
-            this.txtLogFilter.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.txtLogFilter.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
             this.txtLogFilter.HideSelection = true;
             this.txtLogFilter.LeadingIcon = null;
             this.txtLogFilter.Location = new System.Drawing.Point(144, 10);
@@ -387,7 +449,6 @@
             this.splitContainer4.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.olvScenarioRepository)).EndInit();
             this.panel2.ResumeLayout(false);
-            this.panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.olvValidationResult)).EndInit();
             this.ResumeLayout(false);
 
@@ -397,24 +458,24 @@
 
         private System.Windows.Forms.SplitContainer splitContainer1;
         private BrightIdeasSoftware.FastObjectListView olvValidatorRawLog;
-        private System.Windows.Forms.SplitContainer splitContainer2;
-        private System.Windows.Forms.Panel panel1;
-        private BrightIdeasSoftware.ObjectListView olvScenarioRepository;
-        private MaterialSkin.Controls.MaterialProgressBar materialProgressBar1;
-        private System.Windows.Forms.ProgressBar progressBar1;
-        private MaterialSkin.Controls.MaterialButton materialButton1;
-        // private BrightIdeasSoftware.ObjectListView olvValidationResult;
-        private BrightIdeasSoftware.TreeListView olvValidationResult;
-        private System.Windows.Forms.Panel panel2;
-        private System.Windows.Forms.SplitContainer splitContainer3;
-        private System.Windows.Forms.SplitContainer splitContainer4;
-        private System.Windows.Forms.TreeView treeScenarioGroup;
-        private MaterialSkin.Controls.MaterialButton materialButton2;
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.TabPage tabPage2;
-        private MaterialSkin.Controls.MaterialLabel lblAnomalyWarning;
         private System.Windows.Forms.ToolTip toolTipAnomaly;
         private MaterialSkin.Controls.MaterialTextBox2 txtLogFilter;
+        private System.Windows.Forms.SplitContainer splitContainer2;
+        private System.Windows.Forms.SplitContainer splitContainer3;
+        private System.Windows.Forms.Panel panel1;
+        private MaterialSkin.Controls.MaterialButton btnReset;
+        private MaterialSkin.Controls.MaterialLabel lblAnomalyWarning;
+        private MaterialSkin.Controls.MaterialButton materialButton1;
+        private System.Windows.Forms.SplitContainer splitContainer4;
+        private System.Windows.Forms.TreeView treeScenarioGroup;
+        private BrightIdeasSoftware.ObjectListView olvScenarioRepository;
+        private System.Windows.Forms.Panel panel2;
+        private BrightIdeasSoftware.TreeListView olvValidationResult;
+        private MaterialSkin.Controls.MaterialButton btnOpenFolder;
+        private MaterialSkin.Controls.MaterialButton btnOpenScenarioEditor;
+        private MaterialSkin.Controls.MaterialButton btnClose;
     }
 }

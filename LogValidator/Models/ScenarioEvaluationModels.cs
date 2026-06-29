@@ -45,10 +45,11 @@ namespace GateHelper.LogValidator.Models
         public string StepProgress { get; set; }
         public string StepMessage { get; set; }
 
-        // 💡 [변경] 해당 사이클 내에서 매칭에 성공한 실제 로그 라인 번호들을 보존하는 전용 마스터 버퍼
-        public List<int> MatchedLineNumbers { get; set; } = new List<int>();
+        // 💡 매칭된 로그의 (LineNo, SourceFileName) 쌍을 보존 - 다중 파일 병합 시 같은 LineNo 충돌 방지
+        public List<(int LineNo, string SourceFileName)> MatchedLineNumbers { get; set; } = new List<(int, string)>();
 
-        // 💡 [변경] 스크롤 점프 연산을 위해 해당 사이클의 시작 지점(첫 행) 라인 번호를 명시적으로 분리 보존
+        // 💡 사이클 시작 로그의 (LineNo, SourceFileName) - 스크롤 점프 기준점
         public int StartLineNo { get; set; }
+        public string StartSourceFileName { get; set; }
     }
 }

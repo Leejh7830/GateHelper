@@ -1,26 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace GateHelper.LogValidator.Models
+﻿namespace GateHelper.LogValidator.Models
 {
-    // 💡 [2단계: 우측 상단 대기소 유닛 모델]
-    // 템플릿 형태로 쟁여두고 재사용할 순수 유닛 블록입니다.
     public class UnitTemplateModel
     {
-        public string EventName { get; set; }        // 예: EVT_POPUP_DETECT
-        public string MaskingPattern { get; set; }   // RichTextBox에서 최종 정제된 노란 마스킹 문자열
+        public string EventName { get; set; }
+        public string MaskingPattern { get; set; }
     }
 
-    // 💡 [3단계: 우측 하단 사다리 시퀀스 모델]
-    // 사다리 틀에 딱 맞춰 순번(Step)을 달고 실제로 배치된 인스턴스입니다.
     public class ScenarioStepModel
     {
-        public int StepNo { get; set; }             // 사다리 칸 순번 (1, 2, 3...)
-        public string EventName { get; set; }        // 할당된 유닛의 이름
-        public string MaskingPattern { get; set; }   // 검증에 사용될 최종 패턴 규칙
-        public string Direction { get; set; } // 통신 방향 ("TX" 또는 "RX")
+        public int StepNo { get; set; }
+        public string EventName { get; set; }
+        public string MaskingPattern { get; set; }
+        public string Direction { get; set; }
+
+        // 💡 이 스텝 매칭 후 다음 스텝까지 허용 대기 시간 (초)
+        // 0 이하면 타임아웃 미설정 (무제한 대기)
+        public double TimeoutSeconds { get; set; } = 0;
+
+        // 💡 Optional 스텝: true면 이 스텝이 없어도 사이클 계속 진행
+        // 예: 특정 조건에서만 발생하는 ACK 신호처럼 있어도 되고 없어도 되는 스텝
+        public bool IsOptional { get; set; } = false;
     }
 }

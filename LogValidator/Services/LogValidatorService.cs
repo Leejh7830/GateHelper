@@ -8,7 +8,7 @@ using GateHelper.LogValidator.Core;
 using GateHelper.LogValidator.Models;
 
 namespace GateHelper.LogValidator.Services
-{ /*
+{
     /// <summary>
     /// ✅ [신규] LogValidatorForm에서 비즈니스 로직을 분리한 서비스 클래스.
     /// Form은 UI 표시와 사용자 입력만 담당하고, 실제 데이터 처리는 여기서 수행합니다.
@@ -29,11 +29,15 @@ namespace GateHelper.LogValidator.Services
         };
 
         /// <summary>
-        /// 드롭된 파일들을 파싱하고 시간순 정렬된 통합 로그 리스트를 반환합니다.
+        /// 드롭된 경로들(파일 or 폴더 혼합 가능)을 파싱하고 시간순 정렬된 통합 로그 리스트를 반환합니다.
+        /// 폴더가 포함된 경우 내부 로그 파일(.log, .txt)을 재귀적으로 수집합니다.
         /// </summary>
-        public async Task<List<RawLogModel>> LoadLogFilesAsync(IEnumerable<string> filePaths)
+        public async Task<List<RawLogModel>> LoadLogFilesAsync(IEnumerable<string> droppedPaths)
         {
             var allLogs = new List<RawLogModel>();
+
+            // 폴더/파일 혼합 드롭 → 실제 파일 경로만 수집
+            var filePaths = ResolveFilePaths(droppedPaths);
 
             foreach (string filePath in filePaths)
             {
@@ -41,15 +45,51 @@ namespace GateHelper.LogValidator.Services
 
                 var parsed = await _logParser.ParseLogFileAsync(filePath);
                 string logType = ResolveLogType(Path.GetFileName(filePath));
+                string sourceFileName = Path.GetFileName(filePath); // 소스 파일명 기록
 
                 foreach (var log in parsed)
+                {
                     log.LogType = logType;
+                    log.SourceFileName = sourceFileName;
+                }
 
                 allLogs.AddRange(parsed);
             }
 
-            // 시간순 정렬
-            return allLogs.OrderBy(l => l.LogTime).ToList();
+            // 💡 시간순 정렬 + 보조 기준 추가
+            // 같은 시간대 로그가 여러 파일에 걸칠 때 SourceFileName → LineNo 순으로 안정적 정렬
+            return allLogs
+                .OrderBy(l => l.LogTime)
+                .ThenBy(l => l.SourceFileName)
+                .ThenBy(l => l.LineNo)
+                .ToList();
+        }
+
+        /// <summary>
+        /// 드롭된 경로 목록에서 실제 파일 경로만 추출합니다.
+        /// 폴더이면 내부 .log/.txt 파일을 재귀 수집하고, 파일이면 그대로 사용합니다.
+        /// </summary>
+        private static IEnumerable<string> ResolveFilePaths(IEnumerable<string> droppedPaths)
+        {
+            var result = new List<string>();
+            var supportedExtensions = new HashSet<string>(StringComparer.OrdinalIgnoreCase) { ".log", ".txt" };
+
+            foreach (string path in droppedPaths)
+            {
+                if (Directory.Exists(path))
+                {
+                    // 폴더: 하위 파일 재귀 수집 (SearchOption.AllDirectories로 하위 폴더까지)
+                    var files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories)
+                        .Where(f => supportedExtensions.Contains(Path.GetExtension(f)));
+                    result.AddRange(files);
+                }
+                else if (File.Exists(path) && supportedExtensions.Contains(Path.GetExtension(path)))
+                {
+                    result.Add(path);
+                }
+            }
+
+            return result;
         }
 
         /// <summary>
@@ -92,5 +132,4 @@ namespace GateHelper.LogValidator.Services
             return "UNKNOWN";
         }
     }
-    */
 }
