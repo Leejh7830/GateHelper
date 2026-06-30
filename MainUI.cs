@@ -86,6 +86,10 @@ namespace GateHelper
         // [Drag & Drop]
         private ShortcutManager _shortcutManager = new ShortcutManager();
 
+        // 즐겨찾기 폰트
+        private Font _boldFont;
+        private Font _regularFont;
+
 
 
 
@@ -150,6 +154,14 @@ namespace GateHelper
         private async void TimerStatusChecker_Tick(object sender, EventArgs e)
         {
             timer1.Stop();
+
+            // ★ 추가: 서버 접속 중이면 이번 틱은 완전 스킵
+            if (Util_Connect.IsConnecting)
+            {
+                timer1.Start();
+                return;
+            }
+
 
             // 💡 1. [동기화 레이더망] 보조 사이트 탭 감지 및 포커스 인터락 (잠금)
             try
@@ -284,7 +296,7 @@ namespace GateHelper
 
             try
             {
-                UpdateConnectionStatus();
+                await UpdateConnectionStatus();
                 bool popupFeatureOn = _appSettings.AutoScreenUnlock;
                 Util_Option.UpdatePopupStatus(lblPopupStatus, popupFeatureOn, Util_Option.GetLockHandledCount());
 
@@ -306,7 +318,7 @@ namespace GateHelper
             }
         }
 
-        private void UpdateConnectionStatus()
+        private async Task UpdateConnectionStatus()
         {
             // 공통 색상 설정
             Color onColor = ColorTranslator.FromHtml("#4CAF50"); // Green 500
@@ -335,7 +347,7 @@ namespace GateHelper
             }
 
             // 🔍 2. Network 상태 체크
-            bool netOn = chromeDriverManager.IsInternetAvailable();
+            bool netOn = await chromeDriverManager.IsInternetAvailableAsync();
             string newNetStatus = netOn ? "ON" : "OFF";
 
             lblInternetStatus.Text = $"Network {newNetStatus}";
@@ -579,7 +591,7 @@ namespace GateHelper
             }
         }
 
-        private void BtnConnect1_Click(object sender, EventArgs e)
+        private async void BtnConnect1_Click(object sender, EventArgs e)
         {
             // ✅ 테스트 모드일 때는 드라이버 체크 건너뜀
             if (_appSettings.TestMode)
@@ -610,9 +622,9 @@ namespace GateHelper
             LogMessage("접속 서버 명: " + selectedServer, Level.Info);
 
             // UDP 접속 정보 송신
-            StartRdpDetect(serverName);
+            StartRdpDetect(selectedServer);
 
-            Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, selectedServer, OlvServerList, _appSettings.RemoveDuplicates);
+            await Task.Run(() => Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, selectedServer, OlvServerList, _appSettings.RemoveDuplicates));
         }
 
 
@@ -624,9 +636,7 @@ namespace GateHelper
                 return; // ChromeDriver 없음
 
             if (!Util.SwitchToMainHandle(_driver, mainHandle))
-            {
                 return; // MainHandle 없음
-            }
 
             // 1) 검색 수행하고 서버이름을 받음
             string serverName = Util.ClickFavBtnAndGetServerName(_driver, _config, 1, chromeDriverManager);
@@ -640,7 +650,7 @@ namespace GateHelper
                 try
                 {
                     StartRdpDetect(serverName);
-                    Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
+                    await Task.Run(() => Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates));
                 }
                 catch (Exception ex)
                 {
@@ -658,9 +668,7 @@ namespace GateHelper
                 return; // ChromeDriver 없음
 
             if (!Util.SwitchToMainHandle(_driver, mainHandle))
-            {
                 return; // MainHandle 없음
-            }
 
             string serverName = Util.ClickFavBtnAndGetServerName(_driver, _config, 2, chromeDriverManager);
 
@@ -671,7 +679,7 @@ namespace GateHelper
                 try
                 {
                     StartRdpDetect(serverName);
-                    Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
+                    await Task.Run(() => Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates));
                 }
                 catch (Exception ex)
                 {
@@ -688,6 +696,9 @@ namespace GateHelper
             if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
 
+            if (!Util.SwitchToMainHandle(_driver, mainHandle))
+                return; // MainHandle 없음
+            
             string serverName = Util.ClickFavBtnAndGetServerName(_driver, _config, 3, chromeDriverManager);
 
             await LoadServersIntoComboBoxAsync();
@@ -697,7 +708,7 @@ namespace GateHelper
                 try
                 {
                     StartRdpDetect(serverName);
-                    Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates);
+                    await Task.Run(() => Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates));
                 }
                 catch (Exception ex)
                 {
@@ -763,7 +774,7 @@ namespace GateHelper
         /// <summary>
         /// 현재 웹 화면에 서버가 존재하는지 스캔하고, 없으면 검색 후 접속하는 통합 스마트 연결 모듈입니다.
         /// </summary>
-        private void ExecuteSmartConnection(string targetServer)
+        private async void ExecuteSmartConnection(string targetServer)
         {
             LogMessage($"[스마트 접속] '{targetServer}' 접속 시퀀스 시작", Level.Info);
 
@@ -802,7 +813,7 @@ namespace GateHelper
 
             // 2. 최종 접속 시도
             //StartRdpDetect(targetServer);
-            Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, targetServer, OlvServerList, _appSettings.RemoveDuplicates);
+            await Task.Run(() => Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, targetServer, OlvServerList, _appSettings.RemoveDuplicates));
         }
 
 
@@ -1092,12 +1103,14 @@ namespace GateHelper
             if (serverInfo != null && serverInfo.IsFavorite)
             {
                 // 즐겨찾기 상태일 때만 폰트를 굵게 만듭니다.
-                e.Item.Font = new Font(this.Font, FontStyle.Bold);
+                // e.Item.Font = new Font(this.Font, FontStyle.Bold);
+                _boldFont = new Font(this.Font, FontStyle.Bold);
             }
             else
             {
                 // 즐겨찾기 상태가 아니면 폰트를 원래대로 되돌립니다.
-                e.Item.Font = new Font(this.Font, FontStyle.Regular);
+                // e.Item.Font = new Font(this.Font, FontStyle.Regular);
+                _regularFont = new Font(this.Font, FontStyle.Regular);
             }
         }
 

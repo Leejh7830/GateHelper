@@ -12,6 +12,9 @@ namespace GateHelper
 {
     public static class Util_Connect
     {
+        // ★ 접속 진행 중 플래그 (타이머 인터락용)
+        public static volatile bool IsConnecting = false;
+
         public static bool ConnectToServer(
             IWebDriver driver,
             string mainHandle,
@@ -22,6 +25,7 @@ namespace GateHelper
             ObjectListView listView,
             bool isDuplicateCheck)
         {
+
             if (string.IsNullOrEmpty(GateID) || string.IsNullOrEmpty(GatePW))
             {
                 MessageBox.Show("GateID/PW NOT Selected.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -29,6 +33,7 @@ namespace GateHelper
                 return false;
             }
 
+            IsConnecting = true; // 진입 시 접속진행중 플래그 ON
             try
             {
                 try
@@ -235,6 +240,9 @@ namespace GateHelper
                 LogException(ex, Level.Error);
                 MessageBox.Show($"오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return false;
+            } finally
+            {
+                IsConnecting = false; // 접속 종료 시 플래그 OFF
             }
         }
 

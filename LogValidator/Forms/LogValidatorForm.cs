@@ -36,6 +36,7 @@ namespace GateHelper.LogValidator
         // 💡 우측 메뉴 패널 슬라이드 토글용 필드
         private Button _btnSideToggle;
         private bool _sidePanelVisible = false;
+        private bool _isSideAnimating = false; // 💡 Enabled 대신 사용하는 애니메이션 중복 클릭 방지 플래그
         private const int SIDE_PANEL_WIDTH = 150;
 
         public LogValidatorForm()
@@ -95,8 +96,19 @@ namespace GateHelper.LogValidator
             // 💡 btnTimeJump 클릭 시 cmbDateFilter(날짜) + dtpTimeJump(시간) 조합으로 점프
             btnTimeJump.Click += (s, e) =>
             {
-                if (_validatorRawLogList == null || _validatorRawLogList.Count == 0) return;
-                if (cmbDateFilter.SelectedItem == null) return;
+                if (_validatorRawLogList == null || _validatorRawLogList.Count == 0)
+                {
+                    MessageBox.Show("로드된 로그가 없습니다.\n먼저 로그 파일을 드롭해 주세요.",
+                        "Jump 실패", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (cmbDateFilter.SelectedItem == null)
+                {
+                    MessageBox.Show("날짜가 선택되지 않았습니다.\n날짜 목록에서 선택해 주세요.",
+                        "Jump 실패", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
 
                 // 선택된 날짜 + 시간 조합으로 DateTime 생성
                 DateTime selectedDate = (DateTime)cmbDateFilter.SelectedItem;
@@ -118,14 +130,85 @@ namespace GateHelper.LogValidator
                     }
                 }
 
-                if (closest == null) return;
+                if (closest == null)
+                {
+                    MessageBox.Show("시간 정보가 있는 로그를 찾을 수 없습니다.\n파싱 가능한 로그가 없는 것 같습니다.",
+                        "Jump 실패", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
 
                 int idx = _validatorRawLogList.IndexOf(closest);
                 olvValidatorRawLog.SelectedObject = closest;
                 olvValidatorRawLog.TopItemIndex = Math.Max(0, idx - 3);
                 olvValidatorRawLog.EnsureVisible(idx);
                 olvValidatorRawLog.Focus();
+
+                // 💡 점프 성공 시각 피드백: 해당 행을 잠깐 깜빡여서 "여기로 이동했다"는 걸 명확히 알림
+                FlashJumpedRow(closest);
             };
+        }
+
+        /// <summary>
+        /// Time Jump로 이동한 행을 짧게 깜빡여 시각적으로 강조합니다.
+        /// 해당 행은 SelectedObject로 선택되어 있어서 시스템 강조색(파란색)이 RowFormatter보다
+        /// 위에 그려지므로, 선택 상태에서도 보이도록 SelectedBackColor 자체를 잠깐 바꿉니다.
+        /// 검증 결과 하이라이팅(PerformLogTracking)이 켜져 있는 경우를 위해
+        /// 깜빡임 종료 후 이전 RowFormatter와 선택색을 그대로 복원합니다.
+        /// </summary>
+        private void FlashJumpedRow(RawLogModel targetRow)
+        {
+            var flashColor = System.Drawing.Color.FromArgb(255, 140, 0); // 진한 주황 - 선택 강조색으로도 잘 보이게
+            var normalColor = olvValidatorRawLog.BackColor;
+
+            // 💡 깜빡이기 전의 RowFormatter + 선택 강조색을 백업
+            var previousFormatter = olvValidatorRawLog.RowFormatter;
+            bool hadCustomHighlight = olvValidatorRawLog.UseCustomSelectionColors;
+            var previousHighlightBack = olvValidatorRawLog.SelectedBackColor;
+            var previousHighlightFore = olvValidatorRawLog.SelectedForeColor;
+
+            int blinkCount = 0;
+            const int MAX_BLINKS = 4; // on/off 합쳐서 4번 = 2회 점멸
+
+            var timer = new System.Windows.Forms.Timer { Interval = 150 };
+            timer.Tick += (s, e) =>
+            {
+                bool isOn = (blinkCount % 2 == 0);
+
+                // 💡 선택된 행이 파란색 대신 주황색으로 보이도록 강제
+                olvValidatorRawLog.UseCustomSelectionColors = true;
+                olvValidatorRawLog.SelectedBackColor = isOn ? flashColor : normalColor;
+                olvValidatorRawLog.SelectedForeColor = System.Drawing.Color.Black;
+
+                olvValidatorRawLog.RowFormatter = row =>
+                {
+                    if (row.RowObject == targetRow)
+                    {
+                        row.BackColor = isOn ? flashColor : normalColor;
+                        row.ForeColor = System.Drawing.Color.Black;
+                    }
+                    else
+                    {
+                        // 💡 다른 행들은 이전 포맷터 규칙을 그대로 유지 (검증 하이라이팅 보존)
+                        previousFormatter?.Invoke(row);
+                    }
+                };
+                olvValidatorRawLog.BuildList(true);
+
+                blinkCount++;
+                if (blinkCount >= MAX_BLINKS)
+                {
+                    timer.Stop();
+                    timer.Dispose();
+
+                    // 💡 깜빡임 종료 후 선택색과 RowFormatter를 원래 상태로 완전 복원
+                    olvValidatorRawLog.UseCustomSelectionColors = hadCustomHighlight;
+                    olvValidatorRawLog.SelectedBackColor = previousHighlightBack;
+                    olvValidatorRawLog.SelectedForeColor = previousHighlightFore;
+                    olvValidatorRawLog.RowFormatter = previousFormatter;
+                    olvValidatorRawLog.BuildList(true);
+                }
+            };
+            timer.Start();
         }
 
         /// <summary>
@@ -448,6 +531,7 @@ namespace GateHelper.LogValidator
 
             ResetAllLogData();
             UpdateFileListPanel();
+            ShowToast("✓ 초기화되었습니다");
         }
 
         // 💡 우측 메뉴 슬라이드 토글
@@ -479,29 +563,28 @@ namespace GateHelper.LogValidator
 
         private void ToggleSidePanel()
         {
-            // 💡 애니메이션 중 중복 클릭 방지
-            _btnSideToggle.Enabled = false;
+            // 💡 Enabled=false 대신 플래그로 중복 클릭 방지
+            // Button.Enabled=false는 WinForms가 BackColor를 무시하고 강제로 회색 표시하는 문제가 있음
+            if (_isSideAnimating) return;
+            _isSideAnimating = true;
 
             _sidePanelVisible = !_sidePanelVisible;
             _btnSideToggle.Text = _sidePanelVisible ? "〉" : "〈";
 
             if (_sidePanelVisible)
             {
-                // 열기: 0 → SIDE_PANEL_WIDTH 로 단계적 확장
                 panel2.Width = 0;
                 panel2.Visible = true;
                 AnimateSidePanel(opening: true);
             }
             else
             {
-                // 닫기: SIDE_PANEL_WIDTH → 0 으로 단계적 축소
                 AnimateSidePanel(opening: false);
             }
         }
 
         private void AnimateSidePanel(bool opening)
         {
-            // 💡 Timer로 10ms마다 15px씩 이동 → 약 100ms에 완료 (자연스럽고 빠른 속도)
             const int STEP = 15;
             const int INTERVAL = 10;
 
@@ -516,7 +599,7 @@ namespace GateHelper.LogValidator
                         panel2.Width = SIDE_PANEL_WIDTH;
                         timer.Stop();
                         timer.Dispose();
-                        _btnSideToggle.Enabled = true;
+                        _isSideAnimating = false;
                     }
                     else
                     {
@@ -532,7 +615,7 @@ namespace GateHelper.LogValidator
                         panel2.Visible = false;
                         timer.Stop();
                         timer.Dispose();
-                        _btnSideToggle.Enabled = true;
+                        _isSideAnimating = false;
                     }
                     else
                     {
@@ -1129,6 +1212,104 @@ namespace GateHelper.LogValidator
 
 
 
+        // ─────────────────────────────────────────────
+        // 💡 토스트 알림: MessageBox 대신 가볍게 나타났다 사라지는 알림
+        // LogScenarioForm의 저장 토스트와 동일한 페이드인/아웃 방식
+        // ─────────────────────────────────────────────
+        private Form _toastForm;
+        private System.Windows.Forms.Timer _toastFadeTimer;
+
+        private void ShowToast(string message, int durationMs = 3000)
+        {
+            _toastFadeTimer?.Stop();
+            _toastFadeTimer?.Dispose();
+            _toastForm?.Dispose();
+
+            var lbl = new Label
+            {
+                Text = message,
+                Font = new System.Drawing.Font("Malgun Gothic", 9.5f, System.Drawing.FontStyle.Regular),
+                ForeColor = System.Drawing.Color.White,
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
+            };
+
+            _toastForm = new Form
+            {
+                FormBorderStyle = FormBorderStyle.None,
+                StartPosition = FormStartPosition.Manual,
+                ShowInTaskbar = false,
+                TopMost = true,
+                BackColor = System.Drawing.Color.FromArgb(45, 45, 48),
+                Opacity = 0,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                Padding = new Padding(18, 10, 18, 10),
+            };
+            _toastForm.Controls.Add(lbl);
+
+            _toastForm.Load += (s, e) =>
+            {
+                int x = this.Left + (this.Width - _toastForm.Width) / 2;
+                int y = this.Top + this.Height - _toastForm.Height - 80;
+                _toastForm.Location = new System.Drawing.Point(x, y);
+            };
+
+            _toastForm.Show(this);
+
+            FadeToast(targetOpacity: 1.0, onComplete: () =>
+            {
+                var waitTimer = new System.Windows.Forms.Timer { Interval = durationMs };
+                waitTimer.Tick += (s, e) =>
+                {
+                    waitTimer.Stop();
+                    waitTimer.Dispose();
+
+                    FadeToast(targetOpacity: 0.0, onComplete: () =>
+                    {
+                        _toastForm?.Dispose();
+                        _toastForm = null;
+                    });
+                };
+                waitTimer.Start();
+            });
+        }
+
+        private void FadeToast(double targetOpacity, Action onComplete)
+        {
+            if (_toastForm == null) { onComplete?.Invoke(); return; }
+
+            const double STEP = 0.08;
+            const int INTERVAL = 20;
+
+            _toastFadeTimer = new System.Windows.Forms.Timer { Interval = INTERVAL };
+            _toastFadeTimer.Tick += (s, e) =>
+            {
+                if (_toastForm == null)
+                {
+                    _toastFadeTimer.Stop();
+                    _toastFadeTimer.Dispose();
+                    return;
+                }
+
+                double current = _toastForm.Opacity;
+                double next = current < targetOpacity
+                    ? Math.Min(current + STEP, targetOpacity)
+                    : Math.Max(current - STEP, targetOpacity);
+
+                _toastForm.Opacity = next;
+
+                if (Math.Abs(next - targetOpacity) < 0.001)
+                {
+                    _toastFadeTimer.Stop();
+                    _toastFadeTimer.Dispose();
+                    onComplete?.Invoke();
+                }
+            };
+            _toastFadeTimer.Start();
+        }
+
         private void LogValidatorForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             try
@@ -1136,21 +1317,22 @@ namespace GateHelper.LogValidator
                 // 좀비 메모리 방지
                 ScenarioEventBroker.OnScenarioSaved -= OnRuntimeScenarioRefresh;
 
-                // 폼이 파괴되기 전에 ObjectListView가 소유한 내부 툴팁 컨트롤 자원의 
-                // 이벤트 연결을 강제로 해제하여 무효한 폰트 핸들(HDC) 참조 연산을 전면 차단합니다.
-                if (olvValidatorRawLog != null) olvValidatorRawLog.CellToolTipShowing -= null;
-                if (olvScenarioRepository != null) olvScenarioRepository.CellToolTipShowing -= null;
+                // 💡 토스트 관련 리소스 정리
+                _toastFadeTimer?.Stop();
+                _toastFadeTimer?.Dispose();
+                _toastForm?.Dispose();
 
+                // 💡 [수정] ObjectListView 수동 Dispose() 호출 제거
+                // 폼이 닫힐 때 WinForms가 자식 컨트롤을 자동으로 Dispose하는데,
+                // 여기서 먼저 .Dispose()를 호출하면 ObjectListView 내부의 ToolTipControl이
+                // 이미 일부 핸들이 해제된 상태에서 폰트를 재참조하다가
+                // "TrueType 폰트만 지원됩니다" ArgumentException이 발생할 수 있었음.
+                // ContextMenuStrip 해제만 남겨서 메모리 누수 방지는 유지.
                 if (olvValidationResult != null)
-                {
-                    olvValidationResult.CellToolTipShowing -= null;
-                    // 결과 그리드의 컨텍스트 메뉴 바인딩 해제
                     olvValidationResult.ContextMenuStrip = null;
-                }
 
-                olvValidatorRawLog?.Dispose();
-                olvScenarioRepository?.Dispose();
-                olvValidationResult?.Dispose();
+                if (olvScenarioRepository != null)
+                    olvScenarioRepository.ContextMenuStrip = null;
             }
             catch (Exception)
             {

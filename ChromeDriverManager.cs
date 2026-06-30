@@ -5,8 +5,10 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Text.RegularExpressions; // 상단 using 추가
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using static GateHelper.LogManager;
 
@@ -499,18 +501,16 @@ namespace GateHelper
         }
 
         // Network 체크용
-        public bool IsInternetAvailable()
+        private static readonly HttpClient _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(2) };
+
+        public async Task<bool> IsInternetAvailableAsync()
         {
             try
             {
-                using (var client = new WebClient())
-                using (client.OpenRead("http://clients3.google.com/generate_204"))
-                    return true;
+                var response = await _httpClient.GetAsync("http://clients3.google.com/generate_204");
+                return response.IsSuccessStatusCode || (int)response.StatusCode == 204;
             }
-            catch
-            {
-                return false;
-            }
+            catch { return false; }
         }
 
         // 25.08.14 Added - Driver Check

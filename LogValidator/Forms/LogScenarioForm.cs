@@ -30,6 +30,7 @@ namespace GateHelper.LogValidator
         // 💡 우측 컨트롤 패널 슬라이드 토글용 필드
         private Button _btnSideToggle;
         private bool _sidePanelVisible = false;
+        private bool _isSideAnimating = false; // 💡 Enabled 대신 사용하는 애니메이션 중복 클릭 방지 플래그
         private const int SIDE_PANEL_WIDTH = 200; // pnlControlButtons 너비와 동일
 
         private UnitTemplateModel _selectedTemplateForEdit = null;
@@ -225,9 +226,28 @@ namespace GateHelper.LogValidator
             olvScenarioLadder.MouseDown += (s, me) => _dragStartPoint = me.Location;
             olvScenarioLadder.MouseMove += olvScenarioLadder_MouseMove;
 
+            // 💡 드래그 가능한 행 위에서 SizeAll 커서로 시각적 피드백 제공
+            olvScenarioLadder.MouseMove += OlvScenarioLadder_HoverCursor;
+            olvScenarioLadder.MouseLeave += (s, e) => olvScenarioLadder.Cursor = Cursors.Default;
+
             olvScenarioLadder.DoubleClick += olvScenarioLadder_DoubleClick;
 
             InitializeScenarioLadderContextMenu();
+        }
+
+        /// <summary>
+        /// 마우스가 스텝 행 위에 있으면 SizeAll(이동 가능) 커서로 변경,
+        /// 빈 영역이면 기본 화살표 커서로 되돌립니다.
+        /// 드래그 자체와는 무관하게 순수 시각적 피드백만 담당합니다.
+        /// </summary>
+        private void OlvScenarioLadder_HoverCursor(object sender, MouseEventArgs e)
+        {
+            // 드래그 중(왼쪽 버튼 누른 채 이동)에는 olvScenarioLadder_MouseMove가 DoDragDrop을 처리하므로
+            // 여기서는 호버 상태(버튼 안 누른 상태)일 때만 커서를 갱신
+            if (e.Button != MouseButtons.None) return;
+
+            var item = olvScenarioLadder.GetItemAt(e.X, e.Y);
+            olvScenarioLadder.Cursor = item != null ? Cursors.SizeAll : Cursors.Default;
         }
 
         private void InitializeDropZone()
@@ -738,6 +758,17 @@ namespace GateHelper.LogValidator
                 string targetDir = GetScenarioDirectoryPath();
                 string targetFilePath = Path.Combine(targetDir, $"{scenarioName}.json");
 
+                // 💡 동일한 이름의 파일이 이미 있으면 덮어쓰기 확인
+                // 기존엔 확인 없이 바로 저장되어 실수로 덮어쓸 위험이 있었음
+                if (File.Exists(targetFilePath))
+                {
+                    var confirmResult = MessageBox.Show(
+                        $"'{scenarioName}.json' 파일이 이미 존재합니다.\n덮어쓰시겠습니까?",
+                        "덮어쓰기 확인", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+
+                    if (confirmResult != DialogResult.Yes) return;
+                }
+
                 // 💡 DefaultIgnoreCondition: TimeoutSeconds=0, IsOptional=false처럼
                 // 기본값인 필드는 JSON에서 생략 → 기존 시나리오 파일과 포맷 혼재 방지
                 var jsonOptions = new JsonSerializerOptions
@@ -748,7 +779,7 @@ namespace GateHelper.LogValidator
                 string jsonString = JsonSerializer.Serialize(_scenarioLadderList, jsonOptions);
                 File.WriteAllText(targetFilePath, jsonString);
 
-                MessageBox.Show($"시나리오가 자동으로 저장되었습니다.\n📂 위치: _meta/Scenarios/{scenarioName}.json", "Auto Save Success", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ShowToast($"✓ 저장되었습니다  ({scenarioName}.json)");
 
                 // 💡 [실시간 크로스 폼 인터락] 저장이 완료되었음을 글로벌 브로커를 통해 검증기 창에 즉각 통지
                 Core.ScenarioEventBroker.PublishScenarioSaved();
@@ -880,6 +911,118 @@ namespace GateHelper.LogValidator
         }
 
         // ─────────────────────────────────────────────
+        // 💡 토스트 알림: MessageBox 대신 가볍게 나타났다 사라지는 알림
+        // 저장처럼 반복적으로 발생하는 가벼운 완료 알림에 사용
+        // 폼 중앙(MessageBox가 떴던 자리)에서 위로 슬라이드업 → 대기 → 아래로 슬라이드다운
+        // ─────────────────────────────────────────────
+        private Form _toastForm;
+        private System.Windows.Forms.Timer _toastFadeTimer;
+
+        /// <summary>
+        /// 페이드인 → 대기 → 페이드아웃 방식의 토스트 알림.
+        /// 별도의 투명 폼(TopMost, 테두리 없음)을 LogScenarioForm 위에 겹쳐서 표시하고,
+        /// Opacity 속성으로 부드럽게 나타나고 사라지게 합니다.
+        /// (일반 Panel/Label은 Opacity를 지원하지 않아 Form으로 구현)
+        /// </summary>
+        private void ShowToast(string message, int durationMs = 3000)
+        {
+            // 💡 이전 토스트가 떠 있으면 정리 후 새로 생성 (중복 방지)
+            _toastFadeTimer?.Stop();
+            _toastFadeTimer?.Dispose();
+            _toastForm?.Dispose();
+
+            var lbl = new Label
+            {
+                Text = message,
+                Font = new Font("Malgun Gothic", 9.5f, FontStyle.Regular), // 💡 다른 컨트롤과 동일한 폰트로 통일
+                ForeColor = Color.White,
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleCenter,
+            };
+
+            _toastForm = new Form
+            {
+                FormBorderStyle = FormBorderStyle.None,
+                StartPosition = FormStartPosition.Manual,
+                ShowInTaskbar = false,
+                TopMost = true,
+                BackColor = Color.FromArgb(45, 45, 48),
+                Opacity = 0, // 💡 페이드인 시작값: 완전 투명
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                Padding = new Padding(18, 10, 18, 10),
+            };
+            _toastForm.Controls.Add(lbl);
+
+            // 💡 메인 폼(this) 중앙 하단 쪽에 위치 - 화면 좌표 기준으로 계산
+            _toastForm.Load += (s, e) =>
+            {
+                int x = this.Left + (this.Width - _toastForm.Width) / 2;
+                int y = this.Top + this.Height - _toastForm.Height - 80;
+                _toastForm.Location = new Point(x, y);
+            };
+
+            _toastForm.Show(this);
+
+            // 💡 페이드인 (Opacity 0 → 1)
+            FadeToast(targetOpacity: 1.0, onComplete: () =>
+            {
+                var waitTimer = new System.Windows.Forms.Timer { Interval = durationMs };
+                waitTimer.Tick += (s, e) =>
+                {
+                    waitTimer.Stop();
+                    waitTimer.Dispose();
+
+                    // 💡 페이드아웃 (Opacity 1 → 0) 후 폼 제거
+                    FadeToast(targetOpacity: 0.0, onComplete: () =>
+                    {
+                        _toastForm?.Dispose();
+                        _toastForm = null;
+                    });
+                };
+                waitTimer.Start();
+            });
+        }
+
+        /// <summary>
+        /// 토스트 폼의 Opacity를 현재값에서 targetOpacity까지 부드럽게 변화시킵니다.
+        /// </summary>
+        private void FadeToast(double targetOpacity, Action onComplete)
+        {
+            if (_toastForm == null) { onComplete?.Invoke(); return; }
+
+            const double STEP = 0.08;
+            const int INTERVAL = 20;
+
+            _toastFadeTimer = new System.Windows.Forms.Timer { Interval = INTERVAL };
+            _toastFadeTimer.Tick += (s, e) =>
+            {
+                if (_toastForm == null)
+                {
+                    _toastFadeTimer.Stop();
+                    _toastFadeTimer.Dispose();
+                    return;
+                }
+
+                double current = _toastForm.Opacity;
+                double next = current < targetOpacity
+                    ? Math.Min(current + STEP, targetOpacity)
+                    : Math.Max(current - STEP, targetOpacity);
+
+                _toastForm.Opacity = next;
+
+                if (Math.Abs(next - targetOpacity) < 0.001)
+                {
+                    _toastFadeTimer.Stop();
+                    _toastFadeTimer.Dispose();
+                    onComplete?.Invoke();
+                }
+            };
+            _toastFadeTimer.Start();
+        }
+
+        // ─────────────────────────────────────────────
         // 💡 우측 컨트롤 패널 슬라이드 토글
         // txtScenarioName, lblCurrentScenario 포함된 pnlControlButtons를 슬라이드로 열고 닫음
         // ─────────────────────────────────────────────
@@ -911,7 +1054,10 @@ namespace GateHelper.LogValidator
 
         private void ToggleSidePanel()
         {
-            _btnSideToggle.Enabled = false;
+            // 💡 Enabled=false 대신 플래그로 중복 클릭 방지 (회색 변색 방지)
+            if (_isSideAnimating) return;
+            _isSideAnimating = true;
+
             _sidePanelVisible = !_sidePanelVisible;
             _btnSideToggle.Text = _sidePanelVisible ? "〉" : "〈";
 
@@ -943,7 +1089,7 @@ namespace GateHelper.LogValidator
                         pnlControlButtons.Width = SIDE_PANEL_WIDTH;
                         timer.Stop();
                         timer.Dispose();
-                        _btnSideToggle.Enabled = true;
+                        _isSideAnimating = false;
                     }
                     else
                     {
@@ -959,7 +1105,7 @@ namespace GateHelper.LogValidator
                         pnlControlButtons.Visible = false;
                         timer.Stop();
                         timer.Dispose();
-                        _btnSideToggle.Enabled = true;
+                        _isSideAnimating = false;
                     }
                     else
                     {
