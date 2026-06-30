@@ -167,7 +167,7 @@ namespace GateHelper
 
                                 // 3. 위 두 조건에 걸리지 않았다면 그것이 진짜 서버 접속 팝업
                                 popupHandle = handle;
-                                LogMessage($"popupHandle = {popupHandle}", Level.Info);
+                                LogMessage($"popupHandle : {popupHandle}", Level.Info);
                                 break;
                             }
 
