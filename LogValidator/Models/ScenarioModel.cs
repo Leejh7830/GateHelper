@@ -18,7 +18,11 @@
         public double TimeoutSeconds { get; set; } = 0;
 
         // 💡 Optional 스텝: true면 이 스텝이 없어도 사이클 계속 진행
-        // 예: 특정 조건에서만 발생하는 ACK 신호처럼 있어도 되고 없어도 되는 스텝
         public bool IsOptional { get; set; } = false;
+
+        // 💡 AND Group: 같은 GroupId를 가진 스텝들은 순서 무관하게 모두 수신되어야 다음으로 진행
+        // 0이면 일반 스텝 (그룹 없음), 양수면 해당 그룹 ID
+        // 예: A, B가 GroupId=1이면 A→B 또는 B→A 어느 순서로 와도 SUCCESS
+        public int GroupId { get; set; } = 0;
     }
 }

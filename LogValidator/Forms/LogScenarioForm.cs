@@ -639,6 +639,59 @@ namespace GateHelper.LogValidator
                 RefreshStepTooltips();
             });
 
+            // 💡 AND Group Toggle: 같은 GroupId를 가진 스텝들은 순서 무관하게 모두 수신 시 SUCCESS
+            // 예: SIGNAL_A와 SIGNAL_B가 같은 그룹이면 A→B 또는 B→A 어느 순서로 와도 통과
+            var menuAndGroup = new ToolStripMenuItem("AND Group Toggle", null, (s, e) =>
+            {
+                var selected = olvScenarioLadder.SelectedObject as ScenarioStepModel;
+                if (selected == null) return;
+
+                // Optional 스텝은 AND 그룹 불가
+                if (selected.IsOptional)
+                {
+                    MessageBox.Show("Optional steps cannot be part of an AND group.\nRemove Optional first.",
+                        "AND Group N/A", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                if (selected.GroupId > 0)
+                {
+                    // 💡 이미 그룹에 속해있으면 그룹에서 제거
+                    selected.GroupId = 0;
+                }
+                else
+                {
+                    // 💡 그룹에 추가: 현재 선택된 스텝 기준으로 인접한 그룹 ID를 찾아 합류하거나 새 그룹 생성
+                    int idx = _scenarioLadderList.IndexOf(selected);
+
+                    // 인접 스텝(위/아래)에 그룹이 있으면 같은 그룹으로 합류
+                    int adjacentGroupId = 0;
+                    if (idx > 0 && _scenarioLadderList[idx - 1].GroupId > 0)
+                        adjacentGroupId = _scenarioLadderList[idx - 1].GroupId;
+                    else if (idx < _scenarioLadderList.Count - 1 && _scenarioLadderList[idx + 1].GroupId > 0)
+                        adjacentGroupId = _scenarioLadderList[idx + 1].GroupId;
+
+                    if (adjacentGroupId > 0)
+                    {
+                        selected.GroupId = adjacentGroupId;
+                    }
+                    else
+                    {
+                        // 새 그룹 ID 생성 (기존 그룹 ID 중 최댓값 + 1)
+                        int newGroupId = _scenarioLadderList
+                            .Where(st => st.GroupId > 0)
+                            .Select(st => st.GroupId)
+                            .DefaultIfEmpty(0)
+                            .Max() + 1;
+                        selected.GroupId = newGroupId;
+                    }
+                }
+
+                olvScenarioLadder.RefreshObject(selected);
+                RefreshAndGroupVisual();
+                RefreshStepTooltips();
+            });
+
             cms.Opening += (s, e) =>
             {
                 bool hasSelection = (olvScenarioLadder.SelectedObject != null);
@@ -647,6 +700,7 @@ namespace GateHelper.LogValidator
                 menuDelete.Enabled = hasSelection;
                 menuTimeout.Enabled = hasSelection;
                 menuOptional.Enabled = hasSelection;
+                menuAndGroup.Enabled = hasSelection;
             };
 
             cms.Items.Add(menuMoveUp);
@@ -654,6 +708,7 @@ namespace GateHelper.LogValidator
             cms.Items.Add(new ToolStripSeparator());
             cms.Items.Add(menuTimeout);
             cms.Items.Add(menuOptional);
+            cms.Items.Add(menuAndGroup);
             cms.Items.Add(new ToolStripSeparator());
             cms.Items.Add(menuDelete);
 
@@ -685,8 +740,47 @@ namespace GateHelper.LogValidator
                 if (step.IsOptional)
                     parts.Add("〇 Optional: this step may be skipped");
 
+                if (step.GroupId > 0)
+                {
+                    var groupMembers = _scenarioLadderList
+                        .Where(s => s.GroupId == step.GroupId)
+                        .Select(s => s.EventName);
+                    parts.Add($"⊕ AND Group {step.GroupId}: [{string.Join(", ", groupMembers)}] — any order");
+                }
+
                 return parts.Count > 0 ? string.Join("\n", parts) : null;
             };
+        }
+
+        /// <summary>
+        /// AND 그룹 스텝의 배경색을 그룹별로 구분해서 시각적으로 표시합니다.
+        /// 그룹 ID별로 색상을 다르게 적용합니다.
+        /// </summary>
+        private void RefreshAndGroupVisual()
+        {
+            // 그룹 ID별 색상 팔레트 (최대 5개 그룹 구분)
+            var groupColors = new[]
+            {
+                System.Drawing.Color.FromArgb(220, 240, 255), // 연파랑
+                System.Drawing.Color.FromArgb(220, 255, 220), // 연초록
+                System.Drawing.Color.FromArgb(255, 240, 200), // 연노랑
+                System.Drawing.Color.FromArgb(255, 220, 240), // 연핑크
+                System.Drawing.Color.FromArgb(240, 220, 255), // 연보라
+            };
+
+            olvScenarioLadder.RowFormatter = row =>
+            {
+                var step = row.RowObject as ScenarioStepModel;
+                if (step == null || step.GroupId <= 0)
+                {
+                    row.BackColor = olvScenarioLadder.BackColor;
+                    return;
+                }
+                int colorIdx = (step.GroupId - 1) % groupColors.Length;
+                row.BackColor = groupColors[colorIdx];
+            };
+
+            olvScenarioLadder.BuildList(true);
         }
 
         // 💡 간단한 텍스트 입력 다이얼로그 (별도 Form 없이 인라인 구현)
@@ -851,11 +945,10 @@ namespace GateHelper.LogValidator
                 {
                     _scenarioLadderList = loadedSteps;
                     olvScenarioLadder.SetObjects(_scenarioLadderList);
-                    // 💡 SetObjects만으론 AspectGetter가 재평가 안 되는 경우가 있어서
-                    // BuildList(true)로 강제 재렌더링 → EQP/FlowLine/SERVER 컬럼 즉시 표시
                     olvScenarioLadder.BuildList(true);
                     txtScenarioName.Text = Path.GetFileNameWithoutExtension(filePath);
                     RefreshStepTooltips();
+                    RefreshAndGroupVisual(); // 💡 로드 시 AND 그룹 색상도 즉시 적용
                 }
             }
             catch (Exception ex)

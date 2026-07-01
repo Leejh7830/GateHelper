@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using GateHelper.LogValidator.Models;
 
@@ -7,9 +8,6 @@ namespace GateHelper.LogValidator.Core
 {
     public class LogValidatorEngine
     {
-        /// <summary>
-        /// 💡 [전수 전사 통계 엔진] 단 1회의 로그 순회로 모든 시나리오의 다중 발생 주기 및 유실 사이클을 전수 추적
-        /// </summary>
         public List<ScenarioEvaluator> Validate(List<RawLogModel> rawLogs, List<ScenarioEvaluator> evaluators)
         {
             if (rawLogs == null || rawLogs.Count == 0 || evaluators == null || evaluators.Count == 0)
@@ -23,16 +21,12 @@ namespace GateHelper.LogValidator.Core
                 engineContexts.Add(new ScenarioBuildContext(eval));
             }
 
-            // 💡 [단일 패스 루프] 로그 전체 1회 순회 O(N)
             foreach (var log in rawLogs)
             {
                 foreach (var ctx in engineContexts)
-                {
                     ProcessLog(ctx, log);
-                }
             }
 
-            // 💡 [로그 종료 가드] 끝까지 읽었는데 진행 중인 잔여 사이클 → 실패 처리
             var lastLog = rawLogs[rawLogs.Count - 1];
             foreach (var ctx in engineContexts)
             {
@@ -52,27 +46,35 @@ namespace GateHelper.LogValidator.Core
 
         private void ProcessLog(ScenarioBuildContext ctx, RawLogModel log)
         {
-            var targetStep = ctx.Master.Steps[ctx.Master.CurrentStepIndex];
-            string regexPattern = BuildRegexPattern(targetStep.MaskingPattern);
+            if (ctx.Master.CurrentStepIndex >= ctx.Master.Steps.Count) return;
 
-            // 💡 타임아웃 체크: 이전 스텝 매칭 후 현재 스텝까지 허용 시간 초과 여부 확인
-            // (사이클 진행 중이고, 이전 스텝에 타임아웃이 설정된 경우에만 검사)
+            var targetStep = ctx.Master.Steps[ctx.Master.CurrentStepIndex];
+
+            // ── 타임아웃 체크 ──────────────────────────────────────────
             if (ctx.Master.CurrentStepIndex > 0 && ctx.LastMatchedTime != DateTime.MinValue)
             {
-                var prevStep = ctx.Master.Steps[ctx.Master.CurrentStepIndex - 1];
-                if (prevStep.TimeoutSeconds > 0)
+                // AND 그룹 진행 중이면 그룹의 첫 스텝 기준 Timeout 사용
+                ScenarioStepModel timeoutRef;
+                if (ctx.ActiveGroupId > 0)
+                {
+                    // AND 그룹 시작 직전 스텝의 Timeout
+                    int groupFirstIdx = ctx.Master.Steps.FindIndex(s => s.GroupId == ctx.ActiveGroupId);
+                    timeoutRef = groupFirstIdx > 0 ? ctx.Master.Steps[groupFirstIdx - 1] : null;
+                }
+                else
+                {
+                    timeoutRef = ctx.Master.Steps[ctx.Master.CurrentStepIndex - 1];
+                }
+
+                if (timeoutRef != null && timeoutRef.TimeoutSeconds > 0)
                 {
                     double elapsed = (log.LogTime - ctx.LastMatchedTime).TotalSeconds;
-
-                    // 💡 음수 방어: 로그 시간 역전(병합 오류) 또는 파싱 실패 시 타임아웃 체크 스킵
-                    if (elapsed >= 0 && elapsed > prevStep.TimeoutSeconds)
+                    if (elapsed >= 0 && elapsed > timeoutRef.TimeoutSeconds)
                     {
-                        // 타임아웃 초과 → 현재 사이클 실패 처리
-                        DumpTimeoutCycle(ctx, log.LineNo, log.SourceFileName, prevStep, elapsed);
+                        DumpTimeoutCycle(ctx, log.LineNo, log.SourceFileName, timeoutRef, elapsed);
 
-                        // 이 로그가 첫 스텝과 일치하면 새 사이클로 즉시 전환
-                        string restartPattern = BuildRegexPattern(ctx.Master.Steps[0].MaskingPattern);
-                        if (Regex.IsMatch(log.LogMessage, restartPattern))
+                        string restartPat = BuildRegexPattern(ctx.Master.Steps[0].MaskingPattern);
+                        if (Regex.IsMatch(log.LogMessage, restartPat))
                         {
                             ctx.CurrentCycleStartLine = log.LineNo;
                             ctx.CurrentCycleStartSource = log.SourceFileName;
@@ -85,9 +87,56 @@ namespace GateHelper.LogValidator.Core
                 }
             }
 
+            // ── AND 그룹 진행 중 ───────────────────────────────────────
+            // 현재 대기 중인 스텝이 AND 그룹에 속하면, 그룹 내 남은 패턴 중 하나라도 매칭되면 제거
+            if (ctx.ActiveGroupId > 0)
+            {
+                bool matchedAny = false;
+                foreach (var pattern in ctx.PendingGroupPatterns.ToList())
+                {
+                    if (Regex.IsMatch(log.LogMessage, BuildRegexPattern(pattern.MaskingPattern)))
+                    {
+                        ctx.PendingGroupPatterns.Remove(pattern);
+                        ctx.ActiveMatchedLines.Add((log.LineNo, log.SourceFileName));
+                        ctx.LastMatchedTime = log.LogTime;
+                        matchedAny = true;
+                        break; // 한 로그 당 하나의 패턴만 소비
+                    }
+                }
+
+                if (matchedAny)
+                {
+                    // 그룹 내 모든 패턴 수신 완료 → 다음 스텝으로
+                    if (ctx.PendingGroupPatterns.Count == 0)
+                    {
+                        ctx.ActiveGroupId = 0;
+                        ctx.Master.CurrentStepIndex++;
+                        if (ctx.Master.CurrentStepIndex >= ctx.Master.Steps.Count)
+                            DumpSuccessCycle(ctx, log.LineNo, log.SourceFileName);
+                    }
+                    return;
+                }
+
+                // AND 그룹 진행 중 첫 스텝이 재등장 → 그룹 실패, 새 사이클 시작
+                string restartPat2 = BuildRegexPattern(ctx.Master.Steps[0].MaskingPattern);
+                if (Regex.IsMatch(log.LogMessage, restartPat2))
+                {
+                    DumpFailedCycle(ctx, log.LineNo - 1, log.SourceFileName);
+                    ctx.CurrentCycleStartLine = log.LineNo;
+                    ctx.CurrentCycleStartSource = log.SourceFileName;
+                    ctx.LastMatchedTime = log.LogTime;
+                    ctx.Master.CurrentStepIndex = 1;
+                    ctx.ActiveGroupId = 0;
+                    ctx.PendingGroupPatterns.Clear();
+                }
+                return;
+            }
+
+            // ── 일반 스텝 처리 ────────────────────────────────────────
+            string regexPattern = BuildRegexPattern(targetStep.MaskingPattern);
+
             if (Regex.IsMatch(log.LogMessage, regexPattern))
             {
-                // 💡 새 사이클 시작 시 시작 위치(LineNo + SourceFileName) 기록
                 if (ctx.Master.CurrentStepIndex == 0)
                 {
                     ctx.CurrentCycleStartLine = log.LineNo;
@@ -99,27 +148,42 @@ namespace GateHelper.LogValidator.Core
                 ctx.LastMatchedTime = log.LogTime;
                 ctx.Master.CurrentStepIndex++;
 
+                // 💡 다음 스텝이 AND 그룹이면 그룹 모드 진입
+                if (ctx.Master.CurrentStepIndex < ctx.Master.Steps.Count)
+                {
+                    var nextStep = ctx.Master.Steps[ctx.Master.CurrentStepIndex];
+                    if (nextStep.GroupId > 0)
+                    {
+                        ctx.ActiveGroupId = nextStep.GroupId;
+                        ctx.PendingGroupPatterns = ctx.Master.Steps
+                            .Where(s => s.GroupId == nextStep.GroupId)
+                            .ToList();
+                        // AND 그룹의 스텝 인덱스는 그룹 마지막 스텝 다음으로 건너뜀
+                        int lastGroupIdx = ctx.Master.Steps.FindLastIndex(s => s.GroupId == nextStep.GroupId);
+                        ctx.Master.CurrentStepIndex = lastGroupIdx + 1;
+                        return;
+                    }
+                }
+
                 if (ctx.Master.CurrentStepIndex >= ctx.Master.Steps.Count)
                     DumpSuccessCycle(ctx, log.LineNo, log.SourceFileName);
             }
             else if (ctx.Master.CurrentStepIndex > 0)
             {
-                // 💡 Optional 스텝 처리: 현재 대기 중인 스텝이 Optional이면 스킵하고 다음 스텝과 재비교
+                // 💡 Optional 스텝 처리
                 while (ctx.Master.CurrentStepIndex < ctx.Master.Steps.Count &&
                        ctx.Master.Steps[ctx.Master.CurrentStepIndex].IsOptional)
                 {
                     ctx.Master.CurrentStepIndex++;
 
-                    // Optional 스텝을 건너뛴 후 마지막 스텝까지 도달하면 SUCCESS
                     if (ctx.Master.CurrentStepIndex >= ctx.Master.Steps.Count)
                     {
                         DumpSuccessCycle(ctx, log.LineNo, log.SourceFileName);
                         return;
                     }
 
-                    // 스킵 후 현재 로그가 다음 스텝과 일치하는지 재비교
-                    string nextPattern = BuildRegexPattern(ctx.Master.Steps[ctx.Master.CurrentStepIndex].MaskingPattern);
-                    if (Regex.IsMatch(log.LogMessage, nextPattern))
+                    string nextPat = BuildRegexPattern(ctx.Master.Steps[ctx.Master.CurrentStepIndex].MaskingPattern);
+                    if (Regex.IsMatch(log.LogMessage, nextPat))
                     {
                         ctx.ActiveMatchedLines.Add((log.LineNo, log.SourceFileName));
                         ctx.LastMatchedTime = log.LogTime;
@@ -131,7 +195,7 @@ namespace GateHelper.LogValidator.Core
                     }
                 }
 
-                // 진행 중인 사이클이 있는데 첫 스텝이 다시 나타나면 → 기존 사이클 실패, 새 사이클 시작
+                // 첫 스텝 재등장 → 기존 사이클 실패, 새 사이클 시작
                 string restartPattern = BuildRegexPattern(ctx.Master.Steps[0].MaskingPattern);
                 if (Regex.IsMatch(log.LogMessage, restartPattern))
                 {
@@ -162,20 +226,34 @@ namespace GateHelper.LogValidator.Core
 
             ctx.ActiveMatchedLines.Clear();
             ctx.LastMatchedTime = DateTime.MinValue;
+            ctx.ActiveGroupId = 0;
+            ctx.PendingGroupPatterns.Clear();
             ctx.Master.CurrentStepIndex = 0;
         }
 
         private void DumpFailedCycle(ScenarioBuildContext ctx, int endLineNo, string endSource)
         {
             ctx.TotalCount++;
-            var missingStep = ctx.Master.Steps[ctx.Master.CurrentStepIndex];
+
+            string failMsg;
+            if (ctx.ActiveGroupId > 0 && ctx.PendingGroupPatterns.Count > 0)
+            {
+                // AND 그룹 실패 — 어떤 신호가 미수신인지 표시
+                var missing = string.Join(", ", ctx.PendingGroupPatterns.Select(s => s.EventName));
+                failMsg = $"[AND GROUP] Missing signal(s) in group {ctx.ActiveGroupId}: {missing}";
+            }
+            else
+            {
+                var missingStep = ctx.Master.Steps[Math.Min(ctx.Master.CurrentStepIndex, ctx.Master.Steps.Count - 1)];
+                failMsg = $"Step {ctx.Master.CurrentStepIndex + 1} ({missingStep.EventName}) missing or out of order.";
+            }
 
             ctx.Master.StepReports.Add(new StepValidationReport
             {
                 StepDisplayHeader = $"❌ Cycle {ctx.TotalCount} (Line {ctx.CurrentCycleStartLine} ~ {endLineNo})",
                 StepStatus = "FAILED",
                 StepProgress = $"{ctx.Master.CurrentStepIndex} / {ctx.Master.Steps.Count}",
-                StepMessage = $"Step {ctx.Master.CurrentStepIndex + 1} ({missingStep.EventName}) missing or out of order.",
+                StepMessage = failMsg,
                 StartLineNo = ctx.CurrentCycleStartLine,
                 StartSourceFileName = ctx.CurrentCycleStartSource,
                 MatchedLineNumbers = new List<(int, string)>(ctx.ActiveMatchedLines)
@@ -183,15 +261,16 @@ namespace GateHelper.LogValidator.Core
 
             ctx.ActiveMatchedLines.Clear();
             ctx.LastMatchedTime = DateTime.MinValue;
+            ctx.ActiveGroupId = 0;
+            ctx.PendingGroupPatterns.Clear();
             ctx.Master.CurrentStepIndex = 0;
         }
 
-        // 💡 타임아웃 초과 실패 - 어느 스텝에서 몇 초 초과했는지 메시지에 명시
         private void DumpTimeoutCycle(ScenarioBuildContext ctx, int endLineNo, string endSource,
             ScenarioStepModel timedOutStep, double elapsedSeconds)
         {
             ctx.TotalCount++;
-            var nextStep = ctx.Master.Steps[ctx.Master.CurrentStepIndex];
+            var nextStep = ctx.Master.Steps[Math.Min(ctx.Master.CurrentStepIndex, ctx.Master.Steps.Count - 1)];
 
             ctx.Master.StepReports.Add(new StepValidationReport
             {
@@ -199,7 +278,7 @@ namespace GateHelper.LogValidator.Core
                 StepStatus = "FAILED",
                 StepProgress = $"{ctx.Master.CurrentStepIndex} / {ctx.Master.Steps.Count}",
                 StepMessage = $"[TIMEOUT] {timedOutStep.EventName}: {elapsedSeconds:F1}s exceeded " +
-                              $"(allowed: {timedOutStep.TimeoutSeconds}s) — {nextStep.EventName} not received.",
+                               $"(allowed: {timedOutStep.TimeoutSeconds}s) — {nextStep.EventName} not received.",
                 StartLineNo = ctx.CurrentCycleStartLine,
                 StartSourceFileName = ctx.CurrentCycleStartSource,
                 MatchedLineNumbers = new List<(int, string)>(ctx.ActiveMatchedLines)
@@ -207,6 +286,8 @@ namespace GateHelper.LogValidator.Core
 
             ctx.ActiveMatchedLines.Clear();
             ctx.LastMatchedTime = DateTime.MinValue;
+            ctx.ActiveGroupId = 0;
+            ctx.PendingGroupPatterns.Clear();
             ctx.Master.CurrentStepIndex = 0;
         }
 
@@ -224,10 +305,15 @@ namespace GateHelper.LogValidator.Core
             public int SuccessCount { get; set; }
             public int CurrentCycleStartLine { get; set; }
             public string CurrentCycleStartSource { get; set; }
-            public DateTime LastMatchedTime { get; set; } = DateTime.MinValue; // 💡 타임아웃 계산 기준점
+            public DateTime LastMatchedTime { get; set; } = DateTime.MinValue;
 
-            // 💡 (LineNo, SourceFileName) 쌍으로 저장 - 파일 간 LineNo 충돌 방지
-            public List<(int LineNo, string SourceFileName)> ActiveMatchedLines { get; } = new List<(int, string)>();
+            // 💡 AND 그룹 처리용 상태
+            // ActiveGroupId > 0이면 해당 그룹 내 신호를 순서 무관 대기 중
+            public int ActiveGroupId { get; set; } = 0;
+            public List<ScenarioStepModel> PendingGroupPatterns { get; set; } = new List<ScenarioStepModel>();
+
+            public List<(int LineNo, string SourceFileName)> ActiveMatchedLines { get; }
+                = new List<(int, string)>();
 
             public ScenarioBuildContext(ScenarioEvaluator master) { Master = master; }
         }
