@@ -43,8 +43,8 @@ namespace GateHelper.LogValidator.Core
                     ? EvaluationResultStatus.SUCCESS
                     : EvaluationResultStatus.FAILED;
 
-                ctx.Master.Progress = $"성공 {ctx.SuccessCount}건 / 총 {ctx.TotalCount}건";
-                ctx.Master.Message = $"로그 전체 영역 내에서 총 {ctx.TotalCount}회 발생 시퀀스가 검측정되었습니다.";
+                ctx.Master.Progress = $"{ctx.SuccessCount} / {ctx.TotalCount} PASSED";
+                ctx.Master.Message = $"Total {ctx.TotalCount} cycle(s) detected in log.";
             }
 
             return evaluators;
@@ -154,7 +154,7 @@ namespace GateHelper.LogValidator.Core
                 StepDisplayHeader = $"🔄 Cycle {ctx.TotalCount} (Line {ctx.CurrentCycleStartLine} ~ {endLineNo})",
                 StepStatus = "SUCCESS",
                 StepProgress = $"{ctx.Master.Steps.Count} / {ctx.Master.Steps.Count}",
-                StepMessage = "해당 회차의 모든 통신 시퀀스가 무결하게 검측정 완료되었습니다.",
+                StepMessage = "All steps completed successfully.",
                 StartLineNo = ctx.CurrentCycleStartLine,
                 StartSourceFileName = ctx.CurrentCycleStartSource,
                 MatchedLineNumbers = new List<(int, string)>(ctx.ActiveMatchedLines)
@@ -175,7 +175,7 @@ namespace GateHelper.LogValidator.Core
                 StepDisplayHeader = $"❌ Cycle {ctx.TotalCount} (Line {ctx.CurrentCycleStartLine} ~ {endLineNo})",
                 StepStatus = "FAILED",
                 StepProgress = $"{ctx.Master.CurrentStepIndex} / {ctx.Master.Steps.Count}",
-                StepMessage = $"스텝 {ctx.Master.CurrentStepIndex + 1} ({missingStep.EventName}) 누락 혹은 순서 이탈 불량 발생.",
+                StepMessage = $"Step {ctx.Master.CurrentStepIndex + 1} ({missingStep.EventName}) missing or out of order.",
                 StartLineNo = ctx.CurrentCycleStartLine,
                 StartSourceFileName = ctx.CurrentCycleStartSource,
                 MatchedLineNumbers = new List<(int, string)>(ctx.ActiveMatchedLines)
@@ -198,8 +198,8 @@ namespace GateHelper.LogValidator.Core
                 StepDisplayHeader = $"⏱ Cycle {ctx.TotalCount} (Line {ctx.CurrentCycleStartLine} ~ {endLineNo})",
                 StepStatus = "FAILED",
                 StepProgress = $"{ctx.Master.CurrentStepIndex} / {ctx.Master.Steps.Count}",
-                StepMessage = $"[TIMEOUT] {timedOutStep.EventName} 후 {elapsedSeconds:F1}초 경과 " +
-                              $"(허용: {timedOutStep.TimeoutSeconds}초) — 다음 스텝 {nextStep.EventName} 미수신.",
+                StepMessage = $"[TIMEOUT] {timedOutStep.EventName}: {elapsedSeconds:F1}s exceeded " +
+                              $"(allowed: {timedOutStep.TimeoutSeconds}s) — {nextStep.EventName} not received.",
                 StartLineNo = ctx.CurrentCycleStartLine,
                 StartSourceFileName = ctx.CurrentCycleStartSource,
                 MatchedLineNumbers = new List<(int, string)>(ctx.ActiveMatchedLines)

@@ -33,6 +33,10 @@ namespace GateHelper.LogValidator
         private FlowLayoutPanel _fileTagContainer;
         private bool _fileListExpanded = false;
 
+        // 💡 유닛 필터 캐시: 드롭 시 UnitID별 로그를 미리 그룹화해두고 선택 시 탭 생성에 활용
+        private Dictionary<string, List<RawLogModel>> _unitGroupCache = new Dictionary<string, List<RawLogModel>>();
+        private Button _btnUnitFilter;
+
         // 💡 우측 메뉴 패널 슬라이드 토글용 필드
         private Button _btnSideToggle;
         private bool _sidePanelVisible = false;
@@ -110,24 +114,22 @@ namespace GateHelper.LogValidator
                     return;
                 }
 
-                // 선택된 날짜 + 시간 조합으로 DateTime 생성
                 DateTime selectedDate = (DateTime)cmbDateFilter.SelectedItem;
                 TimeSpan selectedTime = dtpTimeJump.Value.TimeOfDay;
                 DateTime target = selectedDate.Date + selectedTime;
 
-                // 💡 target과 가장 가까운 로그 행 탐색 (날짜+시간 모두 비교)
+                // 💡 현재 활성 탭의 로그 목록에서 탐색 (유닛탭이면 해당 유닛 로그만)
+                var activeList = GetActiveLogList();
+                var activeGrid = GetActiveGrid();
+
                 RawLogModel closest = null;
                 TimeSpan minDiff = TimeSpan.MaxValue;
 
-                foreach (var log in _validatorRawLogList)
+                foreach (var log in activeList)
                 {
                     if (log.LogTime == DateTime.MinValue) continue;
                     TimeSpan diff = (log.LogTime - target).Duration();
-                    if (diff < minDiff)
-                    {
-                        minDiff = diff;
-                        closest = log;
-                    }
+                    if (diff < minDiff) { minDiff = diff; closest = log; }
                 }
 
                 if (closest == null)
@@ -137,13 +139,14 @@ namespace GateHelper.LogValidator
                     return;
                 }
 
-                int idx = _validatorRawLogList.IndexOf(closest);
-                olvValidatorRawLog.SelectedObject = closest;
-                olvValidatorRawLog.TopItemIndex = Math.Max(0, idx - 3);
-                olvValidatorRawLog.EnsureVisible(idx);
-                olvValidatorRawLog.Focus();
+                int idx = activeList.IndexOf(closest);
+                activeGrid.SelectedObject = closest;
 
-                // 💡 점프 성공 시각 피드백: 해당 행을 잠깐 깜빡여서 "여기로 이동했다"는 걸 명확히 알림
+                int visibleRows = activeGrid.Height / Math.Max(1, activeGrid.RowHeightEffective);
+                int centeredTop = idx - (visibleRows / 2);
+                activeGrid.TopItemIndex = Math.Max(0, centeredTop);
+                activeGrid.Focus();
+
                 FlashJumpedRow(closest);
             };
         }
@@ -157,29 +160,30 @@ namespace GateHelper.LogValidator
         /// </summary>
         private void FlashJumpedRow(RawLogModel targetRow)
         {
-            var flashColor = System.Drawing.Color.FromArgb(255, 140, 0); // 진한 주황 - 선택 강조색으로도 잘 보이게
-            var normalColor = olvValidatorRawLog.BackColor;
+            // 💡 현재 활성 탭의 그리드에 깜빡임 적용
+            var activeGrid = GetActiveGrid();
 
-            // 💡 깜빡이기 전의 RowFormatter + 선택 강조색을 백업
-            var previousFormatter = olvValidatorRawLog.RowFormatter;
-            bool hadCustomHighlight = olvValidatorRawLog.UseCustomSelectionColors;
-            var previousHighlightBack = olvValidatorRawLog.SelectedBackColor;
-            var previousHighlightFore = olvValidatorRawLog.SelectedForeColor;
+            var flashColor = System.Drawing.Color.FromArgb(255, 140, 0);
+            var normalColor = activeGrid.BackColor;
+
+            var previousFormatter = activeGrid.RowFormatter;
+            bool hadCustomHighlight = activeGrid.UseCustomSelectionColors;
+            var previousHighlightBack = activeGrid.SelectedBackColor;
+            var previousHighlightFore = activeGrid.SelectedForeColor;
 
             int blinkCount = 0;
-            const int MAX_BLINKS = 4; // on/off 합쳐서 4번 = 2회 점멸
+            const int MAX_BLINKS = 4;
 
             var timer = new System.Windows.Forms.Timer { Interval = 150 };
             timer.Tick += (s, e) =>
             {
                 bool isOn = (blinkCount % 2 == 0);
 
-                // 💡 선택된 행이 파란색 대신 주황색으로 보이도록 강제
-                olvValidatorRawLog.UseCustomSelectionColors = true;
-                olvValidatorRawLog.SelectedBackColor = isOn ? flashColor : normalColor;
-                olvValidatorRawLog.SelectedForeColor = System.Drawing.Color.Black;
+                activeGrid.UseCustomSelectionColors = true;
+                activeGrid.SelectedBackColor = isOn ? flashColor : normalColor;
+                activeGrid.SelectedForeColor = System.Drawing.Color.Black;
 
-                olvValidatorRawLog.RowFormatter = row =>
+                activeGrid.RowFormatter = row =>
                 {
                     if (row.RowObject == targetRow)
                     {
@@ -188,11 +192,10 @@ namespace GateHelper.LogValidator
                     }
                     else
                     {
-                        // 💡 다른 행들은 이전 포맷터 규칙을 그대로 유지 (검증 하이라이팅 보존)
                         previousFormatter?.Invoke(row);
                     }
                 };
-                olvValidatorRawLog.BuildList(true);
+                activeGrid.BuildList(true);
 
                 blinkCount++;
                 if (blinkCount >= MAX_BLINKS)
@@ -200,12 +203,11 @@ namespace GateHelper.LogValidator
                     timer.Stop();
                     timer.Dispose();
 
-                    // 💡 깜빡임 종료 후 선택색과 RowFormatter를 원래 상태로 완전 복원
-                    olvValidatorRawLog.UseCustomSelectionColors = hadCustomHighlight;
-                    olvValidatorRawLog.SelectedBackColor = previousHighlightBack;
-                    olvValidatorRawLog.SelectedForeColor = previousHighlightFore;
-                    olvValidatorRawLog.RowFormatter = previousFormatter;
-                    olvValidatorRawLog.BuildList(true);
+                    activeGrid.UseCustomSelectionColors = hadCustomHighlight;
+                    activeGrid.SelectedBackColor = previousHighlightBack;
+                    activeGrid.SelectedForeColor = previousHighlightFore;
+                    activeGrid.RowFormatter = previousFormatter;
+                    activeGrid.BuildList(true);
                 }
             };
             timer.Start();
@@ -430,20 +432,52 @@ namespace GateHelper.LogValidator
         }
 
         // 💡 핫키 및 더블클릭 공통 로직 추출
+        /// <summary>
+        /// 현재 사용자가 보고 있는 탭의 그리드를 반환합니다.
+        /// 유닛 탭이 선택된 경우 해당 탭의 그리드를, 전체탭이면 olvValidatorRawLog를 반환합니다.
+        /// 텍스트 필터, 하이라이팅, Time Jump 등 모든 그리드 조작에 이 메서드를 통해 일관되게 적용합니다.
+        /// </summary>
+        private ObjectListView GetActiveGrid()
+        {
+            if (tabControl1.SelectedIndex > 0 && tabControl1.SelectedTab != null)
+            {
+                var subGrid = tabControl1.SelectedTab.Controls.OfType<ObjectListView>().FirstOrDefault();
+                if (subGrid != null) return subGrid;
+            }
+            return olvValidatorRawLog;
+        }
+
+        /// <summary>
+        /// 현재 활성 그리드에서 표시 중인 로그 목록을 반환합니다.
+        /// 유닛 탭이면 해당 유닛의 캐시 데이터를, 전체탭이면 전체 로그를 반환합니다.
+        /// </summary>
+        private List<RawLogModel> GetActiveLogList()
+        {
+            if (tabControl1.SelectedIndex > 0 && tabControl1.SelectedTab != null)
+            {
+                string unitId = tabControl1.SelectedTab.Text;
+                if (_unitGroupCache.ContainsKey(unitId))
+                    return _unitGroupCache[unitId];
+            }
+            return _validatorRawLogList;
+        }
+
         private void PerformLogTracking(StepValidationReport childReport)
         {
             if (childReport == null || childReport.StartLineNo <= 0) return;
 
             _currentSelectedStartLineNo = childReport.StartLineNo;
 
-            // 💡 (LineNo, SourceFileName) 쌍으로 HashSet 구성 - 파일명이 달라도 같은 LineNo면 오하이라이팅되던 버그 수정
             var matchedLinesSet = new HashSet<(int, string)>(childReport.MatchedLineNumbers ?? new List<(int, string)>());
 
-            // 시작 로그 탐색: LineNo + SourceFileName 모두 일치해야 정확한 위치
+            // 💡 현재 활성 탭의 그리드와 로그 목록 기준으로 탐색
+            var activeGrid = GetActiveGrid();
+            var activeList = GetActiveLogList();
+
             int targetJumpIndex = -1;
-            for (int i = 0; i < _validatorRawLogList.Count; i++)
+            for (int i = 0; i < activeList.Count; i++)
             {
-                var l = _validatorRawLogList[i];
+                var l = activeList[i];
                 if (l != null && l.LineNo == childReport.StartLineNo && l.SourceFileName == childReport.StartSourceFileName)
                 {
                     targetJumpIndex = i;
@@ -451,25 +485,44 @@ namespace GateHelper.LogValidator
                 }
             }
 
+            // 💡 현재 탭에서 매칭 행이 없으면 전체탭으로 자동 전환 후 재탐색
+            if (targetJumpIndex == -1 && tabControl1.SelectedIndex > 0)
+            {
+                tabControl1.SelectedIndex = 0;
+                activeGrid = olvValidatorRawLog;
+                activeList = _validatorRawLogList;
+
+                for (int i = 0; i < activeList.Count; i++)
+                {
+                    var l = activeList[i];
+                    if (l != null && l.LineNo == childReport.StartLineNo && l.SourceFileName == childReport.StartSourceFileName)
+                    {
+                        targetJumpIndex = i;
+                        break;
+                    }
+                }
+            }
+
             if (targetJumpIndex != -1)
             {
-                olvValidatorRawLog.SelectedObject = null;
-                olvValidatorRawLog.TopItemIndex = Math.Max(0, targetJumpIndex - 3);
-                olvValidatorRawLog.EnsureVisible(targetJumpIndex);
+                activeGrid.SelectedObject = null;
 
-                olvValidatorRawLog.RowFormatter = rowObject =>
+                activeGrid.RowFormatter = rowObject =>
                 {
                     var logModel = rowObject.RowObject as RawLogModel;
                     if (logModel != null)
                     {
-                        // 💡 LineNo + SourceFileName 동시 비교로 다른 파일의 같은 LineNo 오하이라이팅 방지
                         bool isMatched = matchedLinesSet.Contains((logModel.LineNo, logModel.SourceFileName));
-
-                        rowObject.BackColor = isMatched ? System.Drawing.Color.FromArgb(255, 243, 205) : olvValidatorRawLog.BackColor;
-                        rowObject.ForeColor = isMatched ? System.Drawing.Color.Black : olvValidatorRawLog.ForeColor;
+                        rowObject.BackColor = isMatched ? System.Drawing.Color.FromArgb(255, 243, 205) : activeGrid.BackColor;
+                        rowObject.ForeColor = isMatched ? System.Drawing.Color.Black : activeGrid.ForeColor;
                     }
                 };
-                olvValidatorRawLog.Refresh();
+
+                activeGrid.BuildList(true);
+
+                int visibleRows = activeGrid.Height / Math.Max(1, activeGrid.RowHeightEffective);
+                int centeredTop = targetJumpIndex - (visibleRows / 2);
+                activeGrid.TopItemIndex = Math.Max(0, centeredTop);
             }
         }
 
@@ -707,6 +760,30 @@ namespace GateHelper.LogValidator
             // tabPage1 크기 변경 시 레이아웃 재계산 (폼 리사이즈 대응)
             tabPage1.SizeChanged += (s, e) => recalcLayout();
 
+            // 💡 Unit Filter 버튼: _fileListPanel 오른쪽 끝에 배치
+            // 클릭 시 ContextMenuStrip으로 UnitID 목록 표시
+            _btnUnitFilter = new Button
+            {
+                Text = "+ Unit Filter ▼",
+                Font = new System.Drawing.Font("Malgun Gothic", 8.5f),
+                Height = TOGGLE_HEIGHT,
+                FlatStyle = FlatStyle.Flat,
+                BackColor = System.Drawing.Color.FromArgb(55, 90, 160),
+                ForeColor = System.Drawing.Color.White,
+                Cursor = Cursors.Hand,
+                Dock = DockStyle.Right,
+                Width = 120,
+                Enabled = false, // 로그 드롭 전엔 비활성
+            };
+            _btnUnitFilter.FlatAppearance.BorderSize = 0;
+            _btnUnitFilter.Click += (s, e) =>
+            {
+                // 버튼 바로 아래에 드롭다운 표시
+                _btnUnitFilter.ContextMenuStrip?.Show(
+                    _btnUnitFilter, 0, _btnUnitFilter.Height);
+            };
+            _fileListPanel.Controls.Add(_btnUnitFilter);
+
             tabPage1.Controls.Add(_fileListPanel);
             tabPage1.Controls.Add(olvValidatorRawLog);
 
@@ -795,6 +872,14 @@ namespace GateHelper.LogValidator
 
             // 날짜 콤보박스 초기화
             cmbDateFilter.Items.Clear();
+
+            // 💡 유닛 캐시 초기화 및 Unit Filter 버튼 비활성화
+            _unitGroupCache.Clear();
+            if (_btnUnitFilter != null)
+            {
+                _btnUnitFilter.Enabled = false;
+                _btnUnitFilter.ContextMenuStrip = null;
+            }
 
             // 파일 목록 패널 접기
             _fileListExpanded = false;
@@ -970,91 +1055,162 @@ namespace GateHelper.LogValidator
         }
 
         /// <summary>
-        /// 파일 드롭 완료 후 호출되어 탭과 그리드를 유닛별로 찢어발겨 분배하는 통합 제어 메커니즘
+        /// 파일 드롭 완료 후 UnitID를 추출해 캐시에 저장합니다.
+        /// 탭은 자동 생성하지 않고 Unit Filter 버튼으로 원하는 유닛만 선택해서 추가합니다.
         /// </summary>
         private void BuildUnitTabsAndGrids(List<RawLogModel> totalLogs)
         {
             if (totalLogs == null || totalLogs.Count == 0) return;
 
-            // 0. 스캔 시작 전 정규식 패턴을 최신 세팅 사양으로 동적 리로드
             BuildDynamicRegexPattern();
 
-            // UI 대량 갱신 시 깜빡임 및 렌더링 병목을 방지하기 위한 레이아웃 가드 개시
-            tabControl1.SuspendLayout();
-
-            // 1. [초기화 인터락] 첫 번째 탭(index 0: [전체/tabPage1])을 제외한 기존의 모든 동적 유닛 탭 서브셋 축출
+            // 기존 유닛 탭 제거 (tabPage1 제외)
             while (tabControl1.TabPages.Count > 1)
-            {
                 tabControl1.TabPages.RemoveAt(1);
-            }
 
-            // 2. [고속 1회 스캔] 단 한 번의 루프로 각 로그 행의 본문에서 유닛 ID를 추출하여 매핑
+            // 💡 UnitID 추출 - 캐시에만 저장, 탭은 자동 생성하지 않음
             foreach (var log in totalLogs)
             {
-                if (string.IsNullOrEmpty(log.LogMessage))
-                {
-                    log.UnitID = "SYSTEM";
-                    continue;
-                }
-
+                if (string.IsNullOrEmpty(log.LogMessage)) { log.UnitID = "SYSTEM"; continue; }
                 Match match = _dynamicUnitRegex.Match(log.LogMessage);
-                if (match.Success)
-                {
-                    log.UnitID = match.Value.ToUpper(); // J1FCNV12301-107 형태로 락인
-                }
-                else
-                {
-                    log.UnitID = "SYSTEM"; // 설비 코드가 없는 공통 시스템 로그 분류
-                }
+                log.UnitID = match.Success ? match.Value.ToUpper() : "SYSTEM";
             }
 
-            // 3. [LINQ GroupBy 고속 격리] UnitID 별로 데이터 서브셋 그룹화 연산 및 정렬
-            var unitGroups = totalLogs.GroupBy(l => l.UnitID).OrderBy(g => g.Key);
+            // 💡 UnitID별 그룹을 캐시에 저장 (Unit Filter 버튼 클릭 시 꺼내 쓸 데이터)
+            _unitGroupCache = totalLogs
+                .GroupBy(l => l.UnitID)
+                .OrderBy(g => g.Key)
+                .ToDictionary(g => g.Key, g => g.ToList());
 
-            // 4. [동적 UI 이식 시퀀스] 그룹별로 TabPage와 ObjectListView 그리드를 실시간 생성하여 Fill 바인딩
-            foreach (var group in unitGroups)
-            {
-                string unitName = group.Key;
-                List<RawLogModel> groupData = group.ToList();
+            // Unit Filter 버튼 활성화 및 드롭다운 갱신
+            RefreshUnitFilterButton();
 
-                // 탭 페이지 생성 및 기본 흰색 도색
-                TabPage newPage = new TabPage(unitName);
-                newPage.BackColor = System.Drawing.Color.White;
-
-                // 💡 [순정 호환 런타임 New 인스턴스] 동적 ObjectListView 레이아웃 락인
-                ObjectListView unitGrid = new ObjectListView();
-                unitGrid.Dock = DockStyle.Fill;
-                unitGrid.View = View.Details;
-                unitGrid.FullRowSelect = true;
-                unitGrid.GridLines = true;
-                unitGrid.Font = olvValidatorRawLog.Font; // 메인 그리드와 폰트 통일
-                unitGrid.ShowItemToolTips = false;
-                unitGrid.ShowGroups = false; // 파란색 그룹화 제거
-
-                // 마스터 그리드(olvValidatorRawLog)에 설정되어 있는 정교한 컬럼 구조(Line, Log Message)를 그대로 이식
-                foreach (OLVColumn col in olvValidatorRawLog.Columns)
-                {
-                    OLVColumn newCol = new OLVColumn(col.Text, col.AspectName);
-                    newCol.Width = col.Width;
-                    newCol.TextAlign = col.TextAlign;
-                    unitGrid.AllColumns.Add(newCol);
-                }
-                unitGrid.RebuildColumns();
-
-                // 이 유닛 그룹에 해당하는 데이터셋 바인딩 수송
-                unitGrid.BeginUpdate();
-                unitGrid.SetObjects(groupData);
-                unitGrid.EndUpdate();
-
-                // 동적으로 생성한 그리드를 탭에 얹고, 그 탭을 좌측 메인 탭컨트롤에 최종 연동 결합
-                newPage.Controls.Add(unitGrid);
-                tabControl1.TabPages.Add(newPage);
-            }
-            // 💡 [여기에 연동 호출부 삽입]: 탭 분할이 완결된 직후 변칙 탐지 엔진을 돌립니다.
             RunAnomalyDetectionEngine(totalLogs);
+        }
 
-            // 모든 UI 결합 공정 완료 후 레이아웃 락 해제 및 최종 출력
-            tabControl1.ResumeLayout();
+        /// <summary>
+        /// Unit Filter 버튼 드롭다운을 현재 캐시 기준으로 갱신합니다.
+        /// 이미 탭이 열려있는 유닛은 체크 표시로 구분합니다.
+        /// </summary>
+        private void RefreshUnitFilterButton()
+        {
+            if (_btnUnitFilter == null) return;
+
+            _btnUnitFilter.Enabled = _unitGroupCache.Count > 0;
+
+            var cms = new ContextMenuStrip();
+
+            foreach (var unitId in _unitGroupCache.Keys)
+            {
+                bool alreadyOpen = tabControl1.TabPages.Cast<TabPage>()
+                    .Any(tp => tp.Text == unitId);
+
+                string label = (alreadyOpen ? "✓ " : "    ") + unitId +
+                               $"  ({_unitGroupCache[unitId].Count}줄)";
+
+                var item = new ToolStripMenuItem(label);
+                item.Tag = unitId;
+                item.Checked = alreadyOpen;
+                item.Font = new System.Drawing.Font("Malgun Gothic", 9f);
+
+                item.Click += (s, e) =>
+                {
+                    string uid = (string)((ToolStripMenuItem)s).Tag;
+                    if (alreadyOpen)
+                    {
+                        // 💡 이미 열려있으면 제거
+                        var existing = tabControl1.TabPages.Cast<TabPage>()
+                            .FirstOrDefault(tp => tp.Text == uid);
+                        if (existing != null)
+                            tabControl1.TabPages.Remove(existing);
+                    }
+                    else
+                    {
+                        AddUnitTab(uid);
+                    }
+                    RefreshUnitFilterButton();
+                };
+
+                cms.Items.Add(item);
+            }
+
+            if (cms.Items.Count == 0)
+            {
+                cms.Items.Add(new ToolStripMenuItem("(No units detected)") { Enabled = false });
+            }
+
+            // 버튼 바로 아래에 드롭다운 표시
+            _btnUnitFilter.ContextMenuStrip = cms;
+        }
+
+        /// <summary>
+        /// 선택한 UnitID의 그리드 탭을 tabControl1에 추가합니다.
+        /// </summary>
+        private void AddUnitTab(string unitId)
+        {
+            if (!_unitGroupCache.ContainsKey(unitId)) return;
+
+            // 이미 열려있으면 해당 탭으로 포커스만 이동
+            var existing = tabControl1.TabPages.Cast<TabPage>()
+                .FirstOrDefault(tp => tp.Text == unitId);
+            if (existing != null)
+            {
+                tabControl1.SelectedTab = existing;
+                return;
+            }
+
+            var data = _unitGroupCache[unitId];
+            var page = new TabPage(unitId) { BackColor = System.Drawing.Color.White };
+
+            var grid = new ObjectListView
+            {
+                Dock = DockStyle.Fill,
+                View = View.Details,
+                FullRowSelect = true,
+                GridLines = true,
+                Font = olvValidatorRawLog.Font,
+                ShowItemToolTips = false,
+                ShowGroups = false,
+            };
+
+            // 메인 그리드와 동일한 컬럼 구조 이식
+            foreach (OLVColumn col in olvValidatorRawLog.Columns)
+            {
+                grid.AllColumns.Add(new OLVColumn(col.Text, col.AspectName)
+                {
+                    Width = col.Width,
+                    TextAlign = col.TextAlign
+                });
+            }
+            // 💡 Time 컬럼의 AspectGetter도 동일하게 설정
+            var timeCol = grid.AllColumns.FirstOrDefault(c => c.Text == "Time");
+            if (timeCol != null)
+            {
+                timeCol.AspectGetter = row =>
+                {
+                    if (row is RawLogModel log)
+                        return log.LogTime == DateTime.MinValue ? "" : log.LogTime.ToString("HH:mm:ss.fff");
+                    return "";
+                };
+            }
+
+            grid.RebuildColumns();
+            grid.BeginUpdate();
+            grid.SetObjects(data);
+            grid.EndUpdate();
+
+            // 💡 탭 우클릭 → Remove로 닫기
+            var cms = new ContextMenuStrip();
+            cms.Items.Add(new ToolStripMenuItem("Remove Tab", null, (s, e) =>
+            {
+                tabControl1.TabPages.Remove(page);
+                RefreshUnitFilterButton();
+            }));
+            page.ContextMenuStrip = cms;
+
+            page.Controls.Add(grid);
+            tabControl1.TabPages.Add(page);
+            tabControl1.SelectedTab = page;
         }
 
         #endregion
@@ -1167,17 +1323,11 @@ namespace GateHelper.LogValidator
         {
             string keyword = txtLogFilter.Text;
 
-            // 현재 보고 있는 탭의 그리드 추출
-            ObjectListView activeGrid = olvValidatorRawLog;
-            if (tabControl1.SelectedIndex > 0 && tabControl1.SelectedTab != null)
-            {
-                var subGrid = tabControl1.SelectedTab.Controls.OfType<ObjectListView>().FirstOrDefault();
-                if (subGrid != null) activeGrid = subGrid;
-            }
+            // 💡 GetActiveGrid()로 현재 탭의 그리드를 가져옴 (전체탭/유닛탭 모두 대응)
+            ObjectListView activeGrid = GetActiveGrid();
 
             if (string.IsNullOrWhiteSpace(keyword))
             {
-                // 필터 해제 및 전체 복원
                 activeGrid.ModelFilter = null;
                 activeGrid.DefaultRenderer = null;
             }
@@ -1185,17 +1335,13 @@ namespace GateHelper.LogValidator
             {
                 try
                 {
-                    // ObjectListView 순정 고속 정규식 스캐너 컴파일
                     var filter = TextMatchFilter.Regex(activeGrid, keyword);
                     activeGrid.ModelFilter = filter;
-
-                    // 일치하는 단어 그래픽 하일라이팅 렌더러 장착
                     activeGrid.DefaultRenderer = new HighlightTextRenderer(filter);
                 }
                 catch (Exception)
                 {
-                    // 사용자가 정규식 대괄호 '['를 입력하고 닫지 않는 등 
-                    // 타이핑 도중 발생하는 일시적 문법 예외는 UI 멈춤 방지를 위해 침묵 흡수
+                    // 타이핑 도중 발생하는 일시적 정규식 문법 예외 흡수
                 }
             }
         }

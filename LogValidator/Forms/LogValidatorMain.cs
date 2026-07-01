@@ -59,22 +59,96 @@ namespace GateHelper.LogValidator
             // 💡 [입출력 동기화 가드] 설정 창을 열기 직전, 디스크에서 최신 JSON 설정을 불러와 동기화합니다.
             LogValidatorConfigManager.Load();
 
-            // 설정 폼 인스턴스 생성 (MaterialSkin 폼이든 일반 폼이든 동일하게 작동)
-            using (LogValidatorSettingForm settingForm = new LogValidatorSettingForm())
+            LogValidatorSettingForm settingForm = new LogValidatorSettingForm();
+            if (settingForm.ShowDialog() == DialogResult.OK)
             {
-                // 💡 ShowDialog()로 띄워 설정 창이 닫히기 전까지 메인 화면 제어를 인터락(잠금)합니다.
-                if (settingForm.ShowDialog() == DialogResult.OK)
-                {
-                    // 사용자가 SAVE 버튼을 눌러 정상적으로 닫힌 경우
-                    // 💡 [정규식 재조립 시그널] 파서나 메인 뷰어에서 바뀐 설정을 즉시 반영하도록 리프레시 로직 유도 가능
-                    MessageBox.Show("설정이 안전하게 저장되었습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
+                ShowToast("✓ Settings saved successfully.");
             }
         }
 
         private void btnClose_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        // ─────────────────────────────────────────────
+        // 💡 토스트 알림 - LogScenarioForm, LogValidatorForm과 동일한 페이드인/아웃 방식
+        // ─────────────────────────────────────────────
+        private Form _toastForm;
+        private System.Windows.Forms.Timer _toastFadeTimer;
+
+        private void ShowToast(string message, int durationMs = 3000)
+        {
+            _toastFadeTimer?.Stop();
+            _toastFadeTimer?.Dispose();
+            _toastForm?.Dispose();
+
+            var lbl = new Label
+            {
+                Text = message,
+                Font = new System.Drawing.Font("Malgun Gothic", 9.5f, System.Drawing.FontStyle.Regular),
+                ForeColor = System.Drawing.Color.White,
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                TextAlign = System.Drawing.ContentAlignment.MiddleCenter,
+            };
+
+            _toastForm = new Form
+            {
+                FormBorderStyle = FormBorderStyle.None,
+                StartPosition = FormStartPosition.Manual,
+                ShowInTaskbar = false,
+                TopMost = true,
+                BackColor = System.Drawing.Color.FromArgb(45, 45, 48),
+                Opacity = 0,
+                AutoSize = true,
+                AutoSizeMode = AutoSizeMode.GrowAndShrink,
+                Padding = new Padding(18, 10, 18, 10),
+            };
+            _toastForm.Controls.Add(lbl);
+
+            _toastForm.Load += (s, e) =>
+            {
+                int x = this.Left + (this.Width - _toastForm.Width) / 2;
+                int y = this.Top + this.Height - _toastForm.Height - 80;
+                _toastForm.Location = new System.Drawing.Point(x, y);
+            };
+
+            _toastForm.Show(this);
+
+            FadeToast(1.0, () =>
+            {
+                var wait = new System.Windows.Forms.Timer { Interval = durationMs };
+                wait.Tick += (s, e) =>
+                {
+                    wait.Stop();
+                    wait.Dispose();
+                    FadeToast(0.0, () => { _toastForm?.Dispose(); _toastForm = null; });
+                };
+                wait.Start();
+            });
+        }
+
+        private void FadeToast(double target, Action onComplete)
+        {
+            if (_toastForm == null) { onComplete?.Invoke(); return; }
+            const double STEP = 0.08;
+            _toastFadeTimer = new System.Windows.Forms.Timer { Interval = 20 };
+            _toastFadeTimer.Tick += (s, e) =>
+            {
+                if (_toastForm == null) { _toastFadeTimer.Stop(); _toastFadeTimer.Dispose(); return; }
+                double next = _toastForm.Opacity < target
+                    ? Math.Min(_toastForm.Opacity + STEP, target)
+                    : Math.Max(_toastForm.Opacity - STEP, target);
+                _toastForm.Opacity = next;
+                if (Math.Abs(next - target) < 0.001)
+                {
+                    _toastFadeTimer.Stop();
+                    _toastFadeTimer.Dispose();
+                    onComplete?.Invoke();
+                }
+            };
+            _toastFadeTimer.Start();
         }
     }
 }

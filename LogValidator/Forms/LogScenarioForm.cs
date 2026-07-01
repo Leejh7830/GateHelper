@@ -578,6 +578,15 @@ namespace GateHelper.LogValidator
                     return;
                 }
 
+                // 💡 Optional 스텝에는 Timeout 설정 불가
+                // Optional = 안 와도 되는 스텝 → 시간을 재는 것 자체가 모순
+                if (selected.IsOptional)
+                {
+                    MessageBox.Show("This step is set as Optional (may be skipped).\nTimeout cannot be applied to an optional step.",
+                        "TimeOut N/A", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
                 string currentVal = selected.TimeoutSeconds > 0 ? selected.TimeoutSeconds.ToString() : "";
                 string input = ShowInputDialog(
                     $"[Step {selected.StepNo}] {selected.EventName}\n\n" +
@@ -612,6 +621,15 @@ namespace GateHelper.LogValidator
                 if (index == 0)
                 {
                     MessageBox.Show("The first step cannot be optional.\nIt is the cycle start point.",
+                        "Optional N/A", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                // 💡 Timeout이 설정된 스텝은 Optional 불가
+                // Timeout = 반드시 와야 하는 필수 스텝 → Optional과 모순
+                if (!selected.IsOptional && selected.TimeoutSeconds > 0)
+                {
+                    MessageBox.Show($"This step has a timeout of {selected.TimeoutSeconds}s set.\nRemove the timeout before setting it as optional.",
                         "Optional N/A", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
@@ -831,10 +849,13 @@ namespace GateHelper.LogValidator
 
                 if (loadedSteps != null)
                 {
-                    // 💡 3. 기존 순정 바인딩 알고리즘 및 텍스트박스 맵 명세 완벽 보존
                     _scenarioLadderList = loadedSteps;
                     olvScenarioLadder.SetObjects(_scenarioLadderList);
+                    // 💡 SetObjects만으론 AspectGetter가 재평가 안 되는 경우가 있어서
+                    // BuildList(true)로 강제 재렌더링 → EQP/FlowLine/SERVER 컬럼 즉시 표시
+                    olvScenarioLadder.BuildList(true);
                     txtScenarioName.Text = Path.GetFileNameWithoutExtension(filePath);
+                    RefreshStepTooltips();
                 }
             }
             catch (Exception ex)
@@ -850,25 +871,17 @@ namespace GateHelper.LogValidator
         {
             try
             {
-                // 💡 [트루타입 글꼴 예외 원천 봉쇄 마스터 인터락]
-                // 폼이 파괴되기 전에 ObjectListView가 소유한 내부 툴팁 컨트롤 자원을 
-                // 강제로 물리적 디스포즈 처리하여 무효한 폰트 핸들(HDC) 참조 연산을 전면 차단합니다.
+                // 💡 토스트 관련 리소스 정리
+                _toastFadeTimer?.Stop();
+                _toastFadeTimer?.Dispose();
+                _toastForm?.Dispose();
 
-                if (olvScenarioRawLog != null) olvScenarioRawLog.CellToolTipShowing -= null;
-                if (olvUnitRepository != null) olvUnitRepository.CellToolTipShowing -= null;
-
+                // 💡 OLV 수동 Dispose() 제거 - LogValidatorForm과 동일한 이유
+                // 수동 Dispose() 호출이 WinForms 자동 정리와 타이밍 충돌 시
+                // ToolTipControl 폰트 핸들 참조 중 TrueType 예외 발생 가능
+                // ContextMenuStrip 해제만 남겨서 메모리 누수 방지는 유지
                 if (olvScenarioLadder != null)
-                {
-                    olvScenarioLadder.CellToolTipShowing -= null;
-                    // 사다리 그리드의 컨텍스트 메뉴 바인딩을 끊어 해제 순서 보장
                     olvScenarioLadder.ContextMenuStrip = null;
-                }
-
-                // 💡 ObjectListView 내부의 가상 윈도우 핸들 파괴 시점 충돌을 막기 위해 
-                // 컨트롤 자체의 상위 디스포즈 파이프라인을 선행 트리거합니다.
-                olvScenarioRawLog?.Dispose();
-                olvUnitRepository?.Dispose();
-                olvScenarioLadder?.Dispose();
             }
             catch (Exception)
             {
