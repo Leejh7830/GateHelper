@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
@@ -37,6 +38,9 @@ namespace GateHelper.LogValidator
         private Dictionary<string, List<RawLogModel>> _unitGroupCache = new Dictionary<string, List<RawLogModel>>();
         private Button _btnUnitFilter;
 
+        // 💡 FormatCell 콜백에서 매번 new Font() 생성을 방지하기 위해 한 번만 생성 후 재사용
+        private System.Drawing.Font _boldResultFont;
+
         // 💡 우측 메뉴 패널 슬라이드 토글용 필드
         private Button _btnSideToggle;
         private bool _sidePanelVisible = false;
@@ -47,6 +51,9 @@ namespace GateHelper.LogValidator
         {
             InitializeComponent();
             _skinManager.AddFormToManage(this);
+
+            // 💡 Designer에서 tabPage1.Text = "tabPage1"로 하드코딩되어 있어 코드에서 재설정
+            tabPage1.Text = "All Logs";
 
             InitializeValidatorRawLogGridView();
             InitializeScenarioRepositoryGridView();
@@ -74,7 +81,7 @@ namespace GateHelper.LogValidator
             var colLineNo = new OLVColumn("Line", "LineNo") { Width = 55, TextAlign = HorizontalAlignment.Center };
             var colTime = new OLVColumn("Time", "LogTime") { Width = 110, TextAlign = HorizontalAlignment.Center };
             var colSourceFile = new OLVColumn("Source File", "SourceFileName") { Width = 155, TextAlign = HorizontalAlignment.Center };
-            var colMessage = new OLVColumn("Log Message", "LogMessage") { Width = 500 };
+            var colMessage = new OLVColumn("Log Message", "LogMessage") { Width = 750 };
 
             // 💡 LogTime을 HH:mm:ss.fff 형식으로 표시 (날짜 제외)
             // MinValue(파싱 실패)인 경우 빈 문자열로 표시
@@ -85,7 +92,7 @@ namespace GateHelper.LogValidator
                 return "";
             };
 
-            olvValidatorRawLog.Columns.AddRange(new ColumnHeader[] { colLineNo, colTime, colSourceFile, colMessage });
+            olvValidatorRawLog.Columns.AddRange(new ColumnHeader[] { colLineNo, colTime, colMessage, colSourceFile });
             olvValidatorRawLog.View = View.Details;
             olvValidatorRawLog.FullRowSelect = true;
             olvValidatorRawLog.GridLines = true;
@@ -305,6 +312,26 @@ namespace GateHelper.LogValidator
         private void InitializeRepositoryContextMenu()
         {
             var cms = new ContextMenuStrip();
+
+            // 💡 View Steps: 시나리오 스텝 구성을 읽기 전용 팝업으로 빠르게 확인
+            var menuViewSteps = new ToolStripMenuItem("View Steps", null, (s, e) =>
+            {
+                var selected = olvScenarioRepository.SelectedObject as ScenarioEvaluator;
+                if (selected == null) return;
+                if (treeScenarioGroup.SelectedNode?.Tag == null) return;
+
+                string dir = treeScenarioGroup.SelectedNode.Tag.ToString();
+                string fullPath = Path.Combine(dir, $"{selected.ScenarioName}.json");
+                if (!File.Exists(fullPath)) return;
+
+                string json = File.ReadAllText(fullPath);
+                var steps = System.Text.Json.JsonSerializer.Deserialize<
+                                   List<ScenarioStepModel>>(json);
+                if (steps == null || steps.Count == 0) return;
+
+                ShowStepPreview(selected.ScenarioName, steps);
+            });
+
             var menuEdit = new ToolStripMenuItem("시나리오 편집 (Edit)", null, (s, e) =>
             {
                 if (olvScenarioRepository.SelectedObject == null) return;
@@ -314,22 +341,150 @@ namespace GateHelper.LogValidator
 
                 if (treeScenarioGroup.SelectedNode == null || treeScenarioGroup.SelectedNode.Tag == null) return;
                 string currentActiveDirectory = treeScenarioGroup.SelectedNode.Tag.ToString();
-
-                // 💡 [자산 타겟팅 락] 선택된 시나리오의 정확한 물리 JSON 절대 경로 계산
                 string fullPath = Path.Combine(currentActiveDirectory, $"{selected.ScenarioName}.json");
 
-                // 💡 파일 경로 탄환을 장전하여 편집기 확장 생성자로 인스턴스 즉시 팝업 소환
                 LogScenarioForm scenarioForm = new LogScenarioForm(fullPath);
                 scenarioForm.Show();
             });
 
             cms.Opening += (s, e) =>
             {
-                menuEdit.Enabled = (olvScenarioRepository.SelectedObject != null);
+                bool has = (olvScenarioRepository.SelectedObject != null);
+                menuViewSteps.Enabled = has;
+                menuEdit.Enabled = has;
             };
 
+            cms.Items.Add(menuViewSteps);
+            cms.Items.Add(new ToolStripSeparator());
             cms.Items.Add(menuEdit);
             olvScenarioRepository.ContextMenuStrip = cms;
+        }
+
+        /// <summary>
+        /// 시나리오 스텝 미리보기 팝업을 표시합니다.
+        /// 읽기 전용으로 스텝 구성을 빠르게 확인하는 용도입니다.
+        /// </summary>
+        private void ShowStepPreview(string scenarioName, List<ScenarioStepModel> steps)
+        {
+            var popup = new Form
+            {
+                Text = $"Step Preview — {scenarioName}",
+                Size = new System.Drawing.Size(820, 480),
+                StartPosition = FormStartPosition.CenterParent,
+                FormBorderStyle = FormBorderStyle.SizableToolWindow,
+                Font = new System.Drawing.Font("Malgun Gothic", 9.5f),
+                // 💡 4번: TopMost로 항상 최상단 유지 - 검증폼을 클릭해도 프리뷰가 뒤로 안 가짐
+                TopMost = true,
+            };
+
+            var olv = new ObjectListView
+            {
+                Dock = DockStyle.Fill,
+                View = View.Details,
+                FullRowSelect = true,
+                GridLines = true,
+                ShowGroups = false,
+                Font = new System.Drawing.Font("Malgun Gothic", 9.5f),
+            };
+
+            var colStep = new OLVColumn("Step", "StepNo") { Width = 48, TextAlign = HorizontalAlignment.Center };
+            var colEvent = new OLVColumn("Event Name", "EventName") { Width = 180 };
+            var colPattern = new OLVColumn("Masking Pattern", "MaskingPattern") { Width = 300 };
+            var colDir = new OLVColumn("Dir", "Direction") { Width = 55, TextAlign = HorizontalAlignment.Center };
+            var colOpt = new OLVColumn("Opt", "IsOptional") { Width = 40, TextAlign = HorizontalAlignment.Center };
+            var colTimeout = new OLVColumn("Timeout", "TimeoutSeconds") { Width = 62, TextAlign = HorizontalAlignment.Center };
+            var colGroup = new OLVColumn("Group", "GroupId") { Width = 60, TextAlign = HorizontalAlignment.Center };
+
+            // 💡 1번: TX/RX 대신 화살표로 표시
+            // TX = EQP → SERVER (오른쪽 화살표 →)
+            // RX = SERVER → EQP (왼쪽 화살표 ←)
+            colDir.AspectGetter = row =>
+            {
+                var st = row as ScenarioStepModel;
+                if (st == null) return "";
+                return st.Direction?.ToUpper() == "TX" ? "→" : "←";
+            };
+
+            // Optional — true면 O, false면 빈칸
+            colOpt.AspectGetter = row =>
+            {
+                var st = row as ScenarioStepModel;
+                return (st != null && st.IsOptional) ? "O" : "";
+            };
+
+            // Timeout — 0이면 빈칸
+            colTimeout.AspectGetter = row =>
+            {
+                var st = row as ScenarioStepModel;
+                return (st != null && st.TimeoutSeconds > 0) ? $"{st.TimeoutSeconds}s" : "";
+            };
+
+            // Group — 0이면 빈칸, 양수면 "AND 1" / "OR 1" 형태
+            colGroup.AspectGetter = row =>
+            {
+                var st = row as ScenarioStepModel;
+                if (st == null || st.GroupId <= 0) return "";
+                return $"{st.GroupType ?? "AND"} {st.GroupId}";
+            };
+
+            olv.AllColumns.AddRange(new[] { colStep, colEvent, colPattern, colDir, colOpt, colTimeout, colGroup });
+            olv.RebuildColumns();
+
+            // 💡 그룹 스텝 배경색 표시 (편집기와 동일한 팔레트)
+            var groupColors = new[]
+            {
+                System.Drawing.Color.FromArgb(210, 235, 255),
+                System.Drawing.Color.FromArgb(210, 250, 210),
+                System.Drawing.Color.FromArgb(255, 238, 190),
+                System.Drawing.Color.FromArgb(255, 210, 235),
+                System.Drawing.Color.FromArgb(235, 210, 255),
+            };
+
+            olv.RowFormatter = row =>
+            {
+                var st = row.RowObject as ScenarioStepModel;
+                if (st == null || st.GroupId <= 0)
+                {
+                    row.BackColor = olv.BackColor;
+                    row.ForeColor = olv.ForeColor;
+                    return;
+                }
+                row.BackColor = groupColors[(st.GroupId - 1) % groupColors.Length];
+                row.ForeColor = System.Drawing.Color.Black;
+            };
+
+            olv.SetObjects(steps);
+            olv.BuildList(true);
+
+            var btnClose = new Button
+            {
+                Text = "Close",
+                Dock = DockStyle.Bottom,
+                Height = 32,
+                FlatStyle = FlatStyle.Flat,
+                Font = new System.Drawing.Font("Malgun Gothic", 9f),
+            };
+            btnClose.Click += (s, e) => popup.Close();
+
+            var lblCount = new Label
+            {
+                Text = $"Total {steps.Count} steps",
+                Dock = DockStyle.Bottom,
+                Height = 22,
+                TextAlign = System.Drawing.ContentAlignment.MiddleLeft,
+                Padding = new Padding(4, 0, 0, 0),
+                ForeColor = System.Drawing.Color.Gray,
+                Font = new System.Drawing.Font("Malgun Gothic", 8.5f),
+            };
+
+            popup.Controls.Add(olv);
+            popup.Controls.Add(lblCount);
+            popup.Controls.Add(btnClose);
+            popup.FormClosed += (s, e) => olv.Dispose();
+
+            // 💡 4번: ShowDialog → Show로 변경하여 검증폼 조작 가능하게
+            // TopMost = true로 프리뷰가 항상 앞에 보임
+            popup.Show(this);
         }
 
         private void InitializeValidationResultGridView()
@@ -339,6 +494,10 @@ namespace GateHelper.LogValidator
             olvValidationResult.RowHeight = 35;
             olvValidationResult.ShowGroups = false;
             olvValidationResult.ShowItemToolTips = false;
+
+            // 💡 FormatCell에서 재사용할 Bold 폰트를 여기서 1회만 생성
+            // FormatCell은 스크롤/리페인트마다 호출되므로 매번 new Font()를 생성하면 GDI 핸들이 누적됨
+            _boldResultFont = new System.Drawing.Font(olvValidationResult.Font, System.Drawing.FontStyle.Bold);
 
             // [컬럼 명세]
             var colName = new OLVColumn("Scenario Name", "ScenarioName") { Width = 220 };
@@ -381,12 +540,12 @@ namespace GateHelper.LogValidator
                         if (parent.Status == EvaluationResultStatus.FAILED)
                         {
                             e.SubItem.ForeColor = System.Drawing.Color.FromArgb(220, 53, 69);
-                            e.SubItem.Font = new System.Drawing.Font(olvValidationResult.Font, System.Drawing.FontStyle.Bold);
+                            e.SubItem.Font = _boldResultFont;
                         }
                         else if (parent.Status == EvaluationResultStatus.SUCCESS)
                         {
                             e.SubItem.ForeColor = System.Drawing.Color.MediumSeaGreen;
-                            e.SubItem.Font = new System.Drawing.Font(olvValidationResult.Font, System.Drawing.FontStyle.Bold);
+                            e.SubItem.Font = _boldResultFont;
                         }
                     }
                     else if (e.Model is StepValidationReport child)
@@ -394,7 +553,7 @@ namespace GateHelper.LogValidator
                         if (child.StepStatus == "FAILED")
                         {
                             e.SubItem.ForeColor = System.Drawing.Color.FromArgb(176, 42, 55);
-                            e.SubItem.Font = new System.Drawing.Font(olvValidationResult.Font, System.Drawing.FontStyle.Bold);
+                            e.SubItem.Font = _boldResultFont;
                         }
                     }
                 }
@@ -523,6 +682,10 @@ namespace GateHelper.LogValidator
                 int visibleRows = activeGrid.Height / Math.Max(1, activeGrid.RowHeightEffective);
                 int centeredTop = targetJumpIndex - (visibleRows / 2);
                 activeGrid.TopItemIndex = Math.Max(0, centeredTop);
+
+                // 💡 TopItemIndex 설정 후 OLV 내부 스크롤 이벤트가 RowFormatter를 초기화할 수 있어서
+                // 스크롤 후 다시 한번 BuildList로 하이라이팅 재적용 (첫 번째 행 누락 방지)
+                activeGrid.BuildList(true);
             }
         }
 
@@ -1092,11 +1255,17 @@ namespace GateHelper.LogValidator
         /// Unit Filter 버튼 드롭다운을 현재 캐시 기준으로 갱신합니다.
         /// 이미 탭이 열려있는 유닛은 체크 표시로 구분합니다.
         /// </summary>
+        private System.Drawing.Font _unitFilterMenuFont;
+
         private void RefreshUnitFilterButton()
         {
             if (_btnUnitFilter == null) return;
 
             _btnUnitFilter.Enabled = _unitGroupCache.Count > 0;
+
+            // 💡 메뉴 아이템 폰트를 1회만 생성해서 재사용 (호출마다 new Font 생성 방지)
+            if (_unitFilterMenuFont == null)
+                _unitFilterMenuFont = new System.Drawing.Font("Malgun Gothic", 9f);
 
             var cms = new ContextMenuStrip();
 
@@ -1111,14 +1280,19 @@ namespace GateHelper.LogValidator
                 var item = new ToolStripMenuItem(label);
                 item.Tag = unitId;
                 item.Checked = alreadyOpen;
-                item.Font = new System.Drawing.Font("Malgun Gothic", 9f);
+                item.Font = _unitFilterMenuFont;
 
                 item.Click += (s, e) =>
                 {
                     string uid = (string)((ToolStripMenuItem)s).Tag;
-                    if (alreadyOpen)
+
+                    // 💡 클로저 버그 수정: alreadyOpen은 드롭다운 생성 시점에 캡처된 값이므로
+                    // 클릭 시점에 실제 탭 상태를 재확인해야 올바르게 동작함
+                    bool isNowOpen = tabControl1.TabPages.Cast<TabPage>()
+                        .Any(tp => tp.Text == uid);
+
+                    if (isNowOpen)
                     {
-                        // 💡 이미 열려있으면 제거
                         var existing = tabControl1.TabPages.Cast<TabPage>()
                             .FirstOrDefault(tp => tp.Text == uid);
                         if (existing != null)
@@ -1467,6 +1641,10 @@ namespace GateHelper.LogValidator
                 _toastFadeTimer?.Stop();
                 _toastFadeTimer?.Dispose();
                 _toastForm?.Dispose();
+
+                // 💡 캐시된 GDI 폰트 해제
+                _boldResultFont?.Dispose();
+                _unitFilterMenuFont?.Dispose();
 
                 // 💡 [수정] ObjectListView 수동 Dispose() 호출 제거
                 // 폼이 닫힐 때 WinForms가 자식 컨트롤을 자동으로 Dispose하는데,

@@ -20,9 +20,11 @@
         // 💡 Optional 스텝: true면 이 스텝이 없어도 사이클 계속 진행
         public bool IsOptional { get; set; } = false;
 
-        // 💡 AND Group: 같은 GroupId를 가진 스텝들은 순서 무관하게 모두 수신되어야 다음으로 진행
-        // 0이면 일반 스텝 (그룹 없음), 양수면 해당 그룹 ID
-        // 예: A, B가 GroupId=1이면 A→B 또는 B→A 어느 순서로 와도 SUCCESS
+        // 💡 AND/OR Group: 같은 GroupId를 가진 스텝들의 처리 방식
+        // "AND" → 모두 수신되어야 통과 (순서 무관)
+        // "OR"  → 하나만 수신되면 통과
+        // GroupId = 0이면 그룹 없음 (일반 스텝)
         public int GroupId { get; set; } = 0;
+        public string GroupType { get; set; } = "AND"; // 기본값 AND
     }
 }

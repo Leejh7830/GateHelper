@@ -37,9 +37,10 @@
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.splitContainer3 = new System.Windows.Forms.SplitContainer();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.btnReset = new MaterialSkin.Controls.MaterialButton();
+            this.cmbDateFilter = new System.Windows.Forms.ComboBox();
+            this.btnTimeJump = new MaterialSkin.Controls.MaterialButton();
+            this.dtpTimeJump = new System.Windows.Forms.DateTimePicker();
             this.lblAnomalyWarning = new MaterialSkin.Controls.MaterialLabel();
-            this.materialButton1 = new MaterialSkin.Controls.MaterialButton();
             this.splitContainer4 = new System.Windows.Forms.SplitContainer();
             this.treeScenarioGroup = new System.Windows.Forms.TreeView();
             this.olvScenarioRepository = new BrightIdeasSoftware.ObjectListView();
@@ -47,12 +48,12 @@
             this.btnOpenFolder = new MaterialSkin.Controls.MaterialButton();
             this.btnOpenScenarioEditor = new MaterialSkin.Controls.MaterialButton();
             this.btnClose = new MaterialSkin.Controls.MaterialButton();
+            this.btnReset = new MaterialSkin.Controls.MaterialButton();
+            this.materialButton1 = new MaterialSkin.Controls.MaterialButton();
             this.olvValidationResult = new BrightIdeasSoftware.TreeListView();
             this.toolTipAnomaly = new System.Windows.Forms.ToolTip(this.components);
             this.txtLogFilter = new MaterialSkin.Controls.MaterialTextBox2();
-            this.dtpTimeJump = new System.Windows.Forms.DateTimePicker();
-            this.btnTimeJump = new MaterialSkin.Controls.MaterialButton();
-            this.cmbDateFilter = new System.Windows.Forms.ComboBox();
+            this.btnIndex = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -94,7 +95,7 @@
             this.splitContainer1.Panel2.Controls.Add(this.splitContainer2);
             this.splitContainer1.Panel2MinSize = 400;
             this.splitContainer1.Size = new System.Drawing.Size(1414, 776);
-            this.splitContainer1.SplitterDistance = 744;
+            this.splitContainer1.SplitterDistance = 905;
             this.splitContainer1.TabIndex = 0;
             // 
             // tabControl1
@@ -105,7 +106,7 @@
             this.tabControl1.Location = new System.Drawing.Point(0, 0);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(744, 776);
+            this.tabControl1.Size = new System.Drawing.Size(905, 776);
             this.tabControl1.TabIndex = 2;
             // 
             // tabPage1
@@ -114,7 +115,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(736, 750);
+            this.tabPage1.Size = new System.Drawing.Size(897, 750);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "tabPage1";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -130,7 +131,7 @@
             this.olvValidatorRawLog.Location = new System.Drawing.Point(3, 3);
             this.olvValidatorRawLog.Name = "olvValidatorRawLog";
             this.olvValidatorRawLog.ShowGroups = false;
-            this.olvValidatorRawLog.Size = new System.Drawing.Size(730, 744);
+            this.olvValidatorRawLog.Size = new System.Drawing.Size(891, 744);
             this.olvValidatorRawLog.TabIndex = 1;
             this.olvValidatorRawLog.UseCompatibleStateImageBehavior = false;
             this.olvValidatorRawLog.View = System.Windows.Forms.View.Details;
@@ -163,7 +164,7 @@
             this.splitContainer2.Panel2.Controls.Add(this.panel2);
             this.splitContainer2.Panel2.Controls.Add(this.olvValidationResult);
             this.splitContainer2.Panel2MinSize = 150;
-            this.splitContainer2.Size = new System.Drawing.Size(666, 776);
+            this.splitContainer2.Size = new System.Drawing.Size(505, 776);
             this.splitContainer2.SplitterDistance = 265;
             this.splitContainer2.TabIndex = 0;
             // 
@@ -182,7 +183,7 @@
             // splitContainer3.Panel2
             // 
             this.splitContainer3.Panel2.Controls.Add(this.splitContainer4);
-            this.splitContainer3.Size = new System.Drawing.Size(666, 265);
+            this.splitContainer3.Size = new System.Drawing.Size(505, 265);
             this.splitContainer3.SplitterDistance = 63;
             this.splitContainer3.TabIndex = 0;
             // 
@@ -196,29 +197,50 @@
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(666, 63);
+            this.panel1.Size = new System.Drawing.Size(505, 63);
             this.panel1.TabIndex = 0;
             // 
-            // btnReset
+            // cmbDateFilter
             // 
-            this.btnReset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnReset.AutoSize = false;
-            this.btnReset.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.btnReset.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.btnReset.Depth = 0;
-            this.btnReset.HighEmphasis = true;
-            this.btnReset.Icon = null;
-            this.btnReset.Location = new System.Drawing.Point(17, 51);
-            this.btnReset.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.btnReset.MouseState = MaterialSkin.MouseState.HOVER;
-            this.btnReset.Name = "btnReset";
-            this.btnReset.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.btnReset.Size = new System.Drawing.Size(120, 36);
-            this.btnReset.TabIndex = 3;
-            this.btnReset.Text = "↻ Reset";
-            this.btnReset.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.btnReset.UseAccentColor = true;
-            this.btnReset.UseVisualStyleBackColor = true;
+            this.cmbDateFilter.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.cmbDateFilter.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.cmbDateFilter.FormattingEnabled = true;
+            this.cmbDateFilter.Location = new System.Drawing.Point(15, 4);
+            this.cmbDateFilter.Name = "cmbDateFilter";
+            this.cmbDateFilter.Size = new System.Drawing.Size(137, 23);
+            this.cmbDateFilter.TabIndex = 11117;
+            // 
+            // btnTimeJump
+            // 
+            this.btnTimeJump.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnTimeJump.AutoSize = false;
+            this.btnTimeJump.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnTimeJump.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnTimeJump.Depth = 0;
+            this.btnTimeJump.HighEmphasis = true;
+            this.btnTimeJump.Icon = null;
+            this.btnTimeJump.Location = new System.Drawing.Point(159, 8);
+            this.btnTimeJump.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnTimeJump.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnTimeJump.Name = "btnTimeJump";
+            this.btnTimeJump.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnTimeJump.Size = new System.Drawing.Size(74, 40);
+            this.btnTimeJump.TabIndex = 11115;
+            this.btnTimeJump.Text = "▶ Jump";
+            this.btnTimeJump.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnTimeJump.UseAccentColor = false;
+            this.btnTimeJump.UseVisualStyleBackColor = true;
+            // 
+            // dtpTimeJump
+            // 
+            this.dtpTimeJump.CustomFormat = "HH:mm:ss";
+            this.dtpTimeJump.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.dtpTimeJump.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dtpTimeJump.Location = new System.Drawing.Point(15, 29);
+            this.dtpTimeJump.Name = "dtpTimeJump";
+            this.dtpTimeJump.ShowUpDown = true;
+            this.dtpTimeJump.Size = new System.Drawing.Size(137, 23);
+            this.dtpTimeJump.TabIndex = 4;
             // 
             // lblAnomalyWarning
             // 
@@ -226,35 +248,13 @@
             this.lblAnomalyWarning.AutoSize = true;
             this.lblAnomalyWarning.Depth = 0;
             this.lblAnomalyWarning.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.lblAnomalyWarning.Location = new System.Drawing.Point(511, 19);
+            this.lblAnomalyWarning.Location = new System.Drawing.Point(350, 19);
             this.lblAnomalyWarning.MouseState = MaterialSkin.MouseState.HOVER;
             this.lblAnomalyWarning.Name = "lblAnomalyWarning";
-            this.lblAnomalyWarning.Size = new System.Drawing.Size(142, 19);
+            this.lblAnomalyWarning.Size = new System.Drawing.Size(150, 19);
             this.lblAnomalyWarning.TabIndex = 2;
-            this.lblAnomalyWarning.Text = "Abnormal Logs: 0    ";
+            this.lblAnomalyWarning.Text = "Abnormal Logs: 0   .  ";
             this.lblAnomalyWarning.Visible = false;
-            // 
-            // materialButton1
-            // 
-            this.materialButton1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.materialButton1.AutoSize = false;
-            this.materialButton1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.materialButton1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.materialButton1.Depth = 0;
-            this.materialButton1.HighEmphasis = true;
-            this.materialButton1.Icon = null;
-            this.materialButton1.Location = new System.Drawing.Point(19, 6);
-            this.materialButton1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.materialButton1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.materialButton1.Name = "materialButton1";
-            this.materialButton1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.materialButton1.Size = new System.Drawing.Size(118, 36);
-            this.materialButton1.TabIndex = 0;
-            this.materialButton1.Text = "🔍 Validation";
-            this.materialButton1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.materialButton1.UseAccentColor = false;
-            this.materialButton1.UseVisualStyleBackColor = true;
-            this.materialButton1.Click += new System.EventHandler(this.btnStartValidation_Click);
             // 
             // splitContainer4
             // 
@@ -271,8 +271,8 @@
             // 
             this.splitContainer4.Panel2.Controls.Add(this.olvScenarioRepository);
             this.splitContainer4.Panel2MinSize = 150;
-            this.splitContainer4.Size = new System.Drawing.Size(666, 198);
-            this.splitContainer4.SplitterDistance = 234;
+            this.splitContainer4.Size = new System.Drawing.Size(505, 198);
+            this.splitContainer4.SplitterDistance = 177;
             this.splitContainer4.TabIndex = 0;
             // 
             // treeScenarioGroup
@@ -280,7 +280,7 @@
             this.treeScenarioGroup.Dock = System.Windows.Forms.DockStyle.Fill;
             this.treeScenarioGroup.Location = new System.Drawing.Point(0, 0);
             this.treeScenarioGroup.Name = "treeScenarioGroup";
-            this.treeScenarioGroup.Size = new System.Drawing.Size(234, 198);
+            this.treeScenarioGroup.Size = new System.Drawing.Size(177, 198);
             this.treeScenarioGroup.TabIndex = 0;
             // 
             // olvScenarioRepository
@@ -292,7 +292,7 @@
             this.olvScenarioRepository.HideSelection = false;
             this.olvScenarioRepository.Location = new System.Drawing.Point(0, 0);
             this.olvScenarioRepository.Name = "olvScenarioRepository";
-            this.olvScenarioRepository.Size = new System.Drawing.Size(428, 198);
+            this.olvScenarioRepository.Size = new System.Drawing.Size(324, 198);
             this.olvScenarioRepository.TabIndex = 2;
             this.olvScenarioRepository.UseCompatibleStateImageBehavior = false;
             this.olvScenarioRepository.View = System.Windows.Forms.View.Details;
@@ -300,13 +300,14 @@
             // panel2
             // 
             this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panel2.Controls.Add(this.btnIndex);
             this.panel2.Controls.Add(this.btnOpenFolder);
             this.panel2.Controls.Add(this.btnOpenScenarioEditor);
             this.panel2.Controls.Add(this.btnClose);
             this.panel2.Controls.Add(this.btnReset);
             this.panel2.Controls.Add(this.materialButton1);
             this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
-            this.panel2.Location = new System.Drawing.Point(516, 0);
+            this.panel2.Location = new System.Drawing.Point(355, 0);
             this.panel2.Name = "panel2";
             this.panel2.Size = new System.Drawing.Size(150, 507);
             this.panel2.TabIndex = 4;
@@ -377,6 +378,49 @@
             this.btnClose.UseVisualStyleBackColor = true;
             this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
             // 
+            // btnReset
+            // 
+            this.btnReset.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnReset.AutoSize = false;
+            this.btnReset.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnReset.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnReset.Depth = 0;
+            this.btnReset.HighEmphasis = true;
+            this.btnReset.Icon = null;
+            this.btnReset.Location = new System.Drawing.Point(17, 51);
+            this.btnReset.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnReset.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnReset.Name = "btnReset";
+            this.btnReset.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnReset.Size = new System.Drawing.Size(120, 36);
+            this.btnReset.TabIndex = 3;
+            this.btnReset.Text = "↻ Reset";
+            this.btnReset.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnReset.UseAccentColor = true;
+            this.btnReset.UseVisualStyleBackColor = true;
+            // 
+            // materialButton1
+            // 
+            this.materialButton1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.materialButton1.AutoSize = false;
+            this.materialButton1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.materialButton1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.materialButton1.Depth = 0;
+            this.materialButton1.HighEmphasis = true;
+            this.materialButton1.Icon = null;
+            this.materialButton1.Location = new System.Drawing.Point(19, 6);
+            this.materialButton1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.materialButton1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialButton1.Name = "materialButton1";
+            this.materialButton1.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.materialButton1.Size = new System.Drawing.Size(118, 36);
+            this.materialButton1.TabIndex = 0;
+            this.materialButton1.Text = "🔍 Validation";
+            this.materialButton1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.materialButton1.UseAccentColor = false;
+            this.materialButton1.UseVisualStyleBackColor = true;
+            this.materialButton1.Click += new System.EventHandler(this.btnStartValidation_Click);
+            // 
             // olvValidationResult
             // 
             this.olvValidationResult.CellEditUseWholeCell = false;
@@ -386,7 +430,7 @@
             this.olvValidationResult.Location = new System.Drawing.Point(0, 0);
             this.olvValidationResult.Name = "olvValidationResult";
             this.olvValidationResult.ShowGroups = false;
-            this.olvValidationResult.Size = new System.Drawing.Size(666, 507);
+            this.olvValidationResult.Size = new System.Drawing.Size(505, 507);
             this.olvValidationResult.TabIndex = 3;
             this.olvValidationResult.UseCompatibleStateImageBehavior = false;
             this.olvValidationResult.View = System.Windows.Forms.View.Details;
@@ -426,47 +470,13 @@
             this.txtLogFilter.TrailingIcon = null;
             this.txtLogFilter.UseSystemPasswordChar = false;
             // 
-            // dtpTimeJump
+            // btnIndex
             // 
-            this.dtpTimeJump.CustomFormat = "HH:mm:ss";
-            this.dtpTimeJump.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.dtpTimeJump.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtpTimeJump.Location = new System.Drawing.Point(15, 29);
-            this.dtpTimeJump.Name = "dtpTimeJump";
-            this.dtpTimeJump.ShowUpDown = true;
-            this.dtpTimeJump.Size = new System.Drawing.Size(137, 23);
-            this.dtpTimeJump.TabIndex = 4;
-            // 
-            // btnTimeJump
-            // 
-            this.btnTimeJump.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnTimeJump.AutoSize = false;
-            this.btnTimeJump.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.btnTimeJump.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.btnTimeJump.Depth = 0;
-            this.btnTimeJump.HighEmphasis = true;
-            this.btnTimeJump.Icon = null;
-            this.btnTimeJump.Location = new System.Drawing.Point(159, 5);
-            this.btnTimeJump.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.btnTimeJump.MouseState = MaterialSkin.MouseState.HOVER;
-            this.btnTimeJump.Name = "btnTimeJump";
-            this.btnTimeJump.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.btnTimeJump.Size = new System.Drawing.Size(74, 40);
-            this.btnTimeJump.TabIndex = 11115;
-            this.btnTimeJump.Text = "▶ Jump";
-            this.btnTimeJump.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.btnTimeJump.UseAccentColor = false;
-            this.btnTimeJump.UseVisualStyleBackColor = true;
-            // 
-            // cmbDateFilter
-            // 
-            this.cmbDateFilter.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.cmbDateFilter.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.cmbDateFilter.FormattingEnabled = true;
-            this.cmbDateFilter.Location = new System.Drawing.Point(15, 4);
-            this.cmbDateFilter.Name = "cmbDateFilter";
-            this.cmbDateFilter.Size = new System.Drawing.Size(137, 23);
-            this.cmbDateFilter.TabIndex = 11117;
+            this.btnIndex.Location = new System.Drawing.Point(127, 425);
+            this.btnIndex.Name = "btnIndex";
+            this.btnIndex.Size = new System.Drawing.Size(1, 1);
+            this.btnIndex.TabIndex = 11118;
+            this.btnIndex.UseVisualStyleBackColor = true;
             // 
             // LogValidatorForm
             // 
@@ -532,5 +542,6 @@
         private MaterialSkin.Controls.MaterialButton btnTimeJump;
         private System.Windows.Forms.DateTimePicker dtpTimeJump;
         private System.Windows.Forms.ComboBox cmbDateFilter;
+        private System.Windows.Forms.Button btnIndex;
     }
 }

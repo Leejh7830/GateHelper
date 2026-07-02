@@ -32,6 +32,7 @@
             this.btnOpenEditor = new MaterialSkin.Controls.MaterialButton();
             this.btnSettings = new MaterialSkin.Controls.MaterialButton();
             this.btnClose = new MaterialSkin.Controls.MaterialButton();
+            this.btnIndex = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnOpenValidator
@@ -90,7 +91,7 @@
             this.btnSettings.Name = "btnSettings";
             this.btnSettings.NoAccentTextColor = System.Drawing.Color.Empty;
             this.btnSettings.Size = new System.Drawing.Size(119, 43);
-            this.btnSettings.TabIndex = 109;
+            this.btnSettings.TabIndex = 100;
             this.btnSettings.Text = "Settings";
             this.btnSettings.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.btnSettings.UseAccentColor = false;
@@ -111,18 +112,27 @@
             this.btnClose.Name = "btnClose";
             this.btnClose.NoAccentTextColor = System.Drawing.Color.Empty;
             this.btnClose.Size = new System.Drawing.Size(120, 36);
-            this.btnClose.TabIndex = 11113;
+            this.btnClose.TabIndex = 101;
             this.btnClose.Text = "✕   Close";
             this.btnClose.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
             this.btnClose.UseAccentColor = true;
             this.btnClose.UseVisualStyleBackColor = true;
             this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
             // 
+            // btnIndex
+            // 
+            this.btnIndex.Location = new System.Drawing.Point(6, 67);
+            this.btnIndex.Name = "btnIndex";
+            this.btnIndex.Size = new System.Drawing.Size(1, 1);
+            this.btnIndex.TabIndex = 1;
+            this.btnIndex.UseVisualStyleBackColor = true;
+            // 
             // LogValidatorMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(384, 415);
+            this.Controls.Add(this.btnIndex);
             this.Controls.Add(this.btnClose);
             this.Controls.Add(this.btnSettings);
             this.Controls.Add(this.btnOpenEditor);
@@ -140,5 +150,6 @@
         private MaterialSkin.Controls.MaterialButton btnOpenEditor;
         private MaterialSkin.Controls.MaterialButton btnSettings;
         private MaterialSkin.Controls.MaterialButton btnClose;
+        private System.Windows.Forms.Button btnIndex;
     }
 }

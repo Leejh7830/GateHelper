@@ -40,13 +40,14 @@
             this.rtbMaskedPreview = new System.Windows.Forms.RichTextBox();
             this.olvUnitRepository = new BrightIdeasSoftware.ObjectListView();
             this.pnlControlButtons = new System.Windows.Forms.Panel();
+            this.btnClose = new MaterialSkin.Controls.MaterialButton();
             this.txtScenarioName = new MaterialSkin.Controls.MaterialTextBox2();
             this.lblCurrentScenario = new MaterialSkin.Controls.MaterialLabel();
             this.btnLoadScenario = new MaterialSkin.Controls.MaterialButton();
             this.btnSaveScenario = new MaterialSkin.Controls.MaterialButton();
             this.btnNewScenario = new MaterialSkin.Controls.MaterialButton();
             this.olvScenarioLadder = new BrightIdeasSoftware.ObjectListView();
-            this.btnClose = new MaterialSkin.Controls.MaterialButton();
+            this.btnIndex = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -196,6 +197,7 @@
             // 
             this.groupBox1.Controls.Add(this.txtEventName);
             this.groupBox1.Controls.Add(this.rtbMaskedPreview);
+            this.groupBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
             this.groupBox1.Location = new System.Drawing.Point(3, 3);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(347, 209);
@@ -257,6 +259,7 @@
             // pnlControlButtons
             // 
             this.pnlControlButtons.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlControlButtons.Controls.Add(this.btnIndex);
             this.pnlControlButtons.Controls.Add(this.btnClose);
             this.pnlControlButtons.Controls.Add(this.txtScenarioName);
             this.pnlControlButtons.Controls.Add(this.lblCurrentScenario);
@@ -268,6 +271,28 @@
             this.pnlControlButtons.Name = "pnlControlButtons";
             this.pnlControlButtons.Size = new System.Drawing.Size(200, 553);
             this.pnlControlButtons.TabIndex = 1;
+            // 
+            // btnClose
+            // 
+            this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnClose.AutoSize = false;
+            this.btnClose.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnClose.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnClose.Depth = 0;
+            this.btnClose.HighEmphasis = false;
+            this.btnClose.Icon = null;
+            this.btnClose.Location = new System.Drawing.Point(17, 494);
+            this.btnClose.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnClose.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnClose.Name = "btnClose";
+            this.btnClose.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnClose.Size = new System.Drawing.Size(168, 36);
+            this.btnClose.TabIndex = 11113;
+            this.btnClose.Text = "✕   Close";
+            this.btnClose.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
+            this.btnClose.UseAccentColor = true;
+            this.btnClose.UseVisualStyleBackColor = true;
+            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
             // 
             // txtScenarioName
             // 
@@ -390,27 +415,13 @@
             this.olvScenarioLadder.DragDrop += new System.Windows.Forms.DragEventHandler(this.olvScenarioLadder_DragDrop);
             this.olvScenarioLadder.DragEnter += new System.Windows.Forms.DragEventHandler(this.olvScenarioLadder_DragEnter);
             // 
-            // btnClose
+            // btnIndex
             // 
-            this.btnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnClose.AutoSize = false;
-            this.btnClose.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.btnClose.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.btnClose.Depth = 0;
-            this.btnClose.HighEmphasis = false;
-            this.btnClose.Icon = null;
-            this.btnClose.Location = new System.Drawing.Point(17, 509);
-            this.btnClose.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.btnClose.MouseState = MaterialSkin.MouseState.HOVER;
-            this.btnClose.Name = "btnClose";
-            this.btnClose.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.btnClose.Size = new System.Drawing.Size(168, 36);
-            this.btnClose.TabIndex = 11113;
-            this.btnClose.Text = "✕   Close";
-            this.btnClose.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
-            this.btnClose.UseAccentColor = true;
-            this.btnClose.UseVisualStyleBackColor = true;
-            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
+            this.btnIndex.Location = new System.Drawing.Point(191, 544);
+            this.btnIndex.Name = "btnIndex";
+            this.btnIndex.Size = new System.Drawing.Size(1, 1);
+            this.btnIndex.TabIndex = 109;
+            this.btnIndex.UseVisualStyleBackColor = true;
             // 
             // LogScenarioForm
             // 
@@ -465,5 +476,6 @@
         private MaterialSkin.Controls.MaterialTextBox2 txtEventName;
         private MaterialSkin.Controls.MaterialTextBox2 txtScenarioName;
         private MaterialSkin.Controls.MaterialButton btnClose;
+        private System.Windows.Forms.Button btnIndex;
     }
 }
