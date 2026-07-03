@@ -794,13 +794,25 @@ namespace GateHelper.LogValidator
                 StartPosition = FormStartPosition.CenterParent,
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 MaximizeBox = false,
-                MinimizeBox = false
+                MinimizeBox = false,
+                BackColor = this.BackColor,
+                ForeColor = this.ForeColor,
             };
 
-            var lbl = new Label { Text = message, Left = 12, Top = 10, Width = 380, Height = 100, AutoSize = false };
+            var lbl = new Label
+            {
+                Text = message,
+                Left = 12,
+                Top = 10,
+                Width = 380,
+                Height = 100,
+                AutoSize = false,
+                BackColor = this.BackColor,
+                ForeColor = this.ForeColor
+            };
             var txt = new TextBox { Text = defaultValue, Left = 12, Top = 118, Width = 180 };
-            var btnOk = new Button { Text = "확인", Left = 200, Top = 115, Width = 80, DialogResult = DialogResult.OK };
-            var btnCancel = new Button { Text = "취소", Left = 290, Top = 115, Width = 80, DialogResult = DialogResult.Cancel };
+            var btnOk = new Button { Text = "OK", Left = 200, Top = 115, Width = 80, DialogResult = DialogResult.OK };
+            var btnCancel = new Button { Text = "Cancel", Left = 290, Top = 115, Width = 80, DialogResult = DialogResult.Cancel };
 
             dlg.Controls.AddRange(new Control[] { lbl, txt, btnOk, btnCancel });
             dlg.AcceptButton = btnOk;

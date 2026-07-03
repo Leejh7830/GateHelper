@@ -1011,7 +1011,7 @@ namespace GateHelper
             this.BtnSend1.Depth = 0;
             this.BtnSend1.HighEmphasis = true;
             this.BtnSend1.Icon = null;
-            this.BtnSend1.Location = new System.Drawing.Point(767, 108);
+            this.BtnSend1.Location = new System.Drawing.Point(953, 174);
             this.BtnSend1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnSend1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnSend1.Name = "BtnSend1";
@@ -1169,14 +1169,14 @@ namespace GateHelper
             this.BtnLogValidator.Depth = 0;
             this.BtnLogValidator.HighEmphasis = true;
             this.BtnLogValidator.Icon = null;
-            this.BtnLogValidator.Location = new System.Drawing.Point(226, 613);
+            this.BtnLogValidator.Location = new System.Drawing.Point(218, 613);
             this.BtnLogValidator.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnLogValidator.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnLogValidator.Name = "BtnLogValidator";
             this.BtnLogValidator.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnLogValidator.Size = new System.Drawing.Size(80, 33);
+            this.BtnLogValidator.Size = new System.Drawing.Size(88, 33);
             this.BtnLogValidator.TabIndex = 106;
-            this.BtnLogValidator.Text = "Log - V";
+            this.BtnLogValidator.Text = "Validator";
             this.BtnLogValidator.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.BtnLogValidator.UseAccentColor = false;
             this.BtnLogValidator.UseVisualStyleBackColor = true;

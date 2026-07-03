@@ -137,6 +137,7 @@ namespace GateHelper.LogValidator.Core
                     ctx.CurrentCycleStartLine = log.LineNo;
                     ctx.CurrentCycleStartSource = log.SourceFileName;
                     ctx.LastMatchedTime = log.LogTime;
+                    ctx.ActiveMatchedLines.Add((log.LineNo, log.SourceFileName)); // 💡 첫 스텝 하이라이팅 포함
                     ctx.Master.CurrentStepIndex = 1;
                     ctx.ActiveGroupId = 0;
                     ctx.ActiveGroupType = "AND";
@@ -232,6 +233,7 @@ namespace GateHelper.LogValidator.Core
                     ctx.CurrentCycleStartLine = log.LineNo;
                     ctx.CurrentCycleStartSource = log.SourceFileName;
                     ctx.LastMatchedTime = log.LogTime;
+                    ctx.ActiveMatchedLines.Add((log.LineNo, log.SourceFileName)); // 💡 첫 스텝 하이라이팅 포함
                     ctx.Master.CurrentStepIndex = 1;
                 }
             }

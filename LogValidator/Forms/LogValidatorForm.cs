@@ -26,6 +26,10 @@ namespace GateHelper.LogValidator
 
         private int _currentSelectedStartLineNo = -1;
 
+        // 💡 PerformLogTracking이 설정한 RowFormatter를 저장
+        // ApplyFilterToActiveGrid가 이 위에 합성해서 하이라이팅과 필터가 동시에 보이도록 함
+        private RowFormatterDelegate _trackingFormatter = null;
+
         // 💡 현재 로드된 파일 경로 목록 - UI 표시 및 초기화 판단에 사용
         private readonly List<string> _loadedFilePaths = new List<string>();
 
@@ -40,6 +44,9 @@ namespace GateHelper.LogValidator
 
         // 💡 FormatCell 콜백에서 매번 new Font() 생성을 방지하기 위해 한 번만 생성 후 재사용
         private System.Drawing.Font _boldResultFont;
+
+        // 💡 사이클 하이라이팅 색상 - 사용자가 팔레트로 변경 가능
+        private System.Drawing.Color _highlightColor = System.Drawing.Color.FromArgb(255, 243, 205); // 기본: 연노랑
 
         // 💡 우측 메뉴 패널 슬라이드 토글용 필드
         private Button _btnSideToggle;
@@ -66,7 +73,8 @@ namespace GateHelper.LogValidator
 
             btnReset.Click += btnReset_Click;
 
-            InitializeSideToggle(); // 💡 우측 메뉴 슬라이드 토글 버튼 초기화
+            InitializeSideToggle();
+            InitializeHighlightColorButton(); // 💡 하이라이팅 색상 팔레트 버튼
 
             ScenarioEventBroker.OnScenarioSaved += OnRuntimeScenarioRefresh;
         }
@@ -364,17 +372,29 @@ namespace GateHelper.LogValidator
         /// 시나리오 스텝 미리보기 팝업을 표시합니다.
         /// 읽기 전용으로 스텝 구성을 빠르게 확인하는 용도입니다.
         /// </summary>
+        // 💡 Step Preview 중복 방지: 같은 시나리오 팝업이 여러 개 열리지 않도록 추적
+        private readonly Dictionary<string, Form> _openPreviews = new Dictionary<string, Form>();
+
         private void ShowStepPreview(string scenarioName, List<ScenarioStepModel> steps)
         {
+            // 이미 열려있으면 앞으로 가져오기
+            if (_openPreviews.TryGetValue(scenarioName, out var existing) && !existing.IsDisposed)
+            {
+                existing.BringToFront();
+                return;
+            }
+
             var popup = new Form
             {
                 Text = $"Step Preview — {scenarioName}",
                 Size = new System.Drawing.Size(820, 480),
-                StartPosition = FormStartPosition.CenterParent,
+                StartPosition = FormStartPosition.Manual,
                 FormBorderStyle = FormBorderStyle.SizableToolWindow,
                 Font = new System.Drawing.Font("Malgun Gothic", 9.5f),
-                // 💡 4번: TopMost로 항상 최상단 유지 - 검증폼을 클릭해도 프리뷰가 뒤로 안 가짐
                 TopMost = true,
+                // 💡 테마 색상 적용 - 다크/라이트 모두 대응
+                BackColor = this.BackColor,
+                ForeColor = this.ForeColor,
             };
 
             var olv = new ObjectListView
@@ -385,6 +405,9 @@ namespace GateHelper.LogValidator
                 GridLines = true,
                 ShowGroups = false,
                 Font = new System.Drawing.Font("Malgun Gothic", 9.5f),
+                // 💡 메인 그리드와 동일한 색상 이어받기
+                BackColor = olvValidatorRawLog.BackColor,
+                ForeColor = olvValidatorRawLog.ForeColor,
             };
 
             var colStep = new OLVColumn("Step", "StepNo") { Width = 48, TextAlign = HorizontalAlignment.Center };
@@ -480,11 +503,18 @@ namespace GateHelper.LogValidator
             popup.Controls.Add(olv);
             popup.Controls.Add(lblCount);
             popup.Controls.Add(btnClose);
-            popup.FormClosed += (s, e) => olv.Dispose();
+            _openPreviews[scenarioName] = popup;
+            popup.FormClosed += (s, e) =>
+            {
+                olv.Dispose();
+                _openPreviews.Remove(scenarioName);
+            };
 
-            // 💡 4번: ShowDialog → Show로 변경하여 검증폼 조작 가능하게
-            // TopMost = true로 프리뷰가 항상 앞에 보임
             popup.Show(this);
+            popup.Location = new System.Drawing.Point(
+                this.Left + (this.Width - popup.Width) / 2,
+                this.Top + (this.Height - popup.Height) / 2
+            );
         }
 
         private void InitializeValidationResultGridView()
@@ -666,16 +696,21 @@ namespace GateHelper.LogValidator
             {
                 activeGrid.SelectedObject = null;
 
+                // 💡 하이라이팅 RowFormatter를 _trackingFormatter에 저장
+                // ApplyFilterToActiveGrid가 이 위에 합성해서 필터와 동시 동작 가능
+                // 💡 RowFormatter 속성에 람다 설정 후 속성값을 _trackingFormatter에 저장
+                // RowFormatterDelegate 타입 불일치 방지를 위해 직접 람다 할당 대신 속성 경유
                 activeGrid.RowFormatter = rowObject =>
                 {
                     var logModel = rowObject.RowObject as RawLogModel;
                     if (logModel != null)
                     {
                         bool isMatched = matchedLinesSet.Contains((logModel.LineNo, logModel.SourceFileName));
-                        rowObject.BackColor = isMatched ? System.Drawing.Color.FromArgb(255, 243, 205) : activeGrid.BackColor;
+                        rowObject.BackColor = isMatched ? _highlightColor : activeGrid.BackColor;
                         rowObject.ForeColor = isMatched ? System.Drawing.Color.Black : activeGrid.ForeColor;
                     }
                 };
+                _trackingFormatter = activeGrid.RowFormatter;
 
                 activeGrid.BuildList(true);
 
@@ -683,9 +718,8 @@ namespace GateHelper.LogValidator
                 int centeredTop = targetJumpIndex - (visibleRows / 2);
                 activeGrid.TopItemIndex = Math.Max(0, centeredTop);
 
-                // 💡 TopItemIndex 설정 후 OLV 내부 스크롤 이벤트가 RowFormatter를 초기화할 수 있어서
-                // 스크롤 후 다시 한번 BuildList로 하이라이팅 재적용 (첫 번째 행 누락 방지)
                 activeGrid.BuildList(true);
+                activeGrid.Invalidate();
             }
         }
 
@@ -752,6 +786,63 @@ namespace GateHelper.LogValidator
 
         // 💡 우측 메뉴 슬라이드 토글
         // ─────────────────────────────────────────────
+        private void InitializeHighlightColorButton()
+        {
+            // 💡 팔레트 버튼: panel1 오른쪽 끝에 배치 (Abnormal Logs 레이블 왼쪽)
+            // 클릭 시 ColorDialog → 선택한 색으로 하이라이팅 + 텍스트 필터 색상 동시 변경
+            var btnColor = new Button
+            {
+                Size = new System.Drawing.Size(28, 28),
+                FlatStyle = FlatStyle.Flat,
+                Cursor = Cursors.Hand,
+                Anchor = AnchorStyles.Right | AnchorStyles.Top,
+                BackColor = _highlightColor,
+                Text = "🎨",
+                Font = new System.Drawing.Font("Segoe UI Emoji", 10f),
+            };
+            btnColor.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(180, 180, 180);
+            btnColor.FlatAppearance.BorderSize = 1;
+
+            // panel1 오른쪽 끝 고정 위치 (lblAnomalyWarning 왼쪽)
+            btnColor.Location = new System.Drawing.Point(
+                panel1.Width - btnColor.Width - 160, // lblAnomalyWarning 공간 확보
+                (panel1.Height - btnColor.Height) / 2
+            );
+            panel1.SizeChanged += (s, e) =>
+                btnColor.Location = new System.Drawing.Point(
+                    panel1.Width - btnColor.Width - 160,
+                    (panel1.Height - btnColor.Height) / 2);
+
+            btnColor.Click += (s, e) =>
+            {
+                using (var dlg = new ColorDialog())
+                {
+                    dlg.Color = _highlightColor;
+                    dlg.FullOpen = true; // 전체 팔레트 표시
+                    dlg.AnyColor = true;
+                    dlg.CustomColors = new[] { _highlightColor.ToArgb() };
+
+                    if (dlg.ShowDialog() != DialogResult.OK) return;
+
+                    _highlightColor = dlg.Color;
+                    btnColor.BackColor = _highlightColor;
+
+                    // 이미 하이라이팅된 상태라면 즉시 갱신
+                    if (_currentSelectedStartLineNo > 0)
+                    {
+                        var activeGrid = GetActiveGrid();
+                        activeGrid.BuildList(true);
+                    }
+
+                    // 텍스트 필터 하이라이팅도 갱신
+                    ApplyFilterToActiveGrid();
+                }
+            };
+
+            panel1.Controls.Add(btnColor);
+            btnColor.BringToFront();
+        }
+
         private void InitializeSideToggle()
         {
             _btnSideToggle = new Button
@@ -933,7 +1024,7 @@ namespace GateHelper.LogValidator
                 FlatStyle = FlatStyle.Flat,
                 BackColor = System.Drawing.Color.FromArgb(55, 90, 160),
                 ForeColor = System.Drawing.Color.White,
-                Cursor = Cursors.Hand,
+                Cursor = Cursors.Default, // 비활성 시 Hand 커서 표시 방지
                 Dock = DockStyle.Right,
                 Width = 120,
                 Enabled = false, // 로그 드롭 전엔 비활성
@@ -1023,8 +1114,11 @@ namespace GateHelper.LogValidator
             // 그리드 초기화
             olvValidatorRawLog.ClearObjects();
             olvValidatorRawLog.RowFormatter = null;
+            olvValidatorRawLog.DefaultRenderer = null; // 💡 텍스트 필터 HighlightRenderer 잔류 방지
+            olvValidatorRawLog.ModelFilter = null; // 💡 텍스트 필터 ModelFilter 잔류 방지
             olvValidationResult.ClearObjects();
             _currentSelectedStartLineNo = -1;
+            _trackingFormatter = null; // 💡 하이라이팅 포맷터 초기화
 
             // 유닛 탭 초기화 (tabPage1 제외)
             while (tabControl1.TabPages.Count > 1)
@@ -1041,6 +1135,7 @@ namespace GateHelper.LogValidator
             if (_btnUnitFilter != null)
             {
                 _btnUnitFilter.Enabled = false;
+                _btnUnitFilter.Cursor = Cursors.Default;
                 _btnUnitFilter.ContextMenuStrip = null;
             }
 
@@ -1153,9 +1248,26 @@ namespace GateHelper.LogValidator
 
         private void btnStartValidation_Click(object sender, EventArgs e)
         {
+            // 💡 전체탭 + 유닛탭 모두 이전 하이라이팅/필터 초기화
             olvValidatorRawLog.RowFormatter = null;
-            _currentSelectedStartLineNo = -1;
+            olvValidatorRawLog.DefaultRenderer = null;
+            olvValidatorRawLog.ModelFilter = null;
             olvValidatorRawLog.Refresh();
+
+            // 유닛탭 그리드도 초기화 (이전 하이라이팅 잔류 방지)
+            for (int i = 1; i < tabControl1.TabPages.Count; i++)
+            {
+                var subGrid = tabControl1.TabPages[i].Controls.OfType<ObjectListView>().FirstOrDefault();
+                if (subGrid != null)
+                {
+                    subGrid.RowFormatter = null;
+                    subGrid.DefaultRenderer = null;
+                    subGrid.ModelFilter = null;
+                    subGrid.Refresh();
+                }
+            }
+            _currentSelectedStartLineNo = -1;
+            _trackingFormatter = null; // 💡 이전 하이라이팅 포맷터 초기화
 
             if (_validatorRawLogList == null || _validatorRawLogList.Count == 0)
             {
@@ -1262,6 +1374,7 @@ namespace GateHelper.LogValidator
             if (_btnUnitFilter == null) return;
 
             _btnUnitFilter.Enabled = _unitGroupCache.Count > 0;
+            _btnUnitFilter.Cursor = _unitGroupCache.Count > 0 ? Cursors.Hand : Cursors.Default;
 
             // 💡 메뉴 아이템 폰트를 1회만 생성해서 재사용 (호출마다 new Font 생성 방지)
             if (_unitFilterMenuFont == null)
@@ -1334,7 +1447,11 @@ namespace GateHelper.LogValidator
             }
 
             var data = _unitGroupCache[unitId];
-            var page = new TabPage(unitId) { BackColor = System.Drawing.Color.White };
+            // 💡 TabPage/OLV 색상을 olvValidatorRawLog에서 이어받아 다크/라이트 테마 자동 대응
+            var page = new TabPage(unitId)
+            {
+                BackColor = olvValidatorRawLog.BackColor,
+            };
 
             var grid = new ObjectListView
             {
@@ -1345,6 +1462,9 @@ namespace GateHelper.LogValidator
                 Font = olvValidatorRawLog.Font,
                 ShowItemToolTips = false,
                 ShowGroups = false,
+                BackColor = olvValidatorRawLog.BackColor,
+                ForeColor = olvValidatorRawLog.ForeColor,
+                HeaderUsesThemes = olvValidatorRawLog.HeaderUsesThemes,
             };
 
             // 메인 그리드와 동일한 컬럼 구조 이식
@@ -1489,21 +1609,45 @@ namespace GateHelper.LogValidator
             // 💡 입력할 때마다 실시간으로 현재 보고 있는 탭 그리드의 본문을 압축합니다.
             txtLogFilter.TextChanged += (s, e) => ApplyFilterToActiveGrid();
 
-            // 💡 탭을 전환했을 때도 검색어 필터 상태가 그대로 유지되어 동기화되도록 바인딩
-            tabControl1.SelectedIndexChanged += (s, e) => ApplyFilterToActiveGrid();
+            // 💡 탭 전환 시 이전 탭 그리드 필터 초기화 후 새 탭에 재적용
+            tabControl1.SelectedIndexChanged += (s, e) =>
+            {
+                // 전체 탭/유닛 탭 모두 순회하며 필터 초기화
+                foreach (TabPage tp in tabControl1.TabPages)
+                {
+                    var g = tp.Controls.OfType<ObjectListView>().FirstOrDefault();
+                    if (g != null && g != GetActiveGrid())
+                    {
+                        g.ModelFilter = null;
+                        g.DefaultRenderer = null;
+                        if (_trackingFormatter != null)
+                            g.RowFormatter = _trackingFormatter;
+                    }
+                }
+                ApplyFilterToActiveGrid();
+            };
         }
 
         private void ApplyFilterToActiveGrid()
         {
             string keyword = txtLogFilter.Text;
-
-            // 💡 GetActiveGrid()로 현재 탭의 그리드를 가져옴 (전체탭/유닛탭 모두 대응)
             ObjectListView activeGrid = GetActiveGrid();
 
             if (string.IsNullOrWhiteSpace(keyword))
             {
                 activeGrid.ModelFilter = null;
                 activeGrid.DefaultRenderer = null;
+                // 💡 필터 해제 시 하이라이팅 RowFormatter 복원
+                // 💡 _trackingFormatter 복원 (필터 해제 시 하이라이팅 유지)
+                if (_trackingFormatter != null)
+                {
+                    activeGrid.RowFormatter = _trackingFormatter;
+                    activeGrid.BuildList(true);
+                }
+                else
+                {
+                    activeGrid.RowFormatter = null;
+                }
             }
             else
             {
@@ -1512,6 +1656,29 @@ namespace GateHelper.LogValidator
                     var filter = TextMatchFilter.Regex(activeGrid, keyword);
                     activeGrid.ModelFilter = filter;
                     activeGrid.DefaultRenderer = new HighlightTextRenderer(filter);
+
+                    float brightness = _highlightColor.GetBrightness();
+                    System.Drawing.Color textColor = brightness < 0.5f
+                        ? System.Drawing.Color.White
+                        : System.Drawing.Color.Black;
+
+                    // 💡 필터 RowFormatter와 하이라이팅 _trackingFormatter를 합성
+                    // 매칭 행: 하이라이팅 색상 우선, 비매칭 행: _trackingFormatter 적용
+                    activeGrid.RowFormatter = row =>
+                    {
+                        if (row.RowObject is RawLogModel log &&
+                            Regex.IsMatch(log.LogMessage ?? "", keyword))
+                        {
+                            row.BackColor = _highlightColor;
+                            row.ForeColor = textColor;
+                        }
+                        else
+                        {
+                            // 💡 하이라이팅(사이클 선택)이 활성화되어 있으면 함께 적용
+                            _trackingFormatter?.Invoke(row);
+                        }
+                    };
+                    activeGrid.BuildList(true);
                 }
                 catch (Exception)
                 {
