@@ -169,7 +169,7 @@ namespace GateHelper
                 if (_driver != null)
                 {
                     var currentHandles = _driver.WindowHandles;
-                    
+
                     // [탭 열림 자동 감지]
                     if (currentHandles.Count > 1)
                     {
@@ -698,7 +698,7 @@ namespace GateHelper
 
             if (!Util.SwitchToMainHandle(_driver, mainHandle))
                 return; // MainHandle 없음
-            
+
             string serverName = Util.ClickFavBtnAndGetServerName(_driver, _config, 3, chromeDriverManager);
 
             await LoadServersIntoComboBoxAsync();
@@ -956,7 +956,8 @@ namespace GateHelper
         private void PicBox_Arrow_Click(object sender, EventArgs e)
         {
             Util_Control.ToggleFormLayout(
-                this, PicBox_Arrow, PicBox_Setting, PicBox_Question, BtnOption1, FormOriginalSize, FormExtendedSize, TabSelector1,
+                this, PicBox_Arrow, PicBox_Setting, PicBox_Question, BtnOption1, BtnLogValidator, TxtQuickSearch, BtnQuickConnect,
+                FormOriginalSize, FormExtendedSize, TabSelector1,
                 tabSelector1OriginalSize, GroupConnect1, groupConnect1OriginalSize, TabControl1.Size, ref changeArrow);
         }
 
