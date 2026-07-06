@@ -59,7 +59,6 @@ namespace GateHelper.LogValidator
             InitializeComponent();
             _skinManager.AddFormToManage(this);
 
-            // 💡 Designer에서 tabPage1.Text = "tabPage1"로 하드코딩되어 있어 코드에서 재설정
             tabPage1.Text = "All Logs";
 
             InitializeValidatorRawLogGridView();

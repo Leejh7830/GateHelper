@@ -36,6 +36,7 @@ namespace GateHelper.LogValidator
         private UnitTemplateModel _selectedTemplateForEdit = null;
 
         private string _originalLogBackup = string.Empty; // [수동 마스킹 보존 락] 원본 로그 백업용
+        private ScenarioStepModel _selectedLadderStepForEdit;
 
         public LogScenarioForm()
         {
@@ -229,6 +230,27 @@ namespace GateHelper.LogValidator
             // 💡 드래그 가능한 행 위에서 SizeAll 커서로 시각적 피드백 제공
             olvScenarioLadder.MouseMove += OlvScenarioLadder_HoverCursor;
             olvScenarioLadder.MouseLeave += (s, e) => olvScenarioLadder.Cursor = Cursors.Default;
+
+            // 💡 rtbMaskedPreview로 스텝 드래그 → 이름+패턴 표시
+            rtbMaskedPreview.AllowDrop = true;
+            rtbMaskedPreview.DragEnter += (s, e) =>
+            {
+                e.Effect = e.Data.GetDataPresent(typeof(ScenarioStepModel))
+                    ? DragDropEffects.Copy
+                    : DragDropEffects.None;
+            };
+            rtbMaskedPreview.DragDrop += (s, e) =>
+            {
+                var step = e.Data.GetData(typeof(ScenarioStepModel)) as ScenarioStepModel;
+                if (step == null) return;
+
+                // 이름과 패턴을 패널에 로드
+                txtEventName.Text = step.EventName;
+                _originalLogBackup = step.MaskingPattern ?? "";
+                _selectedLadderStepForEdit = step;
+                _selectedTemplateForEdit = null;
+                RenderHighlightLog(rtbMaskedPreview, step.MaskingPattern ?? "");
+            };
 
             olvScenarioLadder.DoubleClick += olvScenarioLadder_DoubleClick;
 
@@ -639,14 +661,11 @@ namespace GateHelper.LogValidator
                 RefreshStepTooltips();
             });
 
-            // 💡 AND Group Toggle: 같은 GroupId를 가진 스텝들은 순서 무관하게 모두 수신 시 SUCCESS
-            // 예: SIGNAL_A와 SIGNAL_B가 같은 그룹이면 A→B 또는 B→A 어느 순서로 와도 통과
-            var menuAndGroup = new ToolStripMenuItem("AND Group Toggle", null, (s, e) =>
+            var menuAndGroup = new ToolStripMenuItem("AND Group Set", null, (s, e) =>
             {
                 var selected = olvScenarioLadder.SelectedObject as ScenarioStepModel;
                 if (selected == null) return;
 
-                // Optional 스텝은 AND 그룹 불가
                 if (selected.IsOptional)
                 {
                     MessageBox.Show("Optional steps cannot be part of an AND group.\nRemove Optional first.",
@@ -654,37 +673,43 @@ namespace GateHelper.LogValidator
                     return;
                 }
 
-                if (selected.GroupId > 0)
+                if (selected.GroupId > 0 && selected.GroupType == "AND")
                 {
-                    // 💡 이미 그룹에 속해있으면 그룹에서 제거
                     selected.GroupId = 0;
+                    selected.GroupType = "AND";
                 }
                 else
                 {
-                    // 💡 그룹에 추가: 현재 선택된 스텝 기준으로 인접한 그룹 ID를 찾아 합류하거나 새 그룹 생성
-                    int idx = _scenarioLadderList.IndexOf(selected);
+                    selected.GroupType = "AND";
+                    SetGroupId(selected);
+                }
 
-                    // 인접 스텝(위/아래)에 그룹이 있으면 같은 그룹으로 합류
-                    int adjacentGroupId = 0;
-                    if (idx > 0 && _scenarioLadderList[idx - 1].GroupId > 0)
-                        adjacentGroupId = _scenarioLadderList[idx - 1].GroupId;
-                    else if (idx < _scenarioLadderList.Count - 1 && _scenarioLadderList[idx + 1].GroupId > 0)
-                        adjacentGroupId = _scenarioLadderList[idx + 1].GroupId;
+                olvScenarioLadder.RefreshObject(selected);
+                RefreshAndGroupVisual();
+                RefreshStepTooltips();
+            });
 
-                    if (adjacentGroupId > 0)
-                    {
-                        selected.GroupId = adjacentGroupId;
-                    }
-                    else
-                    {
-                        // 새 그룹 ID 생성 (기존 그룹 ID 중 최댓값 + 1)
-                        int newGroupId = _scenarioLadderList
-                            .Where(st => st.GroupId > 0)
-                            .Select(st => st.GroupId)
-                            .DefaultIfEmpty(0)
-                            .Max() + 1;
-                        selected.GroupId = newGroupId;
-                    }
+            var menuOrGroup = new ToolStripMenuItem("OR Group Set", null, (s, e) =>
+            {
+                var selected = olvScenarioLadder.SelectedObject as ScenarioStepModel;
+                if (selected == null) return;
+
+                if (selected.IsOptional)
+                {
+                    MessageBox.Show("Optional steps cannot be part of an OR group.\nRemove Optional first.",
+                        "OR Group N/A", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
+                if (selected.GroupId > 0 && selected.GroupType == "OR")
+                {
+                    selected.GroupId = 0;
+                    selected.GroupType = "AND";
+                }
+                else
+                {
+                    selected.GroupType = "OR";
+                    SetGroupId(selected);
                 }
 
                 olvScenarioLadder.RefreshObject(selected);
@@ -701,6 +726,7 @@ namespace GateHelper.LogValidator
                 menuTimeout.Enabled = hasSelection;
                 menuOptional.Enabled = hasSelection;
                 menuAndGroup.Enabled = hasSelection;
+                menuOrGroup.Enabled = hasSelection;
             };
 
             cms.Items.Add(menuMoveUp);
@@ -709,11 +735,31 @@ namespace GateHelper.LogValidator
             cms.Items.Add(menuTimeout);
             cms.Items.Add(menuOptional);
             cms.Items.Add(menuAndGroup);
+            cms.Items.Add(menuOrGroup);
             cms.Items.Add(new ToolStripSeparator());
             cms.Items.Add(menuDelete);
 
             olvScenarioLadder.ContextMenuStrip = cms;
             RefreshStepTooltips();
+        }
+
+        // 💡 그룹 ID 설정 공통 로직: 인접 같은 GroupType 그룹에 합류하거나 새 ID 생성
+        private void SetGroupId(ScenarioStepModel selected)
+        {
+            int idx = _scenarioLadderList.IndexOf(selected);
+            int adjacentGroupId = 0;
+
+            if (idx > 0 && _scenarioLadderList[idx - 1].GroupId > 0
+                && _scenarioLadderList[idx - 1].GroupType == selected.GroupType)
+                adjacentGroupId = _scenarioLadderList[idx - 1].GroupId;
+            else if (idx < _scenarioLadderList.Count - 1
+                && _scenarioLadderList[idx + 1].GroupId > 0
+                && _scenarioLadderList[idx + 1].GroupType == selected.GroupType)
+                adjacentGroupId = _scenarioLadderList[idx + 1].GroupId;
+
+            selected.GroupId = adjacentGroupId > 0
+                ? adjacentGroupId
+                : _scenarioLadderList.Where(st => st.GroupId > 0).Select(st => st.GroupId).DefaultIfEmpty(0).Max() + 1;
         }
 
         // 💡 Timeout + Optional 설정을 통합해서 툴팁으로 표시
@@ -745,7 +791,9 @@ namespace GateHelper.LogValidator
                     var groupMembers = _scenarioLadderList
                         .Where(s => s.GroupId == step.GroupId)
                         .Select(s => s.EventName);
-                    parts.Add($"⊕ AND Group {step.GroupId}: [{string.Join(", ", groupMembers)}] — any order");
+                    string gtype = step.GroupType == "OR" ? "OR" : "AND";
+                    string desc = step.GroupType == "OR" ? "any one" : "any order";
+                    parts.Add($"⊕ {gtype} Group {step.GroupId}: [{string.Join(", ", groupMembers)}] — {desc}");
                 }
 
                 return parts.Count > 0 ? string.Join("\n", parts) : null;
@@ -957,10 +1005,11 @@ namespace GateHelper.LogValidator
                 {
                     _scenarioLadderList = loadedSteps;
                     olvScenarioLadder.SetObjects(_scenarioLadderList);
+                    olvScenarioLadder.RebuildColumns(); // 💡 AspectGetter 즉시 재평가 (이름 미표시 문제 해결)
                     olvScenarioLadder.BuildList(true);
                     txtScenarioName.Text = Path.GetFileNameWithoutExtension(filePath);
                     RefreshStepTooltips();
-                    RefreshAndGroupVisual(); // 💡 로드 시 AND 그룹 색상도 즉시 적용
+                    RefreshAndGroupVisual();
                 }
             }
             catch (Exception ex)
