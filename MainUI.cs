@@ -918,6 +918,8 @@ namespace GateHelper
             if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
 
+            if (!Util.SwitchToMainHandle(_driver, mainHandle)) return;
+
             var hit = OlvServerList.OlvHitTest(e.X, e.Y);
 
             if (hit.Column == Memo)  // 더블클릭이 메모열이면 편집모드
