@@ -37,14 +37,16 @@
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.splitContainer3 = new System.Windows.Forms.SplitContainer();
             this.panel1 = new System.Windows.Forms.Panel();
-            this.cmbDateFilter = new System.Windows.Forms.ComboBox();
-            this.btnTimeJump = new MaterialSkin.Controls.MaterialButton();
-            this.dtpTimeJump = new System.Windows.Forms.DateTimePicker();
             this.lblAnomalyWarning = new MaterialSkin.Controls.MaterialLabel();
             this.splitContainer4 = new System.Windows.Forms.SplitContainer();
             this.treeScenarioGroup = new System.Windows.Forms.TreeView();
             this.olvScenarioRepository = new BrightIdeasSoftware.ObjectListView();
+            this.pnlTimeJump = new System.Windows.Forms.Panel();
+            this.btnTimeJump = new MaterialSkin.Controls.MaterialButton();
+            this.dtpTimeJump = new System.Windows.Forms.DateTimePicker();
+            this.cmbDateFilter = new System.Windows.Forms.ComboBox();
             this.panel2 = new System.Windows.Forms.Panel();
+            this.btnIndex = new System.Windows.Forms.Button();
             this.btnOpenFolder = new MaterialSkin.Controls.MaterialButton();
             this.btnOpenScenarioEditor = new MaterialSkin.Controls.MaterialButton();
             this.btnClose = new MaterialSkin.Controls.MaterialButton();
@@ -53,7 +55,6 @@
             this.olvValidationResult = new BrightIdeasSoftware.TreeListView();
             this.toolTipAnomaly = new System.Windows.Forms.ToolTip(this.components);
             this.txtLogFilter = new MaterialSkin.Controls.MaterialTextBox2();
-            this.btnIndex = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).BeginInit();
             this.splitContainer1.Panel1.SuspendLayout();
             this.splitContainer1.Panel2.SuspendLayout();
@@ -75,6 +76,7 @@
             this.splitContainer4.Panel2.SuspendLayout();
             this.splitContainer4.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.olvScenarioRepository)).BeginInit();
+            this.pnlTimeJump.SuspendLayout();
             this.panel2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.olvValidationResult)).BeginInit();
             this.SuspendLayout();
@@ -142,7 +144,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(736, 750);
+            this.tabPage2.Size = new System.Drawing.Size(897, 750);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "tabPage2";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -165,7 +167,7 @@
             this.splitContainer2.Panel2.Controls.Add(this.olvValidationResult);
             this.splitContainer2.Panel2MinSize = 150;
             this.splitContainer2.Size = new System.Drawing.Size(505, 776);
-            this.splitContainer2.SplitterDistance = 265;
+            this.splitContainer2.SplitterDistance = 275;
             this.splitContainer2.TabIndex = 0;
             // 
             // splitContainer3
@@ -183,64 +185,20 @@
             // splitContainer3.Panel2
             // 
             this.splitContainer3.Panel2.Controls.Add(this.splitContainer4);
-            this.splitContainer3.Size = new System.Drawing.Size(505, 265);
-            this.splitContainer3.SplitterDistance = 63;
+            this.splitContainer3.Size = new System.Drawing.Size(505, 275);
+            this.splitContainer3.SplitterDistance = 65;
             this.splitContainer3.TabIndex = 0;
             // 
             // panel1
             // 
             this.panel1.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel1.Controls.Add(this.cmbDateFilter);
-            this.panel1.Controls.Add(this.btnTimeJump);
-            this.panel1.Controls.Add(this.dtpTimeJump);
+            this.panel1.Controls.Add(this.pnlTimeJump);
             this.panel1.Controls.Add(this.lblAnomalyWarning);
             this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panel1.Location = new System.Drawing.Point(0, 0);
             this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(505, 63);
+            this.panel1.Size = new System.Drawing.Size(505, 65);
             this.panel1.TabIndex = 0;
-            // 
-            // cmbDateFilter
-            // 
-            this.cmbDateFilter.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.cmbDateFilter.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.cmbDateFilter.FormattingEnabled = true;
-            this.cmbDateFilter.Location = new System.Drawing.Point(15, 4);
-            this.cmbDateFilter.Name = "cmbDateFilter";
-            this.cmbDateFilter.Size = new System.Drawing.Size(137, 23);
-            this.cmbDateFilter.TabIndex = 11117;
-            // 
-            // btnTimeJump
-            // 
-            this.btnTimeJump.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnTimeJump.AutoSize = false;
-            this.btnTimeJump.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.btnTimeJump.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.btnTimeJump.Depth = 0;
-            this.btnTimeJump.HighEmphasis = true;
-            this.btnTimeJump.Icon = null;
-            this.btnTimeJump.Location = new System.Drawing.Point(159, 8);
-            this.btnTimeJump.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.btnTimeJump.MouseState = MaterialSkin.MouseState.HOVER;
-            this.btnTimeJump.Name = "btnTimeJump";
-            this.btnTimeJump.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.btnTimeJump.Size = new System.Drawing.Size(74, 40);
-            this.btnTimeJump.TabIndex = 11115;
-            this.btnTimeJump.Text = "▶ Jump";
-            this.btnTimeJump.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.btnTimeJump.UseAccentColor = false;
-            this.btnTimeJump.UseVisualStyleBackColor = true;
-            // 
-            // dtpTimeJump
-            // 
-            this.dtpTimeJump.CustomFormat = "HH:mm:ss";
-            this.dtpTimeJump.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.dtpTimeJump.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
-            this.dtpTimeJump.Location = new System.Drawing.Point(15, 29);
-            this.dtpTimeJump.Name = "dtpTimeJump";
-            this.dtpTimeJump.ShowUpDown = true;
-            this.dtpTimeJump.Size = new System.Drawing.Size(137, 23);
-            this.dtpTimeJump.TabIndex = 4;
             // 
             // lblAnomalyWarning
             // 
@@ -271,7 +229,7 @@
             // 
             this.splitContainer4.Panel2.Controls.Add(this.olvScenarioRepository);
             this.splitContainer4.Panel2MinSize = 150;
-            this.splitContainer4.Size = new System.Drawing.Size(505, 198);
+            this.splitContainer4.Size = new System.Drawing.Size(505, 206);
             this.splitContainer4.SplitterDistance = 177;
             this.splitContainer4.TabIndex = 0;
             // 
@@ -280,7 +238,7 @@
             this.treeScenarioGroup.Dock = System.Windows.Forms.DockStyle.Fill;
             this.treeScenarioGroup.Location = new System.Drawing.Point(0, 0);
             this.treeScenarioGroup.Name = "treeScenarioGroup";
-            this.treeScenarioGroup.Size = new System.Drawing.Size(177, 198);
+            this.treeScenarioGroup.Size = new System.Drawing.Size(177, 206);
             this.treeScenarioGroup.TabIndex = 0;
             // 
             // olvScenarioRepository
@@ -292,10 +250,62 @@
             this.olvScenarioRepository.HideSelection = false;
             this.olvScenarioRepository.Location = new System.Drawing.Point(0, 0);
             this.olvScenarioRepository.Name = "olvScenarioRepository";
-            this.olvScenarioRepository.Size = new System.Drawing.Size(324, 198);
+            this.olvScenarioRepository.Size = new System.Drawing.Size(324, 206);
             this.olvScenarioRepository.TabIndex = 2;
             this.olvScenarioRepository.UseCompatibleStateImageBehavior = false;
             this.olvScenarioRepository.View = System.Windows.Forms.View.Details;
+            // 
+            // pnlTimeJump
+            // 
+            this.pnlTimeJump.AutoSize = true;
+            this.pnlTimeJump.Controls.Add(this.btnTimeJump);
+            this.pnlTimeJump.Controls.Add(this.dtpTimeJump);
+            this.pnlTimeJump.Controls.Add(this.cmbDateFilter);
+            this.pnlTimeJump.Location = new System.Drawing.Point(3, 0);
+            this.pnlTimeJump.Name = "pnlTimeJump";
+            this.pnlTimeJump.Size = new System.Drawing.Size(225, 60);
+            this.pnlTimeJump.TabIndex = 5;
+            // 
+            // btnTimeJump
+            // 
+            this.btnTimeJump.AutoSize = false;
+            this.btnTimeJump.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnTimeJump.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnTimeJump.Depth = 0;
+            this.btnTimeJump.HighEmphasis = true;
+            this.btnTimeJump.Icon = null;
+            this.btnTimeJump.Location = new System.Drawing.Point(147, 9);
+            this.btnTimeJump.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnTimeJump.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnTimeJump.Name = "btnTimeJump";
+            this.btnTimeJump.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnTimeJump.Size = new System.Drawing.Size(74, 40);
+            this.btnTimeJump.TabIndex = 11115;
+            this.btnTimeJump.Text = "▶ Jump";
+            this.btnTimeJump.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnTimeJump.UseAccentColor = false;
+            this.btnTimeJump.UseVisualStyleBackColor = true;
+            // 
+            // dtpTimeJump
+            // 
+            this.dtpTimeJump.CustomFormat = "HH:mm:ss";
+            this.dtpTimeJump.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.dtpTimeJump.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
+            this.dtpTimeJump.Location = new System.Drawing.Point(3, 34);
+            this.dtpTimeJump.Name = "dtpTimeJump";
+            this.dtpTimeJump.ShowUpDown = true;
+            this.dtpTimeJump.Size = new System.Drawing.Size(137, 23);
+            this.dtpTimeJump.TabIndex = 4;
+            // 
+            // cmbDateFilter
+            // 
+            this.cmbDateFilter.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.cmbDateFilter.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.cmbDateFilter.FormattingEnabled = true;
+            this.cmbDateFilter.Location = new System.Drawing.Point(3, 9);
+            this.cmbDateFilter.Name = "cmbDateFilter";
+            this.cmbDateFilter.Size = new System.Drawing.Size(137, 23);
+            this.cmbDateFilter.TabIndex = 11117;
             // 
             // panel2
             // 
@@ -309,8 +319,16 @@
             this.panel2.Dock = System.Windows.Forms.DockStyle.Right;
             this.panel2.Location = new System.Drawing.Point(355, 0);
             this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(150, 507);
+            this.panel2.Size = new System.Drawing.Size(150, 497);
             this.panel2.TabIndex = 4;
+            // 
+            // btnIndex
+            // 
+            this.btnIndex.Location = new System.Drawing.Point(127, 425);
+            this.btnIndex.Name = "btnIndex";
+            this.btnIndex.Size = new System.Drawing.Size(1, 1);
+            this.btnIndex.TabIndex = 11118;
+            this.btnIndex.UseVisualStyleBackColor = true;
             // 
             // btnOpenFolder
             // 
@@ -430,7 +448,7 @@
             this.olvValidationResult.Location = new System.Drawing.Point(0, 0);
             this.olvValidationResult.Name = "olvValidationResult";
             this.olvValidationResult.ShowGroups = false;
-            this.olvValidationResult.Size = new System.Drawing.Size(505, 507);
+            this.olvValidationResult.Size = new System.Drawing.Size(505, 497);
             this.olvValidationResult.TabIndex = 3;
             this.olvValidationResult.UseCompatibleStateImageBehavior = false;
             this.olvValidationResult.View = System.Windows.Forms.View.Details;
@@ -470,14 +488,6 @@
             this.txtLogFilter.TrailingIcon = null;
             this.txtLogFilter.UseSystemPasswordChar = false;
             // 
-            // btnIndex
-            // 
-            this.btnIndex.Location = new System.Drawing.Point(127, 425);
-            this.btnIndex.Name = "btnIndex";
-            this.btnIndex.Size = new System.Drawing.Size(1, 1);
-            this.btnIndex.TabIndex = 11118;
-            this.btnIndex.UseVisualStyleBackColor = true;
-            // 
             // LogValidatorForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -510,6 +520,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer4)).EndInit();
             this.splitContainer4.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.olvScenarioRepository)).EndInit();
+            this.pnlTimeJump.ResumeLayout(false);
             this.panel2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.olvValidationResult)).EndInit();
             this.ResumeLayout(false);
@@ -543,5 +554,6 @@
         private System.Windows.Forms.DateTimePicker dtpTimeJump;
         private System.Windows.Forms.ComboBox cmbDateFilter;
         private System.Windows.Forms.Button btnIndex;
+        private System.Windows.Forms.Panel pnlTimeJump;
     }
 }

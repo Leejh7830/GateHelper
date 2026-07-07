@@ -86,10 +86,6 @@ namespace GateHelper
         // [Drag & Drop]
         private ShortcutManager _shortcutManager = new ShortcutManager();
 
-        // 즐겨찾기 폰트
-        private Font _boldFont;
-        private Font _regularFont;
-
 
 
 
@@ -296,7 +292,7 @@ namespace GateHelper
 
             try
             {
-                await UpdateConnectionStatus();
+                UpdateConnectionStatus();
                 bool popupFeatureOn = _appSettings.AutoScreenUnlock;
                 Util_Option.UpdatePopupStatus(lblPopupStatus, popupFeatureOn, Util_Option.GetLockHandledCount());
 
@@ -318,7 +314,7 @@ namespace GateHelper
             }
         }
 
-        private async Task UpdateConnectionStatus()
+        private async void UpdateConnectionStatus()
         {
             // 공통 색상 설정
             Color onColor = ColorTranslator.FromHtml("#4CAF50"); // Green 500
@@ -622,7 +618,7 @@ namespace GateHelper
             LogMessage("접속 서버 명: " + selectedServer, Level.Info);
 
             // UDP 접속 정보 송신
-            StartRdpDetect(selectedServer);
+            StartRdpDetect(serverName);
 
             await Task.Run(() => Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, selectedServer, OlvServerList, _appSettings.RemoveDuplicates));
         }
@@ -636,7 +632,9 @@ namespace GateHelper
                 return; // ChromeDriver 없음
 
             if (!Util.SwitchToMainHandle(_driver, mainHandle))
+            {
                 return; // MainHandle 없음
+            }
 
             // 1) 검색 수행하고 서버이름을 받음
             string serverName = Util.ClickFavBtnAndGetServerName(_driver, _config, 1, chromeDriverManager);
@@ -668,7 +666,9 @@ namespace GateHelper
                 return; // ChromeDriver 없음
 
             if (!Util.SwitchToMainHandle(_driver, mainHandle))
+            {
                 return; // MainHandle 없음
+            }
 
             string serverName = Util.ClickFavBtnAndGetServerName(_driver, _config, 2, chromeDriverManager);
 
@@ -695,9 +695,6 @@ namespace GateHelper
 
             if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
-
-            if (!Util.SwitchToMainHandle(_driver, mainHandle))
-                return; // MainHandle 없음
 
             string serverName = Util.ClickFavBtnAndGetServerName(_driver, _config, 3, chromeDriverManager);
 
@@ -1104,14 +1101,12 @@ namespace GateHelper
             if (serverInfo != null && serverInfo.IsFavorite)
             {
                 // 즐겨찾기 상태일 때만 폰트를 굵게 만듭니다.
-                // e.Item.Font = new Font(this.Font, FontStyle.Bold);
-                _boldFont = new Font(this.Font, FontStyle.Bold);
+                e.Item.Font = new Font(this.Font, FontStyle.Bold);
             }
             else
             {
                 // 즐겨찾기 상태가 아니면 폰트를 원래대로 되돌립니다.
-                // e.Item.Font = new Font(this.Font, FontStyle.Regular);
-                _regularFont = new Font(this.Font, FontStyle.Regular);
+                e.Item.Font = new Font(this.Font, FontStyle.Regular);
             }
         }
 

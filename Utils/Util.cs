@@ -194,13 +194,27 @@ v2.4.0 / 26.06.24 LogValidator 기능 추가 (로그 분석 및 통계, 필터�
                     throw new Exception("메인 창 핸들 정보가 존재하지 않습니다.");
                 }
 
-                // 2. 현재 열린 창 목록에 메인 핸들이 있는지 확인
-                if (!driver.WindowHandles.Contains(mainHandle))
+                // 2. 현재 포커스된 창이 닫혔을 때 WindowHandles 자체가 예외를 던지는 경우 방어
+                System.Collections.ObjectModel.ReadOnlyCollection<string> handles;
+                try
                 {
-                    throw new NoSuchWindowException("사용자가 메인 페이지 창을 닫았거나 유실되었습니다.");
+                    handles = driver.WindowHandles;
+                }
+                catch (OpenQA.Selenium.NoSuchWindowException)
+                {
+                    // 닫힌 팝업에 포커스가 남아있는 상태 → mainHandle로 직접 전환
+                    LogManager.LogMessage("현재 창이 닫혀있어 mainHandle로 직접 전환 시도", LogManager.Level.Warning);
+                    driver.SwitchTo().Window(mainHandle);
+                    return true;
                 }
 
-                // 3. 정상적으로 탭 전환
+                // 3. 현재 열린 창 목록에 메인 핸들이 있는지 확인
+                if (!handles.Contains(mainHandle))
+                {
+                    throw new OpenQA.Selenium.NoSuchWindowException("사용자가 메인 페이지 창을 닫았거나 유실되었습니다.");
+                }
+
+                // 4. 정상적으로 탭 전환
                 driver.SwitchTo().Window(mainHandle);
                 return true;
             }

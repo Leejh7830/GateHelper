@@ -802,15 +802,11 @@ namespace GateHelper.LogValidator
             btnColor.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(180, 180, 180);
             btnColor.FlatAppearance.BorderSize = 1;
 
-            // panel1 오른쪽 끝 고정 위치 (lblAnomalyWarning 왼쪽)
+            // 💡 Anchor = Right|Top으로 고정되어 폼 크기 변경 시 자동으로 우측 기준 유지
             btnColor.Location = new System.Drawing.Point(
-                panel1.Width - btnColor.Width - 160, // lblAnomalyWarning 공간 확보
+                panel1.ClientSize.Width - btnColor.Width - 160,
                 (panel1.Height - btnColor.Height) / 2
             );
-            panel1.SizeChanged += (s, e) =>
-                btnColor.Location = new System.Drawing.Point(
-                    panel1.Width - btnColor.Width - 160,
-                    (panel1.Height - btnColor.Height) / 2);
 
             btnColor.Click += (s, e) =>
             {
