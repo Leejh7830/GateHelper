@@ -493,6 +493,9 @@ namespace GateHelper.LogValidator
                 e.Effect = DragDropEffects.None;
         }
 
+        /// <summary>
+        /// 사다리 그리드 내부에서 드래그 앤 드롭을 통한 행 순서 변경 및 그룹 무결성을 검증합니다.
+        /// </summary>
         private void olvScenarioLadder_DragDrop(object sender, DragEventArgs e)
         {
             // ── Case 1: 유닛 목록에서 드래그 → 스텝 추가 ──
@@ -521,13 +524,20 @@ namespace GateHelper.LogValidator
             var draggedStep = e.Data.GetData(typeof(ScenarioStepModel)) as ScenarioStepModel;
             if (draggedStep == null) return;
 
+            // 💡 [최종 교정] 그룹 스텝 이동 원천 차단 인터락
+            if (draggedStep.GroupId > 0)
+            {
+                // 못 움직인다고 경고만 주고 확인을 누르면 아무 일 없이 리턴합니다.
+                MessageBox.Show($"[Step {draggedStep.StepNo}] 스텝은 그룹으로 묶여 있어 개별 이동할 수 없습니다.\n순서를 변경하려면 먼저 [그룹 해제]를 진행해 주세요.",
+                    "이동 불가 안내", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
             Point dropPoint = olvScenarioLadder.PointToClient(new Point(e.X, e.Y));
             var targetItem = olvScenarioLadder.GetItemAt(dropPoint.X, dropPoint.Y) as OLVListItem;
 
             int fromIndex = _scenarioLadderList.IndexOf(draggedStep);
-            int toIndex = targetItem != null
-                ? _scenarioLadderList.IndexOf(targetItem.RowObject as ScenarioStepModel)
-                : _scenarioLadderList.Count - 1;
+            int toIndex = targetItem != null ? _scenarioLadderList.IndexOf(targetItem.RowObject as ScenarioStepModel) : _scenarioLadderList.Count - 1;
 
             if (fromIndex < 0 || toIndex < 0 || fromIndex == toIndex) return;
 
@@ -535,6 +545,7 @@ namespace GateHelper.LogValidator
             _scenarioLadderList.Insert(toIndex, draggedStep);
 
             ReIndexScenarioSteps();
+            RefreshAndGroupVisual();
             RefreshStepTooltips();
         }
 
@@ -549,42 +560,103 @@ namespace GateHelper.LogValidator
             olvScenarioLadder.RefreshObject(clickedStep);
         }
 
-        // 💡 [우클릭 컨텍스트 메뉴] 사다리 단계 이동, 삭제, 타임아웃 설정, Optional 토글
+        /// <summary>
+        /// 사다리 그리드의 다중 선택 기반 AND/OR 그룹화, 개별 타임아웃, 옵션 토글 및 관리 메뉴를 무결하게 통합 초기화합니다.
+        /// </summary>
         private void InitializeScenarioLadderContextMenu()
         {
             var cms = new ContextMenuStrip();
 
-            var menuMoveUp = new ToolStripMenuItem("Move Up", null, (s, e) =>
+            // 연속 선택 검증 헬퍼
+            Func<List<ScenarioStepModel>> GetSelectedConsecutiveSteps = () =>
             {
-                var selected = olvScenarioLadder.SelectedObject as ScenarioStepModel;
-                if (selected == null) return;
-                int index = _scenarioLadderList.IndexOf(selected);
-                if (index <= 0) return;
-                _scenarioLadderList.RemoveAt(index);
-                _scenarioLadderList.Insert(index - 1, selected);
-                ReIndexScenarioSteps();
+                var selected = olvScenarioLadder.SelectedObjects.Cast<ScenarioStepModel>().OrderBy(s => s.StepNo).ToList();
+                if (selected.Count < 2) return null;
+
+                for (int i = 0; i < selected.Count - 1; i++)
+                {
+                    if (selected[i + 1].StepNo - selected[i].StepNo != 1) return null;
+                }
+                return selected;
+            };
+
+            // 1. AND 그룹 설정
+            var menuGroupAnd = new ToolStripMenuItem("AND 그룹 설정", null, (s, e) =>
+            {
+                var steps = GetSelectedConsecutiveSteps();
+                if (steps == null) return;
+
+                // 💡 [중복 그룹 가드 인터락] 선택된 스텝 중 이미 GroupId가 0보다 큰(그룹화된) 스텝이 있는지 검사
+                var alreadyGrouped = steps.Where(st => st.GroupId > 0).ToList();
+                if (alreadyGrouped.Count > 0)
+                {
+                    // 3번 스텝처럼 중복된 첫 번째 스텝의 정보를 사용자에게 명확히 고지
+                    var firstConflict = alreadyGrouped.First();
+                    MessageBox.Show($"[Step {firstConflict.StepNo}] '{firstConflict.EventName}' 스텝은 이미 다른 그룹에 포함되어 있습니다.\n\n기존 그룹을 먼저 [그룹 해제]한 후 다시 시도해 주세요.",
+                        "그룹 중복 설정 제한", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                int newGroupId = _scenarioLadderList.Select(st => st.GroupId).DefaultIfEmpty(0).Max() + 1;
+                foreach (var step in steps) { step.GroupId = newGroupId; step.GroupType = "AND"; }
+
+                olvScenarioLadder.RefreshObjects(steps);
+                RefreshAndGroupVisual();
+                RefreshStepTooltips();
             });
 
-            var menuMoveDown = new ToolStripMenuItem("Move Down", null, (s, e) =>
+            // 2. OR 그룹 설정
+            var menuGroupOr = new ToolStripMenuItem("OR 그룹 설정", null, (s, e) =>
             {
-                var selected = olvScenarioLadder.SelectedObject as ScenarioStepModel;
-                if (selected == null) return;
-                int index = _scenarioLadderList.IndexOf(selected);
-                if (index < 0 || index >= _scenarioLadderList.Count - 1) return;
-                _scenarioLadderList.RemoveAt(index);
-                _scenarioLadderList.Insert(index + 1, selected);
-                ReIndexScenarioSteps();
+                var steps = GetSelectedConsecutiveSteps();
+                if (steps == null) return;
+
+                // 💡 [중복 그룹 가드 인터락] OR 그룹도 동일하게 방어막 주입
+                var alreadyGrouped = steps.Where(st => st.GroupId > 0).ToList();
+                if (alreadyGrouped.Count > 0)
+                {
+                    var firstConflict = alreadyGrouped.First();
+                    MessageBox.Show($"[Step {firstConflict.StepNo}] '{firstConflict.EventName}' 스텝은 이미 다른 그룹에 포함되어 있습니다.\n\n기존 그룹을 먼저 [그룹 해제]한 후 다시 시도해 주세요.",
+                        "그룹 중복 설정 제한", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                int newGroupId = _scenarioLadderList.Select(st => st.GroupId).DefaultIfEmpty(0).Max() + 1;
+                foreach (var step in steps) { step.GroupId = newGroupId; step.GroupType = "OR"; }
+
+                olvScenarioLadder.RefreshObjects(steps);
+                RefreshAndGroupVisual();
+                RefreshStepTooltips();
             });
 
-            var menuDelete = new ToolStripMenuItem("Delete Selected", null, (s, e) =>
+            // 3. 그룹 해제
+            var menuUnGroup = new ToolStripMenuItem("그룹 해제", null, (s, e) =>
             {
-                var selected = olvScenarioLadder.SelectedObject as ScenarioStepModel;
-                if (selected == null) return;
-                _scenarioLadderList.Remove(selected);
-                ReIndexScenarioSteps();
+                // 선택된 스텝들의 대상 그룹 ID를 모두 추출 (0은 제외)
+                var selectedSteps = olvScenarioLadder.SelectedObjects.Cast<ScenarioStepModel>().ToList();
+                var targetGroupIds = selectedSteps.Where(st => st.GroupId > 0).Select(st => st.GroupId).Distinct().ToList();
+
+                if (targetGroupIds.Count == 0) return;
+
+                // 💡 [연쇄 해제 인터락] 선택한 스텝뿐만 아니라, 전체 목록에서 동일한 GroupId를 가진 스텝을 전부 찾아 해제합니다.
+                var stepsToUnGroup = new List<ScenarioStepModel>();
+                foreach (var currentStep in _scenarioLadderList)
+                {
+                    if (targetGroupIds.Contains(currentStep.GroupId))
+                    {
+                        currentStep.GroupId = 0;
+                        currentStep.GroupType = "AND"; // 기본값으로 초기화
+                        stepsToUnGroup.Add(currentStep);
+                    }
+                }
+
+                // 변경된 모든 객체를 화면에 한 번에 리프레시합니다.
+                olvScenarioLadder.RefreshObjects(stepsToUnGroup);
+                RefreshAndGroupVisual();
+                RefreshStepTooltips();
             });
 
-            // 💡 TimeOut Setting: 이 스텝 매칭 후 다음 스텝까지 허용 대기 시간(초) 입력
+            // 4. 타임아웃 설정 (기존 복구)
             var menuTimeout = new ToolStripMenuItem("TimeOut Setting (Sec)", null, (s, e) =>
             {
                 var selected = olvScenarioLadder.SelectedObject as ScenarioStepModel;
@@ -593,26 +665,18 @@ namespace GateHelper.LogValidator
                 int index = _scenarioLadderList.IndexOf(selected);
                 if (index == _scenarioLadderList.Count - 1)
                 {
-                    MessageBox.Show("The last step has no next step. Timeout cannot be set.",
-                        "TimeOut N/A", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("The last step has no next step. Timeout cannot be set.", "TimeOut N/A", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
 
-                // 💡 Optional 스텝에는 Timeout 설정 불가
-                // Optional = 안 와도 되는 스텝 → 시간을 재는 것 자체가 모순
                 if (selected.IsOptional)
                 {
-                    MessageBox.Show("This step is set as Optional (may be skipped).\nTimeout cannot be applied to an optional step.",
-                        "TimeOut N/A", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("This step is set as Optional (may be skipped).\nTimeout cannot be applied to an optional step.", "TimeOut N/A", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
 
                 string currentVal = selected.TimeoutSeconds > 0 ? selected.TimeoutSeconds.ToString() : "";
-                string input = ShowInputDialog(
-                    $"[Step {selected.StepNo}] {selected.EventName}\n\n" +
-                    $"Enter the allowed wait time (seconds) until the next step.\n" +
-                    $"(Enter 0 or leave blank to disable timeout)",
-                    "TimeOut Setting", currentVal);
+                string input = ShowInputDialog($"[Step {selected.StepNo}] {selected.EventName}\n\nEnter the allowed wait time (seconds) until the next step.\n(Enter 0 or leave blank to disable timeout)", "TimeOut Setting", currentVal);
 
                 if (input == null) return;
 
@@ -630,27 +694,22 @@ namespace GateHelper.LogValidator
                 RefreshStepTooltips();
             });
 
-            // 💡 Optional Step Toggle: 이 스텝이 없어도 사이클 계속 진행할지 여부 토글
+            // 5. 옵션 설정 토글 (기존 복구)
             var menuOptional = new ToolStripMenuItem("Optional Step Toggle", null, (s, e) =>
             {
                 var selected = olvScenarioLadder.SelectedObject as ScenarioStepModel;
                 if (selected == null) return;
 
-                // 첫 스텝은 Optional 불가 (사이클 시작점이므로)
                 int index = _scenarioLadderList.IndexOf(selected);
                 if (index == 0)
                 {
-                    MessageBox.Show("The first step cannot be optional.\nIt is the cycle start point.",
-                        "Optional N/A", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("The first step cannot be optional.\nIt is the cycle start point.", "Optional N/A", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
 
-                // 💡 Timeout이 설정된 스텝은 Optional 불가
-                // Timeout = 반드시 와야 하는 필수 스텝 → Optional과 모순
                 if (!selected.IsOptional && selected.TimeoutSeconds > 0)
                 {
-                    MessageBox.Show($"This step has a timeout of {selected.TimeoutSeconds}s set.\nRemove the timeout before setting it as optional.",
-                        "Optional N/A", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show($"This step has a timeout of {selected.TimeoutSeconds}s set.\nRemove the timeout before setting it as optional.", "Optional N/A", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     return;
                 }
 
@@ -659,86 +718,73 @@ namespace GateHelper.LogValidator
                 RefreshStepTooltips();
             });
 
-            var menuAndGroup = new ToolStripMenuItem("AND Group Set", null, (s, e) =>
+            // 6. Move Up
+            var menuMoveUp = new ToolStripMenuItem("Move Up", null, (s, e) =>
             {
                 var selected = olvScenarioLadder.SelectedObject as ScenarioStepModel;
                 if (selected == null) return;
-
-                if (selected.IsOptional)
-                {
-                    MessageBox.Show("Optional steps cannot be part of an AND group.\nRemove Optional first.",
-                        "AND Group N/A", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
-
-                if (selected.GroupId > 0 && selected.GroupType == "AND")
-                {
-                    selected.GroupId = 0;
-                    selected.GroupType = "AND";
-                }
-                else
-                {
-                    selected.GroupType = "AND";
-                    SetGroupId(selected);
-                }
-
-                olvScenarioLadder.RefreshObject(selected);
-                RefreshAndGroupVisual();
-                RefreshStepTooltips();
+                int index = _scenarioLadderList.IndexOf(selected);
+                if (index <= 0) return;
+                _scenarioLadderList.RemoveAt(index);
+                _scenarioLadderList.Insert(index - 1, selected);
+                ReIndexScenarioSteps();
             });
 
-            var menuOrGroup = new ToolStripMenuItem("OR Group Set", null, (s, e) =>
+            // 7. Move Down
+            var menuMoveDown = new ToolStripMenuItem("Move Down", null, (s, e) =>
             {
                 var selected = olvScenarioLadder.SelectedObject as ScenarioStepModel;
                 if (selected == null) return;
-
-                if (selected.IsOptional)
-                {
-                    MessageBox.Show("Optional steps cannot be part of an OR group.\nRemove Optional first.",
-                        "OR Group N/A", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
-
-                if (selected.GroupId > 0 && selected.GroupType == "OR")
-                {
-                    selected.GroupId = 0;
-                    selected.GroupType = "AND";
-                }
-                else
-                {
-                    selected.GroupType = "OR";
-                    SetGroupId(selected);
-                }
-
-                olvScenarioLadder.RefreshObject(selected);
-                RefreshAndGroupVisual();
-                RefreshStepTooltips();
+                int index = _scenarioLadderList.IndexOf(selected);
+                if (index < 0 || index >= _scenarioLadderList.Count - 1) return;
+                _scenarioLadderList.RemoveAt(index);
+                _scenarioLadderList.Insert(index + 1, selected);
+                ReIndexScenarioSteps();
             });
 
+            // 8. Delete Selected
+            var menuDelete = new ToolStripMenuItem("Delete Selected", null, (s, e) =>
+            {
+                var selected = olvScenarioLadder.SelectedObject as ScenarioStepModel;
+                if (selected == null) return;
+                _scenarioLadderList.Remove(selected);
+                ReIndexScenarioSteps();
+            });
+
+            // 💡 개별/다중 선택 컨텍스트 유연 제어
             cms.Opening += (s, e) =>
             {
-                bool hasSelection = (olvScenarioLadder.SelectedObject != null);
-                menuMoveUp.Enabled = hasSelection;
-                menuMoveDown.Enabled = hasSelection;
+                int selectionCount = olvScenarioLadder.SelectedObjects.Count;
+                bool hasSelection = (selectionCount > 0);
+                bool isSingleSelection = (selectionCount == 1);
+                bool isConsecutive = (GetSelectedConsecutiveSteps() != null);
+
+                menuGroupAnd.Enabled = isConsecutive;
+                menuGroupOr.Enabled = isConsecutive;
+                menuUnGroup.Enabled = hasSelection;
+
+                // 타임아웃과 옵션 토글은 1개의 행을 타겟팅할 때만 활성화
+                menuTimeout.Enabled = isSingleSelection;
+                menuOptional.Enabled = isSingleSelection;
+
+                menuMoveUp.Enabled = isSingleSelection && _scenarioLadderList.IndexOf(olvScenarioLadder.SelectedObject as ScenarioStepModel) > 0;
+                menuMoveDown.Enabled = isSingleSelection && _scenarioLadderList.IndexOf(olvScenarioLadder.SelectedObject as ScenarioStepModel) < _scenarioLadderList.Count - 1;
                 menuDelete.Enabled = hasSelection;
-                menuTimeout.Enabled = hasSelection;
-                menuOptional.Enabled = hasSelection;
-                menuAndGroup.Enabled = hasSelection;
-                menuOrGroup.Enabled = hasSelection;
             };
 
-            cms.Items.Add(menuMoveUp);
-            cms.Items.Add(menuMoveDown);
+            // 메뉴판 조합 생성
+            cms.Items.Add(menuGroupAnd);
+            cms.Items.Add(menuGroupOr);
+            cms.Items.Add(menuUnGroup);
             cms.Items.Add(new ToolStripSeparator());
             cms.Items.Add(menuTimeout);
             cms.Items.Add(menuOptional);
-            cms.Items.Add(menuAndGroup);
-            cms.Items.Add(menuOrGroup);
             cms.Items.Add(new ToolStripSeparator());
+            cms.Items.Add(menuMoveUp);
+            cms.Items.Add(menuMoveDown);
             cms.Items.Add(menuDelete);
 
             olvScenarioLadder.ContextMenuStrip = cms;
-            RefreshStepTooltips();
         }
 
         // 💡 그룹 ID 설정 공통 로직: 인접 같은 GroupType 그룹에 합류하거나 새 ID 생성
@@ -799,12 +845,11 @@ namespace GateHelper.LogValidator
         }
 
         /// <summary>
-        /// AND 그룹 스텝의 배경색을 그룹별로 구분해서 시각적으로 표시합니다.
-        /// 그룹 ID별로 색상을 다르게 적용합니다.
+        /// AND/OR 그룹 스텝의 배경색과 글자색을 그룹별로 구분하여 시각적으로 투명하게 표시합니다.
         /// </summary>
         private void RefreshAndGroupVisual()
         {
-            // 그룹 ID별 색상 팔레트 (최대 5개 그룹 구분)
+            // 그룹 ID별 파스텔톤 색상 팔레트 (다크 테마 대비 검은 글씨 레이어 바인딩용)
             var groupColors = new[]
             {
                 System.Drawing.Color.FromArgb(220, 240, 255), // 연파랑
@@ -812,18 +857,24 @@ namespace GateHelper.LogValidator
                 System.Drawing.Color.FromArgb(255, 240, 200), // 연노랑
                 System.Drawing.Color.FromArgb(255, 220, 240), // 연핑크
                 System.Drawing.Color.FromArgb(240, 220, 255), // 연보라
-            };
+    };
 
-            olvScenarioLadder.RowFormatter = row =>
+                olvScenarioLadder.RowFormatter = row =>
             {
                 var step = row.RowObject as ScenarioStepModel;
+
+                // 그룹이 지정되지 않은 일반 행은 시스템 기본 테마 색상을 따릅니다.
                 if (step == null || step.GroupId <= 0)
                 {
                     row.BackColor = olvScenarioLadder.BackColor;
+                    row.ForeColor = olvScenarioLadder.ForeColor;
                     return;
                 }
+
+                // 💡 [교정] 그룹 배경색이 밝으므로 글자색을 반드시 Black으로 강제 락인(Lock-in)합니다.
                 int colorIdx = (step.GroupId - 1) % groupColors.Length;
                 row.BackColor = groupColors[colorIdx];
+                row.ForeColor = System.Drawing.Color.Black;
             };
 
             olvScenarioLadder.BuildList(true);
@@ -998,14 +1049,16 @@ namespace GateHelper.LogValidator
             {
                 string jsonString = File.ReadAllText(filePath);
 
-                // 💡 [수정] 대소문자 무시 옵션 추가 (과거에 저장된 JSON 파일과의 호환성 100% 확보)
                 var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
                 var loadedSteps = JsonSerializer.Deserialize<List<ScenarioStepModel>>(jsonString, options);
 
                 if (loadedSteps != null)
                 {
                     _scenarioLadderList = loadedSteps;
-                    olvScenarioLadder.SetObjects(_scenarioLadderList);
+
+                    // 💡 [교정] 화면에 뿌리기 전에 꼬여있거나 0으로 채워진 StepNo를 1, 2, 3... 순서대로 강제 재배정합니다.
+                    ReIndexScenarioSteps();
+
                     olvScenarioLadder.BuildList(true);
                     txtScenarioName.Text = Path.GetFileNameWithoutExtension(filePath);
                     RefreshStepTooltips();
