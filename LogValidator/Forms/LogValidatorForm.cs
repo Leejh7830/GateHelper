@@ -332,8 +332,10 @@ namespace GateHelper.LogValidator
                 if (!File.Exists(fullPath)) return;
 
                 string json = File.ReadAllText(fullPath);
-                var steps = System.Text.Json.JsonSerializer.Deserialize<
-                                   List<ScenarioStepModel>>(json);
+
+                var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var steps = System.Text.Json.JsonSerializer.Deserialize<List<ScenarioStepModel>>(json, options);
+
                 if (steps == null || steps.Count == 0) return;
 
                 ShowStepPreview(selected.ScenarioName, steps);
@@ -347,6 +349,19 @@ namespace GateHelper.LogValidator
                 if (selected == null) return;
 
                 if (treeScenarioGroup.SelectedNode == null || treeScenarioGroup.SelectedNode.Tag == null) return;
+
+                // 중복 실행 방지 가드 삽입
+                var existingEditor = Application.OpenForms.OfType<LogScenarioForm>().FirstOrDefault();
+                if (existingEditor != null)
+                {
+                    if (existingEditor.WindowState == FormWindowState.Minimized)
+                        existingEditor.WindowState = FormWindowState.Normal;
+
+                    existingEditor.BringToFront();
+                    MessageBox.Show("시나리오 편집기가 이미 실행 중입니다.\n진행 중인 작업을 마무리하고 닫은 후 다시 열어주세요.", "중복 실행 방지", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    return;
+                }
+
                 string currentActiveDirectory = treeScenarioGroup.SelectedNode.Tag.ToString();
                 string fullPath = Path.Combine(currentActiveDirectory, $"{selected.ScenarioName}.json");
 
@@ -411,13 +426,12 @@ namespace GateHelper.LogValidator
 
             var colStep = new OLVColumn("Step", "StepNo") { Width = 48, TextAlign = HorizontalAlignment.Center };
             var colEvent = new OLVColumn("Event Name", "EventName") { Width = 180 };
-            var colPattern = new OLVColumn("Masking Pattern", "MaskingPattern") { Width = 300 };
+            var colPattern = new OLVColumn("Masking Pattern", "MaskingPattern") { Width = 360 };
             var colDir = new OLVColumn("Dir", "Direction") { Width = 55, TextAlign = HorizontalAlignment.Center };
             var colOpt = new OLVColumn("Opt", "IsOptional") { Width = 40, TextAlign = HorizontalAlignment.Center };
             var colTimeout = new OLVColumn("Timeout", "TimeoutSeconds") { Width = 62, TextAlign = HorizontalAlignment.Center };
             var colGroup = new OLVColumn("Group", "GroupId") { Width = 60, TextAlign = HorizontalAlignment.Center };
 
-            // 💡 1번: TX/RX 대신 화살표로 표시
             // TX = EQP → SERVER (오른쪽 화살표 →)
             // RX = SERVER → EQP (왼쪽 화살표 ←)
             colDir.AspectGetter = row =>
@@ -1309,19 +1323,17 @@ namespace GateHelper.LogValidator
 
             if (combinedList == null || combinedList.Count == 0)
             {
-                // 💡 [선택적 매칭(?:\-\d+)? 이식 기본 패턴 가드]
-                _dynamicUnitRegex = new Regex(@"J1[EAFP](?:STO|OHS|CNV)\d+(?:\-\d+)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
+                // 💡 [수정] 런타임 가변 패턴이므로 RegexOptions.Compiled 옵션을 완전 제거 (메모리 릭 방지)
+                _dynamicUnitRegex = new Regex(@"J1[EAFP](?:STO|OHS|CNV)\d+(?:\-\d+)?", RegexOptions.IgnoreCase);
                 return;
             }
 
             string escapedTypes = string.Join("|", combinedList.Select(Regex.Escape));
 
-            // 💡 [교정된 핵심 정규식 패턴]
-            // 규격: (설비조합)(숫자1자이상) + [선택부: (-숫자1자이상)]
-            // 예시: J1ESTO12345 (매칭 성공), J1ESTO12345-101 (매칭 성공)
             string finalPattern = $@"\b({escapedTypes})\d+(?:\-\d+)?\b";
 
-            _dynamicUnitRegex = new Regex(finalPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            // 💡 [수정] 런타임 가변 패턴이므로 RegexOptions.Compiled 옵션을 완전 제거
+            _dynamicUnitRegex = new Regex(finalPattern, RegexOptions.IgnoreCase);
         }
 
         /// <summary>
@@ -1843,8 +1855,6 @@ namespace GateHelper.LogValidator
 
         private void btnOpenScenarioEditor_Click(object sender, EventArgs e)
         {
-            // 시나리오 편집기를 빈 상태로 열기 (파일 없이 새로 작성 모드)
-            // 기존에는 시나리오 우클릭 → 편집으로만 접근 가능했으나 여기서 바로 열 수 있음
             if (treeScenarioGroup.SelectedNode?.Tag == null)
             {
                 MessageBox.Show("Please select a scenario folder from the tree first.",
@@ -1852,9 +1862,19 @@ namespace GateHelper.LogValidator
                 return;
             }
 
-            string folderPath = treeScenarioGroup.SelectedNode.Tag.ToString();
+            // 중복 실행 방지 가드
+            var existingEditor = Application.OpenForms.OfType<LogScenarioForm>().FirstOrDefault();
+            if (existingEditor != null)
+            {
+                if (existingEditor.WindowState == FormWindowState.Minimized)
+                    existingEditor.WindowState = FormWindowState.Normal;
 
-            // 선택된 시나리오가 있으면 해당 파일로, 없으면 빈 편집기로 오픈
+                existingEditor.BringToFront();
+                MessageBox.Show("시나리오 편집기가 이미 실행 중입니다.\n진행 중인 작업을 마무리하고 닫은 후 다시 열어주세요.", "중복 실행 방지", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            string folderPath = treeScenarioGroup.SelectedNode.Tag.ToString();
             var selectedEval = olvScenarioRepository.SelectedObject as ScenarioEvaluator;
             if (selectedEval != null)
             {

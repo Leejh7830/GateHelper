@@ -4,13 +4,17 @@ namespace GateHelper.LogValidator.Models
 {
     public class RawLogModel
     {
-        public int LineNo { get; set; }
-        public DateTime LogTime { get; set; }
-        public string LogType { get; set; }
-        public string LogMessage { get; set; }
+        // 💡 [캡슐화] 외부에서 마음대로 값을 바꿀 수 없도록 private set 적용 (불변성 확보)
+        public int LineNo { get; private set; }
+        public string LogType { get; private set; }
+        public string LogMessage { get; private set; }
+        public string SourceFileName { get; private set; }
 
-        // 다중 로그 병합 시 어느 파일에서 온 로그인지 추적하기 위한 필드
-        public string SourceFileName { get; set; }
+        // 💡 시간은 파싱 시 Fallback 보정이 일어날 수 있어 열어둠
+        public DateTime LogTime { get; set; }
+
+        // 💡 UI 그리드 렌더링 최적화(IsMatch) 상태값 추가 (이전 치명적 버그 수정용)
+        public bool IsMatched { get; set; }
 
         private string _unitId = "SYSTEM";
         public string UnitID
@@ -19,7 +23,13 @@ namespace GateHelper.LogValidator.Models
             set => _unitId = string.IsNullOrWhiteSpace(value) ? "SYSTEM" : value.Trim().ToUpper();
         }
 
-        // 💡 향후 확장용 (현재 미사용이므로 주석 처리)
-        // public string TrayID { get; set; }
+        // 💡 [생성자 주입] 객체가 태어날 때 무조건 필수 데이터를 받아오도록 강제함
+        public RawLogModel(int lineNo, string logMessage, string logType, string sourceFileName)
+        {
+            LineNo = lineNo;
+            LogMessage = logMessage;
+            LogType = logType;
+            SourceFileName = sourceFileName;
+        }
     }
 }

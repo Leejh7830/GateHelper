@@ -1,30 +1,53 @@
-﻿namespace GateHelper.LogValidator.Models
+﻿using System.ComponentModel;
+using System.Runtime.CompilerServices;
+
+namespace GateHelper.LogValidator.Models
 {
-    public class UnitTemplateModel
+    public class UnitTemplateModel : INotifyPropertyChanged
     {
-        public string EventName { get; set; }
-        public string MaskingPattern { get; set; }
+        private string _eventName;
+        private string _maskingPattern;
+
+        public string EventName
+        {
+            get => _eventName;
+            set { if (_eventName != value) { _eventName = value; OnPropertyChanged(); } }
+        }
+
+        public string MaskingPattern
+        {
+            get => _maskingPattern;
+            set { if (_maskingPattern != value) { _maskingPattern = value; OnPropertyChanged(); } }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    public class ScenarioStepModel
+    public class ScenarioStepModel : INotifyPropertyChanged
     {
-        public int StepNo { get; set; }
-        public string EventName { get; set; }
-        public string MaskingPattern { get; set; }
-        public string Direction { get; set; }
+        private int _stepNo;
+        private string _eventName;
+        private string _maskingPattern;
+        private string _direction;
+        private double _timeoutSeconds = 0;
+        private bool _isOptional = false;
+        private int _groupId = 0;
+        // 💡 주의: 향후 이 부분도 Constants.GROUP_AND 로 교체하시면 완벽합니다.
+        private string _groupType = "AND";
 
-        // 💡 이 스텝 매칭 후 다음 스텝까지 허용 대기 시간 (초)
-        // 0 이하면 타임아웃 미설정 (무제한 대기)
-        public double TimeoutSeconds { get; set; } = 0;
+        public int StepNo { get => _stepNo; set { if (_stepNo != value) { _stepNo = value; OnPropertyChanged(); } } }
+        public string EventName { get => _eventName; set { if (_eventName != value) { _eventName = value; OnPropertyChanged(); } } }
+        public string MaskingPattern { get => _maskingPattern; set { if (_maskingPattern != value) { _maskingPattern = value; OnPropertyChanged(); } } }
+        public string Direction { get => _direction; set { if (_direction != value) { _direction = value; OnPropertyChanged(); } } }
+        public double TimeoutSeconds { get => _timeoutSeconds; set { if (_timeoutSeconds != value) { _timeoutSeconds = value; OnPropertyChanged(); } } }
+        public bool IsOptional { get => _isOptional; set { if (_isOptional != value) { _isOptional = value; OnPropertyChanged(); } } }
+        public int GroupId { get => _groupId; set { if (_groupId != value) { _groupId = value; OnPropertyChanged(); } } }
+        public string GroupType { get => _groupType; set { if (_groupType != value) { _groupType = value; OnPropertyChanged(); } } }
 
-        // 💡 Optional 스텝: true면 이 스텝이 없어도 사이클 계속 진행
-        public bool IsOptional { get; set; } = false;
-
-        // 💡 AND/OR Group: 같은 GroupId를 가진 스텝들의 처리 방식
-        // "AND" → 모두 수신되어야 통과 (순서 무관)
-        // "OR"  → 하나만 수신되면 통과
-        // GroupId = 0이면 그룹 없음 (일반 스텝)
-        public int GroupId { get; set; } = 0;
-        public string GroupType { get; set; } = "AND"; // 기본값 AND
+        public event PropertyChangedEventHandler PropertyChanged;
+        protected void OnPropertyChanged([CallerMemberName] string propertyName = null) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 }

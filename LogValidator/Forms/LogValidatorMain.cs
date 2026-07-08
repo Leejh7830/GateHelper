@@ -35,23 +35,41 @@ namespace GateHelper.LogValidator
         // 분석창 (LVForm) 호출
         private void btnOpenValidator_Click(object sender, EventArgs e)
         {
-            // 💡 [수정] using 블록 제거
-            // using은 ShowDialog 종료 즉시 Dispose()를 호출하는데, 이 시점이
-            // LogValidatorForm의 FormClosing 이벤트 처리(ObjectListView 내부 정리)와
-            // 거의 동시에 발생하면서 "TrueType 폰트만 지원됩니다" 예외가 간헐적으로 발생했음.
-            // ShowDialog로 띄운 모달 폼은 닫힐 때 WinForms가 적절한 시점에 자동으로 Dispose하므로
-            // 수동 using이 불필요하며, 오히려 타이밍 경쟁을 유발함.
-            LogValidatorForm lvForm = new LogValidatorForm();
-            lvForm.StartPosition = FormStartPosition.CenterParent;
-            lvForm.ShowDialog(this);
+            // 이미 실행 중인 검증기 폼이 있는지 검사
+            var existingValidator = Application.OpenForms.OfType<LogValidatorForm>().FirstOrDefault();
+            if (existingValidator != null)
+            {
+                if (existingValidator.WindowState == FormWindowState.Minimized)
+                    existingValidator.WindowState = FormWindowState.Normal;
+
+                existingValidator.BringToFront();
+                existingValidator.Focus();
+                MessageBox.Show("Already running Log Validator. Please check the open window.",
+                        "중복 실행 방지", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            new LogValidatorForm().Show();
         }
 
         // 시나리오 편집기 (LSForm) 호출
         private void btnOpenEditor_Click(object sender, EventArgs e)
         {
-            LogScenarioForm lsForm = new LogScenarioForm();
-            lsForm.StartPosition = FormStartPosition.CenterParent;
-            lsForm.ShowDialog(this);
+            // 이미 실행 중인 시나리오 편집기 폼이 있는지 검사
+            var existingEditor = Application.OpenForms.OfType<LogScenarioForm>().FirstOrDefault();
+            if (existingEditor != null)
+            {
+                if (existingEditor.WindowState == FormWindowState.Minimized)
+                    existingEditor.WindowState = FormWindowState.Normal;
+
+                existingEditor.BringToFront();
+                existingEditor.Focus();
+                MessageBox.Show("Already running Log Scenario Editor. Please check the open window.",
+                        "중복 실행 방지", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            new LogScenarioForm().Show();
         }
 
         private void btnSettings_Click(object sender, EventArgs e)

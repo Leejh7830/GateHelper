@@ -38,6 +38,9 @@ namespace GateHelper.LogValidator
         private string _originalLogBackup = string.Empty; // [수동 마스킹 보존 락] 원본 로그 백업용
         private ScenarioStepModel _selectedLadderStepForEdit;
 
+        // 💡 [성능 최적화] 마스킹 패턴을 정규식으로 변환할 때마다 새로 생성하지 않고 캐싱하여 재사용
+        private Dictionary<string, Regex> _previewRegexCache = new Dictionary<string, Regex>();
+
         public LogScenarioForm()
         {
             InitializeComponent();
@@ -89,38 +92,33 @@ namespace GateHelper.LogValidator
             olvScenarioRawLog.GridLines = true;
             olvScenarioRawLog.Visible = false;
 
-            // =========================================================================
-            // 💡 [교정 인터락: 편집기 내부 핀포인트 구간 마스킹 엔진 강제 주입]
-            // =========================================================================
             olvScenarioRawLog.RowFormatter = rowObject =>
             {
                 var logModel = rowObject.RowObject as RawLogModel;
                 if (logModel != null && _scenarioLadderList != null && _scenarioLadderList.Count > 0)
                 {
-                    // ① 우측 사다리 룰 세트에 등록된 패턴들과 일치하는지 전수 검사
                     bool isMatchedRule = false;
                     foreach (var step in _scenarioLadderList)
                     {
                         if (string.IsNullOrEmpty(step.MaskingPattern)) continue;
 
-                        // 와일드카드 패턴을 정규식으로 안전하게 전환하여 대조
-                        string cleanPattern = step.MaskingPattern.Replace("*", ".*");
-                        if (System.Text.RegularExpressions.Regex.IsMatch(logModel.LogMessage, cleanPattern))
+                        // 💡 [수정] 매번 정규식을 조립하지 않고, 캐시에 없으면 최초 1회만 컴파일하여 저장
+                        if (!_previewRegexCache.ContainsKey(step.MaskingPattern))
+                        {
+                            string cleanPattern = step.MaskingPattern.Replace("*", ".*");
+                            _previewRegexCache[step.MaskingPattern] = new Regex(cleanPattern, RegexOptions.IgnoreCase);
+                        }
+
+                        // 💡 캐시된 정규식으로 초고속 매칭 검사
+                        if (_previewRegexCache[step.MaskingPattern].IsMatch(logModel.LogMessage ?? ""))
                         {
                             isMatchedRule = true;
                             break;
                         }
                     }
 
-                    // ② [구간 가드 연산] 최초 기동 메시지(CreateLogIfNecessary)를 품고 있는 줄은 
-                    // 인덱스 오프셋 왜곡에 상관없이 무조건 마스킹 플래그 강제 적용
-                    bool isInitialSequenceZone = false;
-                    if (logModel.LogMessage != null && logModel.LogMessage.Contains("CreateLogIfNecessary"))
-                    {
-                        isInitialSequenceZone = true;
-                    }
+                    bool isInitialSequenceZone = logModel.LogMessage != null && logModel.LogMessage.Contains("CreateLogIfNecessary");
 
-                    // ③ [스타일 락인]
                     if (isMatchedRule || isInitialSequenceZone)
                     {
                         rowObject.BackColor = System.Drawing.Color.FromArgb(255, 243, 205);
@@ -222,16 +220,12 @@ namespace GateHelper.LogValidator
             olvScenarioLadder.AllowDrop = true;
             olvScenarioLadder.ShowItemToolTips = false;
 
-            // 💡 행 드래그 순서 변경: MouseDown에서 DoDragDrop 직접 호출
-            // IsSimpleDragSource 대신 직접 제어 → AllowDrop과 충돌 없음
             olvScenarioLadder.MouseDown += (s, me) => _dragStartPoint = me.Location;
             olvScenarioLadder.MouseMove += olvScenarioLadder_MouseMove;
 
-            // 💡 드래그 가능한 행 위에서 SizeAll 커서로 시각적 피드백 제공
             olvScenarioLadder.MouseMove += OlvScenarioLadder_HoverCursor;
             olvScenarioLadder.MouseLeave += (s, e) => olvScenarioLadder.Cursor = Cursors.Default;
 
-            // 💡 rtbMaskedPreview로 스텝 드래그 → 이름+패턴 표시
             rtbMaskedPreview.AllowDrop = true;
             rtbMaskedPreview.DragEnter += (s, e) =>
             {
@@ -285,7 +279,6 @@ namespace GateHelper.LogValidator
             pnlDropZone.BringToFront();
             pnlDropZone.Dock = DockStyle.Fill;
 
-            // 💡 [빌더 UI 가독성 보정] 이벤트네임 텍스트박스의 폰트 크기를 키우고 박스 높이를 자연스럽게 확장
             txtEventName.Font = new Font("Malgun Gothic", 11.0f, FontStyle.Regular);
         }
 
@@ -302,12 +295,17 @@ namespace GateHelper.LogValidator
         private void PnlDropZone_DragDrop(object sender, DragEventArgs e)
         {
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
-            if (files.Length == 0) return;
+            if (files == null || files.Length == 0) return;
 
             try
             {
-                // 💡 Raw 로그 파서에서 번호와 전체 텍스트만 깔끔하게 받아와 바인딩
-                _rawLogList = _logParser.ParseLogFile(files[0]);
+                string filePath = files[0];
+
+                string sourceFileName = System.IO.Path.GetFileName(filePath);
+                string logType = "PREVIEW"; // 시나리오 편집기에서는 로그 타입 검증이 무의미하므로 더미값 주입
+
+                _rawLogList = _logParser.ParseLogFile(filePath, logType, sourceFileName);
+
                 pnlDropZone.Visible = false;
                 olvScenarioRawLog.Visible = true;
                 olvScenarioRawLog.SetObjects(_rawLogList);
@@ -999,13 +997,15 @@ namespace GateHelper.LogValidator
             try
             {
                 string jsonString = File.ReadAllText(filePath);
-                var loadedSteps = JsonSerializer.Deserialize<List<ScenarioStepModel>>(jsonString);
+
+                // 💡 [수정] 대소문자 무시 옵션 추가 (과거에 저장된 JSON 파일과의 호환성 100% 확보)
+                var options = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+                var loadedSteps = JsonSerializer.Deserialize<List<ScenarioStepModel>>(jsonString, options);
 
                 if (loadedSteps != null)
                 {
                     _scenarioLadderList = loadedSteps;
                     olvScenarioLadder.SetObjects(_scenarioLadderList);
-                    olvScenarioLadder.RebuildColumns(); // 💡 AspectGetter 즉시 재평가 (이름 미표시 문제 해결)
                     olvScenarioLadder.BuildList(true);
                     txtScenarioName.Text = Path.GetFileNameWithoutExtension(filePath);
                     RefreshStepTooltips();
@@ -1014,7 +1014,7 @@ namespace GateHelper.LogValidator
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"시나리오 파일 자동 로드 파싱 결함:\n{ex.Message}", "Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"시나리오 파일 로드 파싱 결함:\n{ex.Message}", "Load Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

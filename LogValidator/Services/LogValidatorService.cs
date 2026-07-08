@@ -35,29 +35,24 @@ namespace GateHelper.LogValidator.Services
         public async Task<List<RawLogModel>> LoadLogFilesAsync(IEnumerable<string> droppedPaths)
         {
             var allLogs = new List<RawLogModel>();
-
-            // 폴더/파일 혼합 드롭 → 실제 파일 경로만 수집
             var filePaths = ResolveFilePaths(droppedPaths);
 
             foreach (string filePath in filePaths)
             {
                 if (!File.Exists(filePath)) continue;
 
-                var parsed = await _logParser.ParseLogFileAsync(filePath);
+                // 1. 파싱 전에 메타데이터(LogType, SourceFileName)를 미리 추출합니다.
                 string logType = ResolveLogType(Path.GetFileName(filePath));
-                string sourceFileName = Path.GetFileName(filePath); // 소스 파일명 기록
+                string sourceFileName = Path.GetFileName(filePath);
 
-                foreach (var log in parsed)
-                {
-                    log.LogType = logType;
-                    log.SourceFileName = sourceFileName;
-                }
+                // 2. 파서(Parser)를 호출할 때 메타데이터를 함께 넘겨줍니다. 
+                // 💡 foreach 루프로 억지로 값을 넣던 코드는 삭제됩니다.
+                var parsed = await _logParser.ParseLogFileAsync(filePath, logType, sourceFileName);
 
                 allLogs.AddRange(parsed);
             }
 
-            // 💡 시간순 정렬 + 보조 기준 추가
-            // 같은 시간대 로그가 여러 파일에 걸칠 때 SourceFileName → LineNo 순으로 안정적 정렬
+            // 시간순 정렬 + 보조 기준 추가
             return allLogs
                 .OrderBy(l => l.LogTime)
                 .ThenBy(l => l.SourceFileName)
@@ -102,13 +97,15 @@ namespace GateHelper.LogValidator.Services
         {
             var targetEvaluators = new List<ScenarioEvaluator>();
 
+            var jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
+
             foreach (var eval in checkedEvaluators)
             {
                 string fullPath = Path.Combine(scenarioDirectory, $"{eval.ScenarioName}.json");
                 if (!File.Exists(fullPath)) continue;
 
                 string json = File.ReadAllText(fullPath);
-                var steps = JsonSerializer.Deserialize<List<ScenarioStepModel>>(json);
+                var steps = JsonSerializer.Deserialize<List<ScenarioStepModel>>(json, jsonOptions);
                 if (steps == null) continue;
 
                 eval.Steps = steps;

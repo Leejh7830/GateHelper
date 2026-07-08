@@ -44,7 +44,7 @@ namespace GateHelper
             string metaNotesPath = GetMetaPath("ReleaseNotes.txt");
             string content =
 @"
-v2.4.0 / 26.06.19 / Test Version
+v2.4.1 / 26.07.05 / Test Version
 - leejh7830@lgespartner.com
 - 비영리 목적으로 제작한 유틸리티입니다.
 
@@ -111,10 +111,11 @@ v2.2.6 / 26.04.08 개선 - Disable Pop up -> Auto Screen Unlock 으로 변경, �
 
 v2.3.0 / 26.05.12 신규 - 통합모니터링(MGMT) 사이트 오픈 및 이동
 v2.3.1 / 26.05.14 신규 - 통합모니터링(MGMT) 자동로그인 기능 구현 / Main과 Management Handle 관리 구분 및 인터락 구현
-v2.3.2 / 26.06.10 (안정화버전) 신규 - 통합모니터링(MGMT) STO 데이터 수집 / 신규 - ServerMapping 기능 추가
-v2.3.2 / 26.06.19 Drag & Drop 추가
+v2.3.2 / 26.06.10 (안정화버전) 신규 - 통합모니터링(MGMT) STO 데이터 수집 / 신규 - ServerMapping 기능 추가 (호기명 입력 시 서버 매핑)
+v2.3.2 / 26.06.19 신규 - Drag & Drop 기능 추가 (파일 즐겨찾기 등록)
 
-v2.4.0 / 26.06.24 LogValidator 기능 추가 (로그 분석 및 통계, 필터링)
+v2.4.0 / 26.06.24 신규 - LogValidator 기능 추가 (로그 분석 및 통계, 필터링)
+v2.4.1 / 26.07.05 개선 - LogValidator 기능 개선 (UI/UX 배치, 스텝 하이라이팅, 스텝 OR/AND/TimeOut 추가)
          
 ";
 

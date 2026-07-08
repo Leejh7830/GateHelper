@@ -1482,7 +1482,8 @@ namespace GateHelper
             // 1. 유효성 검사
             if (_driver == null || string.IsNullOrEmpty(managementHandle))
             {
-                LogMessage("MGMT가 열려있지 않습니다.", Level.Error);
+                LogMessage("The MGMT screen is not open or the browser connection is lost.", Level.Error);
+                MessageBox.Show("The MGMT screen is not open or the browser connection is lost.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
@@ -1544,7 +1545,7 @@ namespace GateHelper
             // 1. 기본 검증 및 엑셀 파일 인터락
             if (_driver == null || string.IsNullOrEmpty(managementHandle))
             {
-                LogMessage("MGMT가 열려있지 않습니다.", Level.Error);
+                LogMessage("The MGMT screen is not open or the browser connection is lost.", Level.Error);
                 MessageBox.Show("The MGMT screen is not open or the browser connection is lost.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
