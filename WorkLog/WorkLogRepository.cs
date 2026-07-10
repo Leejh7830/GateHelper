@@ -1,10 +1,8 @@
-﻿/*
- * using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace GateHelper
@@ -12,18 +10,15 @@ namespace GateHelper
     public class WorkLogRepository
     {
         private readonly string _dataPath;
-        private readonly string _imageDir;
+        public string ImageDir { get; }  // 경로 중복 제거: 한 곳에서만 관리
 
         public WorkLogRepository()
         {
-            // 데이터 경로 및 이미지 폴더 경로 설정 (Util 클래스 의존성 유지)
             _dataPath = Util.GetMetaPath("WorkLog.json");
-            _imageDir = Path.Combine(Path.GetDirectoryName(_dataPath), "WorkLog_Images");
+            ImageDir = Path.Combine(Path.GetDirectoryName(_dataPath), "WorkLog_Images");
 
-            if (!Directory.Exists(_imageDir))
-            {
-                Directory.CreateDirectory(_imageDir);
-            }
+            if (!Directory.Exists(ImageDir))
+                Directory.CreateDirectory(ImageDir);
         }
 
         // --- 데이터 I/O ---
@@ -44,53 +39,72 @@ namespace GateHelper
             }
         }
 
+        /// <summary>
+        /// 임시 파일에 먼저 쓴 후 교체 → 저장 중 예외 발생 시 기존 데이터 보호
+        /// </summary>
         public void Save(WorkLogData data)
         {
+            string tmpPath = _dataPath + ".tmp";
+            string bakPath = _dataPath + ".bak";
             try
             {
                 string json = JsonConvert.SerializeObject(data, Formatting.Indented);
-                File.WriteAllText(_dataPath, json);
+                File.WriteAllText(tmpPath, json);
+
+                // tmp → 실제 파일로 원자적 교체 (bak으로 이전 버전 보존)
+                if (File.Exists(_dataPath))
+                    File.Replace(tmpPath, _dataPath, bakPath);
+                else
+                    File.Move(tmpPath, _dataPath);
             }
             catch (Exception ex)
             {
                 LogManager.LogException(ex, LogManager.Level.Error);
+                // tmp 찌꺼기 정리
+                try { if (File.Exists(tmpPath)) File.Delete(tmpPath); } catch { }
             }
         }
 
         // --- 이미지 관리 ---
 
         public string GetFullImagePath(string fileName)
-        {
-            return Path.Combine(_imageDir, fileName);
-        }
+            => Path.Combine(ImageDir, fileName);
 
         /// <summary>
-        /// 이미지를 비동기로 저장하고 생성된 파일명을 반환합니다.
+        /// 안전한 Bitmap 복사본을 받아 백그라운드에서 JPEG로 저장합니다.
+        /// 호출 전 UI 스레드에서 new Bitmap(clipboardImage)로 복사본을 만들어 넘겨야 합니다.
         /// </summary>
-        public async Task<string> SaveImageAsync(Image img)
+        public async Task<string> SaveImageAsync(Bitmap bmp, int entryNo, int nextIndex)
         {
-            string fileName = $"{DateTime.Now:yyyyMMdd_HHmmss}_{DateTime.Now.Ticks}.jpg";
-            string fullPath = Path.Combine(_imageDir, fileName);
+            string timePart = DateTime.Now.ToString("yyyyMMdd_HHmmss");
+            string fileName = $"{entryNo}_{timePart}_{nextIndex}.jpg";
+            string fullPath = Path.Combine(ImageDir, fileName);
 
-            using (Bitmap bmp = new Bitmap(img))
+            // 중복 파일명 안전 처리
+            int safetyCopy = 1;
+            while (File.Exists(fullPath))
             {
-                await Task.Run(() => bmp.Save(fullPath, System.Drawing.Imaging.ImageFormat.Jpeg));
+                fileName = $"{entryNo}_{timePart}_{nextIndex}_{safetyCopy++}.jpg";
+                fullPath = Path.Combine(ImageDir, fileName);
             }
+
+            // 저장만 백그라운드 처리 (Bitmap은 이미 UI 스레드에서 안전하게 생성된 복사본)
+            await Task.Run(() => bmp.Save(fullPath, System.Drawing.Imaging.ImageFormat.Jpeg));
 
             return File.Exists(fullPath) ? fileName : null;
         }
 
         /// <summary>
-        /// 특정 항목에 연결된 이미지 파일들을 물리적으로 삭제합니다.
+        /// 항목에 연결된 이미지 파일을 물리적으로 삭제합니다.
         /// </summary>
         public List<string> DeleteImages(List<string> fileNames)
         {
-            List<string> failedFiles = new List<string>();
+            var failedFiles = new List<string>();
             foreach (var fileName in fileNames)
             {
                 try
                 {
-                    string fullPath = Path.Combine(_imageDir, fileName);
+                    string fullPath = Path.Combine(ImageDir, fileName);
                     if (File.Exists(fullPath)) File.Delete(fullPath);
                 }
                 catch
@@ -102,4 +116,3 @@ namespace GateHelper
         }
     }
 }
-*/

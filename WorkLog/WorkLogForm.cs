@@ -1,7 +1,6 @@
 ﻿using BrightIdeasSoftware;
 using MaterialSkin;
 using MaterialSkin.Controls;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,27 +8,29 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using static GateHelper.LogManager; // LogManager 활용을 위한 static import
+using static GateHelper.LogManager;
 
 namespace GateHelper
 {
     public partial class WorkLogForm : MaterialForm
     {
+        // --- 의존성 (Repository/Service로 분리) ---
+        private readonly WorkLogRepository _repo = new WorkLogRepository();
+        private readonly WorkLogService _service = new WorkLogService();
+
         private readonly MaterialSkinManager _materialSkinManager;
-        private readonly string _dataPath = Util.GetMetaPath("WorkLog.json");
         private List<WorkLogEntry> _items = new List<WorkLogEntry>();
         private string _currentFilter = string.Empty;
-        private static readonly string[] StatusOptions = new[] { "OPEN", "ING..", "DONE", "FIXED" };
+        private static readonly string[] StatusOptions = { "OPEN", "ING..", "DONE", "FIXED" };
         private ContextMenuStrip _cms;
-        private float _currentFontSize = 10f;
         private bool _isDatePickerDropDownOpen = false;
         private DateTime _lastPasteTime = DateTime.MinValue;
-
-        // 자소 분리 방지용 디바운스 타이머
         private Timer _searchTimer;
-
-        // Model Data
         private WorkLogData _data;
+
+        // Font 캐시 - FormatRow/DrawSubItem에서 매번 new Font() 생성 방지
+        private Font _boldFont;
+        private Font _regularFont;
 
         public WorkLogForm()
         {
@@ -43,8 +44,7 @@ namespace GateHelper
 
         private void WorkLogForm_Load(object sender, EventArgs e)
         {
-            InitializeLogFile(); // 로그 시스템 초기화
-
+            InitializeLogFile();
             InitListView();
             WireEvents();
             SetupContextMenu();
@@ -66,26 +66,19 @@ namespace GateHelper
             Content.FillsFreeSpace = true;
 
             foreach (OLVColumn col in OlvWorkLog.AllColumns)
-            {
                 col.MinimumWidth = 50;
-            }
 
             foreach (var col in OlvWorkLog.AllColumns)
             {
                 var aspect = col.AspectName ?? string.Empty;
                 if (aspect == nameof(WorkLogEntry.Date) || aspect == nameof(WorkLogEntry.LastUpdated))
-                {
                     col.AspectToStringFormat = aspect == nameof(WorkLogEntry.LastUpdated) ? "{0:yyyy-MM-dd HH:mm}" : "{0:yyyy-MM-dd}";
-                }
                 if (aspect == nameof(WorkLogEntry.No) || aspect == nameof(WorkLogEntry.LastUpdated))
-                {
                     col.IsEditable = false;
-                }
             }
 
             var colImages = OlvWorkLog.AllColumns.Cast<OLVColumn>()
-                        .FirstOrDefault(x => x.Text == "Images" || x.AspectName == "ImagePaths");
-
+                .FirstOrDefault(x => x.Text == "Images" || x.AspectName == "ImagePaths");
             if (colImages != null)
             {
                 colImages.AspectGetter = row =>
@@ -111,10 +104,9 @@ namespace GateHelper
             OlvWorkLog.DrawSubItem += OlvWorkLog_DrawSubItem;
             OlvWorkLog.FormatCell += OlvWorkLog_FormatCell;
             OlvWorkLog.FormatRow += OlvWorkLog_FormatRow;
-            this.FormClosing += WorkLogForm_FormClosing;
-
-            OlvWorkLog.KeyDown += OlvWorkLog_KeyDown;
             OlvWorkLog.DoubleClick += OlvWorkLog_DoubleClick;
+            OlvWorkLog.KeyDown += OlvWorkLog_KeyDown; // Designer에서 제거했으므로 여기서 연결
+            this.FormClosing += WorkLogForm_FormClosing;
 
             OlvWorkLog.MouseWheel += (s, e) =>
             {
@@ -125,13 +117,11 @@ namespace GateHelper
                 }
             };
 
-            // [추가] 타이머 설정 (300ms 동안 추가 입력이 없으면 필터링 실행)
-            _searchTimer = new Timer();
-            _searchTimer.Interval = 300;
+            _searchTimer = new Timer { Interval = 300 };
             _searchTimer.Tick += (s, e) =>
             {
-                _searchTimer.Stop(); // 타이머를 멈추고
-                ApplyFilter(TxtWorkLog.Text); // 필터링 1회 실행
+                _searchTimer.Stop();
+                ApplyFilter(TxtWorkLog.Text);
             };
         }
 
@@ -142,61 +132,33 @@ namespace GateHelper
             _cms.Items.Add(new ToolStripMenuItem("Add New Item", null, (s, e) => AddNewEntry()));
             _cms.Items.Add(new ToolStripMenuItem("Delete Selected", null, (s, e) => DeleteSelectedEntries()));
             _cms.Items.Add(new ToolStripSeparator());
-            // _cms.Items.Add(new ToolStripMenuItem("Open Log File", null, (s, e) => OpenLogFile())); // 로그 열기 메뉴 추가
         }
+
+        // --- 데이터 저장/로드 ---
 
         private void SaveData()
         {
-            try
-            {
-                if (_data == null) _data = new WorkLogData();
-                _data.Items = _items;
-
-                string json = JsonConvert.SerializeObject(_data, Formatting.Indented);
-                File.WriteAllText(_dataPath, json);
-            }
-            catch (Exception ex)
-            {
-                LogException(ex, Level.Error);
-            }
+            if (_data == null) _data = new WorkLogData();
+            _data.Items = _items;
+            _repo.Save(_data); // 임시파일 교체 방식으로 안전 저장
         }
 
         private void LoadData()
         {
             try
             {
-                if (!File.Exists(_dataPath))
+                _data = _repo.Load();
+                _items = _data.Items ?? new List<WorkLogEntry>();
+                _data.Items = _items;
+                chkHideDone.Checked = _data.HideDone;
+
+                LogMessage($"WorkLog Started - Loaded Items: {_items.Count}, FontSize: {_data.FontSize}", Level.Info);
+
+                this.BeginInvoke(new Action(() =>
                 {
-                    _data = new WorkLogData();
-                    _items = _data.Items;
-                    LogMessage("New Data File Created (First Run)", Level.Info); // 최초 실행 시만 기록
-                    return;
-                }
-
-                string json = File.ReadAllText(_dataPath);
-                _data = JsonConvert.DeserializeObject<WorkLogData>(json);
-
-                if (_data != null)
-                {
-                    _items = _data.Items ?? new List<WorkLogEntry>();
-                    _data.Items = _items;
-                    chkHideDone.Checked = _data.HideDone;
-
-                    // [핵심] 여러 줄의 로그를 이 시점에 한 줄로 요약
-                    LogMessage($"WorkLog Started - Loaded Items: {_items.Count}, FontSize: {_data.FontSize}", Level.Info);
-
-                    this.BeginInvoke(new Action(() =>
-                    {
-                        ChangeFontSize(0);
-                        ApplyFilter(TxtWorkLog.Text);
-                    }));
-                }
-                else
-                {
-                    LogMessage("Data Load Failed (Deserialization null)", Level.Error);
-                    _data = new WorkLogData();
-                    _items = _data.Items;
-                }
+                    ChangeFontSize(0);
+                    ApplyFilter(TxtWorkLog.Text);
+                }));
             }
             catch (Exception ex)
             {
@@ -207,67 +169,55 @@ namespace GateHelper
             }
         }
 
+        // --- 이미지 붙여넣기 (Ctrl+V) ---
+
         private async void OlvWorkLog_KeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Control && e.KeyCode == Keys.V)
+            if (!e.Control || e.KeyCode != Keys.V) return;
+            if ((DateTime.Now - _lastPasteTime).TotalMilliseconds < 800) return;
+            _lastPasteTime = DateTime.Now;
+
+            if (!(OlvWorkLog.SelectedObject is WorkLogEntry entry)) return;
+            if (!Clipboard.ContainsImage())
             {
-                if ((DateTime.Now - _lastPasteTime).TotalMilliseconds < 800) return;
-                _lastPasteTime = DateTime.Now;
+                LogMessage("Clipboard paste attempted but no image found.", Level.Info);
+                return;
+            }
 
-                if (!(OlvWorkLog.SelectedObject is WorkLogEntry entry)) return;
+            try
+            {
+                // 1. UI 스레드에서 클립보드 접근 및 안전한 Bitmap 복사본 생성
+                //    일부 캡처 툴 이미지는 원본 Image를 그대로 넘기면 ExternalException 발생
+                Image clipImg = Clipboard.GetImage();
+                if (clipImg == null) return;
+                Bitmap safeBmp = new Bitmap(clipImg); // UI 스레드에서 안전한 복사본 생성
+                clipImg.Dispose();
 
-                if (!Clipboard.ContainsImage())
+                // 2. 저장은 Repository 백그라운드 처리
+                int nextIndex = entry.ImagePaths.Count + 1;
+                string fileName = await _repo.SaveImageAsync(safeBmp, entry.No, nextIndex);
+                safeBmp.Dispose();
+
+                // 3. await 이후 UI 갱신은 BeginInvoke로 스레드 안전하게 처리
+                if (fileName != null)
                 {
-                    LogMessage("Clipboard paste attempted but no image found.", Level.Info);
-                    return;
-                }
-
-                try
-                {
-                    using (Image img = Clipboard.GetImage())
+                    this.BeginInvoke(new Action(() =>
                     {
-                        if (img == null) return;
-
-                        // 이미지 저장 폴더 설정
-                        string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "WorkLog_Images");
-                        if (!Directory.Exists(imgDir)) Directory.CreateDirectory(imgDir);
-
-                        // [개선] No + 타임스탬프 + 해당 로그의 이미지 순번(Index) 조합
-                        // 예: 105_20260122_141005_1.jpg, 105_20260122_141005_2.jpg
-                        int nextIndex = entry.ImagePaths.Count + 1; // 현재 리스트 개수 + 1
-                        string timePart = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                        string fileName = $"{entry.No}_{timePart}_{nextIndex}.jpg";
-                        string fullPath = Path.Combine(imgDir, fileName);
-
-                        // 만약 파일이 이미 존재할 경우를 대비한 안전 로직 (중복 방지 루프)
-                        int safetyCopy = 1;
-                        while (File.Exists(fullPath))
-                        {
-                            fileName = $"{entry.No}_{timePart}_{nextIndex}_{safetyCopy++}.jpg";
-                            fullPath = Path.Combine(imgDir, fileName);
-                        }
-
-                        using (Bitmap bmp = new Bitmap(img))
-                        {
-                            await Task.Run(() => bmp.Save(fullPath, System.Drawing.Imaging.ImageFormat.Jpeg));
-                        }
-
-                        if (File.Exists(fullPath))
-                        {
-                            entry.ImagePaths.Add(fileName);
-                            entry.Touch();
-                            OlvWorkLog.RefreshObject(entry);
-                            SaveData();
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    LogException(ex, Level.Error);
-                    MessageBox.Show($"Failed to save image: {ex.Message}", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        entry.ImagePaths.Add(fileName);
+                        entry.Touch();
+                        OlvWorkLog.RefreshObject(entry);
+                        SaveData();
+                    }));
                 }
             }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error);
+                MessageBox.Show($"Failed to save image: {ex.Message}", "Save Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
+
+        // --- 이미지 뷰어 ---
 
         private void OlvWorkLog_DoubleClick(object sender, EventArgs e)
         {
@@ -279,9 +229,7 @@ namespace GateHelper
                 if (hitTest.Column.Text == "Images" || hitTest.Column.AspectName == "ImagePaths")
                 {
                     if (hitTest.RowObject is WorkLogEntry entry && entry.HasImage)
-                    {
                         ShowImageSelectionMenu(entry);
-                    }
                 }
             }
         }
@@ -296,48 +244,62 @@ namespace GateHelper
 
             ContextMenuStrip menu = new ContextMenuStrip();
             menu.ImageScalingSize = new Size(64, 64);
-            string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "WorkLog_Images");
+
+            // 메뉴 닫힌 후 썸네일 이미지 일괄 Dispose
+            // Closed 이벤트 처리 도중 Dispose하면 ObjectDisposedException 발생
+            // → BeginInvoke로 이벤트 완료 후 다음 루프에서 해제
+            menu.Closed += (s, ev) =>
+            {
+                this.BeginInvoke(new Action(() =>
+                {
+                    foreach (ToolStripItem item in menu.Items)
+                    {
+                        item.Image?.Dispose();
+                        item.Image = null;
+                    }
+                    menu.Dispose();
+                }));
+            };
 
             for (int i = entry.ImagePaths.Count - 1; i >= 0; i--)
             {
                 string fileName = entry.ImagePaths[i];
-                string fullPath = Path.Combine(imgDir, fileName);
+                string fullPath = _repo.GetFullImagePath(fileName);
 
-                ToolStripMenuItem item = new ToolStripMenuItem(fileName);
-                item.Click += (s, e) => OpenImageFile(fileName);
+                var menuItem = new ToolStripMenuItem(fileName);
+                menuItem.Click += (s, ev) => OpenImageFile(fileName);
 
                 if (File.Exists(fullPath))
                 {
                     try
                     {
+                        // 원본 Image를 using으로 즉시 해제, 썸네일만 menuItem에 보관
                         using (var stream = new MemoryStream(File.ReadAllBytes(fullPath)))
+                        using (var original = Image.FromStream(stream))
                         {
-                            Image original = Image.FromStream(stream);
-                            item.Image = original.GetThumbnailImage(64, 64, null, IntPtr.Zero);
+                            menuItem.Image = original.GetThumbnailImage(64, 64, null, IntPtr.Zero);
                         }
                     }
                     catch { }
                 }
-                menu.Items.Add(item);
+                menu.Items.Add(menuItem);
             }
             menu.Show(Cursor.Position);
         }
 
         private void OpenImageFile(string fileName)
         {
-            string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "WorkLog_Images");
-            string fullPath = Path.Combine(imgDir, fileName);
-
+            string fullPath = _repo.GetFullImagePath(fileName);
             if (File.Exists(fullPath))
-            {
                 System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(fullPath) { UseShellExecute = true });
-            }
             else
             {
                 LogMessage($"Image file missing: {fileName}", Level.Error);
                 MessageBox.Show("File not found: " + fileName, "Error", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
+
+        // --- 항목 관리 ---
 
         private void DeleteSelectedEntries()
         {
@@ -346,47 +308,67 @@ namespace GateHelper
 
             var result = MessageBox.Show($"Delete {selected.Count} item(s)?\n(Images will be also deleted.)",
                 "Confirm Delete", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
-
             if (result != DialogResult.Yes) return;
 
             LogMessage($"Deleting {selected.Count} entries.", Level.Info);
-            List<string> failedFiles = new List<string>();
-            string imgDir = Path.Combine(Path.GetDirectoryName(_dataPath), "WorkLog_Images");
+
+            var deletedEntries = new List<WorkLogEntry>();
+            var failedEntries = new List<(WorkLogEntry entry, List<string> files)>();
 
             foreach (var entry in selected)
             {
-                foreach (var fileName in entry.ImagePaths)
-                {
-                    try
-                    {
-                        string fullPath = Path.Combine(imgDir, fileName);
-                        if (File.Exists(fullPath)) File.Delete(fullPath);
-                    }
-                    catch (Exception ex)
-                    {
-                        LogException(ex, Level.Error, $"File Delete Fail: {fileName}");
-                        failedFiles.Add(fileName);
-                    }
-                }
+                var failed = _repo.DeleteImages(entry.ImagePaths);
+                if (failed.Count > 0)
+                    failedEntries.Add((entry, failed));  // 이미지 삭제 실패 → 행 보존
+                else
+                    deletedEntries.Add(entry);           // 이미지 삭제 성공 → 행 삭제
+            }
+
+            // 성공한 항목만 리스트/UI에서 제거
+            foreach (var entry in deletedEntries)
+            {
                 _items.Remove(entry);
                 OlvWorkLog.RemoveObject(entry);
             }
 
-            if (failedFiles.Count > 0)
+            // 실패한 항목은 행 유지 + 사용자에게 알림
+            if (failedEntries.Count > 0)
             {
-                MessageBox.Show("Some files could not be deleted.", "Notice", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                var failedNames = failedEntries
+                    .SelectMany(x => x.files)
+                    .ToList();
+                MessageBox.Show(
+                    $"아래 이미지 파일을 삭제하지 못해 해당 항목은 삭제되지 않았습니다:\n{string.Join("\n", failedNames)}\n\n파일이 사용 중이거나 읽기 전용인지 확인하세요.",
+                    "삭제 실패", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                LogMessage($"Image delete failed: {string.Join(", ", failedNames)}", Level.Warning);
             }
-            SaveData();
+
+            if (deletedEntries.Count > 0)
+                SaveData();
         }
+
+        private void AddNewEntry()
+        {
+            try
+            {
+                var entry = _service.CreateNewEntry(_items);
+                _items.Add(entry);
+                OlvWorkLog.AddObject(entry);
+                OlvWorkLog.DeselectAll();
+                OlvWorkLog.SelectedObject = entry;
+                OlvWorkLog.EnsureModelVisible(entry);
+                LogMessage($"Entry added. No: {entry.No}", Level.Info);
+                SaveData();
+            }
+            catch (Exception ex) { LogException(ex, Level.Error); }
+        }
+
+        // --- 셀 편집 ---
 
         private void OlvWorkLog_CellEditStarting(object sender, CellEditEventArgs e)
         {
             if (e.Column == null) return;
-            if (e.Column.AspectName == "ImagePaths" || e.Column.Text == "Images")
-            {
-                e.Cancel = true;
-                return;
-            }
+            if (e.Column.AspectName == "ImagePaths" || e.Column.Text == "Images") { e.Cancel = true; return; }
 
             var aspect = e.Column.AspectName;
             if (aspect == nameof(WorkLogEntry.Status))
@@ -394,22 +376,15 @@ namespace GateHelper
                 var cb = new ComboBox { DropDownStyle = ComboBoxStyle.DropDownList, Bounds = e.CellBounds };
                 cb.Items.AddRange(StatusOptions);
                 cb.SelectedItem = StatusOptions.Contains(e.Value?.ToString()) ? e.Value.ToString() : "OPEN";
-
                 cb.SelectedIndexChanged += (s, _) =>
                 {
                     e.NewValue = cb.SelectedItem.ToString();
                     this.BeginInvoke(new Action(() => OlvWorkLog.FinishCellEdit()));
                 };
-
                 this.BeginInvoke(new Action(() =>
                 {
-                    if (cb != null && !cb.IsDisposed)
-                    {
-                        cb.Focus();
-                        cb.DroppedDown = true;
-                    }
+                    if (cb != null && !cb.IsDisposed) { cb.Focus(); cb.DroppedDown = true; }
                 }));
-
                 e.Control = cb;
             }
             else if (aspect == nameof(WorkLogEntry.Date))
@@ -423,7 +398,6 @@ namespace GateHelper
                 };
                 dtp.DropDown += (s, _) => _isDatePickerDropDownOpen = true;
                 dtp.CloseUp += (s, _) => { _isDatePickerDropDownOpen = false; OlvWorkLog.FinishCellEdit(); };
-
                 e.Control = dtp;
             }
         }
@@ -434,12 +408,7 @@ namespace GateHelper
             var entry = (WorkLogEntry)e.RowObject;
             var aspect = e.Column.AspectName;
 
-            if (aspect == nameof(WorkLogEntry.Date) && _isDatePickerDropDownOpen)
-            {
-                e.Cancel = true;
-                return;
-            }
-
+            if (aspect == nameof(WorkLogEntry.Date) && _isDatePickerDropDownOpen) { e.Cancel = true; return; }
             if (e.Control is ComboBox cb) e.NewValue = cb.SelectedItem?.ToString();
             else if (e.Control is DateTimePicker dtp) e.NewValue = dtp.Value;
 
@@ -461,57 +430,27 @@ namespace GateHelper
             SaveData();
         }
 
+        // --- 검색/필터 ---
+
         private void TxtWorkLog_TextChanged(object sender, EventArgs e)
         {
             if (_searchTimer == null) return;
-
-            // 글자가 입력될 때마다 기존 타이머를 취소하고 다시 0초부터 셉니다.
             _searchTimer.Stop();
             _searchTimer.Start();
         }
 
-        private void TxtWorkLog_KeyUp(object sender, KeyEventArgs e) { if (e.KeyCode == Keys.Enter) ApplyFilter(TxtWorkLog.Text); }
+        private void TxtWorkLog_KeyUp(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter) ApplyFilter(TxtWorkLog.Text);
+        }
 
         private void ApplyFilter(string q)
         {
             _currentFilter = q?.Trim() ?? "";
             OlvWorkLog.BeginUpdate();
-            var filteredList = _items.Where(RowMatchesFilter).ToList();
+            var filteredList = _service.FilterItems(_items, _currentFilter, chkHideDone.Checked);
             OlvWorkLog.SetObjects(filteredList);
             OlvWorkLog.EndUpdate();
-        }
-
-        private bool RowMatchesFilter(WorkLogEntry entry)
-        {
-            if (chkHideDone.Checked && entry.Status == "DONE") return false;
-
-            string q = _currentFilter.ToLower();
-            if (string.IsNullOrEmpty(q)) return true;
-
-            return (entry.Title?.ToLower().Contains(q) ?? false) ||
-                   (entry.Content?.ToLower().Contains(q) ?? false) ||
-                   (entry.Tags?.ToLower().Contains(q) ?? false) ||
-                   (entry.Memo?.ToLower().Contains(q) ?? false) ||
-                   (entry.Status?.ToLower().Contains(q) ?? false);
-        }
-
-        private void AddNewEntry()
-        {
-            try
-            {
-                int nextNo = _items.Count == 0 ? 1 : _items.Max(x => x.No) + 1;
-                var entry = new WorkLogEntry { No = nextNo, Date = DateTime.Now };
-                _items.Add(entry);
-                OlvWorkLog.AddObject(entry); // 리스트뷰에 즉시 반영
-                OlvWorkLog.DeselectAll(); // 기존에 선택된 모든 항목을 해제
-
-                OlvWorkLog.SelectedObject = entry; // 새로 만든 줄 선택
-                OlvWorkLog.EnsureModelVisible(entry); // 화면 밖이면 스크롤 이동
-
-                LogMessage($"Entry added. No: {nextNo}", Level.Info);
-                SaveData();
-            }
-            catch (Exception ex) { LogException(ex, Level.Error); }
         }
 
         private void chkHideDone_CheckedChanged(object sender, EventArgs e)
@@ -522,66 +461,91 @@ namespace GateHelper
             SaveData();
         }
 
+        // --- 폼 닫기 ---
+
         private void WorkLogForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             LogMessage("WorkLogForm Closing.", Level.Info);
+            _boldFont?.Dispose();
+            _regularFont?.Dispose();
+            _searchTimer?.Dispose();
+            _cms?.Dispose();
             OlvWorkLog.Parent = null;
             OlvWorkLog.Dispose();
         }
 
+        // --- 렌더링 ---
+
         private void OlvWorkLog_DrawColumnHeader(object sender, DrawListViewColumnHeaderEventArgs e)
-        { e.DrawBackground(); TextRenderer.DrawText(e.Graphics, e.Header.Text, e.Font, e.Bounds, Color.Black, TextFormatFlags.VerticalCenter); }
+        {
+            e.DrawBackground();
+            // Color.Black 하드코딩 제거 → 다크모드 대응
+            TextRenderer.DrawText(e.Graphics, e.Header.Text, e.Font, e.Bounds, e.ForeColor, TextFormatFlags.VerticalCenter);
+        }
 
         private void OlvWorkLog_DrawItem(object sender, DrawListViewItemEventArgs e) => e.DrawBackground();
 
         private void OlvWorkLog_DrawSubItem(object sender, DrawListViewSubItemEventArgs e)
         {
             e.DrawBackground();
-            bool highlight = !string.IsNullOrEmpty(_currentFilter) && e.SubItem.Text.ToLower().Contains(_currentFilter.ToLower());
-            Font f = highlight ? new Font(e.SubItem.Font, FontStyle.Bold) : e.SubItem.Font;
-            TextRenderer.DrawText(e.Graphics, e.SubItem.Text, f, e.Bounds, e.SubItem.ForeColor, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
+            // 검색 Bold 강조: FormatRow에서 처리하므로 여기선 기본 렌더링만
+            TextRenderer.DrawText(e.Graphics, e.SubItem.Text, e.SubItem.Font, e.Bounds,
+                e.SubItem.ForeColor, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
         }
 
         private void OlvWorkLog_FormatCell(object sender, FormatCellEventArgs e) { }
 
         private void OlvWorkLog_FormatRow(object sender, FormatRowEventArgs e)
         {
-            if (e.Model is WorkLogEntry entry)
-            {
-                // 1. 기본 색상 로직
-                if (entry.Status == "DONE")
-                {
-                    e.Item.BackColor = Color.LightGray;
-                    e.Item.ForeColor = Color.DimGray;
-                }
-                else if (entry.Status == "ING..")
-                {
-                    e.Item.BackColor = Color.Yellow;
-                    e.Item.ForeColor = Color.Black;
-                }
+            if (!(e.Model is WorkLogEntry entry)) return;
 
-                // 2. 리마인더 로직 (7일 이상 경과)
-                if (entry.Status == "OPEN" || entry.Status == "ING..")
-                {
-                    if ((DateTime.Now - entry.Date).TotalDays >= 7)
-                    {
-                        e.Item.ForeColor = Color.Red;
-                        // FontStyle만 추가할 때는 아래와 같이 기존 폰트를 활용하는 것이 안전합니다.
-                        e.Item.Font = new Font(OlvWorkLog.Font, FontStyle.Bold);
-                    }
-                }
+            if (entry.Status == "DONE")
+            {
+                e.Item.BackColor = Color.LightGray;
+                e.Item.ForeColor = Color.DimGray;
+            }
+            else if (entry.Status == "ING..")
+            {
+                e.Item.BackColor = Color.Yellow;
+                e.Item.ForeColor = Color.Black;
+            }
+
+            if ((entry.Status == "OPEN" || entry.Status == "ING..") &&
+                (DateTime.Now - entry.Date).TotalDays >= 7)
+            {
+                e.Item.ForeColor = Color.Red;
+                e.Item.Font = _boldFont;
+            }
+
+            // 검색어 매칭 행 Bold 강조
+            if (!string.IsNullOrEmpty(_currentFilter))
+            {
+                string q = _currentFilter.ToLower();
+                bool matched = (entry.Title?.ToLower().Contains(q) ?? false) ||
+                               (entry.Content?.ToLower().Contains(q) ?? false) ||
+                               (entry.Tags?.ToLower().Contains(q) ?? false) ||
+                               (entry.Memo?.ToLower().Contains(q) ?? false) ||
+                               (entry.Status?.ToLower().Contains(q) ?? false);
+                if (matched)
+                    e.Item.Font = _boldFont;
             }
         }
+
+        // --- 폰트 크기 ---
 
         private void ChangeFontSize(float delta)
         {
             if (_data == null) return;
 
-            _data.FontSize = Math.Max(8f, Math.Min(24f, _data.FontSize + delta));
-            _currentFontSize = _data.FontSize;
+            _data.FontSize = _service.ClampFontSize(_data.FontSize, delta);
 
-            Font nFont = new Font("맑은 고딕", _data.FontSize);
-            OlvWorkLog.Font = nFont;
+            // 폰트 캐시 갱신
+            _boldFont?.Dispose();
+            _regularFont?.Dispose();
+            _boldFont = new Font("맑은 고딕", _data.FontSize, FontStyle.Bold);
+            _regularFont = new Font("맑은 고딕", _data.FontSize, FontStyle.Regular);
+
+            OlvWorkLog.Font = _regularFont;
             OlvWorkLog.RowHeight = (int)(_data.FontSize * 2.2);
 
             OlvWorkLog.BeginUpdate();
@@ -589,7 +553,7 @@ namespace GateHelper
             {
                 foreach (OLVColumn col in OlvWorkLog.AllColumns)
                 {
-                    try { col.HeaderFont = nFont; } catch { }
+                    try { col.HeaderFont = _regularFont; } catch { }
                 }
                 OlvWorkLog.BuildList(true);
                 OlvWorkLog.RefreshObjects(_items);
@@ -603,10 +567,6 @@ namespace GateHelper
 
         private void btnZoomIn_Click(object sender, EventArgs e) => ChangeFontSize(1f);
         private void btnZoomOut_Click(object sender, EventArgs e) => ChangeFontSize(-1f);
-
-        private void btnAddNew_Click(object sender, EventArgs e)
-        {
-            AddNewEntry();
-        }
+        private void btnAddNew_Click(object sender, EventArgs e) => AddNewEntry();
     }
 }
