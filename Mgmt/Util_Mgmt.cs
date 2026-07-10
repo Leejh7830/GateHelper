@@ -11,7 +11,10 @@ using System.Windows.Forms;
 using static GateHelper.LogManager;
 
 
-namespace GateHelper.Utils
+using GateHelper.Mgmt;
+using System.Text.RegularExpressions;
+
+namespace GateHelper.Mgmt
 {
     public static class Util_Mgmt
     {
@@ -24,70 +27,97 @@ namespace GateHelper.Utils
         /// 사용자가 옵션을 선택하지 않았을 경우 경고창을 띄우고 수집을 차단하는 인터락이 적용되었습니다.
         /// 반환값: (선택된_설비리스트, SEM선택, Port선택)
         /// </summary>
-        public static (List<string> selectedTypes, bool isSem, bool isPort) ShowCollectionSelectDialog(List<string> scannedTypes)
+        /// <summary>
+        /// 실제 설비 리스트를 받아 설비별 체크박스로 선택하는 팝업을 표시합니다.
+        /// SEM/Port 옵션은 기존과 동일하게 유지합니다.
+        /// 반환값: (선택된 설비명 리스트, SEM선택, Port선택)
+        /// </summary>
+        public static (List<string> selectedMachines, bool isSem, bool isPort) ShowCollectionSelectDialog(List<string> machineList)
         {
-            Form prompt = new Form()
+            // 설비 수에 따라 팝업 높이 동적 계산 (최소 400, 최대 700)
+            int listHeight = Math.Max(100, Math.Min(400, machineList.Count * 18 + 10));
+            int formHeight = listHeight + 220;
+
+            using (Form prompt = new Form()
             {
-                Width = 340,
-                Height = 320,
+                Width = 400,
+                Height = formHeight,
                 FormBorderStyle = FormBorderStyle.FixedDialog,
-                Text = "스마트 데이터 수집 옵션",
+                Text = "수집 대상 설비 선택",
                 StartPosition = FormStartPosition.CenterParent,
                 MaximizeBox = false,
                 MinimizeBox = false
-            };
-
-            Label lblEqpType = new Label() { Left = 40, Top = 20, Text = "대상 설비 타입 (다중 선택 가능):", Width = 250 };
-
-            CheckedListBox chkEqpTypes = new CheckedListBox() { Left = 40, Top = 45, Width = 240, Height = 80, CheckOnClick = true };
-
-            // 스캔된 항목이 없으면 기본값(폴백) 제공
-            if (scannedTypes.Count == 0) scannedTypes.AddRange(new[] { "STO", "OHS", "CNV", "AGV" });
-            foreach (var type in scannedTypes) chkEqpTypes.Items.Add(type);
-
-            // 첫 번째 항목은 기본 체크
-            if (chkEqpTypes.Items.Count > 0) chkEqpTypes.SetItemChecked(0, true);
-
-            CheckBox chkSem = new CheckBox() { Left = 40, Top = 140, Text = "StockerSEM 수집 (OHS 호환)", Width = 240 };
-            CheckBox chkPort = new CheckBox() { Left = 40, Top = 170, Text = "StockerPort 수집 (하위 항목 포함)", Width = 240 };
-
-            // 💡 [핵심 수정 1] btnOk에서 'DialogResult = DialogResult.OK' 속성을 제거하여 창이 강제로 닫히는 것을 막습니다.
-            Button btnOk = new Button() { Text = "수집 시작", Left = 40, Top = 220, Width = 100 };
-            Button btnCancel = new Button() { Text = "취소", Left = 180, Top = 220, Width = 100, DialogResult = DialogResult.Cancel };
-
-            // 💡 [핵심 수정 2] 클릭 이벤트를 직접 가로채어 예외 인터락(Validation)을 수행합니다.
-            btnOk.Click += (sender, e) =>
+            })
             {
-                // 방어막 1: 설비 타입 선택 누락 체크
-                if (chkEqpTypes.CheckedItems.Count == 0)
+                // --- 전체선택/해제 버튼 ---
+                Button btnAll = new Button() { Left = 20, Top = 20, Width = 80, Height = 26, Text = "전체 선택" };
+                Button btnNone = new Button() { Left = 110, Top = 20, Width = 80, Height = 26, Text = "전체 해제" };
+
+                // --- 설비 체크리스트 ---
+                Label lblMachine = new Label() { Left = 20, Top = 55, Text = $"수집 대상 설비 ({machineList.Count}대):", Width = 300 };
+                CheckedListBox chkMachines = new CheckedListBox()
                 {
-                    MessageBox.Show("수집할 대상 설비 타입을 최소 하나 이상 선택해 주십시오.", "선택 누락", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return; // return을 통해 함수를 빠져나가면 창이 닫히지 않고 그대로 유지됩니다.
+                    Left = 20,
+                    Top = 75,
+                    Width = 340,
+                    Height = listHeight,
+                    CheckOnClick = true
+                };
+
+                if (machineList.Count == 0)
+                {
+                    // 화면에 설비가 없으면 경고
+                    chkMachines.Items.Add("(화면에서 설비를 찾을 수 없습니다. 트리를 펼쳐주세요.)");
+                }
+                else
+                {
+                    foreach (var m in machineList) chkMachines.Items.Add(m);
+                    // 기본: 전체 선택
+                    for (int i = 0; i < chkMachines.Items.Count; i++)
+                        chkMachines.SetItemChecked(i, true);
                 }
 
-                // 방어막 2: 수집 항목 선택 누락 체크
-                if (!chkSem.Checked && !chkPort.Checked)
+                btnAll.Click += (s, e) => { for (int i = 0; i < chkMachines.Items.Count; i++) chkMachines.SetItemChecked(i, true); };
+                btnNone.Click += (s, e) => { for (int i = 0; i < chkMachines.Items.Count; i++) chkMachines.SetItemChecked(i, false); };
+
+                // --- SEM / Port 옵션 (기존 유지) ---
+                int optionTop = 75 + listHeight + 10;
+                Label lblOption = new Label() { Left = 20, Top = optionTop, Text = "수집 항목:", Width = 300 };
+                CheckBox chkSem = new CheckBox() { Left = 20, Top = optionTop + 22, Text = "SEM 수집", Width = 160, Checked = true };
+                CheckBox chkPort = new CheckBox() { Left = 180, Top = optionTop + 22, Text = "Port 수집", Width = 160, Checked = true };
+
+                // --- 확인/취소 버튼 ---
+                int btnTop = optionTop + 60;
+                Button btnOk = new Button() { Text = "수집 시작", Left = 20, Top = btnTop, Width = 100 };
+                Button btnCancel = new Button() { Text = "취소", Left = 260, Top = btnTop, Width = 100, DialogResult = DialogResult.Cancel };
+
+                btnOk.Click += (sender, e) =>
                 {
-                    MessageBox.Show("수집할 데이터(SEM 또는 Port)를 최소 하나 이상 체크해 주십시오.", "선택 누락", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
+                    if (chkMachines.CheckedItems.Count == 0)
+                    {
+                        MessageBox.Show("수집할 설비를 최소 하나 이상 선택해 주십시오.", "선택 누락", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                    if (!chkSem.Checked && !chkPort.Checked)
+                    {
+                        MessageBox.Show("SEM 또는 Port 중 하나 이상 선택해 주십시오.", "선택 누락", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
+                    prompt.DialogResult = DialogResult.OK;
+                };
+
+                prompt.Controls.AddRange(new Control[] { btnAll, btnNone, lblMachine, chkMachines, lblOption, chkSem, chkPort, btnOk, btnCancel });
+                prompt.AcceptButton = btnOk;
+                prompt.CancelButton = btnCancel;
+
+                if (prompt.ShowDialog() == DialogResult.OK)
+                {
+                    var selected = chkMachines.CheckedItems.Cast<string>().ToList();
+                    return (selected, chkSem.Checked, chkPort.Checked);
                 }
 
-                // 모든 검증을 완벽히 통과했을 때만 창의 결과를 OK로 조작하여 다이얼로그를 닫습니다.
-                prompt.DialogResult = DialogResult.OK;
-            };
-
-            prompt.Controls.AddRange(new Control[] { lblEqpType, chkEqpTypes, chkSem, chkPort, btnOk, btnCancel });
-            prompt.AcceptButton = btnOk; prompt.CancelButton = btnCancel;
-
-            // ShowDialog()가 반환될 때까지 코드는 여기서 멈춰서 대기합니다.
-            if (prompt.ShowDialog() == DialogResult.OK)
-            {
-                var selected = chkEqpTypes.CheckedItems.Cast<string>().ToList();
-                return (selected, chkSem.Checked, chkPort.Checked);
+                return (new List<string>(), false, false);
             }
-
-            // 취소를 누르거나 X창을 닫은 경우
-            return (new List<string>(), false, false);
         } // ShowCollectionSelectDialog END
 
 
@@ -97,113 +127,96 @@ namespace GateHelper.Utils
         /// <param name="machineName">호기명 (예: FSTO_01)</param>
         /// <param name="itemName">수집항목명 (예: StockerSEM, STOCKERPORT:1)</param>
         /// <param name="tableData">순수 5열 데이터 리스트</param>
-        public static void SaveDataToExcel(string targetEqpType, string machineName, string itemName, List<string[]> tableData)
+        /// <summary>
+        /// 메모리의 workbook에 데이터를 누적합니다. 파일 저장은 호출자(MainUI)가 루프 완료 후 1회 수행합니다.
+        /// </summary>
+        public static void SaveDataToExcel(XLWorkbook workbook, string machineName, string itemName, List<string[]> tableData)
         {
-            if (tableData == null || tableData.Count == 0) return;
+            if (workbook == null || tableData == null || tableData.Count == 0) return;
 
-            string desktopPath = Environment.GetFolderPath(Environment.SpecialFolder.Desktop);
-            string filePath = Path.Combine(desktopPath, "Integrated_Equipment_Data.xlsx");
-
-            // ==========================================================
-            // 💡 [수정] 호기명 내부에서 설비 키워드를 독립적으로 역추적하여 정확한 라인명(Prefix) 추출
-            // 상위에서 어떤 파라미터가 오든 의존하지 않고, machineName 자체를 스캔합니다.
-            // ==========================================================
+            // 정규식으로 키워드 앞의 라인 구분자를 광범위하게 추출
+            // 예: J1FSTO11111 → "J1F" / FSTO_01 → "F" / J1EOHS12345 → "J1E" / STO_01 → "S"
             string linePrefix = "UNKNOWN";
-            string[] knownKeywords = { "STO", "OHS", "CNV", "AGV", "DDA" }; // 향후 설비 추가 시 여기에만 단어 추가
-
-            foreach (var keyword in knownKeywords)
+            var match = Regex.Match(machineName, @"^([A-Za-z0-9]*?)(STO|OHS|CNV|AGV|DDA)", RegexOptions.IgnoreCase);
+            if (match.Success)
             {
-                int idx = machineName.IndexOf(keyword, StringComparison.OrdinalIgnoreCase);
-                if (idx > 0)
-                {
-                    // 키워드(OHS 등) 발견! 바로 앞 글자(1자리)를 라인명으로 추출
-                    linePrefix = machineName.Substring(idx - 1, 1).ToUpper();
-                    break;
-                }
-                else if (idx == 0)
-                {
-                    // 키워드가 맨 앞에 있는 예외 상황 (예: STO_01)
-                    linePrefix = machineName.Substring(0, 1).ToUpper();
-                    break;
-                }
+                string prefix = match.Groups[1].Value.ToUpper();
+                linePrefix = string.IsNullOrEmpty(prefix) ? match.Groups[2].Value.Substring(0, 1).ToUpper() : prefix;
             }
-
-            // 예외 방어: 어떤 키워드도 매칭되지 않았다면 기본적으로 맨 앞 글자를 사용
-            if (linePrefix == "UNKNOWN" && !string.IsNullOrEmpty(machineName))
+            else if (!string.IsNullOrEmpty(machineName))
             {
                 linePrefix = machineName.Substring(0, 1).ToUpper();
             }
 
             string typeSuffix = itemName.Contains("SEM") ? "SEM" : "PORT";
             string sheetName = $"{linePrefix}_{typeSuffix}";
-            // ==========================================================
 
+            IXLWorksheet worksheet;
+
+            // 시트가 없으면 생성하고 헤더 작성
+            if (!workbook.Worksheets.TryGetWorksheet(sheetName, out worksheet))
+            {
+                worksheet = workbook.Worksheets.Add(sheetName);
+
+                worksheet.Cell(1, 1).Value = "호기명";
+                worksheet.Cell(1, 2).Value = "수집항목";
+                worksheet.Cell(1, 3).Value = "Name";
+                worksheet.Cell(1, 4).Value = "Access";
+                worksheet.Cell(1, 5).Value = "Type";
+                worksheet.Cell(1, 6).Value = "Value";
+                worksheet.Cell(1, 7).Value = "Description";
+
+                var headerRange = worksheet.Range("A1:G1");
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
+                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+            }
+
+            // 마지막 행 다음에 데이터 추가
+            int lastRow = worksheet.LastRowUsed()?.RowNumber() ?? 1;
+            int startRow = lastRow + 1;
+
+            for (int i = 0; i < tableData.Count; i++)
+            {
+                var rowData = tableData[i];
+                int currentRow = startRow + i;
+
+                worksheet.Cell(currentRow, 1).Value = machineName;
+                worksheet.Cell(currentRow, 2).Value = itemName;
+
+                for (int j = 0; j < rowData.Length && j < 5; j++)
+                    worksheet.Cell(currentRow, 3 + j).SetValue(rowData[j]);
+            }
+        } // SaveDataToExcel END
+
+        /// <summary>
+        /// 수집 완료 후 workbook을 실제 파일로 저장합니다. (루프 완료 후 1회만 호출)
+        /// </summary>
+        public static bool FlushWorkbookToFile(XLWorkbook workbook, string filePath)
+        {
             try
             {
-                // 3. 파일이 있으면 열고, 없으면 새로 생성
-                using (var workbook = File.Exists(filePath) ? new XLWorkbook(filePath) : new XLWorkbook())
-                {
-                    IXLWorksheet worksheet;
+                // 모든 시트 칼럼 너비 자동 맞춤
+                foreach (var ws in workbook.Worksheets)
+                    ws.Columns().AdjustToContents();
 
-                    // 4. 타겟 시트가 없으면 생성하고 헤더(7열) 작성
-                    if (!workbook.Worksheets.TryGetWorksheet(sheetName, out worksheet))
-                    {
-                        worksheet = workbook.Worksheets.Add(sheetName);
-
-                        worksheet.Cell(1, 1).Value = "호기명";
-                        worksheet.Cell(1, 2).Value = "수집항목";
-                        worksheet.Cell(1, 3).Value = "Name";
-                        worksheet.Cell(1, 4).Value = "Access";
-                        worksheet.Cell(1, 5).Value = "Type";
-                        worksheet.Cell(1, 6).Value = "Value";
-                        worksheet.Cell(1, 7).Value = "Description";
-
-                        // 헤더 디자인 적용
-                        var headerRange = worksheet.Range("A1:G1");
-                        headerRange.Style.Font.Bold = true;
-                        headerRange.Style.Fill.BackgroundColor = XLColor.LightGray;
-                        headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-                    }
-
-                    // 5. 시트의 데이터가 있는 마지막 줄을 찾아서 그 다음 줄(startRow) 계산
-                    int lastRow = worksheet.LastRowUsed()?.RowNumber() ?? 1;
-                    int startRow = lastRow + 1;
-
-                    // 6. 메모리의 5열 데이터를 7열로 재조립하여 엑셀 셀에 입력
-                    for (int i = 0; i < tableData.Count; i++)
-                    {
-                        var rowData = tableData[i];
-                        int currentRow = startRow + i;
-
-                        // 강제 주입: 1열(호기명), 2열(수집항목)
-                        worksheet.Cell(currentRow, 1).Value = machineName;
-                        worksheet.Cell(currentRow, 2).Value = itemName;
-
-                        // 원본 삽입: 3열 ~ 7열
-                        for (int j = 0; j < rowData.Length && j < 5; j++)
-                        {
-                            // Value 열(인덱스 3)이 숫자로만 되어있을 경우 엑셀 수식 변환 오류를 막기 위해 문자열 처리 방어
-                            worksheet.Cell(currentRow, 3 + j).SetValue(rowData[j]);
-                        }
-                    }
-
-                    // 7. 칼럼 너비 자동 맞춤 (옵션)
-                    worksheet.Columns().AdjustToContents();
-
-                    // 8. 물리적 디스크에 저장 (덮어쓰기)
-                    workbook.SaveAs(filePath);
-                }
+                workbook.SaveAs(filePath);
+                LogMessage($"[엑셀 저장 완료] {filePath}", Level.Info);
+                return true;
             }
             catch (IOException)
             {
-                // 사용자가 엑셀 파일을 띄워놓고 있어서 프로그램이 접근하지 못할 때의 치명적 에러 방어
-                LogMessage($"[엑셀 저장 실패] '{filePath}' 파일이 열려있습니다. 파일을 닫아주세요.", Level.Error);
+                LogMessage($"[엑셀 저장 실패] 파일이 열려있습니다: {filePath}", Level.Error);
+                MessageBox.Show($"엑셀 파일이 열려있어 저장할 수 없습니다.\n파일을 닫은 후 다시 시도해 주십시오.\n\n{filePath}",
+                    "저장 실패", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return false;
             }
             catch (Exception ex)
             {
-                LogException(ex, Level.Error, "엑셀 누적 저장 중 예기치 않은 오류 발생");
+                LogException(ex, Level.Error, "엑셀 최종 저장 중 오류 발생");
+                return false;
             }
-        } // SaveDataToExcel END
+        }
 
 
 
@@ -225,27 +238,22 @@ namespace GateHelper.Utils
         }
 
         // 2. [서브루틴] SEM 데이터 수집
-        public static async Task<int> CollectSemDataAsync(IWebDriver driver, string eqpType, string machineName, string targetSemName)
+        public static async Task<int> CollectSemDataAsync(IWebDriver driver, XLWorkbook workbook, string machineName, string targetSemName)
         {
-            // [주의] 테스트용 절대 경로입니다. 구조가 바뀌면 깨질 수 있으니 추후 상대 경로로 변경을 권장합니다.
-            string targetGridXPath = "//*[@id=\"uncontrolled-tab-example-tabpane-WEB030102\"]/div/div[2]/div/div/div[3]/div/div/div[1]/div/div[2]/div/div/div[2]";
-
-            // 💡 [정정] 명시적으로 Util_Element 클래스의 메서드를 호출
-            var tableData = await Util_Element.GetTableDataBySmartScrollAsync(driver, targetGridXPath);
+            var tableData = await Util_MgmtElement.GetTableDataBySmartScrollAsync(driver);
 
             if (tableData != null && tableData.Count > 0)
             {
-                await Task.Run(() => SaveDataToExcel(eqpType, machineName, targetSemName, tableData));
+                SaveDataToExcel(workbook, machineName, targetSemName, tableData);
                 return 1;
             }
             return 0;
         }
 
         // 3. [서브루틴] Port 부모 전개 및 자식 다중 수집
-        public static async Task<int> CollectPortDataAsync(IWebDriver driver, string eqpType, string machineName, string targetPortParentName, string targetChildPortPrefix)
+        public static async Task<int> CollectPortDataAsync(IWebDriver driver, XLWorkbook workbook, string machineName, string targetPortParentName, string targetChildPortPrefix)
         {
             int count = 0;
-            string targetGridXPath = "//*[@id=\"uncontrolled-tab-example-tabpane-WEB030102\"]/div/div[2]/div/div/div[3]/div/div/div[1]/div/div[2]/div/div/div[2]";
 
             string portParentXPath = $"//span[contains(@class, 'wj-node-text') and text()='{targetPortParentName}']";
             var portParentElement = driver.FindElements(By.XPath(portParentXPath)).Where(el => el.Displayed).LastOrDefault();
@@ -288,11 +296,11 @@ namespace GateHelper.Utils
                         bool portClicked = await Util_Element.ScrollAndClickAsync(driver, targetPort, 1500);
                         if (portClicked)
                         {
-                            var tableData = await Util_Element.GetTableDataBySmartScrollAsync(driver, targetGridXPath);
+                            var tableData = await Util_MgmtElement.GetTableDataBySmartScrollAsync(driver);
 
                             if (tableData != null && tableData.Count > 0)
                             {
-                                await Task.Run(() => SaveDataToExcel(eqpType, machineName, portName, tableData));
+                                SaveDataToExcel(workbook, machineName, portName, tableData);
                                 count++;
                             }
                             else
@@ -422,8 +430,12 @@ namespace GateHelper.Utils
         /// <summary>
         /// 루프 내부의 단일 호기(Machine)에 대한 DOM 탐색, 클릭, 데이터 수집을 전담합니다.
         /// </summary>
+        /// <summary>
+        /// 단일 호기를 이름 기반 XPath로 직접 찾아 클릭하고 데이터를 수집합니다.
+        /// 인덱스 기반 탐색을 제거하여 StaleElementReferenceException을 원천 차단합니다.
+        /// </summary>
         public static async Task<(bool isSuccess, string machineName, int semCount, int portCount, string errorMessage)>
-        ProcessSingleMachineAsync(IWebDriver driver, int index, string targetXPath, string currentMachineName,
+        ProcessSingleMachineAsync(IWebDriver driver, XLWorkbook workbook, string machineXPath, string currentMachineName,
                              (string semName, string portParentName, string childPortPrefix) keys,
                              bool isSemChecked, bool isPortChecked)
         {
@@ -432,10 +444,10 @@ namespace GateHelper.Utils
 
             try
             {
-                var currentMachines = driver.FindElements(By.XPath(targetXPath)).Where(el => el.Displayed).ToList();
-                if (index >= currentMachines.Count) return (false, currentMachineName, 0, 0, "화면에서 호기 노드가 유실되었습니다.");
-
-                var targetMachine = currentMachines[index];
+                // 이름으로 직접 탐색 (인덱스 기반 제거)
+                var targetMachine = driver.FindElements(By.XPath(machineXPath))
+                    .Where(el => el.Displayed).FirstOrDefault();
+                if (targetMachine == null) return (false, currentMachineName, 0, 0, "화면에서 호기 노드를 찾을 수 없습니다.");
 
                 // 1. 호기 폴더 펼치기
                 bool machineClicked = await Util_Element.ScrollAndClickAsync(driver, targetMachine, 1000);
@@ -458,7 +470,7 @@ namespace GateHelper.Utils
                         // 💡 [핵심] 길은 열어두었으나, 실제 데이터를 긁을지 말지는 체크박스에 따라 철저히 독립적으로 작동
                         if (isSemChecked)
                         {
-                            semCount += await CollectSemDataAsync(driver, currentMachineName, currentMachineName, keys.semName);
+                            semCount += await CollectSemDataAsync(driver, workbook, currentMachineName, keys.semName);
                         }
                         else
                         {
@@ -468,7 +480,7 @@ namespace GateHelper.Utils
                         // 위에서 SEM을 클릭해 길을 열었으므로, 이제 Port가 정상적으로 스캔됨
                         if (isPortChecked)
                         {
-                            portCount += await CollectPortDataAsync(driver, currentMachineName, currentMachineName, keys.portParentName, keys.childPortPrefix);
+                            portCount += await CollectPortDataAsync(driver, workbook, currentMachineName, keys.portParentName, keys.childPortPrefix);
                         }
                     }
                 }
@@ -478,7 +490,7 @@ namespace GateHelper.Utils
                 }
 
                 // =================================================================
-                // 클린 DOM: 호기 폴더 접기 (이름 기반 절대 타격 유지)
+                // 클린 DOM: 호기 폴더 접기 (이름 기반)
                 // =================================================================
                 try
                 {

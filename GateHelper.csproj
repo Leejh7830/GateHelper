@@ -213,6 +213,7 @@
     <Compile Include="LogValidator\Models\ScenarioEvaluationModels.cs" />
     <Compile Include="LogValidator\Models\ScenarioModel.cs" />
     <Compile Include="LogValidator\Services\LogValidatorService.cs" />
+    <Compile Include="Mgmt\Util_MgmtElement.cs" />
     <Compile Include="SandBox\1. BitFlip\BitFlipControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -276,7 +277,7 @@
     <Compile Include="Utils\Util.cs" />
     <Compile Include="Utils\Util_Control.cs" />
     <Compile Include="Utils\Util_Element.cs" />
-    <Compile Include="Utils\Util_Mgmt.cs" />
+    <Compile Include="Mgmt\Util_Mgmt.cs" />
     <Compile Include="Utils\Util_Option.cs" />
     <Compile Include="Utils\Util_RDP.cs" />
     <Compile Include="Utils\Util_ServerList.cs" />

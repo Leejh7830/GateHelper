@@ -1,5 +1,6 @@
 ﻿using GateHelper.LogValidator;
-using GateHelper.Utils;
+using GateHelper.Mgmt;
+using ClosedXML.Excel;
 using MaterialSkin;
 using MaterialSkin.Controls;
 using OpenQA.Selenium;
@@ -1558,44 +1559,37 @@ namespace GateHelper
             {
                 _driver.SwitchTo().Window(managementHandle);
 
-                // 💡 1. 화면 스캔 및 다이얼로그 호출 (동적 다중 타겟팅)
+                // 1. 실제 설비 리스트 스캔 (Selenium 직접 탐색 — Task.Run 제거)
                 LogMessage("현재 화면의 설비 목록을 스캔합니다...", Level.Info);
-                var scannedTypes = await Util_Element.ScanEquipmentTypesAsync(_driver);
+                var machineList = Util_MgmtElement.ScanMachineList(_driver);
 
-                var (selectedTypes, isSemChecked, isPortChecked) = Util_Mgmt.ShowCollectionSelectDialog(scannedTypes);
+                // 설비를 찾지 못하면 사용자에게 알리고 중단
+                if (machineList.Count == 0)
+                {
+                    LogMessage("화면에서 설비를 찾을 수 없습니다.", Level.Warning);
+                    MessageBox.Show(
+                        "화면에서 설비를 찾을 수 없습니다. 트리를 펼쳐서 설비 목록이 표시된 상태에서 다시 시도해 주십시오.",
+                        "설비 없음", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
 
-                // 사용자가 아무것도 선택하지 않거나 취소한 경우 탈출
-                if (selectedTypes.Count == 0 || (!isSemChecked && !isPortChecked))
+                LogMessage($"{machineList.Count}대 발견. 수집 옵션 선택 대기 중...", Level.Info);
+
+                // 2. 설비별 체크박스 선택 다이얼로그
+                var (selectedMachines, isSemChecked, isPortChecked) = Util_Mgmt.ShowCollectionSelectDialog(machineList);
+
+                if (selectedMachines.Count == 0 || (!isSemChecked && !isPortChecked))
                 {
                     LogMessage("선택된 수집 항목이 없거나 작업이 취소되었습니다.", Level.Info);
                     return;
                 }
 
-                string eqpTypesString = string.Join(", ", selectedTypes);
-                LogMessage($"[수집 옵션] 다중 대상: {eqpTypesString}, SEM: {isSemChecked}, Port: {isPortChecked}", Level.Info);
+                int machineCount = selectedMachines.Count;
+                string eqpTypesString = string.Join(", ", selectedMachines);
+                LogMessage($"[수집 옵션] 선택 설비 {machineCount}대, SEM: {isSemChecked}, Port: {isPortChecked}", Level.Info);
 
                 SetCollectionInterlock(false);
                 _cancelTokenSource = new System.Threading.CancellationTokenSource();
-
-                // 💡 2. 다중 타겟팅 XPath 동적 생성 (순정 로직 롤백)
-                // 오작동을 유발하던 언더바(_) 강제 검사 및 대소문자 치환 방어막을 전면 철거합니다.
-                // 기존에 완벽하게 작동했던 순정 검색 방식( text() )에 다중 선택(OR) 로직만 결합합니다.
-
-                var conditions = selectedTypes.Select(t => $"contains(text(), '{t}')");
-                string xpathConditions = string.Join(" or ", conditions);
-
-                // 최종 생성 예시: //span[contains(@class, 'wj-node-text') and (contains(text(), 'STO') or contains(text(), 'OHS'))]
-                string targetXPath = $"//span[contains(@class, 'wj-node-text') and ({xpathConditions})]";
-
-                var initialTargetList = _driver.FindElements(By.XPath(targetXPath)).Where(el => el.Displayed).ToList();
-                int machineCount = initialTargetList.Count;
-
-                if (machineCount == 0)
-                {
-                    LogMessage($"화면에서 [{eqpTypesString}] 설비를 찾을 수 없습니다.", Level.Error);
-                    MessageBox.Show($"[{eqpTypesString}] 설비를 화면에서 찾을 수 없습니다.\n\n트리를 확장한 후 다시 시도해 주십시오.", "검색 실패", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
 
                 Stopwatch sw = Stopwatch.StartNew();
                 int successMachineCount = 0;
@@ -1603,64 +1597,48 @@ namespace GateHelper
                 int collectedPortCount = 0;
                 List<string> failedMachines = new List<string>();
 
-                // 3. 메인 순회 루프
-                for (int i = 0; i < machineCount; i++)
+                // 3. 메모리 workbook 생성 (기존 파일 있으면 열어서 누적, 없으면 새로 생성)
+                //    수집 중에는 메모리에만 쌓고, 루프 완료 후 1회 저장
+                using (var workbook = File.Exists(filePath) ? new ClosedXML.Excel.XLWorkbook(filePath) : new ClosedXML.Excel.XLWorkbook())
                 {
-                    // UI 스레드 프리징 원천 차단
-                    try { await Task.Run(() => _pauseEvent.Wait(_cancelTokenSource.Token)); }
-                    catch (OperationCanceledException) { break; }
-                    if (_cancelTokenSource.Token.IsCancellationRequested) { break; }
+                    string nameBasedXPath = "//span[contains(@class, 'wj-node-text') and text()='{0}']";
 
-                    // DOM 렌더링 충돌 방어 (Stale Element Reference 원천 차단)
-                    string currentMachineName = string.Empty;
-                    for (int retry = 0; retry < 3; retry++)
+                    for (int i = 0; i < machineCount; i++)
                     {
-                        try
+                        try { await Task.Run(() => _pauseEvent.Wait(_cancelTokenSource.Token)); }
+                        catch (OperationCanceledException) { break; }
+                        if (_cancelTokenSource.Token.IsCancellationRequested) { break; }
+
+                        string currentMachineName = selectedMachines[i];
+                        LogMessage($"[{i + 1}/{machineCount}] {currentMachineName} 수집 시작", Level.Info);
+
+                        string machineXPath = string.Format(nameBasedXPath, currentMachineName);
+                        var keys = Util_Mgmt.GetEquipmentKeywords(currentMachineName);
+
+                        var result = await Util_Mgmt.ProcessSingleMachineAsync(
+                            _driver, workbook, machineXPath, currentMachineName, keys, isSemChecked, isPortChecked);
+
+                        if (result.isSuccess)
                         {
-                            var currentMachines = _driver.FindElements(By.XPath(targetXPath)).Where(el => el.Displayed).ToList();
-                            if (i >= currentMachines.Count) break;
-
-                            var targetMachine = currentMachines[i];
-                            // 이 부분에서 뻗는 것을 방지하기 위해 try-catch 내부에 배치
-                            currentMachineName = targetMachine.Text;
-                            break; // 성공 시 재시도 루프 탈출
+                            LogMessage($"[{i + 1}/{machineCount}] {result.machineName} 수집 완료", Level.Info);
+                            successMachineCount++;
+                            collectedSemCount += result.semCount;
+                            collectedPortCount += result.portCount;
                         }
-                        catch (StaleElementReferenceException)
+                        else
                         {
-                            // DOM이 렌더링되는 중이라면 0.5초 대기 후 다시 시도
-                            await Task.Delay(500);
+                            LogMessage($"[{i + 1}/{machineCount}] {result.machineName} 실패: {result.errorMessage}", Level.Error);
+                            failedMachines.Add(result.machineName);
                         }
                     }
+                    sw.Stop();
 
-                    // 3번 재시도 후에도 이름을 못 읽었다면 치명적 에러이므로 탈출
-                    if (string.IsNullOrEmpty(currentMachineName))
-                    {
-                        LogMessage($"[{i + 1}/{machineCount}] 호기명을 읽는 중 DOM 충돌이 발생하여 루프를 중단합니다.", Level.Error);
-                        break;
-                    }
-
-                    // 💡 현재 순회 중인 호기명을 분석하여 동적으로 하위 폴더명 판단
-                    var keys = Util_Mgmt.GetEquipmentKeywords(currentMachineName);
-
-                    // 단일 호기 처리 엔진 호출
-                    var result = await Util_Mgmt.ProcessSingleMachineAsync(_driver, i, targetXPath, currentMachineName, keys, isSemChecked, isPortChecked);
-
-                    if (result.isSuccess)
-                    {
-                        LogMessage($"[{i + 1}/{machineCount}] {result.machineName} 정상 데이터 수집 완료", Level.Info);
-                        successMachineCount++;
-                        collectedSemCount += result.semCount;
-                        collectedPortCount += result.portCount;
-                    }
-                    else
-                    {
-                        LogMessage($"[{i + 1}/{machineCount}] {result.machineName} 처리 중 오류 발생 (스킵): {result.errorMessage}", Level.Error);
-                        failedMachines.Add(result.machineName);
-                    }
+                    // 4. 루프 완료 후 1회 저장 (취소/실패 여부 무관하게 수집된 데이터는 저장)
+                    if (successMachineCount > 0)
+                        Util_Mgmt.FlushWorkbookToFile(workbook, filePath);
                 }
-                sw.Stop();
 
-                // 4. 최종 리포트 출력
+                // 5. 최종 리포트 출력
                 Util_Mgmt.ShowFinalReport(eqpTypesString, machineCount, successMachineCount, collectedSemCount, collectedPortCount, sw.Elapsed, failedMachines);
             }
             catch (Exception ex)
