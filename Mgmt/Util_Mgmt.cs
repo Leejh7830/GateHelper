@@ -11,22 +11,11 @@ using System.Windows.Forms;
 using static GateHelper.LogManager;
 
 
-using GateHelper.Mgmt;
-using System.Text.RegularExpressions;
 
 namespace GateHelper.Mgmt
 {
     public static class Util_Mgmt
     {
-        /// <summary>
-        /// 💡 [개조] 수집 항목을 다중 선택받는 동적 팝업을 띄우고 결과를 반환합니다.
-        /// 반환값: (선택된_설비리스트, SEM선택, Port선택)
-        /// </summary>
-        /// <summary>
-        /// 💡 [개조] 수집 항목을 다중 선택받는 동적 팝업을 띄우고 결과를 반환합니다.
-        /// 사용자가 옵션을 선택하지 않았을 경우 경고창을 띄우고 수집을 차단하는 인터락이 적용되었습니다.
-        /// 반환값: (선택된_설비리스트, SEM선택, Port선택)
-        /// </summary>
         /// <summary>
         /// 실제 설비 리스트를 받아 설비별 체크박스로 선택하는 팝업을 표시합니다.
         /// SEM/Port 옵션은 기존과 동일하게 유지합니다.
@@ -34,14 +23,35 @@ namespace GateHelper.Mgmt
         /// </summary>
         public static (List<string> selectedMachines, bool isSem, bool isPort) ShowCollectionSelectDialog(List<string> machineList)
         {
-            // 설비 수에 따라 팝업 높이 동적 계산 (최소 400, 최대 700)
-            int listHeight = Math.Max(100, Math.Min(400, machineList.Count * 18 + 10));
-            int formHeight = listHeight + 220;
+            const int FORM_W = 420;
+            const int PADDING = 12;
+            const int BTN_H = 26;
+            const int GAP = 6;
+            const int CLIENT_W = FORM_W - 16;
+
+            // 감지된 설비 타입 (버튼으로 표시)
+            var typeKeywords = new[] { "STO", "OHS", "CNV", "AGV", "DDA" };
+            var detectedTypes = typeKeywords.Where(t => machineList.Any(m => m.ToUpper().Contains(t))).ToList();
+
+            // 타입버튼 줄 수 계산 (버튼 1개 56px)
+            int btnsPerRow = Math.Max(1, (CLIENT_W - PADDING * 2) / 56);
+            int typeRowCount = detectedTypes.Count == 0 ? 0 : (int)Math.Ceiling((double)detectedTypes.Count / btnsPerRow);
+
+            // ── y 좌표 순차 계산 (줄 겹침 방지) ──
+            int row1Y = PADDING;                              // 줄1: 전체선택 | 전체해제
+            int row2Y = row1Y + BTN_H + GAP;                 // 줄2: 타입버튼 (없으면 0px)
+            int typeH = detectedTypes.Count == 0 ? 0 : typeRowCount * (BTN_H + 4) - 4;
+            int labelY = row2Y + (detectedTypes.Count > 0 ? typeH + GAP : 0);
+            int listY = labelY + 18;
+            int listH = Math.Max(150, Math.Min(320, machineList.Count * 16 + 4));
+            int optionY = listY + listH + GAP;
+            int chkY = optionY + 18;
+            int actionY = chkY + 32;
+            int totalH = actionY + BTN_H + PADDING;
 
             using (Form prompt = new Form()
             {
-                Width = 400,
-                Height = formHeight,
+                Width = FORM_W,
                 FormBorderStyle = FormBorderStyle.FixedDialog,
                 Text = "수집 대상 설비 선택",
                 StartPosition = FormStartPosition.CenterParent,
@@ -49,47 +59,65 @@ namespace GateHelper.Mgmt
                 MinimizeBox = false
             })
             {
-                // --- 전체선택/해제 버튼 ---
-                Button btnAll = new Button() { Left = 20, Top = 20, Width = 80, Height = 26, Text = "전체 선택" };
-                Button btnNone = new Button() { Left = 110, Top = 20, Width = 80, Height = 26, Text = "전체 해제" };
+                prompt.ClientSize = new Size(CLIENT_W, totalH);
 
-                // --- 설비 체크리스트 ---
-                Label lblMachine = new Label() { Left = 20, Top = 55, Text = $"수집 대상 설비 ({machineList.Count}대):", Width = 300 };
+                // ── 줄 1: 전체선택 | 전체해제 ──
+                Button btnAll = new Button() { Left = PADDING, Top = row1Y, Width = 76, Height = BTN_H, Text = "전체 선택" };
+                Button btnNone = new Button() { Left = PADDING + 82, Top = row1Y, Width = 76, Height = BTN_H, Text = "전체 해제" };
+                prompt.Controls.Add(btnAll);
+                prompt.Controls.Add(btnNone);
+
+                // ── 줄 2: 타입 필터 버튼 (전체선택/해제와 완전히 분리된 줄) ──
+                var typeButtons = new List<Button>();
+                int tx = PADDING, ty = row2Y;
+                foreach (var t in detectedTypes)
+                {
+                    if (tx + 56 > CLIENT_W - PADDING) { tx = PADDING; ty += BTN_H + 4; }
+                    var btn = new Button() { Left = tx, Top = ty, Width = 52, Height = BTN_H, Text = t, Tag = t };
+                    prompt.Controls.Add(btn);
+                    typeButtons.Add(btn);
+                    tx += 56;
+                }
+
+                // ── 설비 체크리스트 ──
+                prompt.Controls.Add(new Label() { Left = PADDING, Top = labelY, Text = $"수집 대상 설비 ({machineList.Count}대):", Width = 300, Height = 18 });
                 CheckedListBox chkMachines = new CheckedListBox()
                 {
-                    Left = 20,
-                    Top = 75,
-                    Width = 340,
-                    Height = listHeight,
+                    Left = PADDING,
+                    Top = listY,
+                    Width = CLIENT_W - PADDING * 2,
+                    Height = listH,
                     CheckOnClick = true
                 };
+                foreach (var m in machineList) chkMachines.Items.Add(m);
+                for (int i = 0; i < chkMachines.Items.Count; i++) chkMachines.SetItemChecked(i, true);
+                prompt.Controls.Add(chkMachines);
 
-                if (machineList.Count == 0)
-                {
-                    // 화면에 설비가 없으면 경고
-                    chkMachines.Items.Add("(화면에서 설비를 찾을 수 없습니다. 트리를 펼쳐주세요.)");
-                }
-                else
-                {
-                    foreach (var m in machineList) chkMachines.Items.Add(m);
-                    // 기본: 전체 선택
-                    for (int i = 0; i < chkMachines.Items.Count; i++)
-                        chkMachines.SetItemChecked(i, true);
-                }
-
+                // ── 이벤트 ──
                 btnAll.Click += (s, e) => { for (int i = 0; i < chkMachines.Items.Count; i++) chkMachines.SetItemChecked(i, true); };
                 btnNone.Click += (s, e) => { for (int i = 0; i < chkMachines.Items.Count; i++) chkMachines.SetItemChecked(i, false); };
+                foreach (var btn in typeButtons)
+                {
+                    var kw = (string)btn.Tag;
+                    btn.Click += (s, e) =>
+                    {
+                        for (int i = 0; i < chkMachines.Items.Count; i++)
+                            chkMachines.SetItemChecked(i, chkMachines.Items[i].ToString().ToUpper().Contains(kw));
+                    };
+                }
 
-                // --- SEM / Port 옵션 (기존 유지) ---
-                int optionTop = 75 + listHeight + 10;
-                Label lblOption = new Label() { Left = 20, Top = optionTop, Text = "수집 항목:", Width = 300 };
-                CheckBox chkSem = new CheckBox() { Left = 20, Top = optionTop + 22, Text = "SEM 수집", Width = 160, Checked = true };
-                CheckBox chkPort = new CheckBox() { Left = 180, Top = optionTop + 22, Text = "Port 수집", Width = 160, Checked = true };
+                // ── SEM / Port 옵션 ──
+                prompt.Controls.Add(new Label() { Left = PADDING, Top = optionY, Text = "수집 항목:", Width = 200, Height = 18 });
+                CheckBox chkSem = new CheckBox() { Left = PADDING, Top = chkY, Text = "SEM 수집", Width = 140, Checked = true };
+                CheckBox chkPort = new CheckBox() { Left = PADDING + 150, Top = chkY, Text = "Port 수집", Width = 140, Checked = true };
+                prompt.Controls.Add(chkSem);
+                prompt.Controls.Add(chkPort);
 
-                // --- 확인/취소 버튼 ---
-                int btnTop = optionTop + 60;
-                Button btnOk = new Button() { Text = "수집 시작", Left = 20, Top = btnTop, Width = 100 };
-                Button btnCancel = new Button() { Text = "취소", Left = 260, Top = btnTop, Width = 100, DialogResult = DialogResult.Cancel };
+                // ── 수집시작 / 취소 버튼 ──
+                Button btnOk = new Button() { Text = "수집 시작", Left = PADDING, Top = actionY, Width = 100, Height = BTN_H };
+                Button btnCancel = new Button() { Text = "취소", Left = CLIENT_W - PADDING - 100, Top = actionY, Width = 100, Height = BTN_H, DialogResult = DialogResult.Cancel };
+                prompt.Controls.Add(btnOk);
+                prompt.Controls.Add(btnCancel);
 
                 btnOk.Click += (sender, e) =>
                 {
@@ -106,15 +134,11 @@ namespace GateHelper.Mgmt
                     prompt.DialogResult = DialogResult.OK;
                 };
 
-                prompt.Controls.AddRange(new Control[] { btnAll, btnNone, lblMachine, chkMachines, lblOption, chkSem, chkPort, btnOk, btnCancel });
                 prompt.AcceptButton = btnOk;
                 prompt.CancelButton = btnCancel;
 
                 if (prompt.ShowDialog() == DialogResult.OK)
-                {
-                    var selected = chkMachines.CheckedItems.Cast<string>().ToList();
-                    return (selected, chkSem.Checked, chkPort.Checked);
-                }
+                    return (chkMachines.CheckedItems.Cast<string>().ToList(), chkSem.Checked, chkPort.Checked);
 
                 return (new List<string>(), false, false);
             }
@@ -122,30 +146,30 @@ namespace GateHelper.Mgmt
 
 
         /// <summary>
-        /// 수집된 표 데이터를 7열 규격으로 변환하여 지정된 라인/타입 시트에 실시간 누적 저장합니다.
-        /// </summary>
-        /// <param name="machineName">호기명 (예: FSTO_01)</param>
-        /// <param name="itemName">수집항목명 (예: StockerSEM, STOCKERPORT:1)</param>
-        /// <param name="tableData">순수 5열 데이터 리스트</param>
-        /// <summary>
         /// 메모리의 workbook에 데이터를 누적합니다. 파일 저장은 호출자(MainUI)가 루프 완료 후 1회 수행합니다.
         /// </summary>
         public static void SaveDataToExcel(XLWorkbook workbook, string machineName, string itemName, List<string[]> tableData)
         {
             if (workbook == null || tableData == null || tableData.Count == 0) return;
 
-            // 정규식으로 키워드 앞의 라인 구분자를 광범위하게 추출
-            // 예: J1FSTO11111 → "J1F" / FSTO_01 → "F" / J1EOHS12345 → "J1E" / STO_01 → "S"
-            string linePrefix = "UNKNOWN";
-            var match = Regex.Match(machineName, @"^([A-Za-z0-9]*?)(STO|OHS|CNV|AGV|DDA)", RegexOptions.IgnoreCase);
-            if (match.Success)
+            // 설비명 구조: [공장코드][공정코드][설비타입][순번]  예) J1ESTO12345
+            // 설비타입 키워드(STO/OHS 등) 바로 앞 1글자 = 공정코드(E/A/F/P) → 시트 구분자
+            // 예: J1ESTO12345 → STO 앞 1글자 = E → E_SEM
+            string linePrefix = "X";
+            string[] knownKeywords = { "STO", "OHS", "CNV", "AGV", "DDA" };
+            foreach (var keyword in knownKeywords)
             {
-                string prefix = match.Groups[1].Value.ToUpper();
-                linePrefix = string.IsNullOrEmpty(prefix) ? match.Groups[2].Value.Substring(0, 1).ToUpper() : prefix;
-            }
-            else if (!string.IsNullOrEmpty(machineName))
-            {
-                linePrefix = machineName.Substring(0, 1).ToUpper();
+                int idx = machineName.IndexOf(keyword, StringComparison.OrdinalIgnoreCase);
+                if (idx > 0)
+                {
+                    linePrefix = machineName.Substring(idx - 1, 1).ToUpper();
+                    break;
+                }
+                else if (idx == 0)
+                {
+                    linePrefix = machineName.Substring(0, 1).ToUpper();
+                    break;
+                }
             }
 
             string typeSuffix = itemName.Contains("SEM") ? "SEM" : "PORT";
@@ -428,9 +452,6 @@ namespace GateHelper.Mgmt
         }
 
         /// <summary>
-        /// 루프 내부의 단일 호기(Machine)에 대한 DOM 탐색, 클릭, 데이터 수집을 전담합니다.
-        /// </summary>
-        /// <summary>
         /// 단일 호기를 이름 기반 XPath로 직접 찾아 클릭하고 데이터를 수집합니다.
         /// 인덱스 기반 탐색을 제거하여 StaleElementReferenceException을 원천 차단합니다.
         /// </summary>
@@ -490,7 +511,7 @@ namespace GateHelper.Mgmt
                 }
 
                 // =================================================================
-                // 클린 DOM: 호기 폴더 접기 (이름 기반)
+                // 클린 DOM: 호기 폴더 접기 (이름 기반 절대 타격 유지)
                 // =================================================================
                 try
                 {

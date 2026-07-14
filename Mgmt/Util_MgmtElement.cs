@@ -238,34 +238,49 @@ namespace GateHelper.Mgmt
         // ─────────────────────────────────────────────────────────────
 
         /// <summary>
-        /// 현재 화면에 렌더링된 실제 설비명 전체 리스트를 반환합니다.
-        /// 언더바(_)를 포함하는 노드만 설비로 간주합니다. (예: FSTO_01, J1EOHS_12)
-        /// </summary>
-        /// <summary>
-        /// Selenium FindElements로 트리 노드를 직접 읽어 설비명 리스트를 반환합니다.
-        /// Task.Run 제거 — ExecuteScript/FindElements는 드라이버 스레드에서 실행해야 안전합니다.
-        /// 언더바(_)를 포함하고 숫자로 끝나는 노드만 실제 설비로 간주합니다.
+        /// JS querySelectorAll로 설비명 전체 리스트를 반환합니다.
+        /// 영문+숫자 혼합이고 4자리 이상 숫자로 끝나는 패턴을 설비로 간주합니다.
+        /// 예: J1FSTO12815 ✅  MonitoringSystem ❌  ESHD ❌
         /// </summary>
         public static List<string> ScanMachineList(IWebDriver driver)
         {
             try
             {
-                // 기존 ProcessSingleMachineAsync와 동일한 XPath 패턴 사용
-                var nodes = driver.FindElements(By.XPath("//span[contains(@class,'wj-node-text')]"))
-                    .Where(el => el.Displayed)
-                    .Select(el => { try { return el.Text?.Trim() ?? ""; } catch { return ""; } })
-                    .Where(text =>
-                        !string.IsNullOrEmpty(text) &&
-                        text.Contains("_") &&                          // 언더바 포함
-                        text.IndexOf("_") > 0 &&                      // 맨 앞은 아님
-                        System.Text.RegularExpressions.Regex.IsMatch(  // 언더바 뒤에 숫자 포함
-                            text.Substring(text.IndexOf("_") + 1), @"^\d"))
+                var jsExecutor = (IJavaScriptExecutor)driver;
+                // 설비명 패턴: J1FSTO12815, J1FCNV12303 등
+                // 영문자 + 숫자 혼합이고 끝부분에 5자리 이상 숫자로 끝나는 노드만 설비로 간주
+                // MonitoringSystem, ESHD, Form, Module 등 그룹명 제외
+                string jsScript = @"
+                    var nodes = document.querySelectorAll('.wj-node-text');
+                    var names = [];
+                    var pattern = /^[A-Za-z0-9]+\d{4,}$/;
+                    for(var i = 0; i < nodes.length; i++) {
+                        var text = nodes[i].innerText.trim();
+                        if(pattern.test(text)) {
+                            names.push(text);
+                        }
+                    }
+                    return names.join(',');
+                ";
+
+                string result = (string)jsExecutor.ExecuteScript(jsScript);
+
+                if (string.IsNullOrWhiteSpace(result))
+                {
+                    LogManager.LogMessage("설비 스캔: 결과 없음 (트리가 펼쳐져 있는지 확인 필요)", LogManager.Level.Warning);
+                    return new List<string>();
+                }
+
+                var list = result
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => x.Trim())
+                    .Where(x => !string.IsNullOrEmpty(x))
                     .Distinct()
                     .OrderBy(x => x)
                     .ToList();
 
-                LogManager.LogMessage($"설비 스캔 완료: {nodes.Count}대 발견", LogManager.Level.Info);
-                return nodes;
+                LogManager.LogMessage($"설비 스캔 완료: {list.Count}대 발견", LogManager.Level.Info);
+                return list;
             }
             catch (Exception ex)
             {
@@ -275,39 +290,37 @@ namespace GateHelper.Mgmt
         }
 
         /// <summary>
-        /// 설비 타입만 추출합니다. (레거시 호환용 — 신규 코드는 ScanMachineListAsync 사용)
+        /// 설비 타입만 추출합니다. (레거시 호환용 — 현재 미사용, 신규 코드는 ScanMachineList 사용)
+        /// Task.Run 안에서 ExecuteScript를 호출하면 스레드 안전하지 않으므로 동기 방식으로 유지.
         /// </summary>
-        public static async Task<List<string>> ScanEquipmentTypesAsync(IWebDriver driver)
+        public static List<string> ScanEquipmentTypes(IWebDriver driver)
         {
             try
             {
-                return await Task.Run(() =>
-                {
-                    var jsExecutor = (IJavaScriptExecutor)driver;
-                    string result = (string)jsExecutor.ExecuteScript(@"
-                        var nodes = document.querySelectorAll('.wj-node-text');
-                        var types = new Set();
-                        for(var i = 0; i < nodes.length; i++) {
-                            var text = nodes[i].innerText.trim();
-                            if(text.indexOf('_') > 0) {
-                                var prefix = text.split('_')[0];
-                                if(prefix.length > 0) types.add(prefix);
-                            }
+                var jsExecutor = (IJavaScriptExecutor)driver;
+                string result = (string)jsExecutor.ExecuteScript(@"
+                    var nodes = document.querySelectorAll('.wj-node-text');
+                    var types = new Set();
+                    for(var i = 0; i < nodes.length; i++) {
+                        var text = nodes[i].innerText.trim();
+                        var pattern = /^[A-Za-z0-9]+\d{4,}$/;
+                        if(pattern.test(text)) {
+                            var m = text.match(/[A-Za-z]+/g);
+                            if(m) types.add(m[m.length-1]);
                         }
-                        return Array.from(types).join(',');
-                    ");
-
-                    if (string.IsNullOrWhiteSpace(result)) return new List<string>();
-
-                    var cleanSet = new HashSet<string>();
-                    foreach (var prefix in result.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
-                    {
-                        string upper = prefix.Trim().ToUpper();
-                        cleanSet.Add(upper.Length >= 4 ? upper.Substring(upper.Length - 3) : upper);
                     }
+                    return Array.from(types).join(',');
+                ");
 
-                    return cleanSet.OrderBy(x => x).ToList();
-                });
+                if (string.IsNullOrWhiteSpace(result)) return new List<string>();
+
+                return result
+                    .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                    .Select(x => x.Trim().ToUpper())
+                    .Where(x => !string.IsNullOrEmpty(x))
+                    .Distinct()
+                    .OrderBy(x => x)
+                    .ToList();
             }
             catch (Exception ex)
             {
