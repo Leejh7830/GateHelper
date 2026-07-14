@@ -381,7 +381,7 @@ namespace GateHelper.Mgmt
             }
 
             double avgTime = successMachineCount > 0 ? (elapsedTime.TotalSeconds / successMachineCount) : 0;
-            string reportMessage = $"🎉 모든 {eqpType} 설비의 데이터 수집이 완료되었습니다!\n\n" +
+            string reportMessage = $"🎉 모든 설비의 데이터 수집이 완료되었습니다!\n\n" +
                        "📊 [수집 요약]\n" +
                        $"• 처리된 설비: 총 {machineCount}대 중 {successMachineCount}대 성공\n" +
                        $"• 실패한 설비: {failedMachines.Count}대 ({failedListDisplay})\n" +

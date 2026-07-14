@@ -53,26 +53,41 @@ namespace GateHelper.Mgmt
                 ", targetElement);
                 await Task.Delay(400);
 
+                // 직전 스크롤에서 읽은 원본 텍스트 (렌더링 완료 감지용)
+                string previousChunkRaw = null;
+
                 while (!isBottom && attempt < maxAttempts)
                 {
                     attempt++;
 
-                    // 현재 뷰포트 데이터 추출
-                    string chunkData = (string)jsExecutor.ExecuteScript(@"
-                        var grid = arguments[0];
-                        var rows = grid.querySelectorAll('.wj-row:not(.wj-header), tbody tr');
-                        var res = '';
-                        for (var i = 0; i < rows.length; i++) {
-                            var cells = rows[i].querySelectorAll('.wj-cell:not(.wj-header), td');
-                            if (cells.length === 0) continue;
-                            var rd = [];
-                            for (var j = 0; j < cells.length; j++) {
-                                rd.push(cells[j].innerText.replace(/\n/g, ' ').trim());
+                    // 렌더링 완료까지 폴링 대기 (최대 500ms, 50ms 간격)
+                    // 가상 스크롤 그리드가 새 행을 그리기 전에 캡처하면 데이터가 누락되므로
+                    // 이전 캡처와 내용이 달라질 때까지 짧은 간격으로 확인
+                    string chunkData = null;
+                    for (int waitTry = 0; waitTry < 10; waitTry++)
+                    {
+                        chunkData = (string)jsExecutor.ExecuteScript(@"
+                            var grid = arguments[0];
+                            var rows = grid.querySelectorAll('.wj-row:not(.wj-header), tbody tr');
+                            var res = '';
+                            for (var i = 0; i < rows.length; i++) {
+                                var cells = rows[i].querySelectorAll('.wj-cell:not(.wj-header), td');
+                                if (cells.length === 0) continue;
+                                var rd = [];
+                                for (var j = 0; j < cells.length; j++) {
+                                    rd.push(cells[j].innerText.replace(/\n/g, ' ').trim());
+                                }
+                                if (rd.length > 0) res += rd.join('\t') + '\n';
                             }
-                            if (rd.length > 0) res += rd.join('\t') + '\n';
-                        }
-                        return res.trim();
-                    ", targetElement);
+                            return res.trim();
+                        ", targetElement);
+
+                        // 스크롤 첫 시도(attempt==1)이거나 이전과 내용이 다르면 렌더링 완료로 간주
+                        if (attempt == 1 || chunkData != previousChunkRaw) break;
+
+                        await Task.Delay(50);
+                    }
+                    previousChunkRaw = chunkData;
 
                     if (!string.IsNullOrWhiteSpace(chunkData))
                     {
@@ -99,17 +114,17 @@ namespace GateHelper.Mgmt
                         }
                     }
 
-                    // 스크롤 이동 (clientHeight × 1.5 — 이동량 증가로 횟수 감소)
+                    // 스크롤 이동: clientHeight의 70%만 이동 → 항상 겹치는 구간을 남겨
+                    // 가상 스크롤 렌더링 지연으로 인한 행 누락을 원천 차단
                     isBottom = (bool)jsExecutor.ExecuteScript(@"
                         var c = arguments[0].querySelector('[wj-part=""root""]') || arguments[0];
                         var before = Math.ceil(c.scrollTop);
-                        c.scrollTop += (c.clientHeight * 1.5);
+                        c.scrollTop += (c.clientHeight * 0.7);
                         var after = Math.ceil(c.scrollTop);
                         return before === after;
                     ", targetElement);
 
-                    // 데이터가 새로 추가됐을 때만 딜레이 (불필요한 고정 대기 제거)
-                    if (!isBottom) await Task.Delay(150);
+                    if (!isBottom) await Task.Delay(100);
                 }
 
                 var parsedData = orderedKeys
