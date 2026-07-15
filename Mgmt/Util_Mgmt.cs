@@ -94,15 +94,44 @@ namespace GateHelper.Mgmt
                 prompt.Controls.Add(chkMachines);
 
                 // ── 이벤트 ──
-                btnAll.Click += (s, e) => { for (int i = 0; i < chkMachines.Items.Count; i++) chkMachines.SetItemChecked(i, true); };
-                btnNone.Click += (s, e) => { for (int i = 0; i < chkMachines.Items.Count; i++) chkMachines.SetItemChecked(i, false); };
+                btnAll.Click += (s, e) =>
+                {
+                    for (int i = 0; i < chkMachines.Items.Count; i++) chkMachines.SetItemChecked(i, true);
+                    foreach (var b in typeButtons)
+                    {
+                        b.BackColor = SystemColors.Control;
+                        var (keyword, _) = ((string, bool))b.Tag;
+                        b.Tag = (keyword, false);
+                    }
+                };
+                btnNone.Click += (s, e) =>
+                {
+                    for (int i = 0; i < chkMachines.Items.Count; i++) chkMachines.SetItemChecked(i, false);
+                    foreach (var b in typeButtons)
+                    {
+                        b.BackColor = SystemColors.Control;
+                        var (keyword, _) = ((string, bool))b.Tag;
+                        b.Tag = (keyword, false);
+                    }
+                };
+
+                // 타입 버튼: 토글 방식 — 켜면 해당 타입 추가 선택(다른 타입 유지), 끄면 해당 타입만 해제
                 foreach (var btn in typeButtons)
                 {
                     var kw = (string)btn.Tag;
+                    btn.Tag = (kw, false); // (키워드, 활성화여부)
                     btn.Click += (s, e) =>
                     {
+                        var (keyword, isActive) = ((string, bool))btn.Tag;
+                        bool turnOn = !isActive;
+                        btn.Tag = (keyword, turnOn);
+                        btn.BackColor = turnOn ? Color.FromArgb(173, 216, 230) : SystemColors.Control; // 활성 시 하늘색 표시
+
                         for (int i = 0; i < chkMachines.Items.Count; i++)
-                            chkMachines.SetItemChecked(i, chkMachines.Items[i].ToString().ToUpper().Contains(kw));
+                        {
+                            if (chkMachines.Items[i].ToString().ToUpper().Contains(keyword))
+                                chkMachines.SetItemChecked(i, turnOn);
+                        }
                     };
                 }
 

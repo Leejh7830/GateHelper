@@ -189,7 +189,7 @@ namespace GateHelper
             this.TxtSearch1.HideSelection = true;
             this.TxtSearch1.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.TxtSearch1.LeadingIcon = null;
-            this.TxtSearch1.Location = new System.Drawing.Point(5, 19);
+            this.TxtSearch1.Location = new System.Drawing.Point(12, 19);
             this.TxtSearch1.Margin = new System.Windows.Forms.Padding(2);
             this.TxtSearch1.MaxLength = 32767;
             this.TxtSearch1.MouseState = MaterialSkin.MouseState.OUT;
@@ -202,7 +202,7 @@ namespace GateHelper
             this.TxtSearch1.SelectionLength = 0;
             this.TxtSearch1.SelectionStart = 0;
             this.TxtSearch1.ShortcutsEnabled = true;
-            this.TxtSearch1.Size = new System.Drawing.Size(245, 48);
+            this.TxtSearch1.Size = new System.Drawing.Size(238, 48);
             this.TxtSearch1.TabIndex = 13;
             this.TxtSearch1.TabStop = false;
             this.TxtSearch1.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
@@ -453,6 +453,7 @@ namespace GateHelper
             this.GroupManagement1.Controls.Add(this.BtnStoCollect);
             this.GroupManagement1.Controls.Add(this.BtnPauseCollect);
             this.GroupManagement1.Controls.Add(this.BtnMoveVariable);
+            this.GroupManagement1.Controls.Add(this.BtnStartManagement);
             this.GroupManagement1.Location = new System.Drawing.Point(405, 13);
             this.GroupManagement1.Margin = new System.Windows.Forms.Padding(2);
             this.GroupManagement1.Name = "GroupManagement1";
@@ -491,7 +492,7 @@ namespace GateHelper
             this.BtnStoCollect.Depth = 0;
             this.BtnStoCollect.HighEmphasis = true;
             this.BtnStoCollect.Icon = null;
-            this.BtnStoCollect.Location = new System.Drawing.Point(14, 71);
+            this.BtnStoCollect.Location = new System.Drawing.Point(14, 116);
             this.BtnStoCollect.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnStoCollect.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnStoCollect.Name = "BtnStoCollect";
@@ -533,7 +534,7 @@ namespace GateHelper
             this.BtnMoveVariable.Depth = 0;
             this.BtnMoveVariable.HighEmphasis = true;
             this.BtnMoveVariable.Icon = null;
-            this.BtnMoveVariable.Location = new System.Drawing.Point(14, 22);
+            this.BtnMoveVariable.Location = new System.Drawing.Point(14, 68);
             this.BtnMoveVariable.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnMoveVariable.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnMoveVariable.Name = "BtnMoveVariable";
@@ -702,6 +703,7 @@ namespace GateHelper
             // 
             // btnSandBox
             // 
+            this.btnSandBox.AutoSize = false;
             this.btnSandBox.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.btnSandBox.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.btnSandBox.Depth = 0;
@@ -712,7 +714,7 @@ namespace GateHelper
             this.btnSandBox.MouseState = MaterialSkin.MouseState.HOVER;
             this.btnSandBox.Name = "btnSandBox";
             this.btnSandBox.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.btnSandBox.Size = new System.Drawing.Size(89, 36);
+            this.btnSandBox.Size = new System.Drawing.Size(89, 40);
             this.btnSandBox.TabIndex = 103;
             this.btnSandBox.Text = "SandBox";
             this.btnSandBox.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -722,6 +724,7 @@ namespace GateHelper
             // 
             // BtnWorkLog1
             // 
+            this.BtnWorkLog1.AutoSize = false;
             this.BtnWorkLog1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BtnWorkLog1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.BtnWorkLog1.Depth = 0;
@@ -732,7 +735,7 @@ namespace GateHelper
             this.BtnWorkLog1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnWorkLog1.Name = "BtnWorkLog1";
             this.BtnWorkLog1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnWorkLog1.Size = new System.Drawing.Size(95, 36);
+            this.BtnWorkLog1.Size = new System.Drawing.Size(95, 40);
             this.BtnWorkLog1.TabIndex = 102;
             this.BtnWorkLog1.Text = "Work Log";
             this.BtnWorkLog1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -1095,12 +1098,12 @@ namespace GateHelper
             this.BtnStartManagement.Font = new System.Drawing.Font("돋움", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BtnStartManagement.HighEmphasis = true;
             this.BtnStartManagement.Icon = null;
-            this.BtnStartManagement.Location = new System.Drawing.Point(405, 73);
+            this.BtnStartManagement.Location = new System.Drawing.Point(14, 20);
             this.BtnStartManagement.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.BtnStartManagement.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnStartManagement.Name = "BtnStartManagement";
             this.BtnStartManagement.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnStartManagement.Size = new System.Drawing.Size(121, 40);
+            this.BtnStartManagement.Size = new System.Drawing.Size(136, 40);
             this.BtnStartManagement.TabIndex = 102;
             this.BtnStartManagement.Text = "Start Management";
             this.BtnStartManagement.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -1118,7 +1121,7 @@ namespace GateHelper
             this.TxtQuickSearch.HideSelection = true;
             this.TxtQuickSearch.ImeMode = System.Windows.Forms.ImeMode.NoControl;
             this.TxtQuickSearch.LeadingIcon = null;
-            this.TxtQuickSearch.Location = new System.Drawing.Point(138, 547);
+            this.TxtQuickSearch.Location = new System.Drawing.Point(139, 549);
             this.TxtQuickSearch.Margin = new System.Windows.Forms.Padding(2);
             this.TxtQuickSearch.MaxLength = 32767;
             this.TxtQuickSearch.MouseState = MaterialSkin.MouseState.OUT;
@@ -1213,7 +1216,6 @@ namespace GateHelper
             this.Controls.Add(this.BtnLogValidator);
             this.Controls.Add(this.BtnQuickConnect);
             this.Controls.Add(this.TxtQuickSearch);
-            this.Controls.Add(this.BtnStartManagement);
             this.Controls.Add(this.BtnOpenLog2);
             this.Controls.Add(this.lblVersion);
             this.Controls.Add(this.lblUDPStatus);
@@ -1253,7 +1255,6 @@ namespace GateHelper
             ((System.ComponentModel.ISupportInitialize)(this.OlvServerList)).EndInit();
             this.ListViewContext1.ResumeLayout(false);
             this.tabPage3.ResumeLayout(false);
-            this.tabPage3.PerformLayout();
             this.groupBox1.ResumeLayout(false);
             this.GroupRef2.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Question)).EndInit();
