@@ -30,6 +30,9 @@ namespace GateHelper.LogValidator
         // ApplyFilterToActiveGrid가 이 위에 합성해서 하이라이팅과 필터가 동시에 보이도록 함
         private RowFormatterDelegate _trackingFormatter = null;
 
+        // 💡 텍스트 필터 ▶ 버튼으로 순회 시 현재 위치 추적 (-1이면 아직 시작 안 함)
+        private int _filterMatchIndex = -1;
+
         // 💡 현재 로드된 파일 경로 목록 - UI 표시 및 초기화 판단에 사용
         private readonly List<string> _loadedFilePaths = new List<string>();
 
@@ -332,10 +335,8 @@ namespace GateHelper.LogValidator
                 if (!File.Exists(fullPath)) return;
 
                 string json = File.ReadAllText(fullPath);
-
-                var options = new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true };
-                var steps = System.Text.Json.JsonSerializer.Deserialize<List<ScenarioStepModel>>(json, options);
-
+                var steps = System.Text.Json.JsonSerializer.Deserialize<
+                                   List<ScenarioStepModel>>(json);
                 if (steps == null || steps.Count == 0) return;
 
                 ShowStepPreview(selected.ScenarioName, steps);
@@ -349,19 +350,6 @@ namespace GateHelper.LogValidator
                 if (selected == null) return;
 
                 if (treeScenarioGroup.SelectedNode == null || treeScenarioGroup.SelectedNode.Tag == null) return;
-
-                // 중복 실행 방지 가드 삽입
-                var existingEditor = Application.OpenForms.OfType<LogScenarioForm>().FirstOrDefault();
-                if (existingEditor != null)
-                {
-                    if (existingEditor.WindowState == FormWindowState.Minimized)
-                        existingEditor.WindowState = FormWindowState.Normal;
-
-                    existingEditor.BringToFront();
-                    MessageBox.Show("시나리오 편집기가 이미 실행 중입니다.\n진행 중인 작업을 마무리하고 닫은 후 다시 열어주세요.", "중복 실행 방지", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    return;
-                }
-
                 string currentActiveDirectory = treeScenarioGroup.SelectedNode.Tag.ToString();
                 string fullPath = Path.Combine(currentActiveDirectory, $"{selected.ScenarioName}.json");
 
@@ -426,12 +414,13 @@ namespace GateHelper.LogValidator
 
             var colStep = new OLVColumn("Step", "StepNo") { Width = 48, TextAlign = HorizontalAlignment.Center };
             var colEvent = new OLVColumn("Event Name", "EventName") { Width = 180 };
-            var colPattern = new OLVColumn("Masking Pattern", "MaskingPattern") { Width = 360 };
+            var colPattern = new OLVColumn("Masking Pattern", "MaskingPattern") { Width = 300 };
             var colDir = new OLVColumn("Dir", "Direction") { Width = 55, TextAlign = HorizontalAlignment.Center };
             var colOpt = new OLVColumn("Opt", "IsOptional") { Width = 40, TextAlign = HorizontalAlignment.Center };
             var colTimeout = new OLVColumn("Timeout", "TimeoutSeconds") { Width = 62, TextAlign = HorizontalAlignment.Center };
             var colGroup = new OLVColumn("Group", "GroupId") { Width = 60, TextAlign = HorizontalAlignment.Center };
 
+            // 💡 1번: TX/RX 대신 화살표로 표시
             // TX = EQP → SERVER (오른쪽 화살표 →)
             // RX = SERVER → EQP (왼쪽 화살표 ←)
             colDir.AspectGetter = row =>
@@ -816,11 +805,15 @@ namespace GateHelper.LogValidator
             btnColor.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(180, 180, 180);
             btnColor.FlatAppearance.BorderSize = 1;
 
-            // 💡 Anchor = Right|Top으로 고정되어 폼 크기 변경 시 자동으로 우측 기준 유지
+            // panel1 오른쪽 끝 고정 위치 (lblAnomalyWarning 왼쪽)
             btnColor.Location = new System.Drawing.Point(
-                panel1.ClientSize.Width - btnColor.Width - 160,
+                panel1.Width - btnColor.Width - 160, // lblAnomalyWarning 공간 확보
                 (panel1.Height - btnColor.Height) / 2
             );
+            panel1.SizeChanged += (s, e) =>
+                btnColor.Location = new System.Drawing.Point(
+                    panel1.Width - btnColor.Width - 160,
+                    (panel1.Height - btnColor.Height) / 2);
 
             btnColor.Click += (s, e) =>
             {
@@ -1127,7 +1120,8 @@ namespace GateHelper.LogValidator
             olvValidatorRawLog.ModelFilter = null; // 💡 텍스트 필터 ModelFilter 잔류 방지
             olvValidationResult.ClearObjects();
             _currentSelectedStartLineNo = -1;
-            _trackingFormatter = null; // 💡 하이라이팅 포맷터 초기화
+            _trackingFormatter = null;
+            _filterMatchIndex = -1;
 
             // 유닛 탭 초기화 (tabPage1 제외)
             while (tabControl1.TabPages.Count > 1)
@@ -1323,17 +1317,19 @@ namespace GateHelper.LogValidator
 
             if (combinedList == null || combinedList.Count == 0)
             {
-                // 💡 [수정] 런타임 가변 패턴이므로 RegexOptions.Compiled 옵션을 완전 제거 (메모리 릭 방지)
-                _dynamicUnitRegex = new Regex(@"J1[EAFP](?:STO|OHS|CNV)\d+(?:\-\d+)?", RegexOptions.IgnoreCase);
+                // 💡 [선택적 매칭(?:\-\d+)? 이식 기본 패턴 가드]
+                _dynamicUnitRegex = new Regex(@"J1[EAFP](?:STO|OHS|CNV)\d+(?:\-\d+)?", RegexOptions.Compiled | RegexOptions.IgnoreCase);
                 return;
             }
 
             string escapedTypes = string.Join("|", combinedList.Select(Regex.Escape));
 
+            // 💡 [교정된 핵심 정규식 패턴]
+            // 규격: (설비조합)(숫자1자이상) + [선택부: (-숫자1자이상)]
+            // 예시: J1ESTO12345 (매칭 성공), J1ESTO12345-101 (매칭 성공)
             string finalPattern = $@"\b({escapedTypes})\d+(?:\-\d+)?\b";
 
-            // 💡 [수정] 런타임 가변 패턴이므로 RegexOptions.Compiled 옵션을 완전 제거
-            _dynamicUnitRegex = new Regex(finalPattern, RegexOptions.IgnoreCase);
+            _dynamicUnitRegex = new Regex(finalPattern, RegexOptions.Compiled | RegexOptions.IgnoreCase);
         }
 
         /// <summary>
@@ -1614,12 +1610,16 @@ namespace GateHelper.LogValidator
             if (txtLogFilter == null) return;
 
             // 💡 입력할 때마다 실시간으로 현재 보고 있는 탭 그리드의 본문을 압축합니다.
-            txtLogFilter.TextChanged += (s, e) => ApplyFilterToActiveGrid();
+            txtLogFilter.TextChanged += (s, e) =>
+            {
+                _filterMatchIndex = -1; // 키워드 바뀌면 순회 초기화
+                ApplyFilterToActiveGrid();
+            };
 
             // 💡 탭 전환 시 이전 탭 그리드 필터 초기화 후 새 탭에 재적용
             tabControl1.SelectedIndexChanged += (s, e) =>
             {
-                // 전체 탭/유닛 탭 모두 순회하며 필터 초기화
+                _filterMatchIndex = -1; // 탭 전환 시 순회 초기화
                 foreach (TabPage tp in tabControl1.TabPages)
                 {
                     var g = tp.Controls.OfType<ObjectListView>().FirstOrDefault();
@@ -1635,6 +1635,64 @@ namespace GateHelper.LogValidator
             };
         }
 
+        /// <summary>
+        /// 텍스트 필터 ▶ 버튼: 현재 필터링되어 화면에 표시 중인 행들 중에서 
+        /// 키워드 매칭 행을 순서대로 순회하며 화면 중앙에 포커싱합니다.
+        /// </summary>
+        private void NavigateToNextFilterMatch()
+        {
+            string keyword = txtLogFilter.Text;
+            if (string.IsNullOrWhiteSpace(keyword)) return;
+
+            var activeGrid = GetActiveGrid();
+
+            // 💡 [교정]: 원본 리스트가 아니라, 현재 그리드 화면에 필터링되어 노출 중인 객체 리스트를 획득합니다.
+            var filteredObjects = activeGrid.FilteredObjects.Cast<RawLogModel>().ToList();
+            if (filteredObjects.Count == 0) return;
+
+            var matchObjects = new List<RawLogModel>();
+            try
+            {
+                // 💡 [최적화]: 루프 외부에서 정규식 객체를 1회만 컴파일 생성하여 할당합니다.
+                var regex = new Regex(keyword, RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+                for (int i = 0; i < filteredObjects.Count; i++)
+                {
+                    var log = filteredObjects[i];
+                    if (log.LogMessage != null && regex.IsMatch(log.LogMessage))
+                    {
+                        matchObjects.Add(log);
+                    }
+                }
+            }
+            catch { return; } // 일시적 정규식 문법 오류 가드
+
+            if (matchObjects.Count == 0) return;
+
+            // 💡 인덱스 포인터 순환 제어
+            _filterMatchIndex++;
+            if (_filterMatchIndex >= matchObjects.Count)
+                _filterMatchIndex = 0;
+
+            var targetRow = matchObjects[_filterMatchIndex];
+
+            // 💡 [교정]: 필터링된 상태의 그리드 내부 가시적 인덱스를 정확하게 추적합니다.
+            int gridIndex = activeGrid.IndexOf(targetRow);
+            if (gridIndex < 0) return;
+
+            activeGrid.SelectedObject = targetRow;
+
+            // 💡 화면 중앙 스크롤 뷰포트 포커싱
+            int visibleRows = activeGrid.Height / Math.Max(1, activeGrid.RowHeightEffective);
+            int centeredTop = gridIndex - (visibleRows / 2);
+            activeGrid.TopItemIndex = Math.Max(0, centeredTop);
+
+            activeGrid.Focus();
+
+            // 💡 현재 위치 시각적 깜빡임 이펙트 공급
+            FlashJumpedRow(targetRow);
+        }
+
         private void ApplyFilterToActiveGrid()
         {
             string keyword = txtLogFilter.Text;
@@ -1644,8 +1702,6 @@ namespace GateHelper.LogValidator
             {
                 activeGrid.ModelFilter = null;
                 activeGrid.DefaultRenderer = null;
-                // 💡 필터 해제 시 하이라이팅 RowFormatter 복원
-                // 💡 _trackingFormatter 복원 (필터 해제 시 하이라이팅 유지)
                 if (_trackingFormatter != null)
                 {
                     activeGrid.RowFormatter = _trackingFormatter;
@@ -1669,19 +1725,16 @@ namespace GateHelper.LogValidator
                         ? System.Drawing.Color.White
                         : System.Drawing.Color.Black;
 
-                    // 💡 필터 RowFormatter와 하이라이팅 _trackingFormatter를 합성
-                    // 매칭 행: 하이라이팅 색상 우선, 비매칭 행: _trackingFormatter 적용
                     activeGrid.RowFormatter = row =>
                     {
                         if (row.RowObject is RawLogModel log &&
-                            Regex.IsMatch(log.LogMessage ?? "", keyword))
+                            Regex.IsMatch(log.LogMessage ?? "", keyword, RegexOptions.IgnoreCase))
                         {
                             row.BackColor = _highlightColor;
                             row.ForeColor = textColor;
                         }
                         else
                         {
-                            // 💡 하이라이팅(사이클 선택)이 활성화되어 있으면 함께 적용
                             _trackingFormatter?.Invoke(row);
                         }
                     };
@@ -1689,19 +1742,12 @@ namespace GateHelper.LogValidator
                 }
                 catch (Exception)
                 {
-                    // 타이핑 도중 발생하는 일시적 정규식 문법 예외 흡수
+                    // 정규식 타이핑 중간 예외 흡수
                 }
             }
         }
 
         #endregion
-
-
-
-
-
-
-
 
 
 
@@ -1820,12 +1866,7 @@ namespace GateHelper.LogValidator
                 _boldResultFont?.Dispose();
                 _unitFilterMenuFont?.Dispose();
 
-                // 💡 [수정] ObjectListView 수동 Dispose() 호출 제거
-                // 폼이 닫힐 때 WinForms가 자식 컨트롤을 자동으로 Dispose하는데,
-                // 여기서 먼저 .Dispose()를 호출하면 ObjectListView 내부의 ToolTipControl이
-                // 이미 일부 핸들이 해제된 상태에서 폰트를 재참조하다가
-                // "TrueType 폰트만 지원됩니다" ArgumentException이 발생할 수 있었음.
-                // ContextMenuStrip 해제만 남겨서 메모리 누수 방지는 유지.
+                // ObjectListView 수동 Dispose() 호출 제거
                 if (olvValidationResult != null)
                     olvValidationResult.ContextMenuStrip = null;
 
@@ -1855,6 +1896,8 @@ namespace GateHelper.LogValidator
 
         private void btnOpenScenarioEditor_Click(object sender, EventArgs e)
         {
+            // 시나리오 편집기를 빈 상태로 열기 (파일 없이 새로 작성 모드)
+            // 기존에는 시나리오 우클릭 → 편집으로만 접근 가능했으나 여기서 바로 열 수 있음
             if (treeScenarioGroup.SelectedNode?.Tag == null)
             {
                 MessageBox.Show("Please select a scenario folder from the tree first.",
@@ -1862,19 +1905,9 @@ namespace GateHelper.LogValidator
                 return;
             }
 
-            // 중복 실행 방지 가드
-            var existingEditor = Application.OpenForms.OfType<LogScenarioForm>().FirstOrDefault();
-            if (existingEditor != null)
-            {
-                if (existingEditor.WindowState == FormWindowState.Minimized)
-                    existingEditor.WindowState = FormWindowState.Normal;
-
-                existingEditor.BringToFront();
-                MessageBox.Show("시나리오 편집기가 이미 실행 중입니다.\n진행 중인 작업을 마무리하고 닫은 후 다시 열어주세요.", "중복 실행 방지", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                return;
-            }
-
             string folderPath = treeScenarioGroup.SelectedNode.Tag.ToString();
+
+            // 선택된 시나리오가 있으면 해당 파일로, 없으면 빈 편집기로 오픈
             var selectedEval = olvScenarioRepository.SelectedObject as ScenarioEvaluator;
             if (selectedEval != null)
             {
@@ -1887,9 +1920,16 @@ namespace GateHelper.LogValidator
             }
         }
 
+        private void btnFilterNext_Click(object sender, EventArgs e)
+        {
+            NavigateToNextFilterMatch();
+        }
+
         private void btnClose_Click(object sender, EventArgs e)
         {
             this.Close(); // FormClosing 이벤트가 자동으로 호출되어 리소스 정리
         }
+
+
     }
 }

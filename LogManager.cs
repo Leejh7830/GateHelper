@@ -37,7 +37,7 @@ namespace GateHelper
                 using (StreamWriter writer = File.AppendText(_currentLogFilePath))
                 {
                     writer.WriteLine($"[{DateTime.Now}] [{GetLogLevelString(level)}] {memberName} :: {message}");
-                    writer.WriteLine("----------------------------------------");
+                    writer.WriteLine("-------------------------------------------------------------------------------");
                 }
             }
             catch (Exception logEx)
@@ -58,7 +58,7 @@ namespace GateHelper
                     writer.WriteLine($"[{DateTime.Now}] [{GetLogLevelString(level)}] {memberName}, :: {ex.Message}");
                     writer.WriteLine($"예외 타입: {ex.GetType()}");
                     writer.WriteLine(ex.StackTrace);
-                    writer.WriteLine("------------------------------------------------------------------------");
+                    writer.WriteLine("-------------------------------------------------------------------------------");
                 }
             }
             catch (Exception logEx)

@@ -1595,6 +1595,7 @@ namespace GateHelper
                 int successMachineCount = 0;
                 int collectedSemCount = 0;
                 int collectedPortCount = 0;
+                int expectedPortCount = 0;
                 List<string> failedMachines = new List<string>();
 
                 // 3. 메모리 workbook 생성 (기존 파일 있으면 열어서 누적, 없으면 새로 생성)
@@ -1603,15 +1604,29 @@ namespace GateHelper
                 {
                     string nameBasedXPath = "//span[contains(@class, 'wj-node-text') and text()='{0}']";
 
+                    // 로그 압축: 이전 호기의 "완료/실패" 라인과 다음 호기의 "시작" 라인을 한 줄로 병합
+                    string pendingResultLine = null;
+                    Level pendingResultLevel = Level.Info;
+
+                    if (machineCount > 0)
+                    {
+                        LogMessage($"[1/{machineCount}] {selectedMachines[0]} 수집 시작", Level.Info);
+                    }
+
                     for (int i = 0; i < machineCount; i++)
                     {
                         try { await Task.Run(() => _pauseEvent.Wait(_cancelTokenSource.Token)); }
                         catch (OperationCanceledException) { break; }
                         if (_cancelTokenSource.Token.IsCancellationRequested) { break; }
 
-                        string currentMachineName = selectedMachines[i];
-                        LogMessage($"[{i + 1}/{machineCount}] {currentMachineName} 수집 시작", Level.Info);
+                        // 이전 호기 결과 + 이번 호기 시작을 한 줄로 병합 출력 (첫 호기는 이미 위에서 단독 출력됨)
+                        if (pendingResultLine != null)
+                        {
+                            LogMessage($"{pendingResultLine} → [{i + 1}/{machineCount}] {selectedMachines[i]} 수집 시작", pendingResultLevel);
+                            pendingResultLine = null;
+                        }
 
+                        string currentMachineName = selectedMachines[i];
                         string machineXPath = string.Format(nameBasedXPath, currentMachineName);
                         var keys = Util_Mgmt.GetEquipmentKeywords(currentMachineName);
 
@@ -1620,16 +1635,25 @@ namespace GateHelper
 
                         if (result.isSuccess)
                         {
-                            LogMessage($"[{i + 1}/{machineCount}] {result.machineName} 수집 완료", Level.Info);
+                            pendingResultLine = $"[{i + 1}/{machineCount}] {result.machineName} 수집 완료";
+                            pendingResultLevel = Level.Info;
                             successMachineCount++;
                             collectedSemCount += result.semCount;
                             collectedPortCount += result.portCount;
+                            expectedPortCount += result.expectedPortCount;
                         }
                         else
                         {
-                            LogMessage($"[{i + 1}/{machineCount}] {result.machineName} 실패: {result.errorMessage}", Level.Error);
+                            pendingResultLine = $"[{i + 1}/{machineCount}] {result.machineName} 실패: {result.errorMessage}";
+                            pendingResultLevel = Level.Error;
                             failedMachines.Add(result.machineName);
                         }
+                    }
+
+                    // 마지막 호기는 다음 시작 라인과 합칠 대상이 없으므로 단독 출력
+                    if (pendingResultLine != null)
+                    {
+                        LogMessage(pendingResultLine, pendingResultLevel);
                     }
                     sw.Stop();
 
@@ -1638,8 +1662,11 @@ namespace GateHelper
                         Util_Mgmt.FlushWorkbookToFile(workbook, filePath);
                 }
 
+                // 🔍 [검증] SEM 기대치(=성공 대수, SEM 옵션 체크 시)와 Port 기대치(발견 개수 합산) 계산
+                int expectedSemCount = isSemChecked ? successMachineCount : 0;
+
                 // 5. 최종 리포트 출력
-                Util_Mgmt.ShowFinalReport(eqpTypesString, machineCount, successMachineCount, collectedSemCount, collectedPortCount, sw.Elapsed, failedMachines);
+                Util_Mgmt.ShowFinalReport(eqpTypesString, machineCount, successMachineCount, collectedSemCount, collectedPortCount, sw.Elapsed, failedMachines, expectedSemCount, expectedPortCount);
             }
             catch (Exception ex)
             {
@@ -1700,14 +1727,14 @@ namespace GateHelper
             if (_pauseEvent.IsSet)
             {
                 LogMessage("[일시 정지] 수집이 일시 정지되었습니다. 현재 호기 처리가 끝나면 대기합니다.", Level.Warning);
-                BtnPauseCollect.Text = "수집 재개";
+                BtnPauseCollect.Text = "RESUME";
                 _pauseEvent.Reset(); // 빗장 걸기 (스레드 블로킹 대기)
             }
             // 신호등이 빨간불(대기 중)일 때 누르면 -> 파란불(진행)로 변경
             else
             {
                 LogMessage("[수집 재개] 수집 루프가 다시 가동됩니다.", Level.Info);
-                BtnPauseCollect.Text = "일시 정지";
+                BtnPauseCollect.Text = "PAUSE";
                 _pauseEvent.Set(); // 빗장 풀기 (스레드 블로킹 해제)
             }
         }

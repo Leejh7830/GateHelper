@@ -8,28 +8,10 @@ namespace GateHelper.LogValidator.Core
 {
     public class LogValidatorEngine
     {
-        // 💡 [신규] 정규식 사전 컴파일 캐시 저장소
-        private Dictionary<string, Regex> _regexCache;
-
         public List<ScenarioEvaluator> Validate(List<RawLogModel> rawLogs, List<ScenarioEvaluator> evaluators)
         {
             if (rawLogs == null || rawLogs.Count == 0 || evaluators == null || evaluators.Count == 0)
                 return evaluators;
-
-            // 💡 [수정] 검증 시작 전, 모든 시나리오의 정규식을 1회만 사전 조립 및 컴파일 캐싱
-            _regexCache = new Dictionary<string, Regex>();
-            foreach (var eval in evaluators)
-            {
-                foreach (var step in eval.Steps)
-                {
-                    if (!string.IsNullOrEmpty(step.MaskingPattern) && !_regexCache.ContainsKey(step.MaskingPattern))
-                    {
-                        string escaped = Regex.Escape(step.MaskingPattern);
-                        string pat = $"^{escaped.Replace(@"\*", "(.*?)")}$";
-                        _regexCache[step.MaskingPattern] = new Regex(pat, RegexOptions.IgnoreCase);
-                    }
-                }
-            }
 
             var engineContexts = new List<ScenarioBuildContext>();
             foreach (var eval in evaluators)
@@ -71,9 +53,11 @@ namespace GateHelper.LogValidator.Core
             // ── 타임아웃 체크 ──────────────────────────────────────────
             if (ctx.Master.CurrentStepIndex > 0 && ctx.LastMatchedTime != DateTime.MinValue)
             {
+                // AND 그룹 진행 중이면 그룹의 첫 스텝 기준 Timeout 사용
                 ScenarioStepModel timeoutRef;
                 if (ctx.ActiveGroupId > 0)
                 {
+                    // AND 그룹 시작 직전 스텝의 Timeout
                     int groupFirstIdx = ctx.Master.Steps.FindIndex(s => s.GroupId == ctx.ActiveGroupId);
                     timeoutRef = groupFirstIdx > 0 ? ctx.Master.Steps[groupFirstIdx - 1] : null;
                 }
@@ -89,8 +73,8 @@ namespace GateHelper.LogValidator.Core
                     {
                         DumpTimeoutCycle(ctx, log.LineNo, log.SourceFileName, timeoutRef, elapsed);
 
-                        // 💡 캐시된 정규식으로 첫 스텝 재검사
-                        if (_regexCache.TryGetValue(ctx.Master.Steps[0].MaskingPattern, out Regex restartRx) && restartRx.IsMatch(log.LogMessage))
+                        string restartPat = BuildRegexPattern(ctx.Master.Steps[0].MaskingPattern);
+                        if (Regex.IsMatch(log.LogMessage, restartPat))
                         {
                             ctx.CurrentCycleStartLine = log.LineNo;
                             ctx.CurrentCycleStartSource = log.SourceFileName;
@@ -109,8 +93,7 @@ namespace GateHelper.LogValidator.Core
                 bool matchedAny = false;
                 foreach (var pattern in ctx.PendingGroupPatterns.ToList())
                 {
-                    // 💡 캐시된 정규식 사용
-                    if (_regexCache.TryGetValue(pattern.MaskingPattern, out Regex groupRx) && groupRx.IsMatch(log.LogMessage))
+                    if (Regex.IsMatch(log.LogMessage, BuildRegexPattern(pattern.MaskingPattern)))
                     {
                         ctx.PendingGroupPatterns.Remove(pattern);
                         ctx.ActiveMatchedLines.Add((log.LineNo, log.SourceFileName));
@@ -124,28 +107,39 @@ namespace GateHelper.LogValidator.Core
                 {
                     bool groupDone = false;
 
-                    if (ctx.ActiveGroupType == "OR") groupDone = true;
-                    else groupDone = ctx.PendingGroupPatterns.Count == 0;
+                    if (ctx.ActiveGroupType == "OR")
+                    {
+                        // OR 그룹: 하나만 매칭되면 즉시 통과, 나머지 패턴은 폐기
+                        groupDone = true;
+                    }
+                    else
+                    {
+                        // AND 그룹: 모두 수신되어야 통과
+                        groupDone = ctx.PendingGroupPatterns.Count == 0;
+                    }
 
                     if (groupDone)
                     {
                         ctx.ActiveGroupId = 0;
+                        ctx.ActiveGroupType = "AND";
                         ctx.PendingGroupPatterns.Clear();
-                        ctx.Master.CurrentStepIndex++;
+                        // 💡 그룹 진입 시 이미 CurrentStepIndex = lastGroupIdx + 1 로 설정됨
+                        // 여기서 ++ 하면 그룹 다음 스텝을 건너뛰는 버그 발생 → 제거
                         if (ctx.Master.CurrentStepIndex >= ctx.Master.Steps.Count)
                             DumpSuccessCycle(ctx, log.LineNo, log.SourceFileName);
                     }
                     return;
                 }
 
-                // 💡 캐시된 정규식으로 첫 스텝 재검사
-                if (_regexCache.TryGetValue(ctx.Master.Steps[0].MaskingPattern, out Regex restartRx2) && restartRx2.IsMatch(log.LogMessage))
+                // 그룹 진행 중 첫 스텝 재등장 → 실패
+                string restartPat2 = BuildRegexPattern(ctx.Master.Steps[0].MaskingPattern);
+                if (Regex.IsMatch(log.LogMessage, restartPat2))
                 {
                     DumpFailedCycle(ctx, log.LineNo - 1, log.SourceFileName);
                     ctx.CurrentCycleStartLine = log.LineNo;
                     ctx.CurrentCycleStartSource = log.SourceFileName;
                     ctx.LastMatchedTime = log.LogTime;
-                    ctx.ActiveMatchedLines.Add((log.LineNo, log.SourceFileName));
+                    ctx.ActiveMatchedLines.Add((log.LineNo, log.SourceFileName)); // 💡 첫 스텝 하이라이팅 포함
                     ctx.Master.CurrentStepIndex = 1;
                     ctx.ActiveGroupId = 0;
                     ctx.ActiveGroupType = "AND";
@@ -155,8 +149,9 @@ namespace GateHelper.LogValidator.Core
             }
 
             // ── 일반 스텝 처리 ────────────────────────────────────────
-            // 매번 BuildRegexPattern를 호출하지 않고 캐시에서 꺼내 씀
-            if (_regexCache.TryGetValue(targetStep.MaskingPattern, out Regex targetRx) && targetRx.IsMatch(log.LogMessage))
+            string regexPattern = BuildRegexPattern(targetStep.MaskingPattern);
+
+            if (Regex.IsMatch(log.LogMessage, regexPattern))
             {
                 if (ctx.Master.CurrentStepIndex == 0)
                 {
@@ -169,6 +164,7 @@ namespace GateHelper.LogValidator.Core
                 ctx.LastMatchedTime = log.LogTime;
                 ctx.Master.CurrentStepIndex++;
 
+                // 💡 다음 스텝이 AND/OR 그룹이면 그룹 모드 진입
                 if (ctx.Master.CurrentStepIndex < ctx.Master.Steps.Count)
                 {
                     var nextStep = ctx.Master.Steps[ctx.Master.CurrentStepIndex];
@@ -176,7 +172,14 @@ namespace GateHelper.LogValidator.Core
                     {
                         ctx.ActiveGroupId = nextStep.GroupId;
                         ctx.ActiveGroupType = nextStep.GroupType ?? "AND";
-                        ctx.PendingGroupPatterns = ctx.Master.Steps.Where(s => s.GroupId == nextStep.GroupId).ToList();
+
+                        // 💡 현재 방금 매칭된 스텝(targetStep)도 같은 GroupId를 가질 수 있음
+                        // 이미 매칭됐으므로 PendingGroupPatterns에서 제외해야 함
+                        // 제외하지 않으면 같은 패턴을 다시 대기하게 되어 다음 시퀀스를 건너뜀
+                        ctx.PendingGroupPatterns = ctx.Master.Steps
+                            .Where(s => s.GroupId == nextStep.GroupId && s != targetStep)
+                            .ToList();
+
                         int lastGroupIdx = ctx.Master.Steps.FindLastIndex(s => s.GroupId == nextStep.GroupId);
                         ctx.Master.CurrentStepIndex = lastGroupIdx + 1;
                         return;
@@ -188,12 +191,16 @@ namespace GateHelper.LogValidator.Core
             }
             else if (ctx.Master.CurrentStepIndex > 0)
             {
+                // 💡 Optional 스텝 처리
                 while (ctx.Master.CurrentStepIndex < ctx.Master.Steps.Count &&
                        ctx.Master.Steps[ctx.Master.CurrentStepIndex].IsOptional)
                 {
                     var optStep = ctx.Master.Steps[ctx.Master.CurrentStepIndex];
+                    string optPat = BuildRegexPattern(optStep.MaskingPattern);
 
-                    if (_regexCache.TryGetValue(optStep.MaskingPattern, out Regex optRx) && optRx.IsMatch(log.LogMessage))
+                    // 💡 Optional 스텝이라도 실제 로그에서 발견되면 MatchedLines에 추가 (하이라이팅용)
+                    // 발견 여부와 무관하게 스텝은 스킵되므로 사이클 진행에는 영향 없음
+                    if (Regex.IsMatch(log.LogMessage, optPat))
                     {
                         ctx.ActiveMatchedLines.Add((log.LineNo, log.SourceFileName));
                         ctx.LastMatchedTime = log.LogTime;
@@ -212,8 +219,8 @@ namespace GateHelper.LogValidator.Core
                         return;
                     }
 
-                    var nextOptStep = ctx.Master.Steps[ctx.Master.CurrentStepIndex];
-                    if (_regexCache.TryGetValue(nextOptStep.MaskingPattern, out Regex nextOptRx) && nextOptRx.IsMatch(log.LogMessage))
+                    string nextPat = BuildRegexPattern(ctx.Master.Steps[ctx.Master.CurrentStepIndex].MaskingPattern);
+                    if (Regex.IsMatch(log.LogMessage, nextPat))
                     {
                         ctx.ActiveMatchedLines.Add((log.LineNo, log.SourceFileName));
                         ctx.LastMatchedTime = log.LogTime;
@@ -225,13 +232,15 @@ namespace GateHelper.LogValidator.Core
                     }
                 }
 
-                if (_regexCache.TryGetValue(ctx.Master.Steps[0].MaskingPattern, out Regex restartRx3) && restartRx3.IsMatch(log.LogMessage))
+                // 첫 스텝 재등장 → 기존 사이클 실패, 새 사이클 시작
+                string restartPattern = BuildRegexPattern(ctx.Master.Steps[0].MaskingPattern);
+                if (Regex.IsMatch(log.LogMessage, restartPattern))
                 {
                     DumpFailedCycle(ctx, log.LineNo - 1, log.SourceFileName);
                     ctx.CurrentCycleStartLine = log.LineNo;
                     ctx.CurrentCycleStartSource = log.SourceFileName;
                     ctx.LastMatchedTime = log.LogTime;
-                    ctx.ActiveMatchedLines.Add((log.LineNo, log.SourceFileName));
+                    ctx.ActiveMatchedLines.Add((log.LineNo, log.SourceFileName)); // 💡 첫 스텝 하이라이팅 포함
                     ctx.Master.CurrentStepIndex = 1;
                 }
             }
@@ -330,6 +339,13 @@ namespace GateHelper.LogValidator.Core
             ctx.Master.CurrentStepIndex = 0;
         }
 
+        private static string BuildRegexPattern(string scenarioPattern)
+        {
+            if (string.IsNullOrEmpty(scenarioPattern)) return string.Empty;
+            string escaped = Regex.Escape(scenarioPattern);
+            return $"^{escaped.Replace(@"\*", "(.*?)")}$";
+        }
+
         private class ScenarioBuildContext
         {
             public ScenarioEvaluator Master { get; }
@@ -339,8 +355,9 @@ namespace GateHelper.LogValidator.Core
             public string CurrentCycleStartSource { get; set; }
             public DateTime LastMatchedTime { get; set; } = DateTime.MinValue;
 
+            // 💡 AND/OR 그룹 처리용 상태
             public int ActiveGroupId { get; set; } = 0;
-            public string ActiveGroupType { get; set; } = "AND";
+            public string ActiveGroupType { get; set; } = "AND"; // "AND" or "OR"
             public List<ScenarioStepModel> PendingGroupPatterns { get; set; } = new List<ScenarioStepModel>();
 
             public List<(int LineNo, string SourceFileName)> ActiveMatchedLines { get; }

@@ -304,75 +304,92 @@ namespace GateHelper.Mgmt
         }
 
         // 3. [서브루틴] Port 부모 전개 및 자식 다중 수집
-        public static async Task<int> CollectPortDataAsync(IWebDriver driver, XLWorkbook workbook, string machineName, string targetPortParentName, string targetChildPortPrefix)
+        // 🔒 [격리] scopeElement(현재 호기의 SEM 노드) 기준 following:: 축으로만 탐색하여
+        //    이전 호기의 잔존 StockerPorts/자식 포트 노드를 절대 잡지 않도록 강제 격리
+        // 🔍 [검증용] discovered(발견된 개수) vs collected(실제 수집 성공 개수)를 함께 반환하여
+        //    최종 결과와 비교, 데이터 유실 여부를 판단할 수 있게 함
+        public static async Task<(int collected, int discovered)> CollectPortDataAsync(IWebDriver driver, IWebElement scopeElement, XLWorkbook workbook, string machineName, string targetPortParentName, string targetChildPortPrefix)
         {
             int count = 0;
 
-            string portParentXPath = $"//span[contains(@class, 'wj-node-text') and text()='{targetPortParentName}']";
-            var portParentElement = driver.FindElements(By.XPath(portParentXPath)).Where(el => el.Displayed).LastOrDefault();
+            string portParentXPath = $"following::span[contains(@class, 'wj-node-text') and text()='{targetPortParentName}']";
 
-            if (portParentElement != null)
+            // 🕒 [폴링 대기] SEM 탐색과 동일한 기준(0.5초 간격, 최대 20초) 적용
+            const int portParentPollIntervalMs = 500;
+            const int portParentMaxWaitMs = 20000;
+            IWebElement portParentElement = null;
+
+            for (int waited = 0; waited <= portParentMaxWaitMs; waited += portParentPollIntervalMs)
             {
-                bool parentClicked = await Util_Element.ScrollAndClickAsync(driver, portParentElement, 1000);
-                if (parentClicked)
+                portParentElement = scopeElement.FindElements(By.XPath(portParentXPath)).FirstOrDefault(el => el.Displayed);
+                if (portParentElement != null) break;
+                await Task.Delay(portParentPollIntervalMs);
+            }
+
+            if (portParentElement == null)
+            {
+                LogManager.LogMessage($"[{machineName}] {targetPortParentName} (Port 부모 노드)를 {portParentMaxWaitMs / 1000}초 내에 찾지 못했습니다.", LogManager.Level.Warning);
+                return (0, 0);
+            }
+
+            bool parentClicked = await Util_Element.ScrollAndClickAsync(driver, portParentElement, 1000);
+            if (!parentClicked) return (0, 0);
+
+            string childPortXPath = $"following::span[contains(@class, 'wj-node-text') and contains(text(), '{targetChildPortPrefix}')]";
+
+            // 💡 부모 폴더 클릭 직후 하위 포트가 0개로 뜨는 버그 방지 (최대 2.5초 감시 대기)
+            List<IWebElement> visibleChildPorts = new List<IWebElement>();
+            for (int retry = 0; retry < 5; retry++)
+            {
+                visibleChildPorts = portParentElement.FindElements(By.XPath(childPortXPath)).Where(el => el.Displayed).ToList();
+                if (visibleChildPorts.Count > 0) break; // 나타나면 즉시 감시 종료 후 진행
+                await Task.Delay(500);
+            }
+
+            int childPortCount = visibleChildPorts.Count;
+
+            // 로깅 추가 (실패 시 원인 파악용)
+            if (childPortCount == 0)
+            {
+                LogManager.LogMessage($"[{machineName}] {targetPortParentName} 하위에 '{targetChildPortPrefix}' 포트가 발견되지 않아 스킵합니다.", LogManager.Level.Warning);
+                return (0, 0);
+            }
+
+            LogManager.LogMessage($"[{machineName}] 총 {childPortCount}개의 Port 발견. 수집을 시작합니다.", LogManager.Level.Info);
+
+            for (int j = 0; j < childPortCount; j++)
+            {
+                var refreshedPorts = portParentElement.FindElements(By.XPath(childPortXPath)).Where(el => el.Displayed).ToList();
+                if (j >= refreshedPorts.Count) break;
+
+                var targetPort = refreshedPorts[j];
+                string portName = targetPort.Text;
+
+                bool portClicked = await Util_Element.ScrollAndClickAsync(driver, targetPort, 1500);
+                if (portClicked)
                 {
-                    string childPortXPath = $"//span[contains(@class, 'wj-node-text') and contains(text(), '{targetChildPortPrefix}')]";
+                    var tableData = await Util_MgmtElement.GetTableDataBySmartScrollAsync(driver);
 
-                    // 💡 [핵심 수정] 부모 폴더 클릭 직후 하위 포트가 0개로 뜨는 버그 방지 (최대 2.5초 감시 대기)
-                    List<IWebElement> visibleChildPorts = new List<IWebElement>();
-                    for (int retry = 0; retry < 5; retry++)
+
+                    if (tableData != null && tableData.Count > 0)
                     {
-                        visibleChildPorts = driver.FindElements(By.XPath(childPortXPath)).Where(el => el.Displayed).ToList();
-                        if (visibleChildPorts.Count > 0) break; // 나타나면 즉시 감시 종료 후 진행
-                        await Task.Delay(500);
+                        SaveDataToExcel(workbook, machineName, portName, tableData);
+                        count++;
                     }
-
-                    int childPortCount = visibleChildPorts.Count;
-
-                    // 로깅 추가 (실패 시 원인 파악용)
-                    if (childPortCount == 0)
+                    else
                     {
-                        LogManager.LogMessage($"[{machineName}] {targetPortParentName} 하위에 '{targetChildPortPrefix}' 포트가 발견되지 않아 스킵합니다.", LogManager.Level.Warning);
-                        return 0;
-                    }
-
-                    LogManager.LogMessage($"[{machineName}] 총 {childPortCount}개의 Port 발견. 수집을 시작합니다.", LogManager.Level.Info);
-
-                    for (int j = 0; j < childPortCount; j++)
-                    {
-                        var refreshedPorts = driver.FindElements(By.XPath(childPortXPath)).Where(el => el.Displayed).ToList();
-                        if (j >= refreshedPorts.Count) break;
-
-                        var targetPort = refreshedPorts[j];
-                        string portName = targetPort.Text;
-
-                        bool portClicked = await Util_Element.ScrollAndClickAsync(driver, targetPort, 1500);
-                        if (portClicked)
-                        {
-                            var tableData = await Util_MgmtElement.GetTableDataBySmartScrollAsync(driver);
-
-                            if (tableData != null && tableData.Count > 0)
-                            {
-                                SaveDataToExcel(workbook, machineName, portName, tableData);
-                                count++;
-                            }
-                            else
-                            {
-                                LogManager.LogMessage($"[{machineName}] {portName}의 데이터를 읽지 못했습니다.", LogManager.Level.Warning);
-                            }
-                        }
+                        LogManager.LogMessage($"[{machineName}] {portName}의 데이터를 읽지 못했습니다.", LogManager.Level.Warning);
                     }
                 }
             }
-            else
-            {
-                LogManager.LogMessage($"[{machineName}] {targetPortParentName} (Port 부모 노드)를 화면에서 찾을 수 없습니다.", LogManager.Level.Warning);
-            }
-            return count;
+
+            return (count, childPortCount);
         }
 
         // 4. [리포팅] 최종 결과 집계 및 사용자 알림 출력
-        public static void ShowFinalReport(string eqpType, int machineCount, int successMachineCount, int collectedSemCount, int collectedPortCount, TimeSpan elapsedTime, List<string> failedMachines)
+        // 🔍 [검증] expectedSemCount/expectedPortCount(발견/기대 수량)와 실제 수집 수량을 비교하여
+        //    불일치 시 데이터가 부정확할 수 있음을 경고
+        public static void ShowFinalReport(string eqpType, int machineCount, int successMachineCount, int collectedSemCount, int collectedPortCount, TimeSpan elapsedTime, List<string> failedMachines, int expectedSemCount, int expectedPortCount)
         {
             // 💡 [수정] 60분이 넘어가면 '시간' 단위로 변환하여 문자열을 동적 조합
             int hours = (int)elapsedTime.TotalHours;
@@ -384,18 +401,41 @@ namespace GateHelper.Mgmt
                 ? $"{hours}시간 {minutes}분 {seconds}초"
                 : $"{minutes}분 {seconds}초";
 
-            // 백그라운드 관리자 로그
-            LogMessage("===================================================", Level.Info);
-            LogMessage($"[최종 요약] 전체 자동화 수집 루프 완료 ({eqpType})", Level.Info);
-            LogMessage($" - 총 소요 시간 : {timeFormat}", Level.Info);
-            LogMessage($" - 대상 설비 : 총 {machineCount}대 중 {successMachineCount}대 완료 (실패: {failedMachines.Count}대)", Level.Info);
-            LogMessage($" - 엑셀 누적 결과 : SEM ({collectedSemCount}건), Port ({collectedPortCount}건)", Level.Info);
+            // 🔍 [검증] 기대 수량 대비 실제 수집 수량 불일치 여부 확인
+            bool semMismatch = expectedSemCount != collectedSemCount;
+            bool portMismatch = expectedPortCount != collectedPortCount;
+            bool hasMismatch = semMismatch || portMismatch;
+
+            // 백그라운드 관리자 로그 — "ShowFinalReport ::" 프리픽스 줄 다음 공백 한 줄, 그 아래 위/아래 === 바로 감싼 블록
+            var reportLines = new List<string>
+            {
+                "",
+                "",
+                "===================================================",
+                $"[최종 요약] 전체 자동화 수집 루프 완료 ({eqpType})",
+                $" - 총 소요 시간 : {timeFormat}",
+                $" - 대상 설비 : 총 {machineCount}대 중 {successMachineCount}대 완료 (실패: {failedMachines.Count}대)",
+                $" - 엑셀 누적 결과 : SEM ({collectedSemCount}건), Port ({collectedPortCount}건)"
+            };
+
+            if (hasMismatch)
+            {
+                reportLines.Add($" - [검증 경고] 수량 불일치 감지 : SEM 기대 {expectedSemCount}건 vs 실제 {collectedSemCount}건 / Port 기대 {expectedPortCount}건 vs 실제 {collectedPortCount}건");
+            }
 
             if (failedMachines.Count > 0)
             {
-                LogMessage($" - 실패 호기 목록 : {string.Join(", ", failedMachines)}", Level.Error);
+                reportLines.Add($" - 실패 호기 목록 : {string.Join(", ", failedMachines)}");
             }
-            LogMessage("===================================================", Level.Info);
+
+            reportLines.Add("===================================================");
+
+            // 레벨은 심각도가 가장 높은 것으로 통일 (Error > Warning > Info)
+            Level reportLevel = failedMachines.Count > 0 ? Level.Error
+                               : hasMismatch ? Level.Warning
+                               : Level.Info;
+
+            LogMessage(string.Join(Environment.NewLine, reportLines), reportLevel);
 
             // 사용자 화면 팝업용 리스트 축약
             string failedListDisplay = "None";
@@ -410,16 +450,26 @@ namespace GateHelper.Mgmt
             }
 
             double avgTime = successMachineCount > 0 ? (elapsedTime.TotalSeconds / successMachineCount) : 0;
+
+            // 🔍 [검증] 불일치 시 메시지박스에도 경고 문구 추가
+            string mismatchWarning = hasMismatch
+                ? "\n⚠️ [데이터 검증 경고]\n" +
+                  $"SEM 기대 {expectedSemCount}건 / 실제 {collectedSemCount}건, Port 기대 {expectedPortCount}건 / 실제 {collectedPortCount}건로 수량이 일치하지 않습니다.\n" +
+                  "데이터가 부정확할 수 있으니 로그를 확인해 주십시오.\n"
+                : "";
+
             string reportMessage = $"🎉 모든 설비의 데이터 수집이 완료되었습니다!\n\n" +
                        "📊 [수집 요약]\n" +
                        $"• 처리된 설비: 총 {machineCount}대 중 {successMachineCount}대 성공\n" +
                        $"• 실패한 설비: {failedMachines.Count}대 ({failedListDisplay})\n" +
                        $"• 총 엑셀 저장 건수: {collectedSemCount + collectedPortCount}건 (SEM: {collectedSemCount}건 / Port: {collectedPortCount}건)\n" +
-                       $"• 총 소요 시간: {timeFormat} (설비당 평균 {avgTime:F1}초)\n\n" +
+                       $"• 총 소요 시간: {timeFormat} (설비당 평균 {avgTime:F1}초)\n" +
+                       mismatchWarning + "\n" +
                        "💾 [저장 위치]\n" +
                        "바탕화면 ➔ Integrated_Equipment_Data.xlsx";
 
-            MessageBox.Show(reportMessage, "Data Collection Complete", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBox.Show(reportMessage, "Data Collection Complete", MessageBoxButtons.OK,
+                hasMismatch ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
         }
 
 
@@ -484,80 +534,90 @@ namespace GateHelper.Mgmt
         /// 단일 호기를 이름 기반 XPath로 직접 찾아 클릭하고 데이터를 수집합니다.
         /// 인덱스 기반 탐색을 제거하여 StaleElementReferenceException을 원천 차단합니다.
         /// </summary>
-        public static async Task<(bool isSuccess, string machineName, int semCount, int portCount, string errorMessage)>
+        public static async Task<(bool isSuccess, string machineName, int semCount, int portCount, string errorMessage, int expectedPortCount)>
         ProcessSingleMachineAsync(IWebDriver driver, XLWorkbook workbook, string machineXPath, string currentMachineName,
                              (string semName, string portParentName, string childPortPrefix) keys,
                              bool isSemChecked, bool isPortChecked)
         {
             int semCount = 0;
             int portCount = 0;
+            int expectedPortCount = 0;
 
             try
             {
                 // 이름으로 직접 탐색 (인덱스 기반 제거)
                 var targetMachine = driver.FindElements(By.XPath(machineXPath))
                     .Where(el => el.Displayed).FirstOrDefault();
-                if (targetMachine == null) return (false, currentMachineName, 0, 0, "화면에서 호기 노드를 찾을 수 없습니다.");
+                if (targetMachine == null) return (false, currentMachineName, 0, 0, "화면에서 호기 노드를 찾을 수 없습니다.", 0);
 
                 // 1. 호기 폴더 펼치기
                 bool machineClicked = await Util_Element.ScrollAndClickAsync(driver, targetMachine, 1000);
-                if (!machineClicked) return (false, currentMachineName, 0, 0, "호기 노드 클릭 실패");
+                if (!machineClicked) return (false, currentMachineName, 0, 0, "호기 노드 클릭 실패", 0);
 
                 // =================================================================
-                // 💡 [구조 복원] UI 네비게이션 필수 경로 타격
+                // 💡 [구조 복원 + 격리] UI 네비게이션 필수 경로 타격
                 // Port 수집을 위해 길을 열어주려면 반드시 SEM 노드를 클릭해야 하는 물리적 종속성 반영
+                // 🔒 [격리] 전역(//) 탐색 대신 targetMachine 기준 following:: 축으로 탐색하여
+                //    이전 호기(위쪽에 위치)의 잔존 노드를 절대 잡지 않도록 강제 격리
                 // =================================================================
-                string semXPath = $"//span[contains(@class, 'wj-node-text') and text()='{keys.semName}']";
-                var semElement = driver.FindElements(By.XPath(semXPath)).Where(el => el.Displayed).LastOrDefault();
+                string semXPath = $"following::span[contains(@class, 'wj-node-text') and text()='{keys.semName}']";
 
-                if (semElement != null)
+                // 🕒 [폴링 대기] 렌더링 지연 대비 — 0.5초 간격으로 최대 20초까지 감시.
+                //    나타나는 즉시 대기를 끝내고 진행하므로 정상 케이스의 속도 저하는 없음.
+                const int semPollIntervalMs = 500;
+                const int semMaxWaitMs = 20000;
+                IWebElement semElement = null;
+
+                for (int waited = 0; waited <= semMaxWaitMs; waited += semPollIntervalMs)
                 {
-                    // 수집 여부와 무관하게 무조건 클릭하여 하위 트리(Port)를 렌더링시킴
-                    bool semClicked = await Util_Element.ScrollAndClickAsync(driver, semElement, 1000);
+                    semElement = targetMachine.FindElements(By.XPath(semXPath)).FirstOrDefault(el => el.Displayed);
+                    if (semElement != null) break;
+                    await Task.Delay(semPollIntervalMs);
+                }
 
-                    if (semClicked)
-                    {
-                        // 💡 [핵심] 길은 열어두었으나, 실제 데이터를 긁을지 말지는 체크박스에 따라 철저히 독립적으로 작동
-                        if (isSemChecked)
-                        {
-                            semCount += await CollectSemDataAsync(driver, workbook, currentMachineName, keys.semName);
-                        }
-                        else
-                        {
-                            LogManager.LogMessage($"[{currentMachineName}] 옵션에 따라 {keys.semName} 데이터 수집은 스킵합니다.", LogManager.Level.Info);
-                        }
+                if (semElement == null)
+                {
+                    LogManager.LogMessage($"[{currentMachineName}] {keys.semName} 노드를 {semMaxWaitMs / 1000}초 내에 찾지 못해 하위 스캔을 중단합니다.", LogManager.Level.Warning);
+                    // 🔧 [수정] 경로를 못 찾은 것은 명백한 실패이므로 true로 위장하지 않고 실패 처리
+                    return (false, currentMachineName, 0, 0, $"{keys.semName} 노드를 {semMaxWaitMs / 1000}초 내에 찾을 수 없음 (렌더링 지연 또는 트리 상태 이상)", 0);
+                }
 
-                        // 위에서 SEM을 클릭해 길을 열었으므로, 이제 Port가 정상적으로 스캔됨
-                        if (isPortChecked)
-                        {
-                            portCount += await CollectPortDataAsync(driver, workbook, currentMachineName, keys.portParentName, keys.childPortPrefix);
-                        }
-                    }
+                // 수집 여부와 무관하게 무조건 클릭하여 하위 트리(Port)를 렌더링시킴
+                bool semClicked = await Util_Element.ScrollAndClickAsync(driver, semElement, 1000);
+                if (!semClicked)
+                {
+                    return (false, currentMachineName, 0, 0, $"{keys.semName} 노드 클릭 실패", 0);
+                }
+
+                // 💡 [핵심] 길은 열어두었으나, 실제 데이터를 긁을지 말지는 체크박스에 따라 철저히 독립적으로 작동
+                if (isSemChecked)
+                {
+                    semCount += await CollectSemDataAsync(driver, workbook, currentMachineName, keys.semName);
                 }
                 else
                 {
-                    LogManager.LogMessage($"[{currentMachineName}] {keys.semName} 필수 경로를 찾을 수 없어 하위 스캔을 중단합니다.", LogManager.Level.Warning);
+                    LogManager.LogMessage($"[{currentMachineName}] 옵션에 따라 {keys.semName} 데이터 수집은 스킵합니다.", LogManager.Level.Info);
                 }
 
-                // =================================================================
-                // 클린 DOM: 호기 폴더 접기 (이름 기반 절대 타격 유지)
-                // =================================================================
-                try
+                // 위에서 SEM을 클릭해 길을 열었으므로, 이제 Port가 정상적으로 스캔됨
+                // 🔍 [검증용] 발견된 Port 개수(expected)와 실제 수집 성공 개수(collected)를 함께 받아 상위로 전달
+                if (isPortChecked)
                 {
-                    string closeXPath = $"//span[contains(@class, 'wj-node-text') and text()='{currentMachineName}']";
-                    var closeNode = driver.FindElements(By.XPath(closeXPath)).Where(el => el.Displayed).FirstOrDefault();
-                    if (closeNode != null) await Util_Element.ScrollAndClickAsync(driver, closeNode, 500);
-                }
-                catch (Exception ex)
-                {
-                    LogManager.LogMessage($"[{currentMachineName}] 폴더 접기 무시됨: {ex.Message}", LogManager.Level.Warning);
+                    var portResult = await CollectPortDataAsync(driver, semElement, workbook, currentMachineName, keys.portParentName, keys.childPortPrefix);
+                    portCount += portResult.collected;
+                    expectedPortCount += portResult.discovered;
                 }
 
-                return (true, currentMachineName, semCount, portCount, string.Empty);
+                // 💡 [삭제] 호기 폴더 접기 로직 제거됨.
+                // following:: 축 격리 탐색으로 이전 호기 잔존 노드를 이미 구조적으로 배제하고 있어
+                // 폴더를 닫지 않아도 데이터 정확성에 영향이 없음을 실측(82대 전량 일치)으로 확인함.
+                // 호기당 약 0.9초씩 불필요하게 소요되던 구간을 제거.
+
+                return (true, currentMachineName, semCount, portCount, string.Empty, expectedPortCount);
             }
             catch (Exception ex)
             {
-                return (false, currentMachineName, 0, 0, ex.Message);
+                return (false, currentMachineName, 0, 0, ex.Message, 0);
             }
         }
 

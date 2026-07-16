@@ -131,10 +131,6 @@ namespace GateHelper.Mgmt
                     .Select(k => rowDict[k].Split('\t'))
                     .ToList();
 
-                LogManager.LogMessage(
-                    $"[스마트 스크롤 완료] {orderedKeys.Count}줄 추출 (스크롤 {attempt}회)",
-                    LogManager.Level.Info);
-
                 return parsedData;
             }
             catch (Exception ex)
