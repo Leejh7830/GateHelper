@@ -1,4 +1,4 @@
-﻿using GateHelper.LogValidator;
+using GateHelper.LogValidator;
 using GateHelper.Mgmt;
 using ClosedXML.Excel;
 using MaterialSkin;
@@ -969,6 +969,8 @@ namespace GateHelper
 
         private void MainUI_Load(object sender, EventArgs e)
         {
+            Microsoft.Win32.SystemEvents.DisplaySettingsChanged += SystemEvents_DisplaySettingsChanged;
+
             groupConnect1OriginalSize = GroupConnect1.Size;
             tabSelector1OriginalSize = TabSelector1.Size;
             tabControl1OriginalSize = TabControl1.Size;
@@ -993,8 +995,25 @@ namespace GateHelper
 
         }
 
+        private void SystemEvents_DisplaySettingsChanged(object sender, EventArgs e)
+        {
+            if (this.InvokeRequired)
+            {
+                this.Invoke(new Action(() => SystemEvents_DisplaySettingsChanged(sender, e)));
+                return;
+            }
+
+            // 모니터 연결/해제 시 MaterialSkin의 가장자리가 잘리는 현상을 복구하기 위해 강제로 폼 크기를 갱신합니다.
+            var currentSize = this.Size;
+            this.Size = new Size(currentSize.Width + 1, currentSize.Height);
+            this.Size = currentSize;
+            this.Refresh();
+        }
+
         private void MainUI_FormClosing(object sender, FormClosingEventArgs e)
         {
+            Microsoft.Win32.SystemEvents.DisplaySettingsChanged -= SystemEvents_DisplaySettingsChanged;
+
             // 1. 사용자에게 종료 여부 확인
             DialogResult result = MessageBox.Show(this,
                 "Are you sure you want to exit?",

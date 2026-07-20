@@ -54,6 +54,7 @@ namespace GateHelper
             this.BtnStoCollect = new MaterialSkin.Controls.MaterialButton();
             this.BtnPauseCollect = new MaterialSkin.Controls.MaterialButton();
             this.BtnMoveVariable = new MaterialSkin.Controls.MaterialButton();
+            this.BtnStartManagement = new MaterialSkin.Controls.MaterialButton();
             this.tabPage4 = new System.Windows.Forms.TabPage();
             this.OlvServerList = new BrightIdeasSoftware.ObjectListView();
             this.IsInUse = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
@@ -94,7 +95,6 @@ namespace GateHelper
             this.lblVersion = new System.Windows.Forms.Label();
             this.BtnOpenLog2 = new MaterialSkin.Controls.MaterialButton();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
-            this.BtnStartManagement = new MaterialSkin.Controls.MaterialButton();
             this.TxtQuickSearch = new MaterialSkin.Controls.MaterialTextBox2();
             this.BtnQuickConnect = new MaterialSkin.Controls.MaterialButton();
             this.BtnLogValidator = new MaterialSkin.Controls.MaterialButton();
@@ -454,7 +454,7 @@ namespace GateHelper
             this.GroupManagement1.Controls.Add(this.BtnPauseCollect);
             this.GroupManagement1.Controls.Add(this.BtnMoveVariable);
             this.GroupManagement1.Controls.Add(this.BtnStartManagement);
-            this.GroupManagement1.Location = new System.Drawing.Point(405, 13);
+            this.GroupManagement1.Location = new System.Drawing.Point(407, 13);
             this.GroupManagement1.Margin = new System.Windows.Forms.Padding(2);
             this.GroupManagement1.Name = "GroupManagement1";
             this.GroupManagement1.Padding = new System.Windows.Forms.Padding(2);
@@ -546,6 +546,28 @@ namespace GateHelper
             this.BtnMoveVariable.UseAccentColor = false;
             this.BtnMoveVariable.UseVisualStyleBackColor = true;
             this.BtnMoveVariable.Click += new System.EventHandler(this.BtnMoveVariable_Click);
+            // 
+            // BtnStartManagement
+            // 
+            this.BtnStartManagement.AutoSize = false;
+            this.BtnStartManagement.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnStartManagement.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnStartManagement.Depth = 0;
+            this.BtnStartManagement.Font = new System.Drawing.Font("돋움", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.BtnStartManagement.HighEmphasis = true;
+            this.BtnStartManagement.Icon = null;
+            this.BtnStartManagement.Location = new System.Drawing.Point(14, 20);
+            this.BtnStartManagement.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
+            this.BtnStartManagement.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnStartManagement.Name = "BtnStartManagement";
+            this.BtnStartManagement.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnStartManagement.Size = new System.Drawing.Size(136, 40);
+            this.BtnStartManagement.TabIndex = 102;
+            this.BtnStartManagement.Text = "Start Management";
+            this.BtnStartManagement.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnStartManagement.UseAccentColor = false;
+            this.BtnStartManagement.UseVisualStyleBackColor = true;
+            this.BtnStartManagement.Click += new System.EventHandler(this.BtnStartManagement_Click);
             // 
             // tabPage4
             // 
@@ -1088,28 +1110,6 @@ namespace GateHelper
             // 
             this.notifyIcon1.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon1.Icon")));
             this.notifyIcon1.Text = "notifyIcon1";
-            // 
-            // BtnStartManagement
-            // 
-            this.BtnStartManagement.AutoSize = false;
-            this.BtnStartManagement.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnStartManagement.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnStartManagement.Depth = 0;
-            this.BtnStartManagement.Font = new System.Drawing.Font("돋움", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.BtnStartManagement.HighEmphasis = true;
-            this.BtnStartManagement.Icon = null;
-            this.BtnStartManagement.Location = new System.Drawing.Point(14, 20);
-            this.BtnStartManagement.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
-            this.BtnStartManagement.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnStartManagement.Name = "BtnStartManagement";
-            this.BtnStartManagement.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnStartManagement.Size = new System.Drawing.Size(136, 40);
-            this.BtnStartManagement.TabIndex = 102;
-            this.BtnStartManagement.Text = "Start Management";
-            this.BtnStartManagement.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnStartManagement.UseAccentColor = false;
-            this.BtnStartManagement.UseVisualStyleBackColor = true;
-            this.BtnStartManagement.Click += new System.EventHandler(this.BtnStartManagement_Click);
             // 
             // TxtQuickSearch
             // 
