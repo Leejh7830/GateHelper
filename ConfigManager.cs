@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Configuration;
 using System.IO;
 using System.Windows.Forms;
@@ -66,7 +66,10 @@ namespace GateHelper
   <appSettings>
     <!-- Value 부분에 값을 입력하세요 -->
     <!-- GateOne 접속 URL -->
-    <add key=""Url"" value="""" />
+    <add key=""GateOneURL"" value="""" />
+    
+    <!-- 이메일 인증을 위한 Enportal URL -->
+    <add key=""EnportalURL"" value="""" />
 
     <!-- 자동로그인 및 팝업제어용 GATEONE ID/PW -->
     <add key=""GateUserID"" value="""" />
@@ -153,7 +156,8 @@ namespace GateHelper
 
                 var missingFields = new System.Text.StringBuilder(); // 25.03.12 필수 항목 검증
 
-                if (string.IsNullOrEmpty(config.AppSettings.Settings["Url"].Value)) missingFields.AppendLine("URL");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["GateOneURL"].Value)) missingFields.AppendLine("GateOneURL");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["EnportalURL"].Value)) missingFields.AppendLine("EnportalURL");
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["GateUserID"].Value)) missingFields.AppendLine("GateUserID");
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["GateUserPW"].Value)) missingFields.AppendLine("GateUserPW");
                 if (string.IsNullOrEmpty(config.AppSettings.Settings["GateName_A"].Value)) missingFields.AppendLine("GateName_A");
@@ -184,7 +188,8 @@ namespace GateHelper
 
                 LoadedConfig = new Config
                 {
-                    Url = config.AppSettings.Settings["Url"]?.Value ?? "",
+                    GateOneURL = config.AppSettings.Settings["GateOneURL"]?.Value ?? "",
+                    EnportalURL = config.AppSettings.Settings["EnportalURL"]?.Value ?? "",
                     GateUserID = config.AppSettings.Settings["GateUserID"]?.Value ?? "",
                     GateUserPW = config.AppSettings.Settings["GateUserPW"]?.Value ?? "",
                     GateName_A = config.AppSettings.Settings["GateName_A"]?.Value ?? "",

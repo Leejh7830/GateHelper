@@ -1,4 +1,4 @@
-﻿using OpenQA.Selenium;
+using OpenQA.Selenium;
 using OpenQA.Selenium.Chrome;
 using System;
 using System.Diagnostics;
@@ -440,6 +440,17 @@ namespace GateHelper
             options.AddArgument("--remote-debugging-port=9222");
             options.AddArgument("--no-sandbox");
             options.AddArgument("--disable-dev-shm-usage");
+            options.AddArgument("--ignore-certificate-errors"); // SSL 인증서 오류 무시
+
+            // MDOHelper 등 외부 프로토콜 팝업 허용 처리 (Dictionary 형태로 전달해야 정상 적용됨)
+            var excludedSchemes = new System.Collections.Generic.Dictionary<string, object>
+            {
+                { "mdohelper", false },
+                { "MDOhelper", false },
+                { "MDOHelper", false }
+            };
+            options.AddUserProfilePreference("protocol_handler.excluded_schemes", excludedSchemes);
+
             options.UnhandledPromptBehavior = UnhandledPromptBehavior.Ignore;
             return options;
         }

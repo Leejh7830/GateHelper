@@ -1,10 +1,11 @@
-﻿
+
 
 namespace GateHelper
 {
     public class Config
     {
-        public string Url { get; set; }
+        public string GateOneURL { get; set; }
+        public string EnportalURL { get; set; }
         public string ManagementUrl { get; set; }
         public string GateName_A { get; set; }
         public string GateID_A { get; set; }

@@ -446,7 +446,7 @@ namespace GateHelper
                 // 드라이버 비동기 초기화
                 _driver = await Task.Run(() => ChromeDriverManager.InitializeDriverWithSeleniumManager(_config));
 
-                _driver.Navigate().GoToUrl(_config.Url);
+                _driver.Navigate().GoToUrl(_config.GateOneURL);
                 mainHandle = _driver.CurrentWindowHandle;
                 LogMessage("Start MainHandle: " + mainHandle, Level.Info);
 
