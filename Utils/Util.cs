@@ -1,10 +1,12 @@
-﻿using ClosedXML.Excel;
+using ClosedXML.Excel;
 using OpenQA.Selenium;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Windows.Forms;
@@ -15,6 +17,120 @@ namespace GateHelper
 {
     public static class Util // 공통 유틸리티
     {
+        #region Chrome 프로토콜 팝업 제어 (키보드 주입 방식)
+
+        [DllImport("user32.dll")]
+        private static extern bool SetForegroundWindow(IntPtr hWnd);
+
+        [DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+        private static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+        private static class NativeMethods
+        {
+            public delegate bool EnumWindowsProc(IntPtr hWnd, IntPtr lParam);
+
+            [DllImport("user32.dll")]
+            public static extern bool EnumWindows(EnumWindowsProc lpEnumFunc, IntPtr lParam);
+        }
+
+        /// <summary>
+        /// 실행 중인 Chrome 창 중 첫 번째 창을 찾아 포그라운드로 활성화합니다.
+        /// </summary>
+        /// <returns>Chrome 창을 찾아 활성화했으면 true, 아니면 false</returns>
+        public static bool SetChromeForeground()
+        {
+            IntPtr chromeHwnd = IntPtr.Zero;
+            NativeMethods.EnumWindows((hWnd, lParam) =>
+            {
+                var sb = new StringBuilder(512);
+                GetWindowText(hWnd, sb, 512);
+                string title = sb.ToString();
+                if (title.IndexOf("Chrome", StringComparison.OrdinalIgnoreCase) >= 0)
+                {
+                    chromeHwnd = hWnd;
+                    return false;
+                }
+                return true;
+            }, IntPtr.Zero);
+
+            if (chromeHwnd != IntPtr.Zero)
+            {
+                SetForegroundWindow(chromeHwnd);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Chrome 브라우저 창에 포커스를 맞추고 키보드 입력을 주입하여
+        /// "MDOHelper을(를) 여시겠습니까?" 다이얼로그를 자동 처리합니다.
+        /// 페이지 로드 완료를 감지한 뒤 bufferMs 만큼만 기다리고 즉시 처리합니다.
+        /// </summary>
+        /// <param name="driver">Selenium IWebDriver (페이지 로드 감지용)</param>
+        /// <param name="bufferMs">페이지 로드 완료 후 팝업 뜰 때까지 추가 대기 (기본 800ms)</param>
+        /// <param name="pageLoadTimeoutMs">페이지 로드 최대 대기시간 (기본 15초)</param>
+        public static bool HandleMDOHelperDialog(IWebDriver driver, int bufferMs = 800, int pageLoadTimeoutMs = 15000)
+        {
+            try
+            {
+                // 1. 페이지 로드 완료까지 대기 (document.readyState == 'complete')
+                LogMessage("[MDOHelper] 페이지 로드 완료 감지 대기 중...", Level.Info);
+                var sw = System.Diagnostics.Stopwatch.StartNew();
+                bool loaded = false;
+                while (sw.ElapsedMilliseconds < pageLoadTimeoutMs)
+                {
+                    try
+                    {
+                        var js = driver as OpenQA.Selenium.IJavaScriptExecutor;
+                        string state = js?.ExecuteScript("return document.readyState")?.ToString();
+                        if (state == "complete")
+                        {
+                            loaded = true;
+                            break;
+                        }
+                    }
+                    catch { /* 드라이버 전환 중 예외 무시 */ }
+                    Thread.Sleep(200);
+                }
+
+                if (!loaded)
+                    LogMessage($"[MDOHelper] 페이지 로드 타임아웃 ({pageLoadTimeoutMs}ms), 그래도 진행합니다.", Level.Warning);
+                else
+                    LogMessage($"[MDOHelper] 페이지 로드 완료 감지 ({sw.ElapsedMilliseconds}ms 소요)", Level.Info);
+
+                // 2. 팝업이 뜰 여유 시간
+                Thread.Sleep(bufferMs);
+
+                // 3. Chrome 창 활성화
+                if (!SetChromeForeground())
+                {
+                    LogMessage("[MDOHelper] Chrome 창을 찾지 못했습니다.", Level.Warning);
+                    return false;
+                }
+
+                LogMessage($"[MDOHelper] Chrome 창 발견, 키보드 주입 시작", Level.Info);
+                Thread.Sleep(400);
+
+                SendKeys.SendWait("{TAB}");  // 체크박스 포커스
+                Thread.Sleep(300);
+                SendKeys.SendWait(" ");      // 체크박스 체크
+                Thread.Sleep(300);
+                SendKeys.SendWait("{TAB}");  // 열기 버튼 포커스
+                Thread.Sleep(300);
+                SendKeys.SendWait(" ");      // 열기 버튼 클릭
+
+                LogMessage("[MDOHelper] 키보드 처리 완료", Level.Info);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error, "[MDOHelper] 팝업 처리 중 오류 발생");
+                return false;
+            }
+        }
+
+        #endregion Chrome 프로토콜 팝업 제어 (키보드 주입 방식)
+
 
         public static string CreateMetaFolderAndGetPath()
         {

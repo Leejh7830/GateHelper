@@ -125,7 +125,7 @@ namespace GateHelper
             this.BtnGateOneLogin1.Depth = 0;
             this.BtnGateOneLogin1.HighEmphasis = true;
             this.BtnGateOneLogin1.Icon = null;
-            this.BtnGateOneLogin1.Location = new System.Drawing.Point(961, 116);
+            this.BtnGateOneLogin1.Location = new System.Drawing.Point(384, 73);
             this.BtnGateOneLogin1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnGateOneLogin1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnGateOneLogin1.Name = "BtnGateOneLogin1";

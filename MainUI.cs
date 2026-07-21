@@ -450,7 +450,8 @@ namespace GateHelper
                 mainHandle = _driver.CurrentWindowHandle;
                 LogMessage("Start MainHandle: " + mainHandle, Level.Info);
 
-                Util_Control.MoveFormToTop(this);
+                // MDOHelper 프로토콜 팝업이 뜰 경우 페이지 로드 감지 후 자동 처리
+                await Task.Run(() => Util.HandleMDOHelperDialog(_driver));
 
                 if (_appSettings.AutoLogin)
                 {
@@ -485,7 +486,7 @@ namespace GateHelper
                 return;
 
             Util_Connect.AutoConnect_2_Step(_driver, _config, mainHandle);
-            // Util_Connect.AutoConnect_3_Step(_driver);
+            Util_Connect.AutoConnect_3_Step(_driver);
 
         }
 

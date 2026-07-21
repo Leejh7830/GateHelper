@@ -1,4 +1,4 @@
-﻿using BrightIdeasSoftware;
+using BrightIdeasSoftware;
 using OpenQA.Selenium;
 using OpenQA.Selenium.Support.UI;
 using SeleniumExtras.WaitHelpers;
@@ -311,15 +311,19 @@ namespace GateHelper
                     return; // MainHandle 없음
                 }
 
-                //WebDriverWait wait = new WebDriverWait(driver, TimeSpan.FromSeconds(10));
-                //Util_Control.SendKeysToElement(driver, "//*[@id='USERID']", _config.EnportalID); 
-                //Util_Control.SendKeysToElement(driver, "//*[@id='PASSWD']", _config.EnportalPW);
-                //Util.InputKeys("{ENTER}", 100);
+                // XPath 대신 기존 아날로그 방식(키보드 입력) 복구
+                // iframe 등 DOM 구조 문제로 요소를 찾지 못하는 현상 회피
+                Thread.Sleep(500); // 포커스 안정화 대기
+                
+                // OS 포커스를 Chrome 브라우저 창으로 확실히 이동
+                Util.SetChromeForeground();
+                Thread.Sleep(300);
 
                 Util.InputKeys(_config.GateUserID, 200);
                 Util.InputKeys("{TAB}", 200);
                 Util.InputKeys(_config.GateUserPW, 200);
                 Util.InputKeys("{ENTER}", 200);
+
             }
             catch (Exception ex)
             {
@@ -329,9 +333,86 @@ namespace GateHelper
 
         public static void AutoConnect_3_Step(IWebDriver driver)
         {
-            Thread.Sleep(3000);
-            ClickElementByXPath(driver, "//*[@id='login_return']");
-            // Util_Element.FindAndAlertElement(driver, "//*[@id='login_return']");
+            try
+            {
+                LogMessage("인증 팝업 대기 중...", Level.Info);
+
+                // 1. 최상단 컨텍스트로 이동 후 'main' 프레임으로 시선 전환
+                try
+                {
+                    driver.SwitchTo().DefaultContent();
+                    driver.SwitchTo().Frame("main");
+                    LogMessage("메인 프레임 전환 성공", Level.Info);
+                }
+                catch (Exception ex)
+                {
+                    LogMessage("메인 프레임 전환 실패 (프레임이 없거나 이름이 다름): " + ex.Message, Level.Warning);
+                }
+
+                // 2. 팝업이 AJAX 등으로 뒤늦게 로드될 수 있으므로 DOM에 나타날 때까지 최대 10초 대기
+                OpenQA.Selenium.IWebElement btn = null;
+                for (int i = 0; i < 50; i++)
+                {
+                    var elements = driver.FindElements(OpenQA.Selenium.By.Id("login_return"));
+                    if (elements.Count > 0)
+                    {
+                        btn = elements[0];
+                        break;
+                    }
+                    Thread.Sleep(200);
+                }
+
+                if (btn == null)
+                {
+                    throw new OpenQA.Selenium.WebDriverTimeoutException();
+                }
+
+                // Selenium 클릭은 블로킹/가림 현상이 있을 수 있으므로 JS로 클릭
+                var js = (OpenQA.Selenium.IJavaScriptExecutor)driver;
+                try 
+                {
+                    js.ExecuteScript("arguments[0].click();", btn);
+                    LogMessage("'인증번호 받기' JS 클릭 성공", Level.Info);
+                } 
+                catch 
+                {
+                    // 클릭마저 실패할 경우 HTML에 하드코딩된 함수 직접 호출
+                    js.ExecuteScript("otp_login();");
+                    LogMessage("'인증번호 받기' 함수 직접 호출(otp_login) 성공", Level.Info);
+                }
+
+                // 3. "요청 하였습니다." 브라우저 Alert 창(팝업) 대기 및 수락(엔터)
+                LogMessage("인증번호 요청 Alert 창 대기 중...", Level.Info);
+                bool alertAccepted = false;
+                for (int i = 0; i < 50; i++) // 최대 10초 대기
+                {
+                    try
+                    {
+                        var alert = driver.SwitchTo().Alert();
+                        alert.Accept();
+                        alertAccepted = true;
+                        LogMessage("Alert 창 '확인' 클릭 완료", Level.Info);
+                        break;
+                    }
+                    catch (OpenQA.Selenium.NoAlertPresentException)
+                    {
+                        Thread.Sleep(200);
+                    }
+                }
+
+                if (!alertAccepted)
+                {
+                    LogMessage("10초 동안 Alert 창이 뜨지 않았습니다.", Level.Warning);
+                }
+            }
+            catch (OpenQA.Selenium.WebDriverTimeoutException)
+            {
+                LogException(new Exception("Timeout"), Level.Error, "10초가 지나도 '인증번호 받기' 팝업이 로드되지 않았습니다.");
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error, "인증번호 받기 버튼 클릭 실패");
+            }
         }
 
     }
