@@ -1003,10 +1003,22 @@ namespace GateHelper
                 return;
             }
 
-            // 모니터 연결/해제 시 MaterialSkin의 가장자리가 잘리는 현상을 복구하기 위해 강제로 폼 크기를 갱신합니다.
-            var currentSize = this.Size;
-            this.Size = new Size(currentSize.Width + 1, currentSize.Height);
-            this.Size = currentSize;
+            // 디스플레이 변경 시 폼이 비정상적인 크기로 축소되는 것을 방지합니다.
+            // 폼 크기가 기본 크기보다 작아지면 기본 크기(FormOriginalSize)로 강제 복원합니다.
+            if (this.Width < FormOriginalSize.Width || this.Height < FormOriginalSize.Height)
+            {
+                this.Size = FormOriginalSize;
+                // 폼 크기가 기본 상태로 돌아갔으므로 확장 토글 상태를 초기화합니다.
+                changeArrow = true;
+            }
+            else
+            {
+                // 크기가 정상이면 모니터 연결/해제 시 MaterialSkin의 가장자리가 잘리는 현상을 
+                // 복구하기 위해 강제로 폼 크기를 살짝 변경 후 복원합니다.
+                var currentSize = this.Size;
+                this.Size = new Size(currentSize.Width + 1, currentSize.Height);
+                this.Size = currentSize;
+            }
             this.Refresh();
         }
 
