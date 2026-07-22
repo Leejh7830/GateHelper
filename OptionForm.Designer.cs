@@ -65,7 +65,6 @@ namespace GateHelper
             // 
             this.CBox_AutoLogin.AutoSize = true;
             this.CBox_AutoLogin.Depth = 0;
-            this.CBox_AutoLogin.Enabled = false;
             this.CBox_AutoLogin.Location = new System.Drawing.Point(17, 190);
             this.CBox_AutoLogin.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_AutoLogin.MouseLocation = new System.Drawing.Point(-1, -1);
@@ -284,7 +283,7 @@ namespace GateHelper
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(404, 617);
+            this.ClientSize = new System.Drawing.Size(420, 656);
             this.Controls.Add(this.BtnOpenMappingConfig);
             this.Controls.Add(this.CBox_UseUDP);
             this.Controls.Add(this.CBox_RemoveDuplicate);

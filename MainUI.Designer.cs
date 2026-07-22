@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+using System.Drawing;
 
 namespace GateHelper
 {
@@ -32,7 +32,6 @@ namespace GateHelper
         {
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(MainUI));
-            this.BtnGateOneLogin1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnRDP1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnSearch1 = new MaterialSkin.Controls.MaterialButton();
             this.TxtSearch1 = new MaterialSkin.Controls.MaterialTextBox2();
@@ -77,6 +76,7 @@ namespace GateHelper
             this.GroupRef2 = new System.Windows.Forms.GroupBox();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.TabSelector1 = new MaterialSkin.Controls.MaterialTabSelector();
+            this.TextBoxInput2 = new MaterialSkin.Controls.MaterialTextBox();
             this.BtnStart2 = new MaterialSkin.Controls.MaterialButton();
             this.BtnOpenConfig1 = new MaterialSkin.Controls.MaterialButton();
             this.toolTip_Question1 = new System.Windows.Forms.ToolTip(this.components);
@@ -116,27 +116,6 @@ namespace GateHelper
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Arrow)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicBox_Setting)).BeginInit();
             this.SuspendLayout();
-            // 
-            // BtnGateOneLogin1
-            // 
-            this.BtnGateOneLogin1.AutoSize = false;
-            this.BtnGateOneLogin1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnGateOneLogin1.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnGateOneLogin1.Depth = 0;
-            this.BtnGateOneLogin1.HighEmphasis = true;
-            this.BtnGateOneLogin1.Icon = null;
-            this.BtnGateOneLogin1.Location = new System.Drawing.Point(384, 73);
-            this.BtnGateOneLogin1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.BtnGateOneLogin1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnGateOneLogin1.Name = "BtnGateOneLogin1";
-            this.BtnGateOneLogin1.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnGateOneLogin1.Size = new System.Drawing.Size(103, 40);
-            this.BtnGateOneLogin1.TabIndex = 4;
-            this.BtnGateOneLogin1.Text = "GATEONE LOGIN";
-            this.BtnGateOneLogin1.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnGateOneLogin1.UseAccentColor = false;
-            this.BtnGateOneLogin1.UseVisualStyleBackColor = true;
-            this.BtnGateOneLogin1.Click += new System.EventHandler(this.BtnGateOneLogin1_Click);
             // 
             // BtnRDP1
             // 
@@ -863,6 +842,23 @@ namespace GateHelper
             this.TabSelector1.TabIndicatorHeight = 3;
             this.TabSelector1.Text = "TabSelector1";
             // 
+            // TextBoxInput2
+            // 
+            this.TextBoxInput2.AnimateReadOnly = false;
+            this.TextBoxInput2.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.TextBoxInput2.Depth = 0;
+            this.TextBoxInput2.Font = new System.Drawing.Font("Roboto", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.TextBoxInput2.LeadingIcon = null;
+            this.TextBoxInput2.Location = new System.Drawing.Point(856, 126);
+            this.TextBoxInput2.MaxLength = 50;
+            this.TextBoxInput2.MouseState = MaterialSkin.MouseState.OUT;
+            this.TextBoxInput2.Multiline = false;
+            this.TextBoxInput2.Name = "TextBoxInput2";
+            this.TextBoxInput2.Size = new System.Drawing.Size(147, 50);
+            this.TextBoxInput2.TabIndex = 11112;
+            this.TextBoxInput2.Text = "";
+            this.TextBoxInput2.TrailingIcon = null;
+            // 
             // BtnStart2
             // 
             this.BtnStart2.AutoSize = false;
@@ -1233,9 +1229,9 @@ namespace GateHelper
             this.Controls.Add(this.PicBox_Question);
             this.Controls.Add(this.BtnOpenConfig1);
             this.Controls.Add(this.BtnStart2);
+            this.Controls.Add(this.TextBoxInput2);
             this.Controls.Add(this.TabSelector1);
             this.Controls.Add(this.TabControl1);
-            this.Controls.Add(this.BtnGateOneLogin1);
             this.Controls.Add(this.BtnRDP1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(2);
@@ -1266,7 +1262,6 @@ namespace GateHelper
         }
 
         #endregion
-        private MaterialSkin.Controls.MaterialButton BtnGateOneLogin1;
         private MaterialSkin.Controls.MaterialButton BtnRDP1;
         private MaterialSkin.Controls.MaterialButton BtnSearch1;
         private System.Windows.Forms.GroupBox GroupConnect1;
@@ -1281,6 +1276,7 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton BtnFav2;
         private MaterialSkin.Controls.MaterialButton BtnFav3;
         private MaterialSkin.Controls.MaterialButton BtnStart2;
+        private MaterialSkin.Controls.MaterialTextBox TextBoxInput2;
         private System.Windows.Forms.GroupBox GroupFav1;
         private MaterialSkin.Controls.MaterialButton BtnOpenConfig1;
         private System.Windows.Forms.ToolTip toolTip_Question1;

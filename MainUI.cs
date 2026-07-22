@@ -147,6 +147,8 @@ namespace GateHelper
             LogMessage("프로그램 초기화 완료", Level.Info);
         }
 
+        private HashSet<string> _ignoredHandles = new HashSet<string>(); // 💡 공지사항 등 무시할 팝업 핸들 저장
+
         // ✦ TimerTick : Driver/Network/Popup/UDP Status Check
         private async void TimerStatusChecker_Tick(object sender, EventArgs e)
         {
@@ -174,10 +176,18 @@ namespace GateHelper
                         if (string.IsNullOrEmpty(managementHandle) || !currentHandles.Contains(managementHandle))
                         {
                             bool isLoading = false; // 💡 비정상 인터락 방어용 상태값
+                            string originalFocus = "";
+                            try { originalFocus = _driver.CurrentWindowHandle; } catch { }
+
+                            // 닫힌 무시 탭 정리
+                            if (_ignoredHandles.Count > 0)
+                            {
+                                _ignoredHandles.RemoveWhere(h => !currentHandles.Contains(h));
+                            }
 
                             foreach (var handle in currentHandles)
                             {
-                                if (handle != mainHandle)
+                                if (handle != mainHandle && !_ignoredHandles.Contains(handle))
                                 {
                                     _driver.SwitchTo().Window(handle);
 
@@ -210,12 +220,26 @@ namespace GateHelper
                                         LogMessage("[로딩 대기] 새 탭이 아직 로딩 중입니다.", Level.Info);
                                         isLoading = true;
                                     }
-                                    // 완전한 다른 사이트 (구글 등)
+                                    // 완전한 다른 사이트 (구글, 공지사항 등)
                                     else
                                     {
                                         LogMessage($"[플래그 실패] 타겟 키워드: '{targetKeyword}', 실제 URL: '{currentUrl}'", Level.Error);
+                                        _ignoredHandles.Add(handle); // 💡 다시는 5초마다 포커스를 뺏지 않도록 무시 목록에 추가
                                     }
                                 }
+                            }
+
+                            // 💡 [핵심 방어 2] 탭 순회 후 매니지먼트 탭이 아니라고 판단되면,
+                            // 포커스를 원래 포커스된 탭으로 돌려놓음 (원래 탭이 닫혀서 에러나면 mainHandle로 복구)
+                            if (!_isManagementActive)
+                            {
+                                try 
+                                { 
+                                    if (!string.IsNullOrEmpty(originalFocus) && _driver.WindowHandles.Contains(originalFocus))
+                                        _driver.SwitchTo().Window(originalFocus);
+                                    else
+                                        _driver.SwitchTo().Window(mainHandle); 
+                                } catch { }
                             }
 
                             // 💡 [핵심 방어] 탭이 로딩 중이라면 메인 팝업 감지(포커스 강탈)를 스킵하여 방해하지 않음
@@ -257,10 +281,10 @@ namespace GateHelper
                 managementHandle = null;
 
                 // 에러 메시지에 세션 만료, 브라우저 닫힘 등의 키워드가 포함된 경우
+                // (주의: "no such window"는 단순히 현재 포커스된 탭이 닫혔다는 의미이므로 드라이버를 죽이면 안 됨)
                 if (ex.Message.ToLower().Contains("invalid session id") ||
                     ex.Message.ToLower().Contains("not reachable") ||
-                    ex.Message.ToLower().Contains("disconnected") ||
-                    ex.Message.ToLower().Contains("no such window"))
+                    ex.Message.ToLower().Contains("disconnected"))
                 {
                     LogMessage("[세션 종료 감지] 클라우드 환경에 의해 크롬 브라우저가 닫혔습니다. 연결을 초기화합니다.", Level.Warning);
 
@@ -456,7 +480,7 @@ namespace GateHelper
                 if (_appSettings.AutoLogin)
                 {
                     BtnStart2_Click(sender, e);
-                    BtnGateOneLogin1_Click(sender, e);
+                    PerformGateOneAutoLogin();
                 }
             }
             catch (Exception ex)
@@ -475,19 +499,63 @@ namespace GateHelper
         private void BtnStart2_Click(object sender, EventArgs e)
         {
             LogMessage("BtnStart2 Click", Level.Info);
-            Util_Connect.AutoConnect_1_Step(_driver, this); // 고급 - MPOHelper 클릭
+            // Util_Connect.AutoConnect_1_Step(_driver, this); // 고급 - MPOHelper 클릭 (Deprecated)
         }
 
-        private void BtnGateOneLogin1_Click(object sender, EventArgs e)
+        private void PerformGateOneAutoLogin()
         {
-            LogMessage("BtnGateOneLogin1_Click", Level.Info);
+            LogMessage("PerformGateOneAutoLogin (Background)", Level.Info);
 
             if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
 
-            Util_Connect.AutoConnect_2_Step(_driver, _config, mainHandle);
-            Util_Connect.AutoConnect_3_Step(_driver);
+            if (!Util_Connect.AutoConnect_1_Step_IDPWInput(_driver, _config, mainHandle))
+                return;
+                
+            if (!Util_Connect.AutoConnect_2_Step_RequestOTPClick(_driver))
+                return;
 
+            string originalHandle = _driver.CurrentWindowHandle;
+            
+            try
+            {
+                Util_Connect.IsAuthInProgress = true;
+                
+                if (!Util_Connect.AutoConnect_3_Step_FetchOTP(_driver, _config))
+                    return;
+                    
+                if (!Util_Connect.AutoConnect_4_Step_FindAndClickMail(_driver))
+                    return;
+                
+                string otpCode = Util_Connect.AutoConnect_5_Step_ExtractOTP(_driver);
+                if (string.IsNullOrEmpty(otpCode))
+                    return;
+                    
+                LogMessage($"[결과] 인증번호 추출 성공: {otpCode}", Level.Info);
+                
+                if (Util_Connect.AutoConnect_6_Step_EnterOTP(_driver, otpCode, originalHandle))
+                {
+                    LogMessage("자동 로그인 전 과정이 성공적으로 완료되었습니다!", Level.Info);
+                }
+            }
+            finally
+            {
+                Util_Connect.IsAuthInProgress = false;
+                try
+                {
+                    // 자동화 중단 또는 실패 시, 잔여 탭(메일 탭)이 남아있으면 닫고 원래 탭으로 복귀
+                    if (_driver.WindowHandles.Contains(originalHandle) && _driver.CurrentWindowHandle != originalHandle)
+                    {
+                        LogMessage("실패로 인해 중단된 메일 탭을 닫고 원래 화면으로 복귀합니다.", Level.Warning);
+                        _driver.Close();
+                        _driver.SwitchTo().Window(originalHandle);
+                    }
+                }
+                catch 
+                {
+                    try { _driver.SwitchTo().Window(originalHandle); } catch { }
+                }
+            }
         }
 
         private async void BtnSearch1_Click(object sender, EventArgs e)

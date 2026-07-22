@@ -54,9 +54,9 @@ namespace GateHelper
             {
                 { CBox_RemoveDuplicate, "서버 목록에서 중복항목을 제거합니다." },
                 { CBox_ServerClickConnect, "서버 항목 더블클릭 시 해당 서버로 바로 연결합니다." },
-                { CBox_AutoScreenUnlock, "화면잠금 감지.\nGateOne 30분 간격으로 팝업되는 비밀번호 자동 입력." },
+                { CBox_AutoScreenUnlock, "GateOne 화면잠금 감지.\n 30분 간격 팝업 비밀번호 자동 입력." },
                 { CBox_TestMode, "테스트 모드" },
-                { CBox_AutoLogin, "Config 정보로 자동 로그인합니다. 미구현" },
+                { CBox_AutoLogin, "Config 정보로 자동 로그인합니다. ID/PW입력, 메일 인증번호 추출" },
                 { CBox_FavOneClickConnect, "즐겨찾기 클릭 시 해당 서버로 바로 연결합니다." },
                 { CBox_UseUDP, "사용자 간 서버접속현황을 송신/수신 합니다." }
             };
