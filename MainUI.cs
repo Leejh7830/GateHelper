@@ -38,8 +38,9 @@ namespace GateHelper
         private string GatePW;
 
         private string mainHandle; // GateOne Main
-        private bool _isManagementActive; // Manufacturing Management 통합관리 플래그
-        private string managementHandle;  // Manufacturing Management 통합관리
+        private Util_BackgroundMonitor _bgMonitor;
+        private string managementHandle => _bgMonitor?.ManagementHandle;  // Manufacturing Management 핸들
+        private bool _isManagementActive => _bgMonitor?.IsManagementActive ?? false; // Manufacturing Management 팝업 플래그
         private ThemeManager _themeManager;
         private bool changeArrow = true;
 
@@ -132,6 +133,14 @@ namespace GateHelper
 
             timer1 = new System.Windows.Forms.Timer();
             timer1.Interval = 5000; // 5초마다 상태 확인
+
+            _bgMonitor = new Util_BackgroundMonitor(
+                _config?.ManagementUrl ?? "",
+                () => _driver,
+                () => mainHandle,
+                (msg, lvl) => LogMessage(msg, lvl)
+            );
+
             timer1.Tick += TimerStatusChecker_Tick;
             timer1.Start();
 
@@ -147,165 +156,17 @@ namespace GateHelper
             LogMessage("프로그램 초기화 완료", Level.Info);
         }
 
-        private HashSet<string> _ignoredHandles = new HashSet<string>(); // 💡 공지사항 등 무시할 팝업 핸들 저장
-
         // ✦ TimerTick : Driver/Network/Popup/UDP Status Check
         private async void TimerStatusChecker_Tick(object sender, EventArgs e)
         {
             timer1.Stop();
 
-            // ★ 추가: 서버 접속 중이면 이번 틱은 완전 스킵
+            // 서버 접속 중이면 이번 틱은 완전 스킵
             if (Util_Connect.IsConnecting)
             {
                 timer1.Start();
                 return;
             }
-
-
-            // 💡 1. [동기화 레이더망] 보조 사이트 탭 감지 및 포커스 인터락 (잠금)
-            try
-            {
-                if (_driver != null)
-                {
-                    var currentHandles = _driver.WindowHandles;
-
-                    // [탭 열림 자동 감지]
-                    if (currentHandles.Count > 1)
-                    {
-
-                        if (string.IsNullOrEmpty(managementHandle) || !currentHandles.Contains(managementHandle))
-                        {
-                            bool isLoading = false; // 💡 비정상 인터락 방어용 상태값
-                            string originalFocus = "";
-                            try { originalFocus = _driver.CurrentWindowHandle; } catch { }
-
-                            // 닫힌 무시 탭 정리
-                            if (_ignoredHandles.Count > 0)
-                            {
-                                _ignoredHandles.RemoveWhere(h => !currentHandles.Contains(h));
-                            }
-
-                            foreach (var handle in currentHandles)
-                            {
-                                if (handle != mainHandle && !_ignoredHandles.Contains(handle))
-                                {
-                                    _driver.SwitchTo().Window(handle);
-
-                                    // IP 주소, 포트 번호, 서브 도메인 파편화 방지를 위한 완벽한 정제
-                                    string targetKeyword = _config.ManagementUrl
-                                        .Replace("http://", "")
-                                        .Replace("https://", "")
-                                        .Replace("www.", "")
-                                        .TrimEnd('/');
-
-                                    // '/'를 기준으로 잘라내어 순수 도메인 또는 IP:Port만 추출 (예: 192.168.0.1:8080)
-                                    if (targetKeyword.Contains("/"))
-                                    {
-                                        targetKeyword = targetKeyword.Split('/')[0];
-                                    }
-
-                                    string currentUrl = _driver.Url.ToLower();
-
-                                    // 매칭 성공
-                                    if (currentUrl.Contains(targetKeyword.ToLower()))
-                                    {
-                                        managementHandle = handle;
-                                        _isManagementActive = true;
-                                        LogMessage($"[플래그 ON] MGMT탭({targetKeyword}) 열림 감지", Level.Info);
-                                        break;
-                                    }
-                                    // 💡 [수정 2] 페이지가 열리는 중(about:blank)일 때 메인 로직 침범 차단
-                                    else if (currentUrl.Contains("about:blank") || string.IsNullOrEmpty(currentUrl))
-                                    {
-                                        LogMessage("[로딩 대기] 새 탭이 아직 로딩 중입니다.", Level.Info);
-                                        isLoading = true;
-                                    }
-                                    // 완전한 다른 사이트 (구글, 공지사항 등)
-                                    else
-                                    {
-                                        LogMessage($"[플래그 실패] 타겟 키워드: '{targetKeyword}', 실제 URL: '{currentUrl}'", Level.Error);
-                                        _ignoredHandles.Add(handle); // 💡 다시는 5초마다 포커스를 뺏지 않도록 무시 목록에 추가
-                                    }
-                                }
-                            }
-
-                            // 💡 [핵심 방어 2] 탭 순회 후 매니지먼트 탭이 아니라고 판단되면,
-                            // 포커스를 원래 포커스된 탭으로 돌려놓음 (원래 탭이 닫혀서 에러나면 mainHandle로 복구)
-                            if (!_isManagementActive)
-                            {
-                                try 
-                                { 
-                                    if (!string.IsNullOrEmpty(originalFocus) && _driver.WindowHandles.Contains(originalFocus))
-                                        _driver.SwitchTo().Window(originalFocus);
-                                    else
-                                        _driver.SwitchTo().Window(mainHandle); 
-                                } catch { }
-                            }
-
-                            // 💡 [핵심 방어] 탭이 로딩 중이라면 메인 팝업 감지(포커스 강탈)를 스킵하여 방해하지 않음
-                            if (isLoading && !_isManagementActive)
-                            {
-                                timer1.Start();
-                                return;
-                            }
-                        }
-                    }
-
-                    // [탭 닫힘 자동 감지]
-                    if (_isManagementActive && !string.IsNullOrEmpty(managementHandle))
-                    {
-                        if (!currentHandles.Contains(managementHandle))
-                        {
-                            _isManagementActive = false; // 플래그 OFF
-                            managementHandle = null;
-
-                            if (currentHandles.Contains(mainHandle))
-                            {
-                                _driver.SwitchTo().Window(mainHandle);
-                            }
-                            LogMessage("[플래그 OFF] MGMT탭 종료 감지 -> 팝업감지 재개", Level.Info);
-                        }
-                        else
-                        {
-                            // 보조 사이트가 아직 살아있으므로 하위 로직 올스톱
-                            timer1.Start();
-                            return;
-                        }
-                    }
-                }
-            }
-            // Selenium 전용 예외를 먼저 캐치
-            catch (WebDriverException ex)
-            {
-                _isManagementActive = false;
-                managementHandle = null;
-
-                // 에러 메시지에 세션 만료, 브라우저 닫힘 등의 키워드가 포함된 경우
-                // (주의: "no such window"는 단순히 현재 포커스된 탭이 닫혔다는 의미이므로 드라이버를 죽이면 안 됨)
-                if (ex.Message.ToLower().Contains("invalid session id") ||
-                    ex.Message.ToLower().Contains("not reachable") ||
-                    ex.Message.ToLower().Contains("disconnected"))
-                {
-                    LogMessage("[세션 종료 감지] 클라우드 환경에 의해 크롬 브라우저가 닫혔습니다. 연결을 초기화합니다.", Level.Warning);
-
-                    // 드라이버를 null로 만들어, 다음 Tick부터는 이 로직에 진입하지 못하게 차단
-                    try { _driver.Quit(); } catch { }
-                    _driver = null;
-                }
-                else
-                {
-                    // 그 외의 일시적인 셀레니움 통신 에러
-                    LogMessage($"[인터락 예외] 탭 검사 중 통신 예외 발생: {ex.Message}", Level.Error);
-                }
-            }
-            catch (Exception ex) // 셀레니움 외의 일반 C# 런타임 에러
-            {
-                _isManagementActive = false;
-                managementHandle = null;
-                LogMessage($"[인터락 예외] 탭 검사 중 알 수 없는 브라우저 예외 발생: {ex.Message}", Level.Error);
-            }
-
-            // --- (이 아래부터는 평상시 5초마다 도는 메인 전용 로직) ---
 
             if (_isStatusTickRunning)
             {
@@ -317,20 +178,38 @@ namespace GateHelper
 
             try
             {
+                // UI Health Check
                 UpdateConnectionStatus();
                 bool popupFeatureOn = _appSettings.AutoScreenUnlock;
                 Util_Option.UpdatePopupStatus(lblPopupStatus, popupFeatureOn, Util_Option.GetLockHandledCount());
 
                 bool driverOn = (_driver != null && chromeDriverManager.IsDriverAlive(_driver));
 
-                if (driverOn && popupFeatureOn)
+                if (driverOn)
                 {
-                    await HandleScreenLockAutomation(popupFeatureOn);
+                    // Util_BackgroundMonitor를 통해 탭 상태 동기화 및 화면 잠금 감지 수행
+                    await _bgMonitor.ExecuteTickAsync(async () =>
+                    {
+                        if (popupFeatureOn)
+                        {
+                            await HandleScreenLockAutomation(popupFeatureOn);
+                        }
+                    });
                 }
             }
             catch (Exception ex)
             {
-                LogException(ex, Level.Error, "TimerStatusChecker_Tick 메인 로직 오류");
+                // ExecuteTickAsync에서 세션 종료 익셉션이 올라온 경우 드라이버 초기화
+                if (ex is InvalidOperationException && ex.Message == "SessionDisconnected")
+                {
+                    try { _driver?.Quit(); } catch { }
+                    _driver = null;
+                    _bgMonitor?.Reset();
+                }
+                else
+                {
+                    LogException(ex, Level.Error, "TimerStatusChecker_Tick 메인 로직 오류");
+                }
             }
             finally
             {
@@ -1543,8 +1422,7 @@ namespace GateHelper
                 _driver.Navigate().GoToUrl(_config.ManagementUrl);
 
                 // 핸들 저장과 동시에 인터락 플래그ON
-                managementHandle = _driver.CurrentWindowHandle;
-                _isManagementActive = true;
+                _bgMonitor?.SetManagementActiveManually(_driver.CurrentWindowHandle);
 
                 LogMessage("[플래그 ON] MGMT탭 열림 감지 -> 팝업감지 중지", Level.Info);
 
