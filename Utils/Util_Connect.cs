@@ -135,7 +135,8 @@ namespace GateHelper
                             }
                             catch (NoAlertPresentException)
                             {
-                                SendKeys.SendWait(" ");
+                                SafeSendKeys(driver, mainHandle, "{TAB}");
+                                SafeSendKeys(driver, mainHandle, " ");
                             }
 
                             // 💡 기존의 단순 개수(Count) 비교 로직에서 '새로운 핸들' 식별 로직으로 변경 (공지사항 팝업 등 간섭 방지)
@@ -236,6 +237,12 @@ namespace GateHelper
             }
         }
 
+        private static void SafeSendKeys(IWebDriver driver, string handle, string keys)
+        {
+            Util.SwitchToMainHandle(driver, handle);
+            Thread.Sleep(200); // 포커스 획득 후 잠시 대기하여 안전하게 키가 먹히도록 함
+            SendKeys.SendWait(keys);
+        }
 
         private static void EnterCredentials(IWebDriver driver, string popupHandle, string id, string pw)
         {
@@ -266,12 +273,14 @@ namespace GateHelper
         }
 
 
-        public static bool AutoConnect_1_Step_IDPWInput(IWebDriver driver, Config _config, string mainHandle)
+        public static bool AutoConnect_1_Step_IDPWInput(IWebDriver driver, Config _config, string mainHandle, out string errorMessage)
         {
+            errorMessage = "";
             try
             {
                 if (!Util.SwitchToMainHandle(driver, mainHandle))
                 {
+                    errorMessage = "1. GateOne 로그인 창에 ID/PW를 입력하는 데 실패했습니다.";
                     return false; 
                 }
 
@@ -331,6 +340,7 @@ namespace GateHelper
                 if (idInput == null)
                 {
                     LogMessage("10초 대기 후에도 USERID 입력칸을 찾을 수 없습니다.", Level.Error);
+                    errorMessage = "1. GateOne 로그인 창에 ID/PW를 입력하는 데 실패했습니다.";
                     return false;
                 }
 
@@ -338,6 +348,7 @@ namespace GateHelper
                 if (pwInput == null)
                 {
                     LogMessage("PASSWD 입력칸을 찾을 수 없습니다.", Level.Error);
+                    errorMessage = "1. GateOne 로그인 창에 ID/PW를 입력하는 데 실패했습니다.";
                     return false;
                 }
 
@@ -354,12 +365,14 @@ namespace GateHelper
             catch (Exception ex)
             {
                 LogException(ex, Level.Error, "1단계 ID/PW 입력 중 오류");
+                errorMessage = "1. GateOne 로그인 창에 ID/PW를 입력하는 데 실패했습니다.";
                 return false;
             }
         }
 
-        public static bool AutoConnect_2_Step_RequestOTPClick(IWebDriver driver)
+        public static bool AutoConnect_2_Step_RequestOTPClick(IWebDriver driver, out string errorMessage)
         {
+            errorMessage = "";
             try
             {
                 LogMessage("인증 팝업 대기 중...", Level.Info);
@@ -411,6 +424,7 @@ namespace GateHelper
                 if (btn == null)
                 {
                     LogMessage("10초가 지나도 '인증번호 받기' 팝업 버튼을 찾을 수 없습니다.", Level.Error);
+                    errorMessage = "2. '인증번호 받기' 버튼을 클릭하는 데 실패했습니다.";
                     return false;
                 }
 
@@ -447,6 +461,7 @@ namespace GateHelper
                 if (!alertAccepted)
                 {
                     LogMessage("10초 동안 Alert 창이 뜨지 않았습니다.", Level.Warning);
+                    errorMessage = "2. '인증번호 받기' 버튼을 클릭하는 데 실패했습니다.";
                     return false;
                 }
                 
@@ -455,19 +470,22 @@ namespace GateHelper
             catch (Exception ex)
             {
                 LogException(ex, Level.Error, "인증번호 받기 버튼 클릭 실패");
+                errorMessage = "2. '인증번호 받기' 버튼을 클릭하는 데 실패했습니다.";
                 return false;
             }
         }
 
         public static bool IsAuthInProgress = false;
 
-        public static bool AutoConnect_3_Step_FetchOTP(OpenQA.Selenium.IWebDriver driver, Config config)
+        public static bool AutoConnect_3_Step_FetchOTP(OpenQA.Selenium.IWebDriver driver, Config config, out string errorMessage)
         {
+            errorMessage = "";
             try
             {
                 if (string.IsNullOrEmpty(config.EnportalURL))
                 {
                     LogMessage("config.txt에 EnportalURL이 설정되어 있지 않습니다.", Level.Warning);
+                    errorMessage = "3. 메일 탭이 열리지 않았습니다. 설정된 주소(URL)를 확인해주세요.";
                     return false;
                 }
 
@@ -626,24 +644,28 @@ namespace GateHelper
                     else
                     {
                         LogMessage("로그인 후 메일함 버튼을 찾을 수 없습니다.", Level.Error);
+                        errorMessage = "4. 사내 메일함으로 이동 및 로그인하는 데 실패했습니다.";
                         return false;
                     }
                 }
                 else
                 {
                     LogMessage("10초 대기 후에도 모든 프레임에서 userid 입력창이나 메일함 버튼을 찾을 수 없습니다.", Level.Error);
+                    errorMessage = "4. 사내 메일함으로 이동 및 로그인하는 데 실패했습니다.";
                     return false;
                 }
             }
             catch (Exception ex)
             {
                 LogException(ex, Level.Error, "메일 사이트 로그인 처리 중 오류 발생");
+                errorMessage = "4. 사내 메일함으로 이동 및 로그인하는 데 실패했습니다.";
                 return false;
             }
         }
 
-        public static bool AutoConnect_4_Step_FindAndClickMail(OpenQA.Selenium.IWebDriver driver)
+        public static bool AutoConnect_4_Step_FindAndClickMail(OpenQA.Selenium.IWebDriver driver, out string errorMessage)
         {
+            errorMessage = "";
             try
             {
                 LogMessage("인증번호 메일 탐색을 시작합니다...", Level.Info);
@@ -770,19 +792,21 @@ namespace GateHelper
                 else
                 {
                     LogMessage("새로고침 후에도 'GATEONE' 키워드가 포함된 메일을 찾을 수 없습니다.", Level.Error);
-                    MessageBox.Show("인증번호 메일을 찾지 못했습니다.\n네트워크 지연이나 발송 오류일 수 있습니다.\n잠시 후 다시 시도해 주세요.", "메일 수신 오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    errorMessage = "5. 메일 수신함에서 인증 메일을 찾아 클릭하는 데 실패했습니다.";
                     return false;
                 }
             }
             catch (Exception ex)
             {
                 LogException(ex, Level.Error, "메일 탐색 중 오류 발생");
+                errorMessage = "5. 메일 수신함에서 인증 메일을 찾아 클릭하는 데 실패했습니다.";
                 return false;
             }
         }
 
-        public static string AutoConnect_5_Step_ExtractOTP(OpenQA.Selenium.IWebDriver driver)
+        public static string AutoConnect_5_Step_ExtractOTP(OpenQA.Selenium.IWebDriver driver, out string errorMessage)
         {
+            errorMessage = "";
             try
             {
                 LogMessage("메일 본문에서 인증번호 추출을 시도합니다...", Level.Info);
@@ -837,6 +861,7 @@ namespace GateHelper
                 if (iframe == null)
                 {
                     LogMessage("메일 본문을 담고 있는 iframe을 찾을 수 없습니다.", Level.Error);
+                    errorMessage = "6. 메일 본문에서 인증번호(OTP)를 추출하는 데 실패했습니다.";
                     return null;
                 }
 
@@ -862,6 +887,7 @@ namespace GateHelper
                 if (divBody == null)
                 {
                     LogMessage("인증번호 텍스트가 있는 divBody 영역을 찾을 수 없습니다.", Level.Error);
+                    errorMessage = "6. 메일 본문에서 인증번호(OTP)를 추출하는 데 실패했습니다.";
                     return null;
                 }
 
@@ -958,18 +984,21 @@ namespace GateHelper
                 else
                 {
                     LogMessage("메일 본문에서 6자리 연속된 숫자를 찾을 수 없습니다.", Level.Error);
+                    errorMessage = "6. 메일 본문에서 인증번호(OTP)를 추출하는 데 실패했습니다.";
                     return null;
                 }
             }
             catch (Exception ex)
             {
                 LogException(ex, Level.Error, "인증번호 추출 중 오류 발생");
+                errorMessage = "6. 메일 본문에서 인증번호(OTP)를 추출하는 데 실패했습니다.";
                 return null;
             }
         }
 
-        public static bool AutoConnect_6_Step_EnterOTP(OpenQA.Selenium.IWebDriver driver, string otpCode, string originalHandle)
+        public static bool AutoConnect_6_Step_EnterOTP(OpenQA.Selenium.IWebDriver driver, string otpCode, string originalHandle, out string errorMessage)
         {
+            errorMessage = "";
             try
             {
                 LogMessage("메일 탭을 닫고 원래 탭(인증번호 입력창)으로 복귀합니다...", Level.Info);
@@ -1038,6 +1067,7 @@ namespace GateHelper
                 if (otpInput == null)
                 {
                     LogMessage("15초 대기 후에도 인증번호 입력창(vali_num)을 찾을 수 없습니다.", Level.Error);
+                    errorMessage = "8. 추출된 인증번호를 GateOne 화면에 입력하고 확인하는 데 실패했습니다.";
                     return false;
                 }
 
@@ -1100,6 +1130,8 @@ namespace GateHelper
                             catch (Exception ex4)
                             {
                                 LogMessage($"[입력 4단계] Action 키보드 타이핑마저 실패: {ex4.Message}", Level.Error);
+                                errorMessage = "8. 추출된 인증번호를 GateOne 화면에 입력하고 확인하는 데 실패했습니다.";
+                                return false;
                             }
                         }
                     }
@@ -1111,6 +1143,7 @@ namespace GateHelper
             catch (Exception ex)
             {
                 LogException(ex, Level.Error, "인증번호 입력 중 오류 발생");
+                errorMessage = "8. 추출된 인증번호를 GateOne 화면에 입력하고 확인하는 데 실패했습니다.";
                 return false;
             }
         }

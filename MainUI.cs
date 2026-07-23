@@ -390,33 +390,56 @@ namespace GateHelper
                 return;
 
             string originalHandle = null;
+            string err = "";
 
             Util_Connect.IsAuthInProgress = true;
             try
             {
-                if (!Util_Connect.AutoConnect_1_Step_IDPWInput(_driver, _config, mainHandle))
+                if (!Util_Connect.AutoConnect_1_Step_IDPWInput(_driver, _config, mainHandle, out err))
+                {
+                    ToastNotification.Show(err, "자동 로그인 오류", ToastIcon.Warning);
                     return;
+                }
                 
-                if (!Util_Connect.AutoConnect_2_Step_RequestOTPClick(_driver))
+                if (!Util_Connect.AutoConnect_2_Step_RequestOTPClick(_driver, out err))
+                {
+                    ToastNotification.Show(err, "자동 로그인 오류", ToastIcon.Warning);
                     return;
+                }
 
                 originalHandle = _driver.CurrentWindowHandle;
                 
-                if (!Util_Connect.AutoConnect_3_Step_FetchOTP(_driver, _config))
+                if (!Util_Connect.AutoConnect_3_Step_FetchOTP(_driver, _config, out err))
+                {
+                    ToastNotification.Show(err, "자동 로그인 오류", ToastIcon.Warning);
                     return;
+                }
                     
-                if (!Util_Connect.AutoConnect_4_Step_FindAndClickMail(_driver))
+                if (!Util_Connect.AutoConnect_4_Step_FindAndClickMail(_driver, out err))
+                {
+                    ToastNotification.Show(err, "자동 로그인 오류", ToastIcon.Warning);
                     return;
+                }
                 
-                string otpCode = Util_Connect.AutoConnect_5_Step_ExtractOTP(_driver);
+                string otpCode = Util_Connect.AutoConnect_5_Step_ExtractOTP(_driver, out err);
                 if (string.IsNullOrEmpty(otpCode))
+                {
+                    if (!string.IsNullOrEmpty(err))
+                    {
+                        ToastNotification.Show(err, "자동 로그인 오류", ToastIcon.Warning);
+                    }
                     return;
+                }
                     
                 LogMessage($"[결과] 인증번호 추출 성공: {otpCode}", Level.Info);
                 
-                if (Util_Connect.AutoConnect_6_Step_EnterOTP(_driver, otpCode, originalHandle))
+                if (Util_Connect.AutoConnect_6_Step_EnterOTP(_driver, otpCode, originalHandle, out err))
                 {
                     LogMessage("자동 로그인 전 과정이 성공적으로 완료되었습니다!", Level.Info);
+                }
+                else
+                {
+                    ToastNotification.Show(err, "자동 로그인 오류", ToastIcon.Warning);
                 }
             }
             finally
@@ -568,10 +591,7 @@ namespace GateHelper
             string selectedServer = ComboBoxServerList1.SelectedItem.ToString();
             LogMessage("접속 서버 명: " + selectedServer, Level.Info);
 
-            // UDP 접속 정보 송신
-            StartRdpDetect(serverName);
-
-            await Task.Run(() => Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, selectedServer, OlvServerList, _appSettings.RemoveDuplicates));
+            await ExecuteConnectionAsync(selectedServer);
         }
 
 
@@ -596,16 +616,7 @@ namespace GateHelper
             // 3) 옵션이 켜져 있으면 바로 연결
             if (!string.IsNullOrEmpty(serverName) && _appSettings.FavOneClickConnect)
             {
-                try
-                {
-                    StartRdpDetect(serverName);
-                    await Task.Run(() => Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates));
-                }
-                catch (Exception ex)
-                {
-                    LogException(ex, Level.Error);
-                    MessageBox.Show("즐겨찾기 바로접속 중 오류가 발생했습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                await ExecuteConnectionAsync(serverName);
             }
         }
 
@@ -627,16 +638,7 @@ namespace GateHelper
 
             if (!string.IsNullOrEmpty(serverName) && _appSettings.FavOneClickConnect)
             {
-                try
-                {
-                    StartRdpDetect(serverName);
-                    await Task.Run(() => Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates));
-                }
-                catch (Exception ex)
-                {
-                    LogException(ex, Level.Error);
-                    MessageBox.Show("즐겨찾기 바로접속 중 오류가 발생했습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                await ExecuteConnectionAsync(serverName);
             }
         }
 
@@ -653,16 +655,7 @@ namespace GateHelper
 
             if (!string.IsNullOrEmpty(serverName) && _appSettings.FavOneClickConnect)
             {
-                try
-                {
-                    StartRdpDetect(serverName);
-                    await Task.Run(() => Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, serverName, OlvServerList, _appSettings.RemoveDuplicates));
-                }
-                catch (Exception ex)
-                {
-                    LogException(ex, Level.Error);
-                    MessageBox.Show("즐겨찾기 바로접속 중 오류가 발생했습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                await ExecuteConnectionAsync(serverName);
             }
         }
 
@@ -763,8 +756,7 @@ namespace GateHelper
             }
 
             // 2. 최종 접속 시도
-            //StartRdpDetect(targetServer);
-            await Task.Run(() => Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, targetServer, OlvServerList, _appSettings.RemoveDuplicates));
+            await ExecuteConnectionAsync(targetServer);
         }
 
 
@@ -1291,6 +1283,24 @@ namespace GateHelper
             }
         }
         #endregion
+
+        private async Task ExecuteConnectionAsync(string targetServer)
+        {
+            try
+            {
+                StartRdpDetect(targetServer);
+                bool success = await Task.Run(() => Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, targetServer, OlvServerList, _appSettings.RemoveDuplicates));
+                if (!success)
+                {
+                    MessageBox.Show("자동 로그인 진행 중 시간 초과 또는 오류가 발생했습니다.\n로그 창을 확인해주세요.", "로그인 실패", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                }
+            }
+            catch (Exception ex)
+            {
+                LogException(ex, Level.Error);
+                MessageBox.Show($"접속 중 오류가 발생했습니다.\n{ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
 
         private void StartRdpDetect(string serverName)
         {

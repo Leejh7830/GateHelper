@@ -261,6 +261,9 @@
     <Compile Include="Utils\Util_Connect.cs" />
     <Compile Include="Utils\Util_BackgroundMonitor.cs" />
     <Compile Include="Utils\Util_ImageLoader.cs" />
+    <Compile Include="Utils\ToastNotification.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="LogManager.cs" />
     <Compile Include="MainUI.cs">
       <SubType>Form</SubType>
