@@ -360,7 +360,7 @@ namespace GateHelper
                 if (_appSettings.AutoLogin)
                 {
                     BtnStart2_Click(sender, e);
-                    PerformGateOneAutoLogin();
+                    await PerformGateOneAutoLoginAsync();
                 }
             }
             catch (Exception ex)
@@ -382,9 +382,9 @@ namespace GateHelper
             // Util_Connect.AutoConnect_1_Step(_driver, this); // 고급 - MPOHelper 클릭 (Deprecated)
         }
 
-        private void PerformGateOneAutoLogin()
+        private async Task PerformGateOneAutoLoginAsync()
         {
-            LogMessage("PerformGateOneAutoLogin (Background)", Level.Info);
+            LogMessage("PerformGateOneAutoLoginAsync (Background Task)", Level.Info);
 
             if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
@@ -395,49 +395,48 @@ namespace GateHelper
             Util_Connect.IsAuthInProgress = true;
             try
             {
-                if (!Util_Connect.AutoConnect_1_Step_IDPWInput(_driver, _config, mainHandle, out err))
+                await Task.Run(() =>
                 {
-                    ToastNotification.Show(err, "자동 로그인 오류", ToastIcon.Warning);
-                    return;
-                }
-                
-                if (!Util_Connect.AutoConnect_2_Step_RequestOTPClick(_driver, out err))
-                {
-                    ToastNotification.Show(err, "자동 로그인 오류", ToastIcon.Warning);
-                    return;
-                }
+                    string localErr = "";
 
-                originalHandle = _driver.CurrentWindowHandle;
-                
-                if (!Util_Connect.AutoConnect_3_Step_FetchOTP(_driver, _config, out err))
-                {
-                    ToastNotification.Show(err, "자동 로그인 오류", ToastIcon.Warning);
-                    return;
-                }
-                    
-                if (!Util_Connect.AutoConnect_4_Step_FindAndClickMail(_driver, out err))
-                {
-                    ToastNotification.Show(err, "자동 로그인 오류", ToastIcon.Warning);
-                    return;
-                }
-                
-                string otpCode = Util_Connect.AutoConnect_5_Step_ExtractOTP(_driver, out err);
-                if (string.IsNullOrEmpty(otpCode))
-                {
-                    if (!string.IsNullOrEmpty(err))
+                    if (!Util_Connect.AutoConnect_1_Step_IDPWInput(_driver, _config, mainHandle, out localErr))
                     {
-                        ToastNotification.Show(err, "자동 로그인 오류", ToastIcon.Warning);
                     }
-                    return;
-                }
-                    
-                LogMessage($"[결과] 인증번호 추출 성공: {otpCode}", Level.Info);
-                
-                if (Util_Connect.AutoConnect_6_Step_EnterOTP(_driver, otpCode, originalHandle, out err))
-                {
-                    LogMessage("자동 로그인 전 과정이 성공적으로 완료되었습니다!", Level.Info);
-                }
-                else
+                    else if (!Util_Connect.AutoConnect_2_Step_RequestOTPClick(_driver, out localErr))
+                    {
+                    }
+                    else
+                    {
+                        originalHandle = _driver.CurrentWindowHandle;
+                        
+                        if (!Util_Connect.AutoConnect_3_Step_FetchOTP(_driver, _config, out localErr))
+                        {
+                        }
+                        else if (!Util_Connect.AutoConnect_4_Step_FindAndClickMail(_driver, out localErr))
+                        {
+                        }
+                        else
+                        {
+                            string otpCode = Util_Connect.AutoConnect_5_Step_ExtractOTP(_driver, out localErr);
+                            if (string.IsNullOrEmpty(otpCode))
+                            {
+                            }
+                            else
+                            {
+                                LogMessage($"[결과] 인증번호 추출 성공: {otpCode}", Level.Info);
+                                if (!Util_Connect.AutoConnect_6_Step_EnterOTP(_driver, otpCode, originalHandle, out localErr))
+                                {
+                                }
+                                else
+                                    LogMessage("자동 로그인 전 과정이 성공적으로 완료되었습니다!", Level.Info);
+                            }
+                        }
+                    }
+
+                    err = localErr;
+                });
+
+                if (!string.IsNullOrEmpty(err))
                 {
                     ToastNotification.Show(err, "자동 로그인 오류", ToastIcon.Warning);
                 }

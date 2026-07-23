@@ -18,6 +18,10 @@
    - `PerformGateOneAutoLogin()`에서 위 반환된 에러 메시지들을 받아 신규 도입된 `ToastNotification.Show(...)`를 띄워주도록 로직을 일괄 교체했습니다.
    - 6단계 마지막 키보드 Action 타이핑 실패 시 멈추지 않고 성공 처리되던 논리적 버그(Logical Bug)를 픽스했습니다.
 
+4. **비동기화(`async/await`) 처리 및 중복 실행 방지**
+   - `PerformGateOneAutoLogin()` 로직 전체를 `Task.Run()`을 사용해 백그라운드 스레드로 넘겨, 15초 대기 중 윈도우(UI)가 "응답 없음"에 빠지는 현상을 완전히 해결했습니다.
+   - `BtnStart1` 버튼이 실행 시점에 즉각 `Enabled = false`가 되도록 안전 장치를 확인하여, 광클릭으로 인한 이중 실행을 원천 차단했습니다.
+
 ---
 
 ## 📌 이전 작업 내역 (2026-07-22)
