@@ -43,6 +43,7 @@ namespace GateHelper
             this.materialLabel2 = new MaterialSkin.Controls.MaterialLabel();
             this.CBox_UseUDP = new MaterialSkin.Controls.MaterialCheckbox();
             this.BtnOpenMappingConfig = new MaterialSkin.Controls.MaterialButton();
+            this.CBox_SaveOption = new MaterialSkin.Controls.MaterialCheckbox();
             this.SuspendLayout();
             // 
             // CBox_RemoveDuplicate
@@ -65,7 +66,7 @@ namespace GateHelper
             // 
             this.CBox_AutoLogin.AutoSize = true;
             this.CBox_AutoLogin.Depth = 0;
-            this.CBox_AutoLogin.Location = new System.Drawing.Point(17, 190);
+            this.CBox_AutoLogin.Location = new System.Drawing.Point(17, 161);
             this.CBox_AutoLogin.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_AutoLogin.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_AutoLogin.MouseState = MaterialSkin.MouseState.HOVER;
@@ -73,7 +74,7 @@ namespace GateHelper
             this.CBox_AutoLogin.ReadOnly = false;
             this.CBox_AutoLogin.Ripple = true;
             this.CBox_AutoLogin.Size = new System.Drawing.Size(112, 37);
-            this.CBox_AutoLogin.TabIndex = 5;
+            this.CBox_AutoLogin.TabIndex = 4;
             this.CBox_AutoLogin.Text = "Auto Login";
             this.CBox_AutoLogin.UseVisualStyleBackColor = true;
             // 
@@ -97,16 +98,17 @@ namespace GateHelper
             // 
             this.CBox_TestMode.AutoSize = true;
             this.CBox_TestMode.Depth = 0;
-            this.CBox_TestMode.Location = new System.Drawing.Point(17, 161);
+            this.CBox_TestMode.Enabled = false;
+            this.CBox_TestMode.Location = new System.Drawing.Point(17, 220);
             this.CBox_TestMode.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_TestMode.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_TestMode.MouseState = MaterialSkin.MouseState.HOVER;
             this.CBox_TestMode.Name = "CBox_TestMode";
             this.CBox_TestMode.ReadOnly = false;
             this.CBox_TestMode.Ripple = true;
-            this.CBox_TestMode.Size = new System.Drawing.Size(123, 37);
-            this.CBox_TestMode.TabIndex = 4;
-            this.CBox_TestMode.Text = "TEST MODE";
+            this.CBox_TestMode.Size = new System.Drawing.Size(110, 37);
+            this.CBox_TestMode.TabIndex = 6;
+            this.CBox_TestMode.Text = "Test Mode";
             this.CBox_TestMode.UseVisualStyleBackColor = true;
             // 
             // CBox_AutoScreenUnlock
@@ -130,7 +132,7 @@ namespace GateHelper
             this.CBox_FavOneClickConnect.AutoSize = true;
             this.CBox_FavOneClickConnect.Depth = 0;
             this.CBox_FavOneClickConnect.Enabled = false;
-            this.CBox_FavOneClickConnect.Location = new System.Drawing.Point(17, 219);
+            this.CBox_FavOneClickConnect.Location = new System.Drawing.Point(17, 249);
             this.CBox_FavOneClickConnect.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_FavOneClickConnect.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_FavOneClickConnect.MouseState = MaterialSkin.MouseState.HOVER;
@@ -138,7 +140,7 @@ namespace GateHelper
             this.CBox_FavOneClickConnect.ReadOnly = false;
             this.CBox_FavOneClickConnect.Ripple = true;
             this.CBox_FavOneClickConnect.Size = new System.Drawing.Size(193, 37);
-            this.CBox_FavOneClickConnect.TabIndex = 6;
+            this.CBox_FavOneClickConnect.TabIndex = 7;
             this.CBox_FavOneClickConnect.Text = "Fav One-Click Connect";
             this.CBox_FavOneClickConnect.UseVisualStyleBackColor = true;
             // 
@@ -246,7 +248,8 @@ namespace GateHelper
             // 
             this.CBox_UseUDP.AutoSize = true;
             this.CBox_UseUDP.Depth = 0;
-            this.CBox_UseUDP.Location = new System.Drawing.Point(17, 250);
+            this.CBox_UseUDP.Enabled = false;
+            this.CBox_UseUDP.Location = new System.Drawing.Point(17, 280);
             this.CBox_UseUDP.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_UseUDP.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_UseUDP.MouseState = MaterialSkin.MouseState.HOVER;
@@ -254,7 +257,7 @@ namespace GateHelper
             this.CBox_UseUDP.ReadOnly = false;
             this.CBox_UseUDP.Ripple = true;
             this.CBox_UseUDP.Size = new System.Drawing.Size(118, 37);
-            this.CBox_UseUDP.TabIndex = 7;
+            this.CBox_UseUDP.TabIndex = 8;
             this.CBox_UseUDP.Text = "Enable UDP";
             this.CBox_UseUDP.UseVisualStyleBackColor = true;
             // 
@@ -266,7 +269,7 @@ namespace GateHelper
             this.BtnOpenMappingConfig.Depth = 0;
             this.BtnOpenMappingConfig.HighEmphasis = true;
             this.BtnOpenMappingConfig.Icon = null;
-            this.BtnOpenMappingConfig.Location = new System.Drawing.Point(17, 293);
+            this.BtnOpenMappingConfig.Location = new System.Drawing.Point(17, 321);
             this.BtnOpenMappingConfig.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnOpenMappingConfig.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnOpenMappingConfig.Name = "BtnOpenMappingConfig";
@@ -279,11 +282,28 @@ namespace GateHelper
             this.BtnOpenMappingConfig.UseVisualStyleBackColor = true;
             this.BtnOpenMappingConfig.Click += new System.EventHandler(this.BtnOpenMappingConfig_Click);
             // 
+            // CBox_SaveOption
+            // 
+            this.CBox_SaveOption.AutoSize = true;
+            this.CBox_SaveOption.Depth = 0;
+            this.CBox_SaveOption.Location = new System.Drawing.Point(17, 190);
+            this.CBox_SaveOption.Margin = new System.Windows.Forms.Padding(0);
+            this.CBox_SaveOption.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.CBox_SaveOption.MouseState = MaterialSkin.MouseState.HOVER;
+            this.CBox_SaveOption.Name = "CBox_SaveOption";
+            this.CBox_SaveOption.ReadOnly = false;
+            this.CBox_SaveOption.Ripple = true;
+            this.CBox_SaveOption.Size = new System.Drawing.Size(121, 37);
+            this.CBox_SaveOption.TabIndex = 5;
+            this.CBox_SaveOption.Text = "Save Option";
+            this.CBox_SaveOption.UseVisualStyleBackColor = true;
+            // 
             // OptionForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(420, 656);
+            this.ClientSize = new System.Drawing.Size(436, 695);
+            this.Controls.Add(this.CBox_SaveOption);
             this.Controls.Add(this.BtnOpenMappingConfig);
             this.Controls.Add(this.CBox_UseUDP);
             this.Controls.Add(this.CBox_RemoveDuplicate);
@@ -326,5 +346,6 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialLabel materialLabel2;
         private MaterialSkin.Controls.MaterialCheckbox CBox_UseUDP;
         private MaterialSkin.Controls.MaterialButton BtnOpenMappingConfig;
+        private MaterialSkin.Controls.MaterialCheckbox CBox_SaveOption;
     }
 }

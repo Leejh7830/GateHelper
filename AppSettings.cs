@@ -1,4 +1,4 @@
-﻿namespace GateHelper
+namespace GateHelper
 {
     public class AppSettings
     {
@@ -10,6 +10,7 @@
         public int PopupGraceMs { get; set; }
         public bool FavOneClickConnect { get; set; }
         public bool UseUDP { get; set; }
+        public bool SaveOption { get; set; }
 
         public AppSettings() // 옵션 변수들
         {
@@ -21,6 +22,7 @@
             PopupGraceMs = 30000; // GraceTime Default Value
             FavOneClickConnect = false;
             UseUDP = false;
+            SaveOption = false;
         }
     }
 }

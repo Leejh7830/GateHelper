@@ -33,17 +33,29 @@ namespace GateHelper
             _getMainHandle = getMainHandle;
             _logMessage = logMessage;
             
-            // 💡 1. URL 파싱 최적화: 매 틱마다 파싱하지 않고 생성자에서 1회만 처리
+            UpdateManagementUrl(managementUrl);
+        }
+
+        public void UpdateManagementUrl(string managementUrl)
+        {
+            if (string.IsNullOrEmpty(managementUrl))
+            {
+                _targetKeyword = "";
+                return;
+            }
+
+            // 💡 1. URL 파싱 최적화: 매 틱마다 파싱하지 않고 필요시(초기화/설정변경) 1회만 처리
             _targetKeyword = managementUrl
                 .Replace("http://", "")
                 .Replace("https://", "")
-                .Replace("www.", "")
-                .TrimEnd('/');
+                .Replace("www.", "");
 
-            if (_targetKeyword.Contains("/"))
+            if (_targetKeyword.Contains("?"))
             {
-                _targetKeyword = _targetKeyword.Split('/')[0];
+                _targetKeyword = _targetKeyword.Split('?')[0]; // 쿼리스트링 제거
             }
+            
+            _targetKeyword = _targetKeyword.TrimEnd('/');
         }
 
         public void SetManagementActiveManually(string handle)
@@ -104,7 +116,7 @@ namespace GateHelper
                                     driver.SwitchTo().Window(handle);
                                     string currentUrl = driver.Url.ToLower();
 
-                                    if (currentUrl.Contains(_targetKeyword.ToLower()))
+                                    if (!string.IsNullOrEmpty(_targetKeyword) && currentUrl.Contains(_targetKeyword.ToLower()))
                                     {
                                         ManagementHandle = handle;
                                         IsManagementActive = true;
@@ -118,7 +130,7 @@ namespace GateHelper
                                     }
                                     else
                                     {
-                                        _logMessage($"[플래그 실패] 타겟 키워드: '{_targetKeyword}', 실제 URL: '{currentUrl}'", Level.Error);
+                                        // _logMessage($"[플래그 실패] 타겟 키워드: '{_targetKeyword}', 실제 URL: '{currentUrl}'", Level.Error); // 정상적인 필터링 과정이므로 혼란 방지를 위해 로그 제외
                                         _ignoredHandles.Add(handle);
                                     }
                                 }

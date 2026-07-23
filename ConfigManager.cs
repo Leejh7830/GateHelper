@@ -156,19 +156,19 @@ namespace GateHelper
 
                 var missingFields = new System.Text.StringBuilder(); // 25.03.12 필수 항목 검증
 
-                if (string.IsNullOrEmpty(config.AppSettings.Settings["GateOneURL"].Value)) missingFields.AppendLine("GateOneURL");
-                if (string.IsNullOrEmpty(config.AppSettings.Settings["EnportalURL"].Value)) missingFields.AppendLine("EnportalURL");
-                if (string.IsNullOrEmpty(config.AppSettings.Settings["GateUserID"].Value)) missingFields.AppendLine("GateUserID");
-                if (string.IsNullOrEmpty(config.AppSettings.Settings["GateUserPW"].Value)) missingFields.AppendLine("GateUserPW");
-                if (string.IsNullOrEmpty(config.AppSettings.Settings["GateName_A"].Value)) missingFields.AppendLine("GateName_A");
-                if (string.IsNullOrEmpty(config.AppSettings.Settings["GateID_A"].Value)) missingFields.AppendLine("GateID_A");
-                if (string.IsNullOrEmpty(config.AppSettings.Settings["GatePW_A"].Value)) missingFields.AppendLine("GatePW_A");
-                // if (string.IsNullOrEmpty(config.AppSettings.Settings["GateName_B"].Value)) missingFields.AppendLine("GateName_B");
-                // if (string.IsNullOrEmpty(config.AppSettings.Settings["GateID_B"].Value)) missingFields.AppendLine("GateID_B");
-                // if (string.IsNullOrEmpty(config.AppSettings.Settings["GatePW_B"].Value)) missingFields.AppendLine("GatePW_B");
-                // if (string.IsNullOrEmpty(config.AppSettings.Settings["ManagementUserID"].Value)) missingFields.AppendLine("ManagementUserID");
-                // if (string.IsNullOrEmpty(config.AppSettings.Settings["ManagementUserPW"].Value)) missingFields.AppendLine("ManagementUserPW");
-                if (string.IsNullOrEmpty(config.AppSettings.Settings["ChromePath"].Value)) missingFields.AppendLine("ChromePath");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["GateOneURL"]?.Value)) missingFields.AppendLine("GateOneURL");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["EnportalURL"]?.Value)) missingFields.AppendLine("EnportalURL");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["GateUserID"]?.Value)) missingFields.AppendLine("GateUserID");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["GateUserPW"]?.Value)) missingFields.AppendLine("GateUserPW");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["GateName_A"]?.Value)) missingFields.AppendLine("GateName_A");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["GateID_A"]?.Value)) missingFields.AppendLine("GateID_A");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["GatePW_A"]?.Value)) missingFields.AppendLine("GatePW_A");
+                // if (string.IsNullOrEmpty(config.AppSettings.Settings["GateName_B"]?.Value)) missingFields.AppendLine("GateName_B");
+                // if (string.IsNullOrEmpty(config.AppSettings.Settings["GateID_B"]?.Value)) missingFields.AppendLine("GateID_B");
+                // if (string.IsNullOrEmpty(config.AppSettings.Settings["GatePW_B"]?.Value)) missingFields.AppendLine("GatePW_B");
+                // if (string.IsNullOrEmpty(config.AppSettings.Settings["ManagementUserID"]?.Value)) missingFields.AppendLine("ManagementUserID");
+                // if (string.IsNullOrEmpty(config.AppSettings.Settings["ManagementUserPW"]?.Value)) missingFields.AppendLine("ManagementUserPW");
+                if (string.IsNullOrEmpty(config.AppSettings.Settings["ChromePath"]?.Value)) missingFields.AppendLine("ChromePath");
 
                 if (missingFields.Length > 0)
                 {

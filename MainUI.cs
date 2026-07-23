@@ -144,7 +144,8 @@ namespace GateHelper
             timer1.Tick += TimerStatusChecker_Tick;
             timer1.Start();
 
-            _appSettings = new AppSettings(); // 옵션 변수
+            // 💡 앱 세팅 초기화 시, 옵션 저장 파일이 있다면 불러옵니다.
+            _appSettings = Util_Option.LoadUserOptions();
             Util_Option.SetPopupGraceMs(_appSettings.PopupGraceMs);
 
             // UDP 기능이 처음 켜질 때 접속 송신
@@ -161,8 +162,8 @@ namespace GateHelper
         {
             timer1.Stop();
 
-            // 서버 접속 중이면 이번 틱은 완전 스킵
-            if (Util_Connect.IsConnecting)
+            // 서버 접속 중이거나, 자동 로그인 인증(OTP 등) 진행 중이면 이번 틱은 완전 스킵
+            if (Util_Connect.IsConnecting || Util_Connect.IsAuthInProgress)
             {
                 timer1.Start();
                 return;
@@ -388,17 +389,18 @@ namespace GateHelper
             if (!chromeDriverManager.IsDriverReady(_driver))
                 return;
 
-            if (!Util_Connect.AutoConnect_1_Step_IDPWInput(_driver, _config, mainHandle))
-                return;
-                
-            if (!Util_Connect.AutoConnect_2_Step_RequestOTPClick(_driver))
-                return;
+            string originalHandle = null;
 
-            string originalHandle = _driver.CurrentWindowHandle;
-            
+            Util_Connect.IsAuthInProgress = true;
             try
             {
-                Util_Connect.IsAuthInProgress = true;
+                if (!Util_Connect.AutoConnect_1_Step_IDPWInput(_driver, _config, mainHandle))
+                    return;
+                
+                if (!Util_Connect.AutoConnect_2_Step_RequestOTPClick(_driver))
+                    return;
+
+                originalHandle = _driver.CurrentWindowHandle;
                 
                 if (!Util_Connect.AutoConnect_3_Step_FetchOTP(_driver, _config))
                     return;
@@ -423,7 +425,7 @@ namespace GateHelper
                 try
                 {
                     // 자동화 중단 또는 실패 시, 잔여 탭(메일 탭)이 남아있으면 닫고 원래 탭으로 복귀
-                    if (_driver.WindowHandles.Contains(originalHandle) && _driver.CurrentWindowHandle != originalHandle)
+                    if (!string.IsNullOrEmpty(originalHandle) && _driver.WindowHandles.Contains(originalHandle) && _driver.CurrentWindowHandle != originalHandle)
                     {
                         LogMessage("실패로 인해 중단된 메일 탭을 닫고 원래 화면으로 복귀합니다.", Level.Warning);
                         _driver.Close();
@@ -682,6 +684,9 @@ namespace GateHelper
                     // 프리셋 버튼 텍스트 설정
                     BtnPreset1.Text = string.IsNullOrEmpty(_config.GateName_A) ? "Preset1" : _config.GateName_A;
                     BtnPreset2.Text = string.IsNullOrEmpty(_config.GateName_B) ? "Preset2" : _config.GateName_B;
+                    
+                    // 백그라운드 모니터에 MGMT URL 동적 업데이트
+                    _bgMonitor?.UpdateManagementUrl(_config.ManagementUrl);
                 }
                 else
                 {
@@ -780,6 +785,9 @@ namespace GateHelper
             {
                 _appSettings = optionForm.AppSettings; // 새로운 값 업데이트
                 bool newIsDarkMode = optionForm.IsDarkModeEnabled;
+
+                // 💡 UI 옵션 파일로 자동 저장 (내부에서 SaveOption 플래그 확인)
+                Util_Option.SaveUserOptions(_appSettings);
                 _themeManager.SetTheme(newIsDarkMode, PicBox_Setting, OlvServerList);
                 Util_Option.SetPopupGraceMs(_appSettings.PopupGraceMs);
 

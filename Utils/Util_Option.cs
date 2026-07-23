@@ -1,4 +1,4 @@
-﻿using OpenQA.Selenium;
+using OpenQA.Selenium;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -28,6 +28,61 @@ namespace GateHelper
 
         #endregion
 
+        #region Settings Save & Load
+        
+        public static void SaveUserOptions(AppSettings settings)
+        {
+            if (settings == null) return;
+            
+            try
+            {
+                string folder = Path.Combine(Application.StartupPath, "_meta");
+                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+                
+                string file = Path.Combine(folder, "user_options.json");
+                
+                // 만약 저장옵션이 꺼져있다면 파일을 지워서 다음 실행 때 무시되게 함
+                if (!settings.SaveOption)
+                {
+                    if (File.Exists(file)) File.Delete(file);
+                    return;
+                }
+                
+                string json = Newtonsoft.Json.JsonConvert.SerializeObject(settings, Newtonsoft.Json.Formatting.Indented);
+                File.WriteAllText(file, json);
+                LogMessage("사용자 옵션을 파일에 저장했습니다.", Level.Info);
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"옵션 저장 실패: {ex.Message}", Level.Error);
+            }
+        }
+
+        public static AppSettings LoadUserOptions()
+        {
+            try
+            {
+                string file = Path.Combine(Application.StartupPath, "_meta", "user_options.json");
+                if (File.Exists(file))
+                {
+                    string json = File.ReadAllText(file);
+                    var settings = Newtonsoft.Json.JsonConvert.DeserializeObject<AppSettings>(json);
+                    
+                    if (settings != null && settings.SaveOption)
+                    {
+                        LogMessage("사용자 옵션을 파일에서 불러왔습니다.", Level.Info);
+                        return settings;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"옵션 불러오기 실패: {ex.Message}", Level.Error);
+            }
+            return new AppSettings(); // 실패하거나 파일이 없으면(또는 SaveOption=false면) 기본값
+        }
+        
+        #endregion
 
         #region Public Methods (HandleWindows)
         public static async Task<bool> HandleWindows(IWebDriver driver, string mainHandle, Config config, Label popupStatusLabel, bool isFeatureEnabled)
