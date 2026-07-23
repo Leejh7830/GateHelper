@@ -4,6 +4,17 @@
 
 ## 📌 최근 작업 내역 (최종 업데이트: 2026-07-23)
 
+**[UI 설정 자동 저장 및 백그라운드 타이머 버그 픽스]**
+1. **옵션 설정 자동 저장 기능 구현 (`user_options.json`)**
+   - 기존 설정 파일(`settings.config`)을 손상시키지 않기 위해 UI 체크박스 옵션 상태를 `_meta/user_options.json`에 별도로 저장하고 불러오는 기능을 추가했습니다. (`Util_Option.cs`, `OptionForm.cs`)
+   - `Auto Screen Unlock` 등 사용자 맞춤 옵션이 프로그램 재시작 시에도 유지되도록 개선되었습니다.
+
+2. **자동 로그인 타이머 인터락 방어 범위 전체 확장 (`MainUI.cs`)**
+   - 백그라운드 타이머가 포커스를 강탈하여 자동 로그인의 키보드 입력(SendKeys)이 씹히는 잠재적 충돌을 방지하기 위해, `PerformGateOneAutoLogin` 전체 구간을 `IsAuthInProgress` 인터락으로 보호하도록 재배치했습니다.
+
+3. **MGMT 타겟 URL 빈 문자열 매칭(오인) 버그 픽스 (`Util_BackgroundMonitor.cs`)**
+   - 설정 파일에서 MGMT 주소를 입력하지 않았을 때(`""`), 모든 팝업이 MGMT 탭으로 오인 감지되는 현상을 수정했습니다. (`!string.IsNullOrEmpty` 조건 추가)
+
 **[자동 로그인 오류 알림 세분화 및 Toast UI 도입]**
 1. **오류 시퀀스 세분화 (`Util_Connect.cs`)**
    - 기존의 자동 로그인(OTP 인증) 6개 단계 메서드(`AutoConnect_1` ~ `AutoConnect_6`)가 모두 `out string errorMessage`를 반환하도록 리팩토링했습니다.
