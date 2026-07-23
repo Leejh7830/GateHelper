@@ -229,7 +229,8 @@ v2.3.2 / 26.06.19 신규 - Drag & Drop 기능 추가 (파일 즐겨찾기 등록
 
 v2.4.0 / 26.06.24 신규 - LogValidator 기능 추가 (로그 분석 및 통계, 필터링)
 v2.4.1 / 26.07.05 개선 - LogValidator 기능 개선 (UI/UX 배치, 스텝 하이라이팅, 스텝 OR/AND/TimeOut 추가)
-v2.4.x / 26.07.20 개선 - DisplayChange Detect 시, 가장자리 잘림 현상 수정
+v2.4.2 / 26.07.20 개선 - DisplayChange Detect 시, 가장자리 잘림 현상 수정
+v2.4.3 / 26.07.23 개선 - Auto Login 기능 추가 / BackgroundMonitoring 추가 / toast 알림 추가
          
 ";
 
