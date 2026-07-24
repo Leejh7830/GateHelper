@@ -100,6 +100,7 @@ namespace GateHelper
             this.BtnLogValidator = new MaterialSkin.Controls.MaterialButton();
             this.PicBox_Arrow = new System.Windows.Forms.PictureBox();
             this.PicBox_Setting = new System.Windows.Forms.PictureBox();
+            this.BtnMgmtAnalyzer = new MaterialSkin.Controls.MaterialButton();
             this.GroupConnect1.SuspendLayout();
             this.GroupPreset1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
@@ -428,6 +429,7 @@ namespace GateHelper
             // 
             // GroupManagement1
             // 
+            this.GroupManagement1.Controls.Add(this.BtnMgmtAnalyzer);
             this.GroupManagement1.Controls.Add(this.BtnStopCollect);
             this.GroupManagement1.Controls.Add(this.BtnStoCollect);
             this.GroupManagement1.Controls.Add(this.BtnPauseCollect);
@@ -450,7 +452,7 @@ namespace GateHelper
             this.BtnStopCollect.Depth = 0;
             this.BtnStopCollect.HighEmphasis = true;
             this.BtnStopCollect.Icon = null;
-            this.BtnStopCollect.Location = new System.Drawing.Point(14, 219);
+            this.BtnStopCollect.Location = new System.Drawing.Point(14, 212);
             this.BtnStopCollect.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnStopCollect.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnStopCollect.Name = "BtnStopCollect";
@@ -492,7 +494,7 @@ namespace GateHelper
             this.BtnPauseCollect.Depth = 0;
             this.BtnPauseCollect.HighEmphasis = true;
             this.BtnPauseCollect.Icon = null;
-            this.BtnPauseCollect.Location = new System.Drawing.Point(14, 271);
+            this.BtnPauseCollect.Location = new System.Drawing.Point(14, 164);
             this.BtnPauseCollect.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnPauseCollect.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnPauseCollect.Name = "BtnPauseCollect";
@@ -1203,6 +1205,27 @@ namespace GateHelper
             this.PicBox_Setting.TabStop = false;
             this.PicBox_Setting.Click += new System.EventHandler(this.PicBox_Setting_Click);
             // 
+            // BtnMgmtAnalyzer
+            // 
+            this.BtnMgmtAnalyzer.AutoSize = false;
+            this.BtnMgmtAnalyzer.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnMgmtAnalyzer.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnMgmtAnalyzer.Depth = 0;
+            this.BtnMgmtAnalyzer.HighEmphasis = true;
+            this.BtnMgmtAnalyzer.Icon = null;
+            this.BtnMgmtAnalyzer.Location = new System.Drawing.Point(14, 277);
+            this.BtnMgmtAnalyzer.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnMgmtAnalyzer.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnMgmtAnalyzer.Name = "BtnMgmtAnalyzer";
+            this.BtnMgmtAnalyzer.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnMgmtAnalyzer.Size = new System.Drawing.Size(136, 40);
+            this.BtnMgmtAnalyzer.TabIndex = 11113;
+            this.BtnMgmtAnalyzer.Text = "Excel";
+            this.BtnMgmtAnalyzer.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnMgmtAnalyzer.UseAccentColor = false;
+            this.BtnMgmtAnalyzer.UseVisualStyleBackColor = true;
+            this.BtnMgmtAnalyzer.Click += new System.EventHandler(this.BtnMgmtAnalyzer_Click);
+            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -1330,6 +1353,7 @@ namespace GateHelper
         private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel_DropZone;
         private System.Windows.Forms.GroupBox groupBox1;
         private MaterialSkin.Controls.MaterialButton BtnLogValidator;
+        private MaterialSkin.Controls.MaterialButton BtnMgmtAnalyzer;
     }
 }
 

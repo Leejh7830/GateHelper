@@ -616,11 +616,6 @@ namespace GateHelper.Mgmt
                     expectedPortCount += portResult.discovered;
                 }
 
-                // 💡 [삭제] 호기 폴더 접기 로직 제거됨.
-                // following:: 축 격리 탐색으로 이전 호기 잔존 노드를 이미 구조적으로 배제하고 있어
-                // 폴더를 닫지 않아도 데이터 정확성에 영향이 없음을 실측(82대 전량 일치)으로 확인함.
-                // 호기당 약 0.9초씩 불필요하게 소요되던 구간을 제거.
-
                 return (true, currentMachineName, semCount, portCount, string.Empty, expectedPortCount);
             }
             catch (OperationCanceledException)

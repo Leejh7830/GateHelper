@@ -1,6 +1,7 @@
+using ClosedXML.Excel;
 using GateHelper.LogValidator;
 using GateHelper.Mgmt;
-using ClosedXML.Excel;
+using GateHelper.Mgmt.ExcelAnalyzer;
 using MaterialSkin;
 using MaterialSkin.Controls;
 using OpenQA.Selenium;
@@ -1895,5 +1896,9 @@ namespace GateHelper
             }
         }
 
+        private void BtnMgmtAnalyzer_Click(object sender, EventArgs e)
+        {
+            new ExcelAnalyzerForm().Show();
+        }
     } // MainUI.cs END
 }
