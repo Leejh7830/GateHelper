@@ -139,6 +139,9 @@ namespace GateHelper
                             // 원래 포커스로 복구
                             if (!IsManagementActive)
                             {
+                                // 💡 [수정] 공지사항 팝업 등이 떴을 때, 원래 탭(mainHandle)으로 강제로 되돌아가면 
+                                //    팝업이 뒤로 밀려나는 불편함이 있으므로 포커스 복귀 로직을 제거(주석 처리)합니다.
+                                /*
                                 try 
                                 { 
                                     if (!string.IsNullOrEmpty(originalFocus) && driver.WindowHandles.Contains(originalFocus))
@@ -146,6 +149,7 @@ namespace GateHelper
                                     else
                                         driver.SwitchTo().Window(mainHandle); 
                                 } catch { }
+                                */
                             }
 
                             // 로딩 중이면 하위 로직 건너뜀

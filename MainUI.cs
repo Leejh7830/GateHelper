@@ -1608,7 +1608,9 @@ namespace GateHelper
                         LogMessage($"[1/{machineCount}] {selectedMachines[0]} 수집 시작", Level.Info);
                     }
 
-                    for (int i = 0; i < machineCount; i++)
+                    await Task.Run(async () =>
+                    {
+                        for (int i = 0; i < machineCount; i++)
                     {
                         try { await Task.Run(() => _pauseEvent.Wait(_cancelTokenSource.Token)); }
                         catch (OperationCanceledException) { break; }
@@ -1626,7 +1628,15 @@ namespace GateHelper
                         var keys = Util_Mgmt.GetEquipmentKeywords(currentMachineName);
 
                         var result = await Util_Mgmt.ProcessSingleMachineAsync(
-                            _driver, workbook, machineXPath, currentMachineName, keys, isSemChecked, isPortChecked);
+                            _driver, workbook, machineXPath, currentMachineName, keys, isSemChecked, isPortChecked, _cancelTokenSource.Token);
+
+                        if (result.errorMessage != null && result.errorMessage.Contains("BROWSER_CLOSED"))
+                        {
+                            pendingResultLine = $"[{i + 1}/{machineCount}] {result.machineName} 실패: 브라우저 강제 종료가 감지되어 전체 작업을 즉시 중단합니다.";
+                            pendingResultLevel = Level.Error;
+                            failedMachines.Add(result.machineName);
+                            break; // 💡 브라우저가 꺼지면 남은 루프를 모두 파기하고 즉각 중단!
+                        }
 
                         if (result.isSuccess)
                         {
@@ -1650,6 +1660,7 @@ namespace GateHelper
                     {
                         LogMessage(pendingResultLine, pendingResultLevel);
                     }
+                    }); // Task.Run END
                     sw.Stop();
 
                     // 4. 루프 완료 후 1회 저장 (취소/실패 여부 무관하게 수집된 데이터는 저장)

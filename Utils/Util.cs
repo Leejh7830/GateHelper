@@ -160,7 +160,7 @@ namespace GateHelper
             string metaNotesPath = GetMetaPath("ReleaseNotes.txt");
             string content =
 @"
-v2.4.1 / 26.07.05 / Test Version
+v2.4.3 / 26.07.23 / Test Version
 - leejh7830@lgespartner.com
 - 비영리 목적으로 제작한 유틸리티입니다.
 
@@ -171,6 +171,7 @@ v2.4.1 / 26.07.05 / Test Version
 6. 신규 / 전체 서버를 리스트에 저장하는 기능
 7. 신규 / 마우스 감지 및 일정 시간(사용자 비활성) 후 자동 마우스 움직임 기능 추가
 8. 신규 / 레이아웃 폼 생성, 설비 레이아웃 클릭 시 바로 해당 AP로 이동
+9. MGMT로 데이터 수집 후 통계 및 비교 기능 추가
 
 [ 개선 사항 ] 진행중 : 
 1. 개선 / FAV One Click Connect 오류 (검색은 되지만 접속 시 찾을 수 없음)
@@ -181,8 +182,6 @@ v2.4.1 / 26.07.05 / Test Version
 6. 개선 / [UDP] RDP 감지 추가
 7. 개선 / [UDP] 현재 접속자 확인 기능 추가
 8. 개선 / [UDP] 접속자 목록 UI 추가
-
-
 
 
 [완료]

@@ -1,4 +1,4 @@
-﻿using ClosedXML.Excel;
+using ClosedXML.Excel;
 using OpenQA.Selenium;
 using System;
 using System.Collections.Generic;
@@ -6,6 +6,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using static GateHelper.LogManager;
@@ -291,7 +292,7 @@ namespace GateHelper.Mgmt
         }
 
         // 2. [서브루틴] SEM 데이터 수집
-        public static async Task<int> CollectSemDataAsync(IWebDriver driver, XLWorkbook workbook, string machineName, string targetSemName)
+        public static async Task<int> CollectSemDataAsync(IWebDriver driver, XLWorkbook workbook, string machineName, string targetSemName, CancellationToken token)
         {
             var tableData = await Util_MgmtElement.GetTableDataBySmartScrollAsync(driver);
 
@@ -308,7 +309,7 @@ namespace GateHelper.Mgmt
         //    이전 호기의 잔존 StockerPorts/자식 포트 노드를 절대 잡지 않도록 강제 격리
         // 🔍 [검증용] discovered(발견된 개수) vs collected(실제 수집 성공 개수)를 함께 반환하여
         //    최종 결과와 비교, 데이터 유실 여부를 판단할 수 있게 함
-        public static async Task<(int collected, int discovered)> CollectPortDataAsync(IWebDriver driver, IWebElement scopeElement, XLWorkbook workbook, string machineName, string targetPortParentName, string targetChildPortPrefix)
+        public static async Task<(int collected, int discovered)> CollectPortDataAsync(IWebDriver driver, IWebElement scopeElement, XLWorkbook workbook, string machineName, string targetPortParentName, string targetChildPortPrefix, CancellationToken token)
         {
             int count = 0;
 
@@ -321,9 +322,10 @@ namespace GateHelper.Mgmt
 
             for (int waited = 0; waited <= portParentMaxWaitMs; waited += portParentPollIntervalMs)
             {
+                token.ThrowIfCancellationRequested();
                 portParentElement = scopeElement.FindElements(By.XPath(portParentXPath)).FirstOrDefault(el => el.Displayed);
                 if (portParentElement != null) break;
-                await Task.Delay(portParentPollIntervalMs);
+                await Task.Delay(portParentPollIntervalMs, token);
             }
 
             if (portParentElement == null)
@@ -341,9 +343,10 @@ namespace GateHelper.Mgmt
             List<IWebElement> visibleChildPorts = new List<IWebElement>();
             for (int retry = 0; retry < 5; retry++)
             {
+                token.ThrowIfCancellationRequested();
                 visibleChildPorts = portParentElement.FindElements(By.XPath(childPortXPath)).Where(el => el.Displayed).ToList();
                 if (visibleChildPorts.Count > 0) break; // 나타나면 즉시 감시 종료 후 진행
-                await Task.Delay(500);
+                await Task.Delay(500, token);
             }
 
             int childPortCount = visibleChildPorts.Count;
@@ -359,6 +362,7 @@ namespace GateHelper.Mgmt
 
             for (int j = 0; j < childPortCount; j++)
             {
+                token.ThrowIfCancellationRequested();
                 var refreshedPorts = portParentElement.FindElements(By.XPath(childPortXPath)).Where(el => el.Displayed).ToList();
                 if (j >= refreshedPorts.Count) break;
 
@@ -368,6 +372,7 @@ namespace GateHelper.Mgmt
                 bool portClicked = await Util_Element.ScrollAndClickAsync(driver, targetPort, 1500);
                 if (portClicked)
                 {
+                    token.ThrowIfCancellationRequested();
                     var tableData = await Util_MgmtElement.GetTableDataBySmartScrollAsync(driver);
 
 
@@ -537,7 +542,7 @@ namespace GateHelper.Mgmt
         public static async Task<(bool isSuccess, string machineName, int semCount, int portCount, string errorMessage, int expectedPortCount)>
         ProcessSingleMachineAsync(IWebDriver driver, XLWorkbook workbook, string machineXPath, string currentMachineName,
                              (string semName, string portParentName, string childPortPrefix) keys,
-                             bool isSemChecked, bool isPortChecked)
+                             bool isSemChecked, bool isPortChecked, CancellationToken token)
         {
             int semCount = 0;
             int portCount = 0;
@@ -570,9 +575,10 @@ namespace GateHelper.Mgmt
 
                 for (int waited = 0; waited <= semMaxWaitMs; waited += semPollIntervalMs)
                 {
+                    token.ThrowIfCancellationRequested();
                     semElement = targetMachine.FindElements(By.XPath(semXPath)).FirstOrDefault(el => el.Displayed);
                     if (semElement != null) break;
-                    await Task.Delay(semPollIntervalMs);
+                    await Task.Delay(semPollIntervalMs, token);
                 }
 
                 if (semElement == null)
@@ -592,7 +598,8 @@ namespace GateHelper.Mgmt
                 // 💡 [핵심] 길은 열어두었으나, 실제 데이터를 긁을지 말지는 체크박스에 따라 철저히 독립적으로 작동
                 if (isSemChecked)
                 {
-                    semCount += await CollectSemDataAsync(driver, workbook, currentMachineName, keys.semName);
+                    token.ThrowIfCancellationRequested();
+                    semCount += await CollectSemDataAsync(driver, workbook, currentMachineName, keys.semName, token);
                 }
                 else
                 {
@@ -603,7 +610,8 @@ namespace GateHelper.Mgmt
                 // 🔍 [검증용] 발견된 Port 개수(expected)와 실제 수집 성공 개수(collected)를 함께 받아 상위로 전달
                 if (isPortChecked)
                 {
-                    var portResult = await CollectPortDataAsync(driver, semElement, workbook, currentMachineName, keys.portParentName, keys.childPortPrefix);
+                    token.ThrowIfCancellationRequested();
+                    var portResult = await CollectPortDataAsync(driver, semElement, workbook, currentMachineName, keys.portParentName, keys.childPortPrefix, token);
                     portCount += portResult.collected;
                     expectedPortCount += portResult.discovered;
                 }
@@ -614,6 +622,14 @@ namespace GateHelper.Mgmt
                 // 호기당 약 0.9초씩 불필요하게 소요되던 구간을 제거.
 
                 return (true, currentMachineName, semCount, portCount, string.Empty, expectedPortCount);
+            }
+            catch (OperationCanceledException)
+            {
+                return (false, currentMachineName, 0, 0, "사용자에 의해 수집이 취소되었습니다.", 0);
+            }
+            catch (WebDriverException ex) when (ex.Message.Contains("no such window") || ex.Message.Contains("disconnected") || ex.Message.Contains("closed"))
+            {
+                return (false, currentMachineName, 0, 0, "[BROWSER_CLOSED] 브라우저가 강제 종료되었습니다.", 0);
             }
             catch (Exception ex)
             {
