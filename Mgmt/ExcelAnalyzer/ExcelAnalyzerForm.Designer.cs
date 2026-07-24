@@ -551,7 +551,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.CmbDescCol.MaxDropDownItems = 4;
             this.CmbDescCol.MouseState = MaterialSkin.MouseState.OUT;
             this.CmbDescCol.Name = "CmbDescCol";
-            this.CmbDescCol.Size = new System.Drawing.Size(121, 49);
+            this.CmbDescCol.Size = new System.Drawing.Size(153, 49);
             this.CmbDescCol.StartIndex = 0;
             this.CmbDescCol.TabIndex = 113;
             // 
