@@ -29,6 +29,8 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
         private void InitializeComponent()
         {
             this.PnlDropFile = new System.Windows.Forms.Panel();
+            this.materialLabel5 = new MaterialSkin.Controls.MaterialLabel();
+            this.CmbDescCol = new MaterialSkin.Controls.MaterialComboBox();
             this.CmbSheet = new MaterialSkin.Controls.MaterialComboBox();
             this.CmbValueCol = new MaterialSkin.Controls.MaterialComboBox();
             this.CmbNameCol = new MaterialSkin.Controls.MaterialComboBox();
@@ -42,10 +44,10 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.PnlRuleSetup = new System.Windows.Forms.Panel();
             this.BtnBackToHome1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnSaveRule = new MaterialSkin.Controls.MaterialButton();
-            this.ClbCommonVars = new MaterialSkin.Controls.MaterialCheckedListBox();
-            this.lblCommon = new MaterialSkin.Controls.MaterialLabel();
-            this.ClbUniqueVars = new MaterialSkin.Controls.MaterialCheckedListBox();
-            this.lblUnique = new MaterialSkin.Controls.MaterialLabel();
+            this.DgvVariables = new System.Windows.Forms.DataGridView();
+            this.ColVarName = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColUnique = new System.Windows.Forms.DataGridViewCheckBoxColumn();
+            this.ColCommon = new System.Windows.Forms.DataGridViewCheckBoxColumn();
             this.BtnDeleteScenario = new MaterialSkin.Controls.MaterialButton();
             this.BtnAddScenario = new MaterialSkin.Controls.MaterialButton();
             this.ClbMachines = new MaterialSkin.Controls.MaterialCheckedListBox();
@@ -56,10 +58,17 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.BtnExport = new MaterialSkin.Controls.MaterialButton();
             this.BtnRunValidation = new MaterialSkin.Controls.MaterialButton();
             this.DgvResults = new System.Windows.Forms.DataGridView();
-            this.CmbDescCol = new MaterialSkin.Controls.MaterialComboBox();
-            this.materialLabel5 = new MaterialSkin.Controls.MaterialLabel();
+            this.BtnGoToAnalyze = new MaterialSkin.Controls.MaterialButton();
+            this.chkShowErrorsOnly = new MaterialSkin.Controls.MaterialCheckbox();
+            this.ColStatus = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColRule = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColMachine = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColVariable = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColValue = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.ColDesc = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.PnlDropFile.SuspendLayout();
             this.PnlRuleSetup.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.DgvVariables)).BeginInit();
             this.PnlAnalysis.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DgvResults)).BeginInit();
             this.SuspendLayout();
@@ -83,6 +92,40 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.PnlDropFile.Name = "PnlDropFile";
             this.PnlDropFile.Size = new System.Drawing.Size(1243, 549);
             this.PnlDropFile.TabIndex = 0;
+            // 
+            // materialLabel5
+            // 
+            this.materialLabel5.AutoSize = true;
+            this.materialLabel5.Depth = 0;
+            this.materialLabel5.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialLabel5.Location = new System.Drawing.Point(769, 63);
+            this.materialLabel5.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialLabel5.Name = "materialLabel5";
+            this.materialLabel5.Size = new System.Drawing.Size(25, 19);
+            this.materialLabel5.TabIndex = 114;
+            this.materialLabel5.Text = "설명";
+            // 
+            // CmbDescCol
+            // 
+            this.CmbDescCol.AutoResize = false;
+            this.CmbDescCol.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.CmbDescCol.Depth = 0;
+            this.CmbDescCol.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawVariable;
+            this.CmbDescCol.DropDownHeight = 174;
+            this.CmbDescCol.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.CmbDescCol.DropDownWidth = 121;
+            this.CmbDescCol.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Pixel);
+            this.CmbDescCol.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.CmbDescCol.FormattingEnabled = true;
+            this.CmbDescCol.IntegralHeight = false;
+            this.CmbDescCol.ItemHeight = 43;
+            this.CmbDescCol.Location = new System.Drawing.Point(727, 97);
+            this.CmbDescCol.MaxDropDownItems = 4;
+            this.CmbDescCol.MouseState = MaterialSkin.MouseState.OUT;
+            this.CmbDescCol.Name = "CmbDescCol";
+            this.CmbDescCol.Size = new System.Drawing.Size(153, 49);
+            this.CmbDescCol.StartIndex = 0;
+            this.CmbDescCol.TabIndex = 113;
             // 
             // CmbSheet
             // 
@@ -266,12 +309,10 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             // 
             // PnlRuleSetup
             // 
+            this.PnlRuleSetup.Controls.Add(this.BtnGoToAnalyze);
             this.PnlRuleSetup.Controls.Add(this.BtnBackToHome1);
             this.PnlRuleSetup.Controls.Add(this.BtnSaveRule);
-            this.PnlRuleSetup.Controls.Add(this.ClbCommonVars);
-            this.PnlRuleSetup.Controls.Add(this.lblCommon);
-            this.PnlRuleSetup.Controls.Add(this.ClbUniqueVars);
-            this.PnlRuleSetup.Controls.Add(this.lblUnique);
+            this.PnlRuleSetup.Controls.Add(this.DgvVariables);
             this.PnlRuleSetup.Controls.Add(this.BtnDeleteScenario);
             this.PnlRuleSetup.Controls.Add(this.BtnAddScenario);
             this.PnlRuleSetup.Controls.Add(this.ClbMachines);
@@ -291,7 +332,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.BtnBackToHome1.Depth = 0;
             this.BtnBackToHome1.HighEmphasis = true;
             this.BtnBackToHome1.Icon = null;
-            this.BtnBackToHome1.Location = new System.Drawing.Point(1015, 451);
+            this.BtnBackToHome1.Location = new System.Drawing.Point(1015, 405);
             this.BtnBackToHome1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnBackToHome1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnBackToHome1.Name = "BtnBackToHome1";
@@ -311,7 +352,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.BtnSaveRule.Depth = 0;
             this.BtnSaveRule.HighEmphasis = true;
             this.BtnSaveRule.Icon = null;
-            this.BtnSaveRule.Location = new System.Drawing.Point(1015, 398);
+            this.BtnSaveRule.Location = new System.Drawing.Point(1015, 243);
             this.BtnSaveRule.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnSaveRule.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnSaveRule.Name = "BtnSaveRule";
@@ -323,55 +364,40 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.BtnSaveRule.UseAccentColor = false;
             this.BtnSaveRule.UseVisualStyleBackColor = true;
             // 
-            // ClbCommonVars
+            // DgvVariables
             // 
-            this.ClbCommonVars.AutoScroll = true;
-            this.ClbCommonVars.BackColor = System.Drawing.SystemColors.Control;
-            this.ClbCommonVars.Depth = 0;
-            this.ClbCommonVars.Location = new System.Drawing.Point(702, 41);
-            this.ClbCommonVars.MouseState = MaterialSkin.MouseState.HOVER;
-            this.ClbCommonVars.Name = "ClbCommonVars";
-            this.ClbCommonVars.Size = new System.Drawing.Size(300, 400);
-            this.ClbCommonVars.Striped = false;
-            this.ClbCommonVars.StripeDarkColor = System.Drawing.Color.Empty;
-            this.ClbCommonVars.TabIndex = 2;
+            this.DgvVariables.AllowUserToAddRows = false;
+            this.DgvVariables.AllowUserToDeleteRows = false;
+            this.DgvVariables.AllowUserToResizeRows = false;
+            this.DgvVariables.BackgroundColor = System.Drawing.SystemColors.Control;
+            this.DgvVariables.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.DgvVariables.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.ColVarName,
+            this.ColUnique,
+            this.ColCommon});
+            this.DgvVariables.Location = new System.Drawing.Point(396, 11);
+            this.DgvVariables.Name = "DgvVariables";
+            this.DgvVariables.RowHeadersVisible = false;
+            this.DgvVariables.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.DgvVariables.Size = new System.Drawing.Size(606, 435);
+            this.DgvVariables.TabIndex = 20;
             // 
-            // lblCommon
+            // ColVarName
             // 
-            this.lblCommon.AutoSize = true;
-            this.lblCommon.Depth = 0;
-            this.lblCommon.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.lblCommon.Location = new System.Drawing.Point(702, 10);
-            this.lblCommon.MouseState = MaterialSkin.MouseState.HOVER;
-            this.lblCommon.Name = "lblCommon";
-            this.lblCommon.Size = new System.Drawing.Size(141, 19);
-            this.lblCommon.TabIndex = 12;
-            this.lblCommon.Text = "공통값(Common) 검사";
+            this.ColVarName.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.ColVarName.HeaderText = "변수명";
+            this.ColVarName.Name = "ColVarName";
+            this.ColVarName.ReadOnly = true;
             // 
-            // ClbUniqueVars
+            // ColUnique
             // 
-            this.ClbUniqueVars.AutoScroll = true;
-            this.ClbUniqueVars.BackColor = System.Drawing.SystemColors.Control;
-            this.ClbUniqueVars.Depth = 0;
-            this.ClbUniqueVars.Location = new System.Drawing.Point(396, 41);
-            this.ClbUniqueVars.MouseState = MaterialSkin.MouseState.HOVER;
-            this.ClbUniqueVars.Name = "ClbUniqueVars";
-            this.ClbUniqueVars.Size = new System.Drawing.Size(300, 400);
-            this.ClbUniqueVars.Striped = false;
-            this.ClbUniqueVars.StripeDarkColor = System.Drawing.Color.Empty;
-            this.ClbUniqueVars.TabIndex = 2;
+            this.ColUnique.HeaderText = "고유(Unique)";
+            this.ColUnique.Name = "ColUnique";
             // 
-            // lblUnique
+            // ColCommon
             // 
-            this.lblUnique.AutoSize = true;
-            this.lblUnique.Depth = 0;
-            this.lblUnique.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.lblUnique.Location = new System.Drawing.Point(396, 10);
-            this.lblUnique.MouseState = MaterialSkin.MouseState.HOVER;
-            this.lblUnique.Name = "lblUnique";
-            this.lblUnique.Size = new System.Drawing.Size(125, 19);
-            this.lblUnique.TabIndex = 11;
-            this.lblUnique.Text = "고유값(Unique) 검사";
+            this.ColCommon.HeaderText = "공통(Common)";
+            this.ColCommon.Name = "ColCommon";
             // 
             // BtnDeleteScenario
             // 
@@ -418,10 +444,10 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.ClbMachines.AutoScroll = true;
             this.ClbMachines.BackColor = System.Drawing.SystemColors.Control;
             this.ClbMachines.Depth = 0;
-            this.ClbMachines.Location = new System.Drawing.Point(189, 40);
+            this.ClbMachines.Location = new System.Drawing.Point(189, 41);
             this.ClbMachines.MouseState = MaterialSkin.MouseState.HOVER;
             this.ClbMachines.Name = "ClbMachines";
-            this.ClbMachines.Size = new System.Drawing.Size(201, 400);
+            this.ClbMachines.Size = new System.Drawing.Size(201, 405);
             this.ClbMachines.Striped = false;
             this.ClbMachines.StripeDarkColor = System.Drawing.Color.Empty;
             this.ClbMachines.TabIndex = 1;
@@ -431,7 +457,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.lblMachines.AutoSize = true;
             this.lblMachines.Depth = 0;
             this.lblMachines.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.lblMachines.Location = new System.Drawing.Point(189, 10);
+            this.lblMachines.Location = new System.Drawing.Point(186, 18);
             this.lblMachines.MouseState = MaterialSkin.MouseState.HOVER;
             this.lblMachines.Name = "lblMachines";
             this.lblMachines.Size = new System.Drawing.Size(88, 19);
@@ -444,16 +470,17 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.LstScenarios.BorderColor = System.Drawing.Color.LightGray;
             this.LstScenarios.Depth = 0;
             this.LstScenarios.Font = new System.Drawing.Font("Microsoft Sans Serif", 16F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.LstScenarios.Location = new System.Drawing.Point(3, 40);
+            this.LstScenarios.Location = new System.Drawing.Point(3, 41);
             this.LstScenarios.MouseState = MaterialSkin.MouseState.HOVER;
             this.LstScenarios.Name = "LstScenarios";
             this.LstScenarios.SelectedIndex = -1;
             this.LstScenarios.SelectedItem = null;
-            this.LstScenarios.Size = new System.Drawing.Size(180, 400);
+            this.LstScenarios.Size = new System.Drawing.Size(180, 405);
             this.LstScenarios.TabIndex = 0;
             // 
             // PnlAnalysis
             // 
+            this.PnlAnalysis.Controls.Add(this.chkShowErrorsOnly);
             this.PnlAnalysis.Controls.Add(this.BtnBackToHome2);
             this.PnlAnalysis.Controls.Add(this.BtnExport);
             this.PnlAnalysis.Controls.Add(this.BtnRunValidation);
@@ -472,7 +499,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.BtnBackToHome2.Depth = 0;
             this.BtnBackToHome2.HighEmphasis = true;
             this.BtnBackToHome2.Icon = null;
-            this.BtnBackToHome2.Location = new System.Drawing.Point(692, 455);
+            this.BtnBackToHome2.Location = new System.Drawing.Point(1120, 6);
             this.BtnBackToHome2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnBackToHome2.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnBackToHome2.Name = "BtnBackToHome2";
@@ -492,7 +519,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.BtnExport.Depth = 0;
             this.BtnExport.HighEmphasis = true;
             this.BtnExport.Icon = null;
-            this.BtnExport.Location = new System.Drawing.Point(692, 397);
+            this.BtnExport.Location = new System.Drawing.Point(131, 6);
             this.BtnExport.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnExport.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnExport.Name = "BtnExport";
@@ -512,76 +539,120 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.BtnRunValidation.Depth = 0;
             this.BtnRunValidation.HighEmphasis = true;
             this.BtnRunValidation.Icon = null;
-            this.BtnRunValidation.Location = new System.Drawing.Point(692, 344);
+            this.BtnRunValidation.Location = new System.Drawing.Point(4, 6);
             this.BtnRunValidation.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnRunValidation.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnRunValidation.Name = "BtnRunValidation";
             this.BtnRunValidation.NoAccentTextColor = System.Drawing.Color.Empty;
             this.BtnRunValidation.Size = new System.Drawing.Size(119, 41);
             this.BtnRunValidation.TabIndex = 108;
-            this.BtnRunValidation.Text = "Validation";
+            this.BtnRunValidation.Text = "▶  Validation";
             this.BtnRunValidation.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.BtnRunValidation.UseAccentColor = false;
             this.BtnRunValidation.UseVisualStyleBackColor = true;
             // 
             // DgvResults
             // 
+            this.DgvResults.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.DgvResults.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            this.DgvResults.Location = new System.Drawing.Point(69, 40);
+            this.DgvResults.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.ColStatus,
+            this.ColRule,
+            this.ColMachine,
+            this.ColVariable,
+            this.ColValue,
+            this.ColDesc});
+            this.DgvResults.Location = new System.Drawing.Point(34, 243);
             this.DgvResults.Name = "DgvResults";
             this.DgvResults.RowTemplate.Height = 23;
-            this.DgvResults.Size = new System.Drawing.Size(240, 150);
+            this.DgvResults.Size = new System.Drawing.Size(1177, 279);
             this.DgvResults.TabIndex = 0;
             // 
-            // CmbDescCol
+            // BtnGoToAnalyze
             // 
-            this.CmbDescCol.AutoResize = false;
-            this.CmbDescCol.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            this.CmbDescCol.Depth = 0;
-            this.CmbDescCol.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawVariable;
-            this.CmbDescCol.DropDownHeight = 174;
-            this.CmbDescCol.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.CmbDescCol.DropDownWidth = 121;
-            this.CmbDescCol.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Pixel);
-            this.CmbDescCol.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            this.CmbDescCol.FormattingEnabled = true;
-            this.CmbDescCol.IntegralHeight = false;
-            this.CmbDescCol.ItemHeight = 43;
-            this.CmbDescCol.Location = new System.Drawing.Point(727, 97);
-            this.CmbDescCol.MaxDropDownItems = 4;
-            this.CmbDescCol.MouseState = MaterialSkin.MouseState.OUT;
-            this.CmbDescCol.Name = "CmbDescCol";
-            this.CmbDescCol.Size = new System.Drawing.Size(153, 49);
-            this.CmbDescCol.StartIndex = 0;
-            this.CmbDescCol.TabIndex = 113;
+            this.BtnGoToAnalyze.AutoSize = false;
+            this.BtnGoToAnalyze.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnGoToAnalyze.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnGoToAnalyze.Depth = 0;
+            this.BtnGoToAnalyze.HighEmphasis = true;
+            this.BtnGoToAnalyze.Icon = null;
+            this.BtnGoToAnalyze.Location = new System.Drawing.Point(1015, 296);
+            this.BtnGoToAnalyze.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnGoToAnalyze.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnGoToAnalyze.Name = "BtnGoToAnalyze";
+            this.BtnGoToAnalyze.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnGoToAnalyze.Size = new System.Drawing.Size(119, 41);
+            this.BtnGoToAnalyze.TabIndex = 109;
+            this.BtnGoToAnalyze.Text = "▶ Validation";
+            this.BtnGoToAnalyze.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnGoToAnalyze.UseAccentColor = false;
+            this.BtnGoToAnalyze.UseVisualStyleBackColor = true;
             // 
-            // materialLabel5
+            // chkShowErrorsOnly
             // 
-            this.materialLabel5.AutoSize = true;
-            this.materialLabel5.Depth = 0;
-            this.materialLabel5.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel5.Location = new System.Drawing.Point(769, 63);
-            this.materialLabel5.MouseState = MaterialSkin.MouseState.HOVER;
-            this.materialLabel5.Name = "materialLabel5";
-            this.materialLabel5.Size = new System.Drawing.Size(25, 19);
-            this.materialLabel5.TabIndex = 114;
-            this.materialLabel5.Text = "설명";
+            this.chkShowErrorsOnly.AutoSize = true;
+            this.chkShowErrorsOnly.Depth = 0;
+            this.chkShowErrorsOnly.Location = new System.Drawing.Point(254, 9);
+            this.chkShowErrorsOnly.Margin = new System.Windows.Forms.Padding(0);
+            this.chkShowErrorsOnly.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.chkShowErrorsOnly.MouseState = MaterialSkin.MouseState.HOVER;
+            this.chkShowErrorsOnly.Name = "chkShowErrorsOnly";
+            this.chkShowErrorsOnly.ReadOnly = false;
+            this.chkShowErrorsOnly.Ripple = true;
+            this.chkShowErrorsOnly.Size = new System.Drawing.Size(99, 37);
+            this.chkShowErrorsOnly.TabIndex = 111;
+            this.chkShowErrorsOnly.Text = "오류만 보기";
+            this.chkShowErrorsOnly.UseVisualStyleBackColor = true;
+            // 
+            // ColStatus
+            // 
+            this.ColStatus.HeaderText = "결과 상태";
+            this.ColStatus.Name = "ColStatus";
+            // 
+            // ColRule
+            // 
+            this.ColRule.HeaderText = "적용 규칙";
+            this.ColRule.Name = "ColRule";
+            // 
+            // ColMachine
+            // 
+            this.ColMachine.HeaderText = "설비명";
+            this.ColMachine.Name = "ColMachine";
+            // 
+            // ColVariable
+            // 
+            this.ColVariable.HeaderText = "변수명";
+            this.ColVariable.Name = "ColVariable";
+            // 
+            // ColValue
+            // 
+            this.ColValue.HeaderText = "입력된 값";
+            this.ColValue.Name = "ColValue";
+            // 
+            // ColDesc
+            // 
+            this.ColDesc.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.ColDesc.HeaderText = "오류 상세 설명";
+            this.ColDesc.Name = "ColDesc";
             // 
             // ExcelAnalyzerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1249, 616);
-            this.Controls.Add(this.PnlDropFile);
             this.Controls.Add(this.PnlAnalysis);
             this.Controls.Add(this.PnlRuleSetup);
+            this.Controls.Add(this.PnlDropFile);
             this.Name = "ExcelAnalyzerForm";
             this.Text = "ExcelAnalyzerForm";
             this.PnlDropFile.ResumeLayout(false);
             this.PnlDropFile.PerformLayout();
             this.PnlRuleSetup.ResumeLayout(false);
             this.PnlRuleSetup.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.DgvVariables)).EndInit();
             this.PnlAnalysis.ResumeLayout(false);
+            this.PnlAnalysis.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DgvResults)).EndInit();
             this.ResumeLayout(false);
 
@@ -601,8 +672,10 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
         private MaterialSkin.Controls.MaterialButton BtnAddScenario;
         private MaterialSkin.Controls.MaterialButton BtnBackToHome1;
         private MaterialSkin.Controls.MaterialButton BtnSaveRule;
-        private MaterialSkin.Controls.MaterialCheckedListBox ClbCommonVars;
-        private MaterialSkin.Controls.MaterialCheckedListBox ClbUniqueVars;
+        private System.Windows.Forms.DataGridView DgvVariables;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColVarName;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn ColUnique;
+        private System.Windows.Forms.DataGridViewCheckBoxColumn ColCommon;
         private MaterialSkin.Controls.MaterialButton BtnBackToHome2;
         private MaterialSkin.Controls.MaterialButton BtnExport;
         private MaterialSkin.Controls.MaterialButton BtnRunValidation;
@@ -615,9 +688,16 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
         private MaterialSkin.Controls.MaterialLabel materialLabel3;
         private MaterialSkin.Controls.MaterialComboBox CmbSheet;
         private MaterialSkin.Controls.MaterialLabel lblMachines;
-        private MaterialSkin.Controls.MaterialLabel lblUnique;
-        private MaterialSkin.Controls.MaterialLabel lblCommon;
+
         private MaterialSkin.Controls.MaterialLabel materialLabel5;
         private MaterialSkin.Controls.MaterialComboBox CmbDescCol;
+        private MaterialSkin.Controls.MaterialButton BtnGoToAnalyze;
+        private MaterialSkin.Controls.MaterialCheckbox chkShowErrorsOnly;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColStatus;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColRule;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColMachine;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColVariable;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColValue;
+        private System.Windows.Forms.DataGridViewTextBoxColumn ColDesc;
     }
 }

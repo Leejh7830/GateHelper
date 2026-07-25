@@ -161,12 +161,36 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                     foreach (var machine in mappedMachinesInExcel)
                     {
                         var row = machineDataGroups[machine].FirstOrDefault(x => x.VariableName == commonVar);
-                        if (row == null) continue; // 해당 변수가 아예 없으면 일단 넘어감 (또는 에러 처리 가능)
+                        if (row == null || string.IsNullOrWhiteSpace(row.Value)) 
+                        {
+                            errors.Add(new ValidationError
+                            {
+                                MachineName = machine,
+                                RuleName = profile.RuleName,
+                                VariableName = commonVar,
+                                ErrorType = "Missing",
+                                ExpectedValue = "공통값 존재해야 함",
+                                ActualValue = "누락",
+                                Description = "공통값 규칙 위반: 해당 호기에 변수 또는 설정값이 누락되었습니다."
+                            });
+                            continue;
+                        }
 
                         if (baselineValue == null)
                         {
                             baselineValue = row.Value;
                             baselineMachine = machine;
+                            
+                            errors.Add(new ValidationError
+                            {
+                                MachineName = machine,
+                                RuleName = profile.RuleName,
+                                VariableName = commonVar,
+                                ErrorType = "PASS",
+                                ExpectedValue = "공통값 일치",
+                                ActualValue = row.Value,
+                                Description = "정상 (기준값)"
+                            });
                         }
                         else
                         {
@@ -180,7 +204,20 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                                     ErrorType = "CommonViolation",
                                     ExpectedValue = $"{baselineValue} ({baselineMachine} 기준)",
                                     ActualValue = row.Value,
-                                    Description = $"공통값 규칙 위반: 다른 호기들과 설정값이 다릅니다."
+                                    Description = "공통값 규칙 위반: 다른 호기들과 설정값이 다릅니다."
+                                });
+                            }
+                            else
+                            {
+                                errors.Add(new ValidationError
+                                {
+                                    MachineName = machine,
+                                    RuleName = profile.RuleName,
+                                    VariableName = commonVar,
+                                    ErrorType = "PASS",
+                                    ExpectedValue = $"{baselineValue} ({baselineMachine} 기준)",
+                                    ActualValue = row.Value,
+                                    Description = "정상"
                                 });
                             }
                         }
@@ -196,7 +233,20 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                     foreach (var machine in mappedMachinesInExcel)
                     {
                         var row = machineDataGroups[machine].FirstOrDefault(x => x.VariableName == uniqueVar);
-                        if (row == null || string.IsNullOrWhiteSpace(row.Value)) continue;
+                        if (row == null || string.IsNullOrWhiteSpace(row.Value)) 
+                        {
+                            errors.Add(new ValidationError
+                            {
+                                MachineName = machine,
+                                RuleName = profile.RuleName,
+                                VariableName = uniqueVar,
+                                ErrorType = "Missing",
+                                ExpectedValue = "고유값 존재해야 함",
+                                ActualValue = "누락",
+                                Description = "고유값 규칙 위반: 해당 호기에 변수 또는 설정값이 누락되었습니다."
+                            });
+                            continue;
+                        }
 
                         if (valueToMachineMap.ContainsKey(row.Value))
                         {
@@ -215,6 +265,16 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                         else
                         {
                             valueToMachineMap[row.Value] = machine;
+                            errors.Add(new ValidationError
+                            {
+                                MachineName = machine,
+                                RuleName = profile.RuleName,
+                                VariableName = uniqueVar,
+                                ErrorType = "PASS",
+                                ExpectedValue = "고유값 (중복 없음)",
+                                ActualValue = row.Value,
+                                Description = "정상"
+                            });
                         }
                     }
                 }
