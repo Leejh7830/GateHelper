@@ -43,12 +43,33 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             DgvVariables.CellClick += DgvVariables_CellClick;
         }
 
+        private Panel _pnlDropOverlay;
+        private readonly Size _smallSize = new Size(700, 420);
+        private readonly Size _largeSize = new Size(1250, 650);
+
+        private void SwitchToPanel(Panel panel)
+        {
+            panel.BringToFront();
+            Size targetSize = (panel == PnlDropFile) ? _smallSize : _largeSize;
+            
+            if (this.Size != targetSize)
+            {
+                // 화면 세로(Y)는 중앙을 유지하되, 가로(X)는 좌측을 고정하여
+                // 크기가 커질 때 모니터 왼쪽 밖으로 빠져나가는 현상을 방지합니다.
+                int diffY = (targetSize.Height - this.Height) / 2;
+                this.Size = targetSize;
+                this.Location = new Point(this.Location.X, this.Location.Y - diffY);
+            }
+        }
+
         private void InitUI()
         {
             // 1. 드래그 앤 드롭 설정
             PnlDropFile.AllowDrop = true;
             PnlDropFile.DragEnter += PnlDropFile_DragEnter;
             PnlDropFile.DragDrop += PnlDropFile_DragDrop;
+
+            CreateDropOverlay();
 
             ApplyMaterialDesignToDataGridView(DgvVariables);
             ApplyMaterialDesignToDataGridView(DgvResults);
@@ -68,8 +89,8 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             // 3. 버튼 이벤트 연결 (화면 전환)
             BtnStartRuleSetup.Click += BtnStartRuleSetup_Click;
             BtnStartAnalyze.Click += BtnStartAnalyze_Click;
-            BtnBackToHome1.Click += (s, e) => PnlDropFile.BringToFront();
-            BtnBackToHome2.Click += (s, e) => PnlDropFile.BringToFront();
+            BtnBackToHome1.Click += (s, e) => SwitchToPanel(PnlDropFile);
+            BtnBackToHome2.Click += (s, e) => SwitchToPanel(PnlDropFile);
 
             // 3-1. 규칙 설정 이벤트 연결
             LstScenarios.SelectedIndexChanged += LstScenarios_SelectedIndexChanged;
@@ -90,7 +111,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             if (DgvResults != null) DgvResults.RowHeadersVisible = false;
 
             // 4. 최초 패널 설정
-            PnlDropFile.BringToFront();
+            SwitchToPanel(PnlDropFile);
         }
 
         private void LoadConfig()
@@ -123,6 +144,36 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             }
         }
 
+        private void CreateDropOverlay()
+        {
+            _pnlDropOverlay = new Panel();
+            _pnlDropOverlay.Dock = DockStyle.Fill;
+            _pnlDropOverlay.AllowDrop = true;
+            
+            var skin = MaterialSkinManager.Instance;
+            bool isDark = skin.Theme == MaterialSkinManager.Themes.DARK;
+            _pnlDropOverlay.BackColor = isDark ? Color.FromArgb(240, 50, 50, 50) : Color.FromArgb(240, 245, 245, 245);
+
+            Label lbl = new Label();
+            lbl.Text = "Drag & Drop 📁\n여기에 엑셀 파일을 놓으세요";
+            lbl.Font = new Font("맑은 고딕", 26f, FontStyle.Bold);
+            lbl.AutoSize = false;
+            lbl.Dock = DockStyle.Fill;
+            lbl.TextAlign = ContentAlignment.MiddleCenter;
+            lbl.ForeColor = isDark ? Color.LightGray : Color.DimGray;
+            lbl.AllowDrop = true;
+
+            // 이벤트 연결
+            lbl.DragEnter += PnlDropFile_DragEnter;
+            lbl.DragDrop += PnlDropFile_DragDrop;
+            _pnlDropOverlay.DragEnter += PnlDropFile_DragEnter;
+            _pnlDropOverlay.DragDrop += PnlDropFile_DragDrop;
+
+            _pnlDropOverlay.Controls.Add(lbl);
+            PnlDropFile.Controls.Add(_pnlDropOverlay);
+            _pnlDropOverlay.BringToFront();
+        }
+
         #region [드래그 앤 드롭 & 헤더 추출]
         private void PnlDropFile_DragEnter(object sender, DragEventArgs e)
         {
@@ -146,6 +197,8 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
 
                 _droppedFilePath = file;
                 
+                if (_pnlDropOverlay != null) _pnlDropOverlay.Visible = false;
+
                 // 시트 목록 불러오기
                 try
                 {
@@ -256,7 +309,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             {
                 // 엑셀 없이 바로 진입 (저장된 설정 기반으로만 UI 로드)
                 _parsedData.Clear();
-                PnlRuleSetup.BringToFront();
+                SwitchToPanel(PnlRuleSetup);
                 PopulateCheckboxes();
                 PopulateScenarios();
                 return;
@@ -294,7 +347,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                     MessageBox.Show($"동일한 설비 내에 중복된 변수명이 발견되었습니다.\n엑셀 데이터가 올바른지 확인해주세요.\n\n[중복 항목 예시]\n{dupMsg}", "변수 중복 알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
 
-                PnlRuleSetup.BringToFront();
+                SwitchToPanel(PnlRuleSetup);
                 PopulateCheckboxes();
                 PopulateScenarios();
             }
@@ -336,10 +389,14 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                 ClbMachines.Items.Add(cb);
             }
 
-            // 3. 변수명 목록 추출 (엑셀이 없으면 기존 프로필에서 추출)
-            var distinctVars = _parsedData.Count > 0 
-                ? _parsedData.Select(x => x.VariableName).Distinct().OrderBy(x => x).ToList()
-                : _config.Profiles.SelectMany(p => p.UniqueVariables.Concat(p.CommonVariables)).Distinct().OrderBy(x => x).ToList();
+            // 3. 변수명 목록 추출 (엑셀이 없어도 과거 프로필에 잘못 저장된 고스트 변수를 찾기 위해 합침)
+            var distinctVarsSet = new HashSet<string>();
+            if (_parsedData.Count > 0)
+                distinctVarsSet.UnionWith(_parsedData.Select(x => x.VariableName));
+            
+            distinctVarsSet.UnionWith(_config.Profiles.SelectMany(p => p.UniqueVariables.Concat(p.CommonVariables)));
+            
+            var distinctVars = distinctVarsSet.OrderBy(x => x).ToList();
 
             foreach (var v in distinctVars)
             {
@@ -581,9 +638,9 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                     _droppedFilePath, sheetName,
                     _config.LastMappedMachineColumn, _config.LastMappedNameColumn, _config.LastMappedValueColumn, _config.LastMappedDescColumn);
                     
-                PnlAnalysis.BringToFront();
+                SwitchToPanel(PnlAnalysis);
                 
-                // 엔진 자동 실행
+                // 검증 자동 실행
                 RunValidation();
             }
             catch (Exception ex)
@@ -623,6 +680,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             dgv.ColumnHeadersDefaultCellStyle.ForeColor = System.Drawing.Color.White;
             dgv.ColumnHeadersDefaultCellStyle.Font = headerFont;
             dgv.ColumnHeadersDefaultCellStyle.SelectionBackColor = materialSkinManager.ColorScheme.PrimaryColor;
+            dgv.ColumnHeadersDefaultCellStyle.Padding = new Padding(10, 0, 0, 0);
             dgv.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.DisableResizing;
             dgv.ColumnHeadersHeight = 45;
             
@@ -630,6 +688,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             dgv.DefaultCellStyle.BackColor = bgColor;
             dgv.DefaultCellStyle.ForeColor = materialSkinManager.TextHighEmphasisColor;
             dgv.DefaultCellStyle.Font = rowFont;
+            dgv.DefaultCellStyle.Padding = new Padding(10, 0, 0, 0);
             Color selectionColor = isDark ? Color.FromArgb(100, 100, 100) : Color.FromArgb(220, 220, 220);
             dgv.DefaultCellStyle.SelectionBackColor = selectionColor;
             dgv.DefaultCellStyle.SelectionForeColor = materialSkinManager.TextHighEmphasisColor;
@@ -724,7 +783,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                 }
             }
             
-            PnlAnalysis.BringToFront();
+            SwitchToPanel(PnlAnalysis);
             RunValidation();
         }
 

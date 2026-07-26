@@ -40,8 +40,9 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.materialLabel2 = new MaterialSkin.Controls.MaterialLabel();
             this.BtnStartAnalyze = new MaterialSkin.Controls.MaterialButton();
             this.BtnStartRuleSetup = new MaterialSkin.Controls.MaterialButton();
-            this.materialLabel1 = new MaterialSkin.Controls.MaterialLabel();
             this.PnlRuleSetup = new System.Windows.Forms.Panel();
+            this.materialLabel6 = new MaterialSkin.Controls.MaterialLabel();
+            this.BtnGoToAnalyze = new MaterialSkin.Controls.MaterialButton();
             this.BtnBackToHome1 = new MaterialSkin.Controls.MaterialButton();
             this.BtnSaveRule = new MaterialSkin.Controls.MaterialButton();
             this.DgvVariables = new System.Windows.Forms.DataGridView();
@@ -54,39 +55,29 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.lblMachines = new MaterialSkin.Controls.MaterialLabel();
             this.LstScenarios = new MaterialSkin.Controls.MaterialListBox();
             this.PnlAnalysis = new System.Windows.Forms.Panel();
+            this.chkShowErrorsOnly = new MaterialSkin.Controls.MaterialCheckbox();
             this.BtnBackToHome2 = new MaterialSkin.Controls.MaterialButton();
             this.BtnExport = new MaterialSkin.Controls.MaterialButton();
             this.BtnRunValidation = new MaterialSkin.Controls.MaterialButton();
             this.DgvResults = new System.Windows.Forms.DataGridView();
-            this.BtnGoToAnalyze = new MaterialSkin.Controls.MaterialButton();
-            this.chkShowErrorsOnly = new MaterialSkin.Controls.MaterialCheckbox();
             this.ColStatus = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColRule = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColMachine = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColVariable = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColValue = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColDesc = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.panel1 = new System.Windows.Forms.Panel();
             this.PnlDropFile.SuspendLayout();
             this.PnlRuleSetup.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DgvVariables)).BeginInit();
             this.PnlAnalysis.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DgvResults)).BeginInit();
+            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // PnlDropFile
             // 
-            this.PnlDropFile.Controls.Add(this.materialLabel5);
-            this.PnlDropFile.Controls.Add(this.CmbDescCol);
-            this.PnlDropFile.Controls.Add(this.CmbSheet);
-            this.PnlDropFile.Controls.Add(this.CmbValueCol);
-            this.PnlDropFile.Controls.Add(this.CmbNameCol);
-            this.PnlDropFile.Controls.Add(this.CmbMachineCol);
-            this.PnlDropFile.Controls.Add(this.materialLabel4);
-            this.PnlDropFile.Controls.Add(this.materialLabel3);
-            this.PnlDropFile.Controls.Add(this.materialLabel2);
-            this.PnlDropFile.Controls.Add(this.BtnStartAnalyze);
-            this.PnlDropFile.Controls.Add(this.BtnStartRuleSetup);
-            this.PnlDropFile.Controls.Add(this.materialLabel1);
+            this.PnlDropFile.Controls.Add(this.panel1);
             this.PnlDropFile.Dock = System.Windows.Forms.DockStyle.Fill;
             this.PnlDropFile.Location = new System.Drawing.Point(3, 64);
             this.PnlDropFile.Name = "PnlDropFile";
@@ -98,7 +89,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.materialLabel5.AutoSize = true;
             this.materialLabel5.Depth = 0;
             this.materialLabel5.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel5.Location = new System.Drawing.Point(769, 63);
+            this.materialLabel5.Location = new System.Drawing.Point(455, 35);
             this.materialLabel5.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialLabel5.Name = "materialLabel5";
             this.materialLabel5.Size = new System.Drawing.Size(25, 19);
@@ -119,7 +110,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.CmbDescCol.FormattingEnabled = true;
             this.CmbDescCol.IntegralHeight = false;
             this.CmbDescCol.ItemHeight = 43;
-            this.CmbDescCol.Location = new System.Drawing.Point(727, 97);
+            this.CmbDescCol.Location = new System.Drawing.Point(413, 69);
             this.CmbDescCol.MaxDropDownItems = 4;
             this.CmbDescCol.MouseState = MaterialSkin.MouseState.OUT;
             this.CmbDescCol.Name = "CmbDescCol";
@@ -142,7 +133,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.CmbSheet.Hint = "시트 선택";
             this.CmbSheet.IntegralHeight = false;
             this.CmbSheet.ItemHeight = 43;
-            this.CmbSheet.Location = new System.Drawing.Point(346, 165);
+            this.CmbSheet.Location = new System.Drawing.Point(32, 137);
             this.CmbSheet.MaxDropDownItems = 4;
             this.CmbSheet.MouseState = MaterialSkin.MouseState.OUT;
             this.CmbSheet.Name = "CmbSheet";
@@ -165,7 +156,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.CmbValueCol.FormattingEnabled = true;
             this.CmbValueCol.IntegralHeight = false;
             this.CmbValueCol.ItemHeight = 43;
-            this.CmbValueCol.Location = new System.Drawing.Point(600, 96);
+            this.CmbValueCol.Location = new System.Drawing.Point(286, 68);
             this.CmbValueCol.MaxDropDownItems = 4;
             this.CmbValueCol.MouseState = MaterialSkin.MouseState.OUT;
             this.CmbValueCol.Name = "CmbValueCol";
@@ -187,7 +178,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.CmbNameCol.FormattingEnabled = true;
             this.CmbNameCol.IntegralHeight = false;
             this.CmbNameCol.ItemHeight = 43;
-            this.CmbNameCol.Location = new System.Drawing.Point(473, 96);
+            this.CmbNameCol.Location = new System.Drawing.Point(159, 68);
             this.CmbNameCol.MaxDropDownItems = 4;
             this.CmbNameCol.MouseState = MaterialSkin.MouseState.OUT;
             this.CmbNameCol.Name = "CmbNameCol";
@@ -209,7 +200,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.CmbMachineCol.FormattingEnabled = true;
             this.CmbMachineCol.IntegralHeight = false;
             this.CmbMachineCol.ItemHeight = 43;
-            this.CmbMachineCol.Location = new System.Drawing.Point(346, 97);
+            this.CmbMachineCol.Location = new System.Drawing.Point(32, 69);
             this.CmbMachineCol.MaxDropDownItems = 4;
             this.CmbMachineCol.MouseState = MaterialSkin.MouseState.OUT;
             this.CmbMachineCol.Name = "CmbMachineCol";
@@ -222,7 +213,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.materialLabel4.AutoSize = true;
             this.materialLabel4.Depth = 0;
             this.materialLabel4.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel4.Location = new System.Drawing.Point(638, 63);
+            this.materialLabel4.Location = new System.Drawing.Point(324, 35);
             this.materialLabel4.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialLabel4.Name = "materialLabel4";
             this.materialLabel4.Size = new System.Drawing.Size(37, 19);
@@ -234,7 +225,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.materialLabel3.AutoSize = true;
             this.materialLabel3.Depth = 0;
             this.materialLabel3.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel3.Location = new System.Drawing.Point(511, 63);
+            this.materialLabel3.Location = new System.Drawing.Point(197, 35);
             this.materialLabel3.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialLabel3.Name = "materialLabel3";
             this.materialLabel3.Size = new System.Drawing.Size(37, 19);
@@ -246,7 +237,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.materialLabel2.AutoSize = true;
             this.materialLabel2.Depth = 0;
             this.materialLabel2.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel2.Location = new System.Drawing.Point(389, 63);
+            this.materialLabel2.Location = new System.Drawing.Point(75, 35);
             this.materialLabel2.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialLabel2.Name = "materialLabel2";
             this.materialLabel2.Size = new System.Drawing.Size(37, 19);
@@ -255,18 +246,19 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             // 
             // BtnStartAnalyze
             // 
+            this.BtnStartAnalyze.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.BtnStartAnalyze.AutoSize = false;
             this.BtnStartAnalyze.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BtnStartAnalyze.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.BtnStartAnalyze.Depth = 0;
             this.BtnStartAnalyze.HighEmphasis = true;
             this.BtnStartAnalyze.Icon = null;
-            this.BtnStartAnalyze.Location = new System.Drawing.Point(718, 440);
+            this.BtnStartAnalyze.Location = new System.Drawing.Point(428, 249);
             this.BtnStartAnalyze.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnStartAnalyze.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnStartAnalyze.Name = "BtnStartAnalyze";
             this.BtnStartAnalyze.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnStartAnalyze.Size = new System.Drawing.Size(120, 60);
+            this.BtnStartAnalyze.Size = new System.Drawing.Size(120, 38);
             this.BtnStartAnalyze.TabIndex = 106;
             this.BtnStartAnalyze.Text = "Analyze";
             this.BtnStartAnalyze.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -276,18 +268,19 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             // 
             // BtnStartRuleSetup
             // 
+            this.BtnStartRuleSetup.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.BtnStartRuleSetup.AutoSize = false;
             this.BtnStartRuleSetup.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BtnStartRuleSetup.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.BtnStartRuleSetup.Depth = 0;
             this.BtnStartRuleSetup.HighEmphasis = true;
             this.BtnStartRuleSetup.Icon = null;
-            this.BtnStartRuleSetup.Location = new System.Drawing.Point(564, 440);
+            this.BtnStartRuleSetup.Location = new System.Drawing.Point(300, 249);
             this.BtnStartRuleSetup.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnStartRuleSetup.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnStartRuleSetup.Name = "BtnStartRuleSetup";
             this.BtnStartRuleSetup.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnStartRuleSetup.Size = new System.Drawing.Size(120, 60);
+            this.BtnStartRuleSetup.Size = new System.Drawing.Size(120, 38);
             this.BtnStartRuleSetup.TabIndex = 105;
             this.BtnStartRuleSetup.Text = "Rule Setup";
             this.BtnStartRuleSetup.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -295,20 +288,9 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.BtnStartRuleSetup.UseVisualStyleBackColor = true;
             this.BtnStartRuleSetup.Visible = false;
             // 
-            // materialLabel1
-            // 
-            this.materialLabel1.AutoSize = true;
-            this.materialLabel1.Depth = 0;
-            this.materialLabel1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel1.Location = new System.Drawing.Point(116, 104);
-            this.materialLabel1.MouseState = MaterialSkin.MouseState.HOVER;
-            this.materialLabel1.Name = "materialLabel1";
-            this.materialLabel1.Size = new System.Drawing.Size(107, 19);
-            this.materialLabel1.TabIndex = 0;
-            this.materialLabel1.Text = "Drag & Drop 📁";
-            // 
             // PnlRuleSetup
             // 
+            this.PnlRuleSetup.Controls.Add(this.materialLabel6);
             this.PnlRuleSetup.Controls.Add(this.BtnGoToAnalyze);
             this.PnlRuleSetup.Controls.Add(this.BtnBackToHome1);
             this.PnlRuleSetup.Controls.Add(this.BtnSaveRule);
@@ -324,6 +306,38 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.PnlRuleSetup.Size = new System.Drawing.Size(1243, 549);
             this.PnlRuleSetup.TabIndex = 1;
             // 
+            // materialLabel6
+            // 
+            this.materialLabel6.AutoSize = true;
+            this.materialLabel6.Depth = 0;
+            this.materialLabel6.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialLabel6.Location = new System.Drawing.Point(7, 17);
+            this.materialLabel6.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialLabel6.Name = "materialLabel6";
+            this.materialLabel6.Size = new System.Drawing.Size(53, 19);
+            this.materialLabel6.TabIndex = 110;
+            this.materialLabel6.Text = "규칙 목록";
+            // 
+            // BtnGoToAnalyze
+            // 
+            this.BtnGoToAnalyze.AutoSize = false;
+            this.BtnGoToAnalyze.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnGoToAnalyze.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnGoToAnalyze.Depth = 0;
+            this.BtnGoToAnalyze.HighEmphasis = true;
+            this.BtnGoToAnalyze.Icon = null;
+            this.BtnGoToAnalyze.Location = new System.Drawing.Point(1096, 290);
+            this.BtnGoToAnalyze.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnGoToAnalyze.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnGoToAnalyze.Name = "BtnGoToAnalyze";
+            this.BtnGoToAnalyze.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnGoToAnalyze.Size = new System.Drawing.Size(119, 41);
+            this.BtnGoToAnalyze.TabIndex = 109;
+            this.BtnGoToAnalyze.Text = "▶ Validation";
+            this.BtnGoToAnalyze.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnGoToAnalyze.UseAccentColor = false;
+            this.BtnGoToAnalyze.UseVisualStyleBackColor = true;
+            // 
             // BtnBackToHome1
             // 
             this.BtnBackToHome1.AutoSize = false;
@@ -332,7 +346,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.BtnBackToHome1.Depth = 0;
             this.BtnBackToHome1.HighEmphasis = true;
             this.BtnBackToHome1.Icon = null;
-            this.BtnBackToHome1.Location = new System.Drawing.Point(1015, 405);
+            this.BtnBackToHome1.Location = new System.Drawing.Point(1096, 459);
             this.BtnBackToHome1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnBackToHome1.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnBackToHome1.Name = "BtnBackToHome1";
@@ -352,7 +366,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.BtnSaveRule.Depth = 0;
             this.BtnSaveRule.HighEmphasis = true;
             this.BtnSaveRule.Icon = null;
-            this.BtnSaveRule.Location = new System.Drawing.Point(1015, 243);
+            this.BtnSaveRule.Location = new System.Drawing.Point(1096, 237);
             this.BtnSaveRule.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnSaveRule.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnSaveRule.Name = "BtnSaveRule";
@@ -375,11 +389,11 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.ColVarName,
             this.ColUnique,
             this.ColCommon});
-            this.DgvVariables.Location = new System.Drawing.Point(396, 11);
+            this.DgvVariables.Location = new System.Drawing.Point(413, 11);
             this.DgvVariables.Name = "DgvVariables";
             this.DgvVariables.RowHeadersVisible = false;
             this.DgvVariables.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.DgvVariables.Size = new System.Drawing.Size(606, 435);
+            this.DgvVariables.Size = new System.Drawing.Size(676, 535);
             this.DgvVariables.TabIndex = 20;
             // 
             // ColVarName
@@ -407,7 +421,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.BtnDeleteScenario.Depth = 0;
             this.BtnDeleteScenario.HighEmphasis = true;
             this.BtnDeleteScenario.Icon = null;
-            this.BtnDeleteScenario.Location = new System.Drawing.Point(1015, 94);
+            this.BtnDeleteScenario.Location = new System.Drawing.Point(1096, 88);
             this.BtnDeleteScenario.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnDeleteScenario.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnDeleteScenario.Name = "BtnDeleteScenario";
@@ -427,7 +441,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.BtnAddScenario.Depth = 0;
             this.BtnAddScenario.HighEmphasis = true;
             this.BtnAddScenario.Icon = null;
-            this.BtnAddScenario.Location = new System.Drawing.Point(1015, 41);
+            this.BtnAddScenario.Location = new System.Drawing.Point(1096, 35);
             this.BtnAddScenario.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnAddScenario.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnAddScenario.Name = "BtnAddScenario";
@@ -447,7 +461,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.ClbMachines.Location = new System.Drawing.Point(189, 41);
             this.ClbMachines.MouseState = MaterialSkin.MouseState.HOVER;
             this.ClbMachines.Name = "ClbMachines";
-            this.ClbMachines.Size = new System.Drawing.Size(201, 405);
+            this.ClbMachines.Size = new System.Drawing.Size(218, 505);
             this.ClbMachines.Striped = false;
             this.ClbMachines.StripeDarkColor = System.Drawing.Color.Empty;
             this.ClbMachines.TabIndex = 1;
@@ -457,7 +471,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.lblMachines.AutoSize = true;
             this.lblMachines.Depth = 0;
             this.lblMachines.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.lblMachines.Location = new System.Drawing.Point(186, 18);
+            this.lblMachines.Location = new System.Drawing.Point(190, 18);
             this.lblMachines.MouseState = MaterialSkin.MouseState.HOVER;
             this.lblMachines.Name = "lblMachines";
             this.lblMachines.Size = new System.Drawing.Size(88, 19);
@@ -475,7 +489,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.LstScenarios.Name = "LstScenarios";
             this.LstScenarios.SelectedIndex = -1;
             this.LstScenarios.SelectedItem = null;
-            this.LstScenarios.Size = new System.Drawing.Size(180, 405);
+            this.LstScenarios.Size = new System.Drawing.Size(180, 505);
             this.LstScenarios.TabIndex = 0;
             // 
             // PnlAnalysis
@@ -491,8 +505,25 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.PnlAnalysis.Size = new System.Drawing.Size(1243, 549);
             this.PnlAnalysis.TabIndex = 1;
             // 
+            // chkShowErrorsOnly
+            // 
+            this.chkShowErrorsOnly.AutoSize = true;
+            this.chkShowErrorsOnly.Depth = 0;
+            this.chkShowErrorsOnly.Location = new System.Drawing.Point(254, 9);
+            this.chkShowErrorsOnly.Margin = new System.Windows.Forms.Padding(0);
+            this.chkShowErrorsOnly.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.chkShowErrorsOnly.MouseState = MaterialSkin.MouseState.HOVER;
+            this.chkShowErrorsOnly.Name = "chkShowErrorsOnly";
+            this.chkShowErrorsOnly.ReadOnly = false;
+            this.chkShowErrorsOnly.Ripple = true;
+            this.chkShowErrorsOnly.Size = new System.Drawing.Size(99, 37);
+            this.chkShowErrorsOnly.TabIndex = 111;
+            this.chkShowErrorsOnly.Text = "오류만 보기";
+            this.chkShowErrorsOnly.UseVisualStyleBackColor = true;
+            // 
             // BtnBackToHome2
             // 
+            this.BtnBackToHome2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.BtnBackToHome2.AutoSize = false;
             this.BtnBackToHome2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BtnBackToHome2.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
@@ -553,8 +584,6 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             // 
             // DgvResults
             // 
-            this.DgvResults.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.DgvResults.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
             this.DgvResults.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
             this.ColStatus,
@@ -563,47 +592,12 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.ColVariable,
             this.ColValue,
             this.ColDesc});
-            this.DgvResults.Location = new System.Drawing.Point(34, 243);
+            this.DgvResults.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.DgvResults.Location = new System.Drawing.Point(0, 85);
             this.DgvResults.Name = "DgvResults";
             this.DgvResults.RowTemplate.Height = 23;
-            this.DgvResults.Size = new System.Drawing.Size(1177, 279);
+            this.DgvResults.Size = new System.Drawing.Size(1243, 464);
             this.DgvResults.TabIndex = 0;
-            // 
-            // BtnGoToAnalyze
-            // 
-            this.BtnGoToAnalyze.AutoSize = false;
-            this.BtnGoToAnalyze.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnGoToAnalyze.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnGoToAnalyze.Depth = 0;
-            this.BtnGoToAnalyze.HighEmphasis = true;
-            this.BtnGoToAnalyze.Icon = null;
-            this.BtnGoToAnalyze.Location = new System.Drawing.Point(1015, 296);
-            this.BtnGoToAnalyze.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.BtnGoToAnalyze.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnGoToAnalyze.Name = "BtnGoToAnalyze";
-            this.BtnGoToAnalyze.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnGoToAnalyze.Size = new System.Drawing.Size(119, 41);
-            this.BtnGoToAnalyze.TabIndex = 109;
-            this.BtnGoToAnalyze.Text = "▶ Validation";
-            this.BtnGoToAnalyze.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnGoToAnalyze.UseAccentColor = false;
-            this.BtnGoToAnalyze.UseVisualStyleBackColor = true;
-            // 
-            // chkShowErrorsOnly
-            // 
-            this.chkShowErrorsOnly.AutoSize = true;
-            this.chkShowErrorsOnly.Depth = 0;
-            this.chkShowErrorsOnly.Location = new System.Drawing.Point(254, 9);
-            this.chkShowErrorsOnly.Margin = new System.Windows.Forms.Padding(0);
-            this.chkShowErrorsOnly.MouseLocation = new System.Drawing.Point(-1, -1);
-            this.chkShowErrorsOnly.MouseState = MaterialSkin.MouseState.HOVER;
-            this.chkShowErrorsOnly.Name = "chkShowErrorsOnly";
-            this.chkShowErrorsOnly.ReadOnly = false;
-            this.chkShowErrorsOnly.Ripple = true;
-            this.chkShowErrorsOnly.Size = new System.Drawing.Size(99, 37);
-            this.chkShowErrorsOnly.TabIndex = 111;
-            this.chkShowErrorsOnly.Text = "오류만 보기";
-            this.chkShowErrorsOnly.UseVisualStyleBackColor = true;
             // 
             // ColStatus
             // 
@@ -636,24 +630,43 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.ColDesc.HeaderText = "오류 상세 설명";
             this.ColDesc.Name = "ColDesc";
             // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.materialLabel2);
+            this.panel1.Controls.Add(this.BtnStartAnalyze);
+            this.panel1.Controls.Add(this.materialLabel5);
+            this.panel1.Controls.Add(this.BtnStartRuleSetup);
+            this.panel1.Controls.Add(this.materialLabel3);
+            this.panel1.Controls.Add(this.CmbDescCol);
+            this.panel1.Controls.Add(this.materialLabel4);
+            this.panel1.Controls.Add(this.CmbSheet);
+            this.panel1.Controls.Add(this.CmbMachineCol);
+            this.panel1.Controls.Add(this.CmbValueCol);
+            this.panel1.Controls.Add(this.CmbNameCol);
+            this.panel1.Location = new System.Drawing.Point(25, 18);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(594, 313);
+            this.panel1.TabIndex = 115;
+            // 
             // ExcelAnalyzerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1249, 616);
+            this.Controls.Add(this.PnlDropFile);
             this.Controls.Add(this.PnlAnalysis);
             this.Controls.Add(this.PnlRuleSetup);
-            this.Controls.Add(this.PnlDropFile);
             this.Name = "ExcelAnalyzerForm";
             this.Text = "ExcelAnalyzerForm";
             this.PnlDropFile.ResumeLayout(false);
-            this.PnlDropFile.PerformLayout();
             this.PnlRuleSetup.ResumeLayout(false);
             this.PnlRuleSetup.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DgvVariables)).EndInit();
             this.PnlAnalysis.ResumeLayout(false);
             this.PnlAnalysis.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DgvResults)).EndInit();
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -663,7 +676,6 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
         private System.Windows.Forms.Panel PnlDropFile;
         private System.Windows.Forms.Panel PnlRuleSetup;
         private System.Windows.Forms.Panel PnlAnalysis;
-        private MaterialSkin.Controls.MaterialLabel materialLabel1;
         private MaterialSkin.Controls.MaterialButton BtnStartAnalyze;
         private MaterialSkin.Controls.MaterialButton BtnStartRuleSetup;
         private MaterialSkin.Controls.MaterialListBox LstScenarios;
@@ -699,5 +711,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
         private System.Windows.Forms.DataGridViewTextBoxColumn ColVariable;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColValue;
         private System.Windows.Forms.DataGridViewTextBoxColumn ColDesc;
+        private MaterialSkin.Controls.MaterialLabel materialLabel6;
+        private System.Windows.Forms.Panel panel1;
     }
 }
