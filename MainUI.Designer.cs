@@ -49,6 +49,7 @@ namespace GateHelper
             this.TabControl1 = new MaterialSkin.Controls.MaterialTabControl();
             this.tabPage1 = new System.Windows.Forms.TabPage();
             this.GroupManagement1 = new System.Windows.Forms.GroupBox();
+            this.BtnMgmtAnalyzer = new MaterialSkin.Controls.MaterialButton();
             this.BtnStopCollect = new MaterialSkin.Controls.MaterialButton();
             this.BtnStoCollect = new MaterialSkin.Controls.MaterialButton();
             this.BtnPauseCollect = new MaterialSkin.Controls.MaterialButton();
@@ -93,6 +94,7 @@ namespace GateHelper
             this.BtnRec1 = new MaterialSkin.Controls.MaterialButton();
             this.lblUDPStatus = new System.Windows.Forms.Label();
             this.lblVersion = new System.Windows.Forms.Label();
+            this.LblResetUI = new System.Windows.Forms.Label();
             this.BtnOpenLog2 = new MaterialSkin.Controls.MaterialButton();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.TxtQuickSearch = new MaterialSkin.Controls.MaterialTextBox2();
@@ -100,7 +102,6 @@ namespace GateHelper
             this.BtnLogValidator = new MaterialSkin.Controls.MaterialButton();
             this.PicBox_Arrow = new System.Windows.Forms.PictureBox();
             this.PicBox_Setting = new System.Windows.Forms.PictureBox();
-            this.BtnMgmtAnalyzer = new MaterialSkin.Controls.MaterialButton();
             this.GroupConnect1.SuspendLayout();
             this.GroupPreset1.SuspendLayout();
             this.GroupFav1.SuspendLayout();
@@ -444,6 +445,27 @@ namespace GateHelper
             this.GroupManagement1.TabStop = false;
             this.GroupManagement1.Text = "Management";
             // 
+            // BtnMgmtAnalyzer
+            // 
+            this.BtnMgmtAnalyzer.AutoSize = false;
+            this.BtnMgmtAnalyzer.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnMgmtAnalyzer.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnMgmtAnalyzer.Depth = 0;
+            this.BtnMgmtAnalyzer.HighEmphasis = true;
+            this.BtnMgmtAnalyzer.Icon = null;
+            this.BtnMgmtAnalyzer.Location = new System.Drawing.Point(14, 277);
+            this.BtnMgmtAnalyzer.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnMgmtAnalyzer.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnMgmtAnalyzer.Name = "BtnMgmtAnalyzer";
+            this.BtnMgmtAnalyzer.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnMgmtAnalyzer.Size = new System.Drawing.Size(136, 40);
+            this.BtnMgmtAnalyzer.TabIndex = 11113;
+            this.BtnMgmtAnalyzer.Text = "Excel";
+            this.BtnMgmtAnalyzer.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnMgmtAnalyzer.UseAccentColor = false;
+            this.BtnMgmtAnalyzer.UseVisualStyleBackColor = true;
+            this.BtnMgmtAnalyzer.Click += new System.EventHandler(this.BtnMgmtAnalyzer_Click);
+            // 
             // BtnStopCollect
             // 
             this.BtnStopCollect.AutoSize = false;
@@ -686,7 +708,7 @@ namespace GateHelper
             // groupBox1
             // 
             this.groupBox1.Controls.Add(this.flowLayoutPanel_DropZone);
-            this.groupBox1.Location = new System.Drawing.Point(397, 3);
+            this.groupBox1.Location = new System.Drawing.Point(399, 3);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(179, 303);
             this.groupBox1.TabIndex = 107;
@@ -1083,6 +1105,20 @@ namespace GateHelper
             this.lblVersion.TabIndex = 100;
             this.lblVersion.Text = "Version";
             // 
+            // LblResetUI
+            // 
+            this.LblResetUI.AutoSize = true;
+            this.LblResetUI.BackColor = System.Drawing.Color.Transparent;
+            this.LblResetUI.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.LblResetUI.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.LblResetUI.ForeColor = System.Drawing.Color.White;
+            this.LblResetUI.Location = new System.Drawing.Point(413, 3);
+            this.LblResetUI.Name = "LblResetUI";
+            this.LblResetUI.Size = new System.Drawing.Size(32, 21);
+            this.LblResetUI.TabIndex = 201;
+            this.LblResetUI.Text = "🔄";
+            this.LblResetUI.Click += new System.EventHandler(this.BtnResetUI_Click);
+            // 
             // BtnOpenLog2
             // 
             this.BtnOpenLog2.AutoSize = false;
@@ -1205,27 +1241,6 @@ namespace GateHelper
             this.PicBox_Setting.TabStop = false;
             this.PicBox_Setting.Click += new System.EventHandler(this.PicBox_Setting_Click);
             // 
-            // BtnMgmtAnalyzer
-            // 
-            this.BtnMgmtAnalyzer.AutoSize = false;
-            this.BtnMgmtAnalyzer.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnMgmtAnalyzer.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnMgmtAnalyzer.Depth = 0;
-            this.BtnMgmtAnalyzer.HighEmphasis = true;
-            this.BtnMgmtAnalyzer.Icon = null;
-            this.BtnMgmtAnalyzer.Location = new System.Drawing.Point(14, 277);
-            this.BtnMgmtAnalyzer.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.BtnMgmtAnalyzer.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnMgmtAnalyzer.Name = "BtnMgmtAnalyzer";
-            this.BtnMgmtAnalyzer.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnMgmtAnalyzer.Size = new System.Drawing.Size(136, 40);
-            this.BtnMgmtAnalyzer.TabIndex = 11113;
-            this.BtnMgmtAnalyzer.Text = "Excel";
-            this.BtnMgmtAnalyzer.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnMgmtAnalyzer.UseAccentColor = false;
-            this.BtnMgmtAnalyzer.UseVisualStyleBackColor = true;
-            this.BtnMgmtAnalyzer.Click += new System.EventHandler(this.BtnMgmtAnalyzer_Click);
-            // 
             // MainUI
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -1236,6 +1251,7 @@ namespace GateHelper
             this.Controls.Add(this.BtnQuickConnect);
             this.Controls.Add(this.TxtQuickSearch);
             this.Controls.Add(this.BtnOpenLog2);
+            this.Controls.Add(this.LblResetUI);
             this.Controls.Add(this.lblVersion);
             this.Controls.Add(this.lblUDPStatus);
             this.Controls.Add(this.BtnRec1);
@@ -1338,6 +1354,7 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton BtnRec1;
         private System.Windows.Forms.Label lblUDPStatus;
         private System.Windows.Forms.Label lblVersion;
+        private System.Windows.Forms.Label LblResetUI;
         private MaterialSkin.Controls.MaterialButton BtnOpenLog2;
         private MaterialSkin.Controls.MaterialButton BtnWorkLog1;
         private System.Windows.Forms.NotifyIcon notifyIcon1;

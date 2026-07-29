@@ -127,7 +127,13 @@ namespace GateHelper
             // 실제 표시되는 메뉴 인스턴스에 테마 적용
             _themeManager = new ThemeManager(materialSkinManager, OlvServerList.ContextMenuStrip);
             _themeManager.ApplyContextMenuStripTheme(OlvServerList.ContextMenuStrip);
-            materialSkinManager.ThemeChanged += (sender) => _themeManager.ApplyContextMenuStripTheme(OlvServerList.ContextMenuStrip);
+            materialSkinManager.ThemeChanged += (sender) => 
+            {
+                _themeManager.ApplyContextMenuStripTheme(OlvServerList.ContextMenuStrip);
+                // MaterialSkin이 테마 변경 시 모든 컨트롤의 색상을 덮어씌우므로, 타이틀 바용 라벨들은 원상복구합니다.
+                lblVersion.BackColor = materialSkinManager.ColorScheme.DarkPrimaryColor;
+                LblResetUI.BackColor = materialSkinManager.ColorScheme.DarkPrimaryColor;
+            };
 
             this.MaximizeBox = false;
             this.Size = FormOriginalSize;
@@ -932,8 +938,21 @@ namespace GateHelper
             IsInUse.AspectGetter = rowObj => "🔍";
             this.IsInUse.Name = "IsInUse";
 
+            // 버전 텍스트 길이에 맞춰 원복 아이콘(LblResetUI)의 위치를 동적으로 자동 정렬합니다.
+            lblVersion.SizeChanged += (s, ev) => 
+            {
+                LblResetUI.Left = lblVersion.Right + 5;
+            };
+            
             string version = Util.GetCurrentVersionFromReleaseNotes();
             lblVersion.Text = $"{version}";
+            
+            // 초기 로딩 시 이벤트가 이미 지나갔을 수 있으므로 강제 수동 정렬
+            LblResetUI.Left = lblVersion.Right + 5;
+            
+            // LblResetUI의 배경색을 MaterialSkin의 타이틀 바(DarkPrimaryColor)와 일치시킵니다.
+            lblVersion.BackColor = materialSkinManager.ColorScheme.DarkPrimaryColor;
+            LblResetUI.BackColor = materialSkinManager.ColorScheme.DarkPrimaryColor;
 
             // [Server Mapping]
             Util.LoadServerMappingCache();
@@ -1898,7 +1917,35 @@ namespace GateHelper
 
         private void BtnMgmtAnalyzer_Click(object sender, EventArgs e)
         {
-            new ExcelAnalyzerForm().Show();
+            var form = new ExcelAnalyzerForm();
+            form.Show();
+        }
+
+        private void BtnResetUI_Click(object sender, EventArgs e)
+        {
+            DialogResult result = MessageBox.Show(
+                "UI 화면이 깨지거나 화면 밖으로 벗어났습니까?\n" +
+                $"확인을 누르시면 기본 런타임 창 크기({FormOriginalSize.Width}x{FormOriginalSize.Height})로 강제 원복합니다.\n\n" +
+                "(※ 이 작업은 백그라운드 크롬 연결을 끊지 않고 창 크기만 강제로 되돌립니다.)",
+                "UI 원복 확인", MessageBoxButtons.OKCancel, MessageBoxIcon.Question);
+
+            if (result != DialogResult.OK) return;
+
+            // 프로그램 재시작 시 ChromeDriver 연결이 끊어지는 것을 방지하기 위해 폼 크기만 강제 복원
+            this.SuspendLayout();
+            
+            this.WindowState = FormWindowState.Normal;
+            
+            // 폼을 원상복구(축소) 상태로 되돌리기 위해 강제로 확장 상태인 것처럼 설정한 뒤 토글 로직을 실행합니다.
+            changeArrow = false;
+            Util_Control.ToggleFormLayout(
+                this, PicBox_Arrow, PicBox_Setting, PicBox_Question, BtnOption1, BtnLogValidator, TxtQuickSearch, BtnQuickConnect,
+                FormOriginalSize, FormExtendedSize, TabSelector1,
+                tabSelector1OriginalSize, GroupConnect1, groupConnect1OriginalSize, TabControl1.Size, ref changeArrow);
+            
+            this.PerformLayout();
+            this.ResumeLayout(true);
+            this.Refresh();
         }
     } // MainUI.cs END
 }

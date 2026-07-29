@@ -91,7 +91,7 @@ namespace GateHelper.Mgmt
                     CheckOnClick = true
                 };
                 foreach (var m in machineList) chkMachines.Items.Add(m);
-                for (int i = 0; i < chkMachines.Items.Count; i++) chkMachines.SetItemChecked(i, true);
+                for (int i = 0; i < chkMachines.Items.Count; i++) chkMachines.SetItemChecked(i, false);
                 prompt.Controls.Add(chkMachines);
 
                 // ── 이벤트 ──
