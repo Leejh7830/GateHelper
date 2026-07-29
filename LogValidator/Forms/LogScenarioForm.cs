@@ -1,4 +1,4 @@
-﻿using BrightIdeasSoftware;
+using BrightIdeasSoftware;
 using GateHelper.LogValidator.Core;
 using GateHelper.LogValidator.Models;
 using MaterialSkin;
@@ -77,7 +77,7 @@ namespace GateHelper.LogValidator
             };
         }
 
-        #region 🛠 1. 그리드 뼈대 셋업 및 통신형 컬럼 세팅 (폰트 스케일 및 화살표 대칭 정렬 교정)
+        #region [1. Grid & Column Setup]
 
         private void InitializeRawLogGridView()
         {
@@ -284,7 +284,7 @@ namespace GateHelper.LogValidator
 
         #endregion
 
-        #region 📂 2. 좌측 Raw 로그 수신 및 클릭 파싱 핸들러 (순정 데이터 이관 및 100% 수동 마스킹 엔진)
+        #region [2. Raw Log Parsing & Handler]
 
         private void PnlDropZone_DragEnter(object sender, DragEventArgs e)
         {
@@ -395,7 +395,7 @@ namespace GateHelper.LogValidator
 
         #endregion
 
-        #region ⚙️ 3. [REGISTER / UPDATE] 인터락 분기 제어 엔진
+        #region [3. Register & Update Interlock Engine]
 
         private void btnRegister_Click(object sender, EventArgs e)
         {
@@ -441,7 +441,7 @@ namespace GateHelper.LogValidator
 
         #endregion
 
-        #region ⛓ 4. 사다리 조립 인터락 및 우클릭 편집 엔진 (화살표 컬럼 기준 드롭 제어)
+        #region [4. Sequence Builder & Editor Engine]
 
         private void olvUnitRepository_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -930,7 +930,7 @@ namespace GateHelper.LogValidator
 
         #endregion
 
-        #region 💾 5. 우측 하단 시나리오 매니징 커맨드 엔진 (+NEW, LOAD, SAVE)
+        #region [5. Scenario Command Engine]
 
         private string GetScenarioDirectoryPath()
         {

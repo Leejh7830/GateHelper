@@ -4,6 +4,12 @@
 
 ## 📌 최근 작업 내역 (최종 업데이트: 2026-07-29)
 
+**[코드 컨벤션 포맷 통일 및 ReleaseNotes 갱신]**
+1. **Region 주석 포맷 영문화 및 통일 (`Util.cs`, `ChromeDriverManager.cs`, `LogValidator` 등 전역)**
+   - 소스코드 내 파편화되어 있던 한글 `#region` 블록들을 `[Category Name]` 형태의 직관적인 쉬운 영문 포맷으로 일괄 변경하여 가독성을 높였습니다.
+2. **ReleaseNotes 업데이트 (`Util.cs`)**
+   - UI 화면 원복 버그 픽스, Region 포맷 통일, Excel Analyzer 탭 추가 등의 최신 작업 내역을 릴리즈 노트 텍스트(v2.4.5)에 반영했습니다.
+
 **[NuGet 패키지 의존성 충돌 해결 및 Excel Analyzer 규칙 우클릭 메뉴 구현]**
 1. **.NET 9.0 패키지 의존성 런타임 충돌 문제 완벽 해결 (`packages.config`, `.csproj`, `App.config`)**
    - NuGet 업데이트 시 유입된 `.NET 9.0` 프리뷰 기반 패키지(`System.Memory 4.6.x` 등)가 `.NET Framework 4.8` 및 `ClosedXML`과 충돌하여 파일 드롭 시 어셈블리 불일치 에러(FUSION_E_REF_DEF_MISMATCH)를 내뿜는 현상을 해결했습니다.

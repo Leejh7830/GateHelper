@@ -1,4 +1,4 @@
-﻿using BrightIdeasSoftware;
+using BrightIdeasSoftware;
 using GateHelper.LogValidator.Core;
 using GateHelper.LogValidator.Models;
 using GateHelper.LogValidator.Services;
@@ -81,7 +81,7 @@ namespace GateHelper.LogValidator
             ScenarioEventBroker.OnScenarioSaved += OnRuntimeScenarioRefresh;
         }
 
-        #region 🛠 1. 그리드 뼈대 셋업 및 우클릭 컨텍스트 메뉴 바인딩
+        #region [1. Grid Setup & Context Menu]
 
         private void InitializeValidatorRawLogGridView()
         {
@@ -1164,7 +1164,7 @@ namespace GateHelper.LogValidator
 
         #endregion
 
-        #region 🌳 2. 트리뷰 제어 및 실시간 런타임 리로드 인터락 엔진
+        #region [2. TreeView Control & Real-time Reloading]
 
         private void InitializeScenarioTreeViewInterlock()
         {
@@ -1247,7 +1247,7 @@ namespace GateHelper.LogValidator
 
         #endregion
 
-        #region ⚙️ 3. 검증 실행 엔진 구역
+        #region [3. Validation Execution Engine]
 
         private void btnStartValidation_Click(object sender, EventArgs e)
         {
@@ -1302,7 +1302,7 @@ namespace GateHelper.LogValidator
 
         #endregion
 
-        #region ⚙️ 4. 세팅 연동형 유닛 탭 동적 스캔 및 그리드 생성 엔진
+        #region [4. Dynamic Unit Tab & Grid Generation]
 
         // 💡 [최종 조립 정규식 엔진] 세팅 데이터 기반으로 런타임에 빌드될 전역 정규식 객체
         private Regex _dynamicUnitRegex;
@@ -1512,7 +1512,7 @@ namespace GateHelper.LogValidator
 
         #endregion
 
-        #region 🚨 5. 변칙 로그 혼입 탐지 및 경고 인터락 엔진 (상시 표출형 부모 호기 유연 모드)
+        #region [5. Anomaly Log Detection & Interlock]
 
         /// <summary>
         /// 단일 파일 내에 타 설비 로그가 비정상적으로 섞여 들어왔는지 부모 호기 기준으로 검증하고 결과를 상시 표출합니다.
@@ -1603,7 +1603,7 @@ namespace GateHelper.LogValidator
 
         #endregion
 
-        #region 🔍 6. 런타임 실시간 정규식 본문 필터링 엔진
+        #region [6. Real-time Regex Filtering]
 
         private void InitializeRuntimeFilter()
         {

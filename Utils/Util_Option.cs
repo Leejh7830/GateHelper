@@ -12,7 +12,7 @@ namespace GateHelper
 {
     class Util_Option
     {
-        #region Fields & Properties
+        #region [Fields & Properties]
 
         // 그레이스 타임 (ms), 첫감지후 알림간격
         private static AppSettings _appSettings = new AppSettings();
@@ -28,7 +28,7 @@ namespace GateHelper
 
         #endregion
 
-        #region Settings Save & Load
+        #region [Settings Save & Load]
         
         public static void SaveUserOptions(AppSettings settings)
         {
@@ -84,7 +84,7 @@ namespace GateHelper
         
         #endregion
 
-        #region Public Methods (HandleWindows)
+        #region [Public Methods (HandleWindows)]
         public static async Task<bool> HandleWindows(IWebDriver driver, string mainHandle, Config config, Label popupStatusLabel, bool isFeatureEnabled)
         {
             bool wasHandled = false;
@@ -164,7 +164,7 @@ namespace GateHelper
         #endregion
 
 
-        #region Element Checkers
+        #region [Element Checkers]
 
         // lock_passwd 모달만 판별(알림이 있으면 DOM 접근 스킵)
         private static bool IsLockModalPresent(IWebDriver driver)
@@ -225,7 +225,7 @@ namespace GateHelper
         #endregion
 
 
-        #region Private Logic
+        #region [Private Logic]
 
         private static async Task<bool> EnterModalPassword(IWebDriver driver, Config config)
         {

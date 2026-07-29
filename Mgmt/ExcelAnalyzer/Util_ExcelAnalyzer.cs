@@ -15,7 +15,9 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
         public static List<string> GetSheetNames(string filePath)
         {
             var sheetNames = new List<string>();
-            using (var workbook = new XLWorkbook(filePath))
+            // 클라우드(OneDrive 등) 또는 엑셀이 켜져 있을 때 발생하는 파일 잠금(Lock) 에러 방지
+            using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            using (var workbook = new XLWorkbook(stream))
             {
                 foreach (var ws in workbook.Worksheets)
                 {
@@ -37,7 +39,8 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
 
             try
             {
-                using (var workbook = new XLWorkbook(filePath))
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var workbook = new XLWorkbook(stream))
                 {
                     var worksheet = workbook.Worksheets.FirstOrDefault(w => w.Name == sheetName) ?? workbook.Worksheets.FirstOrDefault();
                     if (worksheet == null)
@@ -75,7 +78,8 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
 
                 try
                 {
-                    using (var workbook = new XLWorkbook(filePath))
+                    using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (var workbook = new XLWorkbook(stream))
                     {
                         var worksheet = workbook.Worksheets.FirstOrDefault(w => w.Name == sheetName) ?? workbook.Worksheets.FirstOrDefault();
                         if (worksheet == null)

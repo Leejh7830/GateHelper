@@ -20,7 +20,7 @@ namespace GateHelper
         private const int AliveFailThreshold = 2;        // 이 횟수 이상 연속 실패해야 OFF로 간주
         private DateTime _lastAliveSuccessUtc = DateTime.MinValue;
 
-        #region Ver3. Selenium Manager 사용
+        #region [Ver3. Using Selenium Manager]
         public static IWebDriver InitializeDriverWithSeleniumManager(Config config)
         {
             try
@@ -173,7 +173,7 @@ namespace GateHelper
 
 
 
-        #region Ver2. WebDriverManager 사용 / 대체 Selenium Manager
+        #region [Ver2. Using WebDriverManager / Fallback]
         /*
         // WebDriverManager를 사용하는 새로운 초기화 메서드
         public static IWebDriver InitializeDriverWithWebDriverManager(Config config)
@@ -373,7 +373,7 @@ namespace GateHelper
 
 
 
-        #region Ver1. 기존 초기화 메서드
+        #region [Ver1. Legacy Initialization]
         /*
         // ChromeDriver 초기화 메소드
         public static IWebDriver InitializeDriver(Config config)

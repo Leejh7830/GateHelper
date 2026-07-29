@@ -1263,7 +1263,7 @@ namespace GateHelper
             }
         }
 
-        #region Notify Icon
+        #region [Notify Icon]
         public void ShowTrayNotification(string title, string message, ToolTipIcon iconType)
         {
             if (this.notifyIcon1 != null)

@@ -17,7 +17,7 @@ namespace GateHelper
 {
     public static class Util // 공통 유틸리티
     {
-        #region Chrome 프로토콜 팝업 제어 (키보드 주입 방식)
+        #region [Chrome Protocol Popup Control (Keyboard Injection)]
 
         [DllImport("user32.dll")]
         private static extern bool SetForegroundWindow(IntPtr hWnd);
@@ -160,7 +160,7 @@ namespace GateHelper
             string metaNotesPath = GetMetaPath("ReleaseNotes.txt");
             string content =
 @"
-v2.4.3 / 26.07.23 / Test Version
+v2.4.4 / 26.07.29 / Test Version
 - leejh7830@lgespartner.com
 - 비영리 목적으로 제작한 유틸리티입니다.
 
@@ -223,13 +223,15 @@ v2.2.6 / 26.04.08 개선 - Disable Pop up -> Auto Screen Unlock 으로 변경, �
 
 v2.3.0 / 26.05.12 신규 - MGMT 사이트 오픈 및 이동
 v2.3.1 / 26.05.14 신규 - MGMT 자동로그인 기능 구현 / Main과 Management Handle 관리 구분 및 인터락 구현
-v2.3.2 / 26.06.10 (안정화버전) 신규 - 통합모니터링(MGMT) STO 데이터 수집 / 신규 - ServerMapping 기능 추가 (호기명 입력 시 서버 매핑)
-v2.3.2 / 26.06.19 신규 - Drag & Drop 기능 추가 (파일 즐겨찾기 등록)
+v2.3.2 / 26.06.10 신규 - (안정화버전) 통합모니터링(MGMT) STO 데이터 수집 / 신규 - ServerMapping 기능 추가 (호기명 입력 시 서버 매핑)
+v2.3.3 / 26.06.19 신규 - Drag & Drop 기능 추가 (파일 즐겨찾기 등록)
 
 v2.4.0 / 26.06.24 신규 - LogValidator 기능 추가 (로그 분석 및 통계, 필터링)
 v2.4.1 / 26.07.05 개선 - LogValidator 기능 개선 (UI/UX 배치, 스텝 하이라이팅, 스텝 OR/AND/TimeOut 추가)
 v2.4.2 / 26.07.20 개선 - DisplayChange Detect 시, 가장자리 잘림 현상 수정
 v2.4.3 / 26.07.23 개선 - Auto Login 기능 추가 / BackgroundMonitoring 추가 / toast 알림 추가
+v2.4.4 / 26.07.27 신규 - Variable Excel 분석 탭 추가
+v2.4.5 / 26.07.29 개선 - UI 화면크기 윈도우 배율에 따라 화면 밖으로 밀려나가는 현상 수정 (화면 원복) / Region 포맷 통일
          
 ";
 
