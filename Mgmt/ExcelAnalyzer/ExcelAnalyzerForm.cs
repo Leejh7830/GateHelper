@@ -98,6 +98,8 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             BtnDeleteScenario.Click += BtnDeleteScenario_Click;
             BtnSaveRule.Click += BtnSaveRule_Click;
 
+            InitContextMenu();
+
             // 3-2. 분석(Validation) 결과 확인 이벤트 연결
             if (BtnGoToAnalyze != null) BtnGoToAnalyze.Click += BtnGoToAnalyze_Click;
             if (BtnRunValidation != null) BtnRunValidation.Click += BtnRunValidation_Click;
@@ -174,7 +176,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             _pnlDropOverlay.BringToFront();
         }
 
-        #region [드래그 앤 드롭 & 헤더 추출]
+        #region [Drag & Drop & Header Extraction]
         private void PnlDropFile_DragEnter(object sender, DragEventArgs e)
         {
             if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -197,12 +199,14 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
 
                 _droppedFilePath = file;
                 
-                if (_pnlDropOverlay != null) _pnlDropOverlay.Visible = false;
-
                 // 시트 목록 불러오기
                 try
                 {
                     var sheets = Util_ExcelAnalyzer.GetSheetNames(_droppedFilePath);
+                    
+                    // 파일 파싱을 성공적으로 완료했을 때만 오버레이를 숨겨 다음 단계로 전환
+                    if (_pnlDropOverlay != null) _pnlDropOverlay.Visible = false;
+
                     // 디자이너에 생성된 CmbSheet 컨트롤에 시트 목록 추가
                     if (CmbSheet != null)
                     {
@@ -220,6 +224,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                 }
                 catch (Exception ex)
                 {
+                    _droppedFilePath = ""; // 실패 시 리셋
                     MessageBox.Show("시트 목록을 읽어오는 데 실패했습니다: " + ex.Message);
                 }
             }
@@ -301,7 +306,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
         }
         #endregion
 
-        #region [버튼 전환 및 규칙/분석 로직]
+        #region [Button Events & Logic]
         
         private async void BtnStartRuleSetup_Click(object sender, EventArgs e)
         {
@@ -764,7 +769,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
 
         #endregion
 
-        #region [검증(Validation) 로직 및 결과 출력]
+        #region [Validation & Result Output]
 
         private void BtnGoToAnalyze_Click(object sender, EventArgs e)
         {
@@ -902,6 +907,162 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                     }
                 }
             }
+        }
+        #endregion
+
+        #region 우클릭 컨텍스트 메뉴 (Context Menu)
+
+        private ContextMenuStrip _scenarioContextMenu;
+
+        private void InitContextMenu()
+        {
+            _scenarioContextMenu = new ContextMenuStrip();
+            _scenarioContextMenu.Items.Add("위로 이동", null, ContextMenu_MoveUp_Click);
+            _scenarioContextMenu.Items.Add("아래로 이동", null, ContextMenu_MoveDown_Click);
+            _scenarioContextMenu.Items.Add(new ToolStripSeparator());
+            _scenarioContextMenu.Items.Add("이름 변경", null, ContextMenu_Rename_Click);
+            _scenarioContextMenu.Items.Add("복제", null, ContextMenu_Duplicate_Click);
+            _scenarioContextMenu.Items.Add(new ToolStripSeparator());
+            _scenarioContextMenu.Items.Add("삭제", null, ContextMenu_Delete_Click);
+
+            LstScenarios.ContextMenuStrip = _scenarioContextMenu;
+            _scenarioContextMenu.Opening += _scenarioContextMenu_Opening;
+        }
+
+        private void _scenarioContextMenu_Opening(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            if (LstScenarios.SelectedIndex < 0 || LstScenarios.SelectedIndex >= _config.Profiles.Count)
+            {
+                e.Cancel = true;
+            }
+        }
+
+        private void ContextMenu_MoveUp_Click(object sender, EventArgs e)
+        {
+            int index = LstScenarios.SelectedIndex;
+            if (index <= 0 || index >= _config.Profiles.Count) return;
+
+            var profile = _config.Profiles[index];
+            _config.Profiles.RemoveAt(index);
+            _config.Profiles.Insert(index - 1, profile);
+            
+            SaveConfig();
+            
+            _isUpdatingUI = true;
+            PopulateScenarios();
+            LstScenarios.SelectedIndex = index - 1;
+            _isUpdatingUI = false;
+            LstScenarios_SelectedIndexChanged(LstScenarios, null);
+        }
+
+        private void ContextMenu_MoveDown_Click(object sender, EventArgs e)
+        {
+            int index = LstScenarios.SelectedIndex;
+            if (index < 0 || index >= _config.Profiles.Count - 1) return;
+
+            var profile = _config.Profiles[index];
+            _config.Profiles.RemoveAt(index);
+            _config.Profiles.Insert(index + 1, profile);
+            
+            SaveConfig();
+            
+            _isUpdatingUI = true;
+            PopulateScenarios();
+            LstScenarios.SelectedIndex = index + 1;
+            _isUpdatingUI = false;
+            LstScenarios_SelectedIndexChanged(LstScenarios, null);
+        }
+
+        private void ContextMenu_Rename_Click(object sender, EventArgs e)
+        {
+            int index = LstScenarios.SelectedIndex;
+            if (index < 0 || index >= _config.Profiles.Count) return;
+
+            string oldName = _config.Profiles[index].RuleName;
+            string newName = PromptForInput("시나리오 이름 변경", "새 이름을 입력하세요:", oldName);
+
+            if (!string.IsNullOrWhiteSpace(newName) && newName != oldName)
+            {
+                _config.Profiles[index].RuleName = newName;
+                SaveConfig();
+                
+                _isUpdatingUI = true;
+                PopulateScenarios();
+                LstScenarios.SelectedIndex = index;
+                _isUpdatingUI = false;
+            }
+        }
+
+        private void ContextMenu_Duplicate_Click(object sender, EventArgs e)
+        {
+            int index = LstScenarios.SelectedIndex;
+            if (index < 0 || index >= _config.Profiles.Count) return;
+
+            var profile = _config.Profiles[index];
+            var json = JsonConvert.SerializeObject(profile);
+            var newProfile = JsonConvert.DeserializeObject<RuleProfile>(json);
+            
+            newProfile.RuleName = profile.RuleName + "_복제";
+            
+            _config.Profiles.Insert(index + 1, newProfile);
+            SaveConfig();
+            
+            _isUpdatingUI = true;
+            PopulateScenarios();
+            LstScenarios.SelectedIndex = index + 1;
+            _isUpdatingUI = false;
+            LstScenarios_SelectedIndexChanged(LstScenarios, null);
+        }
+
+        private void ContextMenu_Delete_Click(object sender, EventArgs e)
+        {
+            int index = LstScenarios.SelectedIndex;
+            if (index < 0 || index >= _config.Profiles.Count) return;
+
+            var res = MessageBox.Show($"'{_config.Profiles[index].RuleName}' 시나리오를 삭제하시겠습니까?", "삭제 확인", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
+            if (res == DialogResult.Yes)
+            {
+                _config.Profiles.RemoveAt(index);
+                SaveConfig();
+                
+                _isUpdatingUI = true;
+                PopulateScenarios();
+                if (_config.Profiles.Count > 0)
+                {
+                    LstScenarios.SelectedIndex = Math.Min(index, _config.Profiles.Count - 1);
+                    _isUpdatingUI = false;
+                    LstScenarios_SelectedIndexChanged(LstScenarios, null);
+                }
+                else
+                {
+                    _isDirty = false;
+                    _previousScenarioIndex = -1;
+                    _isUpdatingUI = false;
+                }
+            }
+        }
+
+        private string PromptForInput(string title, string promptText, string defaultValue = "")
+        {
+            Form prompt = new Form()
+            {
+                Width = 400,
+                Height = 150,
+                FormBorderStyle = FormBorderStyle.FixedDialog,
+                Text = title,
+                StartPosition = FormStartPosition.CenterParent,
+                MaximizeBox = false,
+                MinimizeBox = false
+            };
+            Label textLabel = new Label() { Left = 20, Top = 20, Text = promptText, AutoSize = true };
+            TextBox textBox = new TextBox() { Left = 20, Top = 45, Width = 340, Text = defaultValue };
+            Button confirmation = new Button() { Text = "확인", Left = 260, Top = 75, Width = 100, DialogResult = DialogResult.OK };
+            prompt.Controls.Add(textLabel);
+            prompt.Controls.Add(textBox);
+            prompt.Controls.Add(confirmation);
+            prompt.AcceptButton = confirmation;
+            
+            return prompt.ShowDialog(this) == DialogResult.OK ? textBox.Text : null;
         }
 
         #endregion

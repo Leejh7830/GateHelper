@@ -4,6 +4,17 @@
 
 ## 📌 최근 작업 내역 (최종 업데이트: 2026-07-29)
 
+**[NuGet 패키지 의존성 충돌 해결 및 Excel Analyzer 규칙 우클릭 메뉴 구현]**
+1. **.NET 9.0 패키지 의존성 런타임 충돌 문제 완벽 해결 (`packages.config`, `.csproj`, `App.config`)**
+   - NuGet 업데이트 시 유입된 `.NET 9.0` 프리뷰 기반 패키지(`System.Memory 4.6.x` 등)가 `.NET Framework 4.8` 및 `ClosedXML`과 충돌하여 파일 드롭 시 어셈블리 불일치 에러(FUSION_E_REF_DEF_MISMATCH)를 내뿜는 현상을 해결했습니다.
+   - 꼬여있던 `System.Memory` 등을 안정 버전으로 롤백하고, 보안 취약점이 픽스된 `System.Security.Cryptography.Xml (8.0.4)` 단일 패키지만 안전하게 업데이트했습니다.
+   - `App.config` 내 하드코딩된 바인딩 리다이렉트 정보를 전면 삭제하고, MSBuild의 `AutoGenerateBindingRedirects` 속성을 활용해 빌드 시점에 무결점인 `GateHelper.exe.config`가 자동 생성되도록 구조를 개선했습니다.
+
+2. **Excel Analyzer 규칙 관리용 우클릭 컨텍스트 메뉴(ContextMenu) 도입 (`ExcelAnalyzerForm.cs`)**
+   - 사용자 편의성 극대화를 위해 규칙 리스트박스(`LstScenarios`) 안에서만 동작하는 전용 `ContextMenuStrip`을 신규 구현했습니다.
+   - **주요 기능**: `위로 이동`, `아래로 이동`, `이름 변경`(전용 Input 다이얼로그 호출), `복제`(룰 복사본 즉시 생성), `삭제`(경고창을 통한 실수 방지)
+   - 모든 메뉴 액션은 내부 데이터 동기화(`_config.Profiles`), UI 새로고침 최적화(`_isUpdatingUI`), 그리고 영구 저장(`SaveConfig()`)을 원스톱으로 처리합니다.
+
 **[메인 UI 원복 기능 추가 및 테마 버그 픽스]**
 1. **UI 강제 원복(Reset) 기능 구현 (`MainUI.cs`, `MainUI.Designer.cs`)**
    - 윈도우 디스플레이 배율 변경 등으로 폼 레이아웃이 화면 밖으로 벗어나거나 내부 컨트롤이 깨졌을 때, 프로그램 재시작 없이(크롬 드라이버 연결 유지) 창 크기를 복구하는 기능을 추가했습니다.
