@@ -156,22 +156,45 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             bool isDark = skin.Theme == MaterialSkinManager.Themes.DARK;
             _pnlDropOverlay.BackColor = isDark ? Color.FromArgb(240, 50, 50, 50) : Color.FromArgb(240, 245, 245, 245);
 
+            Label lblDesc = new Label();
+            lblDesc.Text = "💡 MGMT로 수집된 Variable Data를 분석해주는 기능입니다.";
+            lblDesc.Font = new Font("맑은 고딕", 14f, FontStyle.Regular);
+            lblDesc.AutoSize = false;
+            lblDesc.Dock = DockStyle.Top;
+            lblDesc.Height = 150;
+            lblDesc.TextAlign = ContentAlignment.BottomCenter;
+            lblDesc.ForeColor = isDark ? Color.LightGray : Color.DimGray;
+            lblDesc.AllowDrop = true;
+            lblDesc.Cursor = Cursors.Hand;
+
             Label lbl = new Label();
-            lbl.Text = "Drag & Drop 📁\n여기에 엑셀 파일을 놓으세요";
-            lbl.Font = new Font("맑은 고딕", 26f, FontStyle.Bold);
+            lbl.Text = "Drag & Drop 📁 또는 여기를 클릭하여\n엑셀 파일을 선택하세요";
+            lbl.Font = new Font("맑은 고딕", 24f, FontStyle.Bold);
             lbl.AutoSize = false;
             lbl.Dock = DockStyle.Fill;
             lbl.TextAlign = ContentAlignment.MiddleCenter;
             lbl.ForeColor = isDark ? Color.LightGray : Color.DimGray;
             lbl.AllowDrop = true;
+            
+            // 클릭 시 커서 모양 변경
+            lbl.Cursor = Cursors.Hand;
+            _pnlDropOverlay.Cursor = Cursors.Hand;
 
             // 이벤트 연결
+            lblDesc.DragEnter += PnlDropFile_DragEnter;
+            lblDesc.DragDrop += PnlDropFile_DragDrop;
+            lblDesc.Click += Overlay_Click;
+
             lbl.DragEnter += PnlDropFile_DragEnter;
             lbl.DragDrop += PnlDropFile_DragDrop;
+            lbl.Click += Overlay_Click;
+            
             _pnlDropOverlay.DragEnter += PnlDropFile_DragEnter;
             _pnlDropOverlay.DragDrop += PnlDropFile_DragDrop;
+            _pnlDropOverlay.Click += Overlay_Click;
 
             _pnlDropOverlay.Controls.Add(lbl);
+            _pnlDropOverlay.Controls.Add(lblDesc); // DockStyle.Top이 제대로 동작하려면 나중에 추가해야 할 수 있음. (Z-order)
             PnlDropFile.Controls.Add(_pnlDropOverlay);
             _pnlDropOverlay.BringToFront();
         }
@@ -185,48 +208,66 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                 e.Effect = DragDropEffects.None;
         }
 
+        private void Overlay_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog ofd = new OpenFileDialog())
+            {
+                ofd.Filter = "Excel Files (*.xlsx)|*.xlsx";
+                ofd.Title = "분석할 엑셀 파일 선택";
+                
+                if (ofd.ShowDialog() == DialogResult.OK)
+                {
+                    ProcessExcelFile(ofd.FileName);
+                }
+            }
+        }
+
         private void PnlDropFile_DragDrop(object sender, DragEventArgs e)
         {
             string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
             if (files != null && files.Length > 0)
             {
-                string file = files[0];
-                if (!file.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
-                {
-                    MessageBox.Show("엑셀 파일(.xlsx)만 드롭할 수 있습니다.", "형식 오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
-                }
+                ProcessExcelFile(files[0]);
+            }
+        }
 
-                _droppedFilePath = file;
+        private void ProcessExcelFile(string file)
+        {
+            if (!file.EndsWith(".xlsx", StringComparison.OrdinalIgnoreCase))
+            {
+                MessageBox.Show("엑셀 파일(.xlsx)만 선택할 수 있습니다.", "형식 오류", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            _droppedFilePath = file;
+            
+            // 시트 목록 불러오기
+            try
+            {
+                var sheets = Util_ExcelAnalyzer.GetSheetNames(_droppedFilePath);
                 
-                // 시트 목록 불러오기
-                try
-                {
-                    var sheets = Util_ExcelAnalyzer.GetSheetNames(_droppedFilePath);
-                    
-                    // 파일 파싱을 성공적으로 완료했을 때만 오버레이를 숨겨 다음 단계로 전환
-                    if (_pnlDropOverlay != null) _pnlDropOverlay.Visible = false;
+                // 파일 파싱을 성공적으로 완료했을 때만 오버레이를 숨겨 다음 단계로 전환
+                if (_pnlDropOverlay != null) _pnlDropOverlay.Visible = false;
 
-                    // 디자이너에 생성된 CmbSheet 컨트롤에 시트 목록 추가
-                    if (CmbSheet != null)
-                    {
-                        CmbSheet.Items.Clear();
-                        foreach (var s in sheets) CmbSheet.Items.Add(s);
-                        CmbSheet.Visible = true;
-
-                        if (CmbSheet.Items.Count > 0)
-                            CmbSheet.SelectedIndex = 0; // 시트가 선택되면 CmbSheet_SelectedIndexChanged 발생
-                    }
-                    else
-                    {
-                        MessageBox.Show("CmbSheet 콤보박스가 폼 디자인에 없습니다. 디자이너에서 추가해주세요.");
-                    }
-                }
-                catch (Exception ex)
+                // 디자이너에 생성된 CmbSheet 컨트롤에 시트 목록 추가
+                if (CmbSheet != null)
                 {
-                    _droppedFilePath = ""; // 실패 시 리셋
-                    MessageBox.Show("시트 목록을 읽어오는 데 실패했습니다: " + ex.Message);
+                    CmbSheet.Items.Clear();
+                    foreach (var s in sheets) CmbSheet.Items.Add(s);
+                    CmbSheet.Visible = true;
+
+                    if (CmbSheet.Items.Count > 0)
+                        CmbSheet.SelectedIndex = 0; // 시트가 선택되면 CmbSheet_SelectedIndexChanged 발생
                 }
+                else
+                {
+                    MessageBox.Show("CmbSheet 콤보박스가 폼 디자인에 없습니다. 디자이너에서 추가해주세요.");
+                }
+            }
+            catch (Exception ex)
+            {
+                _droppedFilePath = ""; // 실패 시 리셋
+                MessageBox.Show("시트 목록을 읽어오는 데 실패했습니다: " + ex.Message);
             }
         }
 

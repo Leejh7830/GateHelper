@@ -8,6 +8,7 @@
     <OutputType>WinExe</OutputType>
     <RootNamespace>GateHelper</RootNamespace>
     <AssemblyName>GateHelper</AssemblyName>
+    <ApplicationIcon>Resource_TEMP\ico_gateone_fixed.ico</ApplicationIcon>
     <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
