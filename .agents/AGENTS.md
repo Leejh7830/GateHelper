@@ -2,7 +2,19 @@
 
 이 문서는 Antigravity Agent가 다른 PC나 새로운 대화 세션에서도 프로젝트의 현재 상태와 맥락을 곧바로 파악할 수 있도록 기록된 인수인계(Handover) 문서입니다. Agent는 새로운 대화가 시작될 때 자동으로 이 문서를 읽고 이전 상황을 이어갑니다.
 
-## 📌 최근 작업 내역 (최종 업데이트: 2026-07-29)
+## 📌 최근 작업 내역 (최종 업데이트: 2026-08-11)
+
+**[Excel Analyzer UX 개선 및 프로그램 아이콘 복구]**
+1. **Excel Analyzer 드래그 앤 드롭 오버레이 클릭 지원 (`ExcelAnalyzerForm.cs`)**
+   - 기존 드래그 앤 드롭 방식 외에도, 화면 덮개 패널이나 텍스트를 클릭 시 `OpenFileDialog`가 열려 파일 탐색기에서 직접 엑셀 파일을 선택할 수 있도록 UX를 개선했습니다.
+   - 처음 사용하는 사용자를 위해 오버레이 상단에 "💡 MGMT로 수집된 Variable Data를 분석해주는 기능입니다." 라는 설명 문구를 추가했습니다.
+2. **프로그램 대표 아이콘(ApplicationIcon) 비율 복구 (`GateHelper.csproj`, `ico_gateone_fixed.ico`)**
+   - 과거 잘못 생성된 정사각형 형태의 아이콘(`ico_gateone.ico`) 때문에 로고가 세로로 길쭉하게 찌그러져 보이던 현상을 해결했습니다.
+   - 원본 PNG 이미지의 가로 직사각형 비율을 유지한 채 위아래 투명 여백(Padding)을 덧댄 정품 256x256 아이콘(`ico_gateone_fixed.ico`)을 새로 생성하여 프로젝트에 적용했습니다.
+
+---
+
+## 📌 이전 작업 내역 (2026-07-29)
 
 **[코드 컨벤션 포맷 통일 및 ReleaseNotes 갱신]**
 1. **Region 주석 포맷 영문화 및 통일 (`Util.cs`, `ChromeDriverManager.cs`, `LogValidator` 등 전역)**
