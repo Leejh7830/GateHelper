@@ -1917,8 +1917,11 @@ namespace GateHelper
 
         private void BtnMgmtAnalyzer_Click(object sender, EventArgs e)
         {
-            var form = new ExcelAnalyzerForm();
-            form.Show();
+            using (var form = new ExcelAnalyzerForm())
+            {
+                form.StartPosition = FormStartPosition.CenterParent;
+                form.ShowDialog(this);
+            }
         }
 
         private void BtnResetUI_Click(object sender, EventArgs e)

@@ -160,7 +160,7 @@ namespace GateHelper
             string metaNotesPath = GetMetaPath("ReleaseNotes.txt");
             string content =
 @"
-v2.4.4 / 26.07.29 / Test Version
+v2.4.5 / 26.07.29 / Test Version
 - leejh7830@lgespartner.com
 - 비영리 목적으로 제작한 유틸리티입니다.
 
@@ -182,6 +182,11 @@ v2.4.4 / 26.07.29 / Test Version
 6. 개선 / [UDP] RDP 감지 추가
 7. 개선 / [UDP] 현재 접속자 확인 기능 추가
 8. 개선 / [UDP] 접속자 목록 UI 추가
+9. 개선 / ExcelAnalysis 기능 개선 (엑셀파일이 열려있으면 어떻게 처리할지)
+10. 개선 / ExcelAnalysis 기능 개선 (대표기준이 되는 호기를 사용자가 선정)
+11. 개선 / ExcelAnalysis 기능 개선 (Dgv 가로스크롤 추가, HeaderColumn 길이 조정)
+12. 개선 / ExcelAnalysis 기능 개선 (변수명이 중복됨. 한번만 올라가도록, SEM에서 등록 한 변수가 Port에서 보임)
+13. 개선 / ExcelAnalysis 기능 개선 (엑셀드랍후 바로 분석 할 때, Rule은 어떤걸로 하게 되는지?)
 
 
 [완료]

@@ -30,6 +30,16 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
         /// 값이 시나리오 내 호기들끼리 무조건 같아야 하는 공통값 변수명 리스트 (예: Timeout 등)
         /// </summary>
         public List<string> CommonVariables { get; set; } = new List<string>();
+
+        /// <summary>
+        /// 예외 처리(검사 무시)로 지정된 변수명 리스트
+        /// </summary>
+        public List<string> ExceptionVariables { get; set; } = new List<string>();
+
+        /// <summary>
+        /// 특별 관리(강조)로 지정된 변수명 리스트
+        /// </summary>
+        public List<string> HighlightVariables { get; set; } = new List<string>();
     }
 
     /// <summary>
@@ -43,6 +53,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
         /// 마지막으로 사용된 엑셀 컬럼 매핑 정보를 기억하기 위한 설정
         /// </summary>
         public string LastMappedMachineColumn { get; set; } = "";
+        public string LastMappedUnitColumn { get; set; } = "";
         public string LastMappedNameColumn { get; set; } = "";
         public string LastMappedValueColumn { get; set; } = "";
         public string LastMappedDescColumn { get; set; } = "";

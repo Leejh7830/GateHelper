@@ -67,7 +67,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
         /// <summary>
         /// 지정된 컬럼명들을 기반으로 엑셀 전체 데이터를 비동기(Async) 파싱하여 반환합니다.
         /// </summary>
-        public static async Task<List<ExcelRowData>> ParseExcelDataAsync(string filePath, string sheetName, string machineColName, string nameColName, string valueColName, string descColName)
+        public static async Task<List<ExcelRowData>> ParseExcelDataAsync(string filePath, string sheetName, string machineColName, string unitColName, string nameColName, string valueColName, string descColName)
         {
             return await Task.Run(() =>
             {
@@ -91,6 +91,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
 
                         // 1. 헤더 인덱스 찾기 (1-based index)
                         int machineColIdx = -1;
+                        int unitColIdx = -1;
                         int nameColIdx = -1;
                         int valueColIdx = -1;
                         int descColIdx = -1;
@@ -99,6 +100,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                         {
                             string headerText = cell.GetString().Trim();
                             if (headerText == machineColName) machineColIdx = cell.Address.ColumnNumber;
+                            if (!string.IsNullOrEmpty(unitColName) && headerText == unitColName) unitColIdx = cell.Address.ColumnNumber;
                             if (headerText == nameColName) nameColIdx = cell.Address.ColumnNumber;
                             if (headerText == valueColName) valueColIdx = cell.Address.ColumnNumber;
                             if (!string.IsNullOrEmpty(descColName) && headerText == descColName) descColIdx = cell.Address.ColumnNumber;
@@ -112,10 +114,14 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                         var rows = worksheet.RowsUsed().Skip(1);
                         foreach (var row in rows)
                         {
+                            string rawName = row.Cell(nameColIdx).GetString().Trim();
+                            string rawUnit = unitColIdx != -1 ? row.Cell(unitColIdx).GetString().Trim() : "";
+                            string finalName = string.IsNullOrEmpty(rawUnit) ? rawName : $"{rawUnit}_{rawName}";
+
                             var data = new ExcelRowData
                             {
                                 MachineName = row.Cell(machineColIdx).GetString().Trim(),
-                                VariableName = row.Cell(nameColIdx).GetString().Trim(),
+                                VariableName = finalName,
                                 Value = row.Cell(valueColIdx).GetString().Trim(),
                                 Description = descColIdx != -1 ? row.Cell(descColIdx).GetString().Trim() : "",
                                 RowIndex = row.RowNumber()

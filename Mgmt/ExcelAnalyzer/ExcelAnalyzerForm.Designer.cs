@@ -29,17 +29,18 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
         private void InitializeComponent()
         {
             this.PnlDropFile = new System.Windows.Forms.Panel();
-            this.materialLabel5 = new MaterialSkin.Controls.MaterialLabel();
-            this.CmbDescCol = new MaterialSkin.Controls.MaterialComboBox();
-            this.CmbSheet = new MaterialSkin.Controls.MaterialComboBox();
-            this.CmbValueCol = new MaterialSkin.Controls.MaterialComboBox();
-            this.CmbNameCol = new MaterialSkin.Controls.MaterialComboBox();
-            this.CmbMachineCol = new MaterialSkin.Controls.MaterialComboBox();
-            this.materialLabel4 = new MaterialSkin.Controls.MaterialLabel();
-            this.materialLabel3 = new MaterialSkin.Controls.MaterialLabel();
+            this.panel1 = new System.Windows.Forms.Panel();
             this.materialLabel2 = new MaterialSkin.Controls.MaterialLabel();
             this.BtnStartAnalyze = new MaterialSkin.Controls.MaterialButton();
+            this.materialLabel5 = new MaterialSkin.Controls.MaterialLabel();
             this.BtnStartRuleSetup = new MaterialSkin.Controls.MaterialButton();
+            this.materialLabel3 = new MaterialSkin.Controls.MaterialLabel();
+            this.CmbDescCol = new MaterialSkin.Controls.MaterialComboBox();
+            this.materialLabel4 = new MaterialSkin.Controls.MaterialLabel();
+            this.CmbSheet = new MaterialSkin.Controls.MaterialComboBox();
+            this.CmbMachineCol = new MaterialSkin.Controls.MaterialComboBox();
+            this.CmbValueCol = new MaterialSkin.Controls.MaterialComboBox();
+            this.CmbNameCol = new MaterialSkin.Controls.MaterialComboBox();
             this.PnlRuleSetup = new System.Windows.Forms.Panel();
             this.materialLabel6 = new MaterialSkin.Controls.MaterialLabel();
             this.BtnGoToAnalyze = new MaterialSkin.Controls.MaterialButton();
@@ -66,13 +67,14 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.ColVariable = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColValue = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.ColDesc = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.panel1 = new System.Windows.Forms.Panel();
+            this.CmbUnitCol = new MaterialSkin.Controls.MaterialComboBox();
+            this.materialLabel1 = new MaterialSkin.Controls.MaterialLabel();
             this.PnlDropFile.SuspendLayout();
+            this.panel1.SuspendLayout();
             this.PnlRuleSetup.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DgvVariables)).BeginInit();
             this.PnlAnalysis.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DgvResults)).BeginInit();
-            this.panel1.SuspendLayout();
             this.SuspendLayout();
             // 
             // PnlDropFile
@@ -84,17 +86,105 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.PnlDropFile.Size = new System.Drawing.Size(1243, 549);
             this.PnlDropFile.TabIndex = 0;
             // 
+            // panel1
+            // 
+            this.panel1.Controls.Add(this.materialLabel1);
+            this.panel1.Controls.Add(this.CmbUnitCol);
+            this.panel1.Controls.Add(this.materialLabel2);
+            this.panel1.Controls.Add(this.BtnStartAnalyze);
+            this.panel1.Controls.Add(this.materialLabel5);
+            this.panel1.Controls.Add(this.BtnStartRuleSetup);
+            this.panel1.Controls.Add(this.materialLabel3);
+            this.panel1.Controls.Add(this.CmbDescCol);
+            this.panel1.Controls.Add(this.materialLabel4);
+            this.panel1.Controls.Add(this.CmbSheet);
+            this.panel1.Controls.Add(this.CmbMachineCol);
+            this.panel1.Controls.Add(this.CmbValueCol);
+            this.panel1.Controls.Add(this.CmbNameCol);
+            this.panel1.Location = new System.Drawing.Point(25, 18);
+            this.panel1.Name = "panel1";
+            this.panel1.Size = new System.Drawing.Size(742, 320);
+            this.panel1.TabIndex = 115;
+            // 
+            // materialLabel2
+            // 
+            this.materialLabel2.AutoSize = true;
+            this.materialLabel2.Depth = 0;
+            this.materialLabel2.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialLabel2.Location = new System.Drawing.Point(61, 35);
+            this.materialLabel2.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialLabel2.Name = "materialLabel2";
+            this.materialLabel2.Size = new System.Drawing.Size(78, 19);
+            this.materialLabel2.TabIndex = 107;
+            this.materialLabel2.Text = "호기명(EQP)";
+            // 
+            // BtnStartAnalyze
+            // 
+            this.BtnStartAnalyze.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.BtnStartAnalyze.AutoSize = false;
+            this.BtnStartAnalyze.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnStartAnalyze.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnStartAnalyze.Depth = 0;
+            this.BtnStartAnalyze.HighEmphasis = true;
+            this.BtnStartAnalyze.Icon = null;
+            this.BtnStartAnalyze.Location = new System.Drawing.Point(576, 256);
+            this.BtnStartAnalyze.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnStartAnalyze.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnStartAnalyze.Name = "BtnStartAnalyze";
+            this.BtnStartAnalyze.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnStartAnalyze.Size = new System.Drawing.Size(120, 38);
+            this.BtnStartAnalyze.TabIndex = 106;
+            this.BtnStartAnalyze.Text = "Analyze";
+            this.BtnStartAnalyze.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnStartAnalyze.UseAccentColor = false;
+            this.BtnStartAnalyze.UseVisualStyleBackColor = true;
+            this.BtnStartAnalyze.Visible = false;
+            // 
             // materialLabel5
             // 
             this.materialLabel5.AutoSize = true;
             this.materialLabel5.Depth = 0;
             this.materialLabel5.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel5.Location = new System.Drawing.Point(455, 35);
+            this.materialLabel5.Location = new System.Drawing.Point(573, 35);
             this.materialLabel5.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialLabel5.Name = "materialLabel5";
-            this.materialLabel5.Size = new System.Drawing.Size(25, 19);
+            this.materialLabel5.Size = new System.Drawing.Size(71, 19);
             this.materialLabel5.TabIndex = 114;
-            this.materialLabel5.Text = "설명";
+            this.materialLabel5.Text = "설명(Desc)";
+            // 
+            // BtnStartRuleSetup
+            // 
+            this.BtnStartRuleSetup.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.BtnStartRuleSetup.AutoSize = false;
+            this.BtnStartRuleSetup.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnStartRuleSetup.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnStartRuleSetup.Depth = 0;
+            this.BtnStartRuleSetup.HighEmphasis = true;
+            this.BtnStartRuleSetup.Icon = null;
+            this.BtnStartRuleSetup.Location = new System.Drawing.Point(448, 256);
+            this.BtnStartRuleSetup.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnStartRuleSetup.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnStartRuleSetup.Name = "BtnStartRuleSetup";
+            this.BtnStartRuleSetup.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnStartRuleSetup.Size = new System.Drawing.Size(120, 38);
+            this.BtnStartRuleSetup.TabIndex = 105;
+            this.BtnStartRuleSetup.Text = "Rule Setup";
+            this.BtnStartRuleSetup.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnStartRuleSetup.UseAccentColor = false;
+            this.BtnStartRuleSetup.UseVisualStyleBackColor = true;
+            this.BtnStartRuleSetup.Visible = false;
+            // 
+            // materialLabel3
+            // 
+            this.materialLabel3.AutoSize = true;
+            this.materialLabel3.Depth = 0;
+            this.materialLabel3.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialLabel3.Location = new System.Drawing.Point(302, 35);
+            this.materialLabel3.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialLabel3.Name = "materialLabel3";
+            this.materialLabel3.Size = new System.Drawing.Size(90, 19);
+            this.materialLabel3.TabIndex = 108;
+            this.materialLabel3.Text = "변수명(Name)";
             // 
             // CmbDescCol
             // 
@@ -110,13 +200,25 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.CmbDescCol.FormattingEnabled = true;
             this.CmbDescCol.IntegralHeight = false;
             this.CmbDescCol.ItemHeight = 43;
-            this.CmbDescCol.Location = new System.Drawing.Point(413, 69);
+            this.CmbDescCol.Location = new System.Drawing.Point(545, 69);
             this.CmbDescCol.MaxDropDownItems = 4;
             this.CmbDescCol.MouseState = MaterialSkin.MouseState.OUT;
             this.CmbDescCol.Name = "CmbDescCol";
             this.CmbDescCol.Size = new System.Drawing.Size(153, 49);
             this.CmbDescCol.StartIndex = 0;
             this.CmbDescCol.TabIndex = 113;
+            // 
+            // materialLabel4
+            // 
+            this.materialLabel4.AutoSize = true;
+            this.materialLabel4.Depth = 0;
+            this.materialLabel4.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialLabel4.Location = new System.Drawing.Point(433, 35);
+            this.materialLabel4.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialLabel4.Name = "materialLabel4";
+            this.materialLabel4.Size = new System.Drawing.Size(88, 19);
+            this.materialLabel4.TabIndex = 109;
+            this.materialLabel4.Text = "설정값(Value)";
             // 
             // CmbSheet
             // 
@@ -142,50 +244,6 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.CmbSheet.TabIndex = 8;
             this.CmbSheet.UseAccent = false;
             // 
-            // CmbValueCol
-            // 
-            this.CmbValueCol.AutoResize = false;
-            this.CmbValueCol.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            this.CmbValueCol.Depth = 0;
-            this.CmbValueCol.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawVariable;
-            this.CmbValueCol.DropDownHeight = 174;
-            this.CmbValueCol.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.CmbValueCol.DropDownWidth = 121;
-            this.CmbValueCol.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Pixel);
-            this.CmbValueCol.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            this.CmbValueCol.FormattingEnabled = true;
-            this.CmbValueCol.IntegralHeight = false;
-            this.CmbValueCol.ItemHeight = 43;
-            this.CmbValueCol.Location = new System.Drawing.Point(286, 68);
-            this.CmbValueCol.MaxDropDownItems = 4;
-            this.CmbValueCol.MouseState = MaterialSkin.MouseState.OUT;
-            this.CmbValueCol.Name = "CmbValueCol";
-            this.CmbValueCol.Size = new System.Drawing.Size(121, 49);
-            this.CmbValueCol.StartIndex = 0;
-            this.CmbValueCol.TabIndex = 112;
-            // 
-            // CmbNameCol
-            // 
-            this.CmbNameCol.AutoResize = false;
-            this.CmbNameCol.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            this.CmbNameCol.Depth = 0;
-            this.CmbNameCol.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawVariable;
-            this.CmbNameCol.DropDownHeight = 174;
-            this.CmbNameCol.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.CmbNameCol.DropDownWidth = 121;
-            this.CmbNameCol.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Pixel);
-            this.CmbNameCol.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
-            this.CmbNameCol.FormattingEnabled = true;
-            this.CmbNameCol.IntegralHeight = false;
-            this.CmbNameCol.ItemHeight = 43;
-            this.CmbNameCol.Location = new System.Drawing.Point(159, 68);
-            this.CmbNameCol.MaxDropDownItems = 4;
-            this.CmbNameCol.MouseState = MaterialSkin.MouseState.OUT;
-            this.CmbNameCol.Name = "CmbNameCol";
-            this.CmbNameCol.Size = new System.Drawing.Size(121, 49);
-            this.CmbNameCol.StartIndex = 0;
-            this.CmbNameCol.TabIndex = 111;
-            // 
             // CmbMachineCol
             // 
             this.CmbMachineCol.AutoResize = false;
@@ -208,85 +266,49 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.CmbMachineCol.StartIndex = 0;
             this.CmbMachineCol.TabIndex = 110;
             // 
-            // materialLabel4
+            // CmbValueCol
             // 
-            this.materialLabel4.AutoSize = true;
-            this.materialLabel4.Depth = 0;
-            this.materialLabel4.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel4.Location = new System.Drawing.Point(324, 35);
-            this.materialLabel4.MouseState = MaterialSkin.MouseState.HOVER;
-            this.materialLabel4.Name = "materialLabel4";
-            this.materialLabel4.Size = new System.Drawing.Size(37, 19);
-            this.materialLabel4.TabIndex = 109;
-            this.materialLabel4.Text = "설정값";
+            this.CmbValueCol.AutoResize = false;
+            this.CmbValueCol.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.CmbValueCol.Depth = 0;
+            this.CmbValueCol.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawVariable;
+            this.CmbValueCol.DropDownHeight = 174;
+            this.CmbValueCol.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.CmbValueCol.DropDownWidth = 121;
+            this.CmbValueCol.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Pixel);
+            this.CmbValueCol.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.CmbValueCol.FormattingEnabled = true;
+            this.CmbValueCol.IntegralHeight = false;
+            this.CmbValueCol.ItemHeight = 43;
+            this.CmbValueCol.Location = new System.Drawing.Point(418, 68);
+            this.CmbValueCol.MaxDropDownItems = 4;
+            this.CmbValueCol.MouseState = MaterialSkin.MouseState.OUT;
+            this.CmbValueCol.Name = "CmbValueCol";
+            this.CmbValueCol.Size = new System.Drawing.Size(121, 49);
+            this.CmbValueCol.StartIndex = 0;
+            this.CmbValueCol.TabIndex = 112;
             // 
-            // materialLabel3
+            // CmbNameCol
             // 
-            this.materialLabel3.AutoSize = true;
-            this.materialLabel3.Depth = 0;
-            this.materialLabel3.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel3.Location = new System.Drawing.Point(197, 35);
-            this.materialLabel3.MouseState = MaterialSkin.MouseState.HOVER;
-            this.materialLabel3.Name = "materialLabel3";
-            this.materialLabel3.Size = new System.Drawing.Size(37, 19);
-            this.materialLabel3.TabIndex = 108;
-            this.materialLabel3.Text = "변수명";
-            // 
-            // materialLabel2
-            // 
-            this.materialLabel2.AutoSize = true;
-            this.materialLabel2.Depth = 0;
-            this.materialLabel2.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel2.Location = new System.Drawing.Point(75, 35);
-            this.materialLabel2.MouseState = MaterialSkin.MouseState.HOVER;
-            this.materialLabel2.Name = "materialLabel2";
-            this.materialLabel2.Size = new System.Drawing.Size(37, 19);
-            this.materialLabel2.TabIndex = 107;
-            this.materialLabel2.Text = "호기명";
-            // 
-            // BtnStartAnalyze
-            // 
-            this.BtnStartAnalyze.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.BtnStartAnalyze.AutoSize = false;
-            this.BtnStartAnalyze.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnStartAnalyze.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnStartAnalyze.Depth = 0;
-            this.BtnStartAnalyze.HighEmphasis = true;
-            this.BtnStartAnalyze.Icon = null;
-            this.BtnStartAnalyze.Location = new System.Drawing.Point(428, 249);
-            this.BtnStartAnalyze.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.BtnStartAnalyze.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnStartAnalyze.Name = "BtnStartAnalyze";
-            this.BtnStartAnalyze.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnStartAnalyze.Size = new System.Drawing.Size(120, 38);
-            this.BtnStartAnalyze.TabIndex = 106;
-            this.BtnStartAnalyze.Text = "Analyze";
-            this.BtnStartAnalyze.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnStartAnalyze.UseAccentColor = false;
-            this.BtnStartAnalyze.UseVisualStyleBackColor = true;
-            this.BtnStartAnalyze.Visible = false;
-            // 
-            // BtnStartRuleSetup
-            // 
-            this.BtnStartRuleSetup.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.BtnStartRuleSetup.AutoSize = false;
-            this.BtnStartRuleSetup.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.BtnStartRuleSetup.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.BtnStartRuleSetup.Depth = 0;
-            this.BtnStartRuleSetup.HighEmphasis = true;
-            this.BtnStartRuleSetup.Icon = null;
-            this.BtnStartRuleSetup.Location = new System.Drawing.Point(300, 249);
-            this.BtnStartRuleSetup.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.BtnStartRuleSetup.MouseState = MaterialSkin.MouseState.HOVER;
-            this.BtnStartRuleSetup.Name = "BtnStartRuleSetup";
-            this.BtnStartRuleSetup.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.BtnStartRuleSetup.Size = new System.Drawing.Size(120, 38);
-            this.BtnStartRuleSetup.TabIndex = 105;
-            this.BtnStartRuleSetup.Text = "Rule Setup";
-            this.BtnStartRuleSetup.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
-            this.BtnStartRuleSetup.UseAccentColor = false;
-            this.BtnStartRuleSetup.UseVisualStyleBackColor = true;
-            this.BtnStartRuleSetup.Visible = false;
+            this.CmbNameCol.AutoResize = false;
+            this.CmbNameCol.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.CmbNameCol.Depth = 0;
+            this.CmbNameCol.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawVariable;
+            this.CmbNameCol.DropDownHeight = 174;
+            this.CmbNameCol.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.CmbNameCol.DropDownWidth = 121;
+            this.CmbNameCol.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Pixel);
+            this.CmbNameCol.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.CmbNameCol.FormattingEnabled = true;
+            this.CmbNameCol.IntegralHeight = false;
+            this.CmbNameCol.ItemHeight = 43;
+            this.CmbNameCol.Location = new System.Drawing.Point(291, 68);
+            this.CmbNameCol.MaxDropDownItems = 4;
+            this.CmbNameCol.MouseState = MaterialSkin.MouseState.OUT;
+            this.CmbNameCol.Name = "CmbNameCol";
+            this.CmbNameCol.Size = new System.Drawing.Size(121, 49);
+            this.CmbNameCol.StartIndex = 0;
+            this.CmbNameCol.TabIndex = 111;
             // 
             // PnlRuleSetup
             // 
@@ -448,7 +470,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.BtnAddScenario.NoAccentTextColor = System.Drawing.Color.Empty;
             this.BtnAddScenario.Size = new System.Drawing.Size(119, 41);
             this.BtnAddScenario.TabIndex = 105;
-            this.BtnAddScenario.Text = "Add\r\nScenario";
+            this.BtnAddScenario.Text = "NEW\r\nScenario";
             this.BtnAddScenario.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
             this.BtnAddScenario.UseAccentColor = false;
             this.BtnAddScenario.UseVisualStyleBackColor = true;
@@ -603,26 +625,31 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             // 
             this.ColStatus.HeaderText = "결과 상태";
             this.ColStatus.Name = "ColStatus";
+            this.ColStatus.Width = 110;
             // 
             // ColRule
             // 
             this.ColRule.HeaderText = "적용 규칙";
             this.ColRule.Name = "ColRule";
+            this.ColRule.Width = 260;
             // 
             // ColMachine
             // 
             this.ColMachine.HeaderText = "설비명";
             this.ColMachine.Name = "ColMachine";
+            this.ColMachine.Width = 140;
             // 
             // ColVariable
             // 
             this.ColVariable.HeaderText = "변수명";
             this.ColVariable.Name = "ColVariable";
+            this.ColVariable.Width = 160;
             // 
             // ColValue
             // 
             this.ColValue.HeaderText = "입력된 값";
             this.ColValue.Name = "ColValue";
+            this.ColValue.Width = 130;
             // 
             // ColDesc
             // 
@@ -630,43 +657,59 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             this.ColDesc.HeaderText = "오류 상세 설명";
             this.ColDesc.Name = "ColDesc";
             // 
-            // panel1
+            // CmbUnitCol
             // 
-            this.panel1.Controls.Add(this.materialLabel2);
-            this.panel1.Controls.Add(this.BtnStartAnalyze);
-            this.panel1.Controls.Add(this.materialLabel5);
-            this.panel1.Controls.Add(this.BtnStartRuleSetup);
-            this.panel1.Controls.Add(this.materialLabel3);
-            this.panel1.Controls.Add(this.CmbDescCol);
-            this.panel1.Controls.Add(this.materialLabel4);
-            this.panel1.Controls.Add(this.CmbSheet);
-            this.panel1.Controls.Add(this.CmbMachineCol);
-            this.panel1.Controls.Add(this.CmbValueCol);
-            this.panel1.Controls.Add(this.CmbNameCol);
-            this.panel1.Location = new System.Drawing.Point(25, 18);
-            this.panel1.Name = "panel1";
-            this.panel1.Size = new System.Drawing.Size(594, 313);
-            this.panel1.TabIndex = 115;
+            this.CmbUnitCol.AutoResize = false;
+            this.CmbUnitCol.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.CmbUnitCol.Depth = 0;
+            this.CmbUnitCol.DrawMode = System.Windows.Forms.DrawMode.OwnerDrawVariable;
+            this.CmbUnitCol.DropDownHeight = 174;
+            this.CmbUnitCol.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
+            this.CmbUnitCol.DropDownWidth = 121;
+            this.CmbUnitCol.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Pixel);
+            this.CmbUnitCol.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.CmbUnitCol.FormattingEnabled = true;
+            this.CmbUnitCol.IntegralHeight = false;
+            this.CmbUnitCol.ItemHeight = 43;
+            this.CmbUnitCol.Location = new System.Drawing.Point(162, 69);
+            this.CmbUnitCol.MaxDropDownItems = 4;
+            this.CmbUnitCol.MouseState = MaterialSkin.MouseState.OUT;
+            this.CmbUnitCol.Name = "CmbUnitCol";
+            this.CmbUnitCol.Size = new System.Drawing.Size(121, 49);
+            this.CmbUnitCol.StartIndex = 0;
+            this.CmbUnitCol.TabIndex = 115;
+            // 
+            // materialLabel1
+            // 
+            this.materialLabel1.AutoSize = true;
+            this.materialLabel1.Depth = 0;
+            this.materialLabel1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialLabel1.Location = new System.Drawing.Point(180, 35);
+            this.materialLabel1.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialLabel1.Name = "materialLabel1";
+            this.materialLabel1.Size = new System.Drawing.Size(88, 19);
+            this.materialLabel1.TabIndex = 116;
+            this.materialLabel1.Text = "수집항목(Unit)";
             // 
             // ExcelAnalyzerForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(1249, 616);
-            this.Controls.Add(this.PnlDropFile);
             this.Controls.Add(this.PnlAnalysis);
             this.Controls.Add(this.PnlRuleSetup);
+            this.Controls.Add(this.PnlDropFile);
             this.Name = "ExcelAnalyzerForm";
             this.Text = "ExcelAnalyzerForm";
             this.PnlDropFile.ResumeLayout(false);
+            this.panel1.ResumeLayout(false);
+            this.panel1.PerformLayout();
             this.PnlRuleSetup.ResumeLayout(false);
             this.PnlRuleSetup.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DgvVariables)).EndInit();
             this.PnlAnalysis.ResumeLayout(false);
             this.PnlAnalysis.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.DgvResults)).EndInit();
-            this.panel1.ResumeLayout(false);
-            this.panel1.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -713,5 +756,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
         private System.Windows.Forms.DataGridViewTextBoxColumn ColDesc;
         private MaterialSkin.Controls.MaterialLabel materialLabel6;
         private System.Windows.Forms.Panel panel1;
+        private MaterialSkin.Controls.MaterialLabel materialLabel1;
+        private MaterialSkin.Controls.MaterialComboBox CmbUnitCol;
     }
 }

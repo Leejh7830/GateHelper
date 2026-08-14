@@ -40,17 +40,29 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             DgvVariables.CurrentCellDirtyStateChanged += DgvVariables_CurrentCellDirtyStateChanged;
             DgvVariables.CellValueChanged += DgvVariables_CellValueChanged;
             DgvVariables.CellPainting += DgvVariables_CellPainting;
-            DgvVariables.CellClick += DgvVariables_CellClick;
+
         }
 
         private Panel _pnlDropOverlay;
-        private readonly Size _smallSize = new Size(700, 420);
+        private readonly Size _smallSize = new Size(820, 420);
         private readonly Size _largeSize = new Size(1250, 650);
 
         private void SwitchToPanel(Panel panel)
         {
             panel.BringToFront();
-            Size targetSize = (panel == PnlDropFile) ? _smallSize : _largeSize;
+            
+            Size targetSize;
+            if (panel == PnlDropFile)
+            {
+                // panel1의 크기와 여백(Location.X)을 기반으로 가로 크기를 자동 계산합니다.
+                // 양쪽 여백을 동일하게 맞추고 폼 테두리를 고려해 약간의 여유(+10)를 둡니다.
+                int autoWidth = panel1.Location.X * 2 + panel1.Width + 10;
+                targetSize = new Size(Math.Max(autoWidth, 700), 420);
+            }
+            else
+            {
+                targetSize = _largeSize;
+            }
             
             if (this.Size != targetSize)
             {
@@ -74,6 +86,9 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             ApplyMaterialDesignToDataGridView(DgvVariables);
             ApplyMaterialDesignToDataGridView(DgvResults);
 
+            if (DgvVariables.Columns.Contains("ColUnique")) DgvVariables.Columns["ColUnique"].ReadOnly = true;
+            if (DgvVariables.Columns.Contains("ColCommon")) DgvVariables.Columns["ColCommon"].ReadOnly = true;
+
             // 1-1. 시트 콤보박스 이벤트 연결 (사용자가 디자이너에서 만든 CmbSheet)
             if (CmbSheet != null)
             {
@@ -82,6 +97,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
 
             // 2. 콤보박스 초기 상태
             CmbMachineCol.Items.Clear();
+            if (CmbUnitCol != null) CmbUnitCol.Items.Clear();
             CmbNameCol.Items.Clear();
             CmbValueCol.Items.Clear();
             if (CmbDescCol != null) CmbDescCol.Items.Clear();
@@ -99,6 +115,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             BtnSaveRule.Click += BtnSaveRule_Click;
 
             InitContextMenu();
+            InitVariablesContextMenu();
 
             // 3-2. 분석(Validation) 결과 확인 이벤트 연결
             if (BtnGoToAnalyze != null) BtnGoToAnalyze.Click += BtnGoToAnalyze_Click;
@@ -286,6 +303,11 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                 var headers = Util_ExcelAnalyzer.GetHeaders(filePath, sheetName);
                 
                 CmbMachineCol.Items.Clear();
+                if (CmbUnitCol != null) 
+                {
+                    CmbUnitCol.Items.Clear();
+                    CmbUnitCol.Items.Add("");
+                }
                 CmbNameCol.Items.Clear();
                 CmbValueCol.Items.Clear();
                 if (CmbDescCol != null) CmbDescCol.Items.Clear();
@@ -293,6 +315,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                 foreach (var h in headers)
                 {
                     CmbMachineCol.Items.Add(h);
+                    if (CmbUnitCol != null) CmbUnitCol.Items.Add(h);
                     CmbNameCol.Items.Add(h);
                     CmbValueCol.Items.Add(h);
                     if (CmbDescCol != null) CmbDescCol.Items.Add(h);
@@ -300,12 +323,14 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
 
                 // 기존 매핑 기록(Config)이 있다면 자동 선택, 없으면 대충 유추해서 선택
                 SelectComboItem(CmbMachineCol, _config.LastMappedMachineColumn, new[] { "Equipment", "설비", "호기", "EQP" });
+                if (CmbUnitCol != null) SelectComboItem(CmbUnitCol, _config.LastMappedUnitColumn, new[] { "수집항목", "UNIT", "대분류", "Category" });
                 SelectComboItem(CmbNameCol, _config.LastMappedNameColumn, new[] { "Name", "변수명", "항목", "Item" });
                 SelectComboItem(CmbValueCol, _config.LastMappedValueColumn, new[] { "Value", "값", "설정값", "데이터" });
                 if (CmbDescCol != null) SelectComboItem(CmbDescCol, _config.LastMappedDescColumn, new[] { "Desc", "설명", "비고", "내용" });
 
                 // 콤보박스 선택 렌더링 버그 방지 (강제 리프레시)
                 CmbMachineCol.Invalidate(); CmbMachineCol.Refresh();
+                if (CmbUnitCol != null) { CmbUnitCol.Invalidate(); CmbUnitCol.Refresh(); }
                 CmbNameCol.Invalidate(); CmbNameCol.Refresh();
                 CmbValueCol.Invalidate(); CmbValueCol.Refresh();
                 if (CmbDescCol != null) { CmbDescCol.Invalidate(); CmbDescCol.Refresh(); }
@@ -369,6 +394,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
 
             // 매핑 기록 저장
             _config.LastMappedMachineColumn = CmbMachineCol.SelectedItem.ToString();
+            _config.LastMappedUnitColumn = CmbUnitCol != null && CmbUnitCol.SelectedItem != null ? CmbUnitCol.SelectedItem.ToString() : "";
             _config.LastMappedNameColumn = CmbNameCol.SelectedItem.ToString();
             _config.LastMappedValueColumn = CmbValueCol.SelectedItem.ToString();
             _config.LastMappedDescColumn = CmbDescCol != null && CmbDescCol.SelectedItem != null ? CmbDescCol.SelectedItem.ToString() : "";
@@ -382,10 +408,12 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                 
                 _parsedData = await Util_ExcelAnalyzer.ParseExcelDataAsync(
                     _droppedFilePath, sheetName, 
-                    _config.LastMappedMachineColumn, _config.LastMappedNameColumn, _config.LastMappedValueColumn, _config.LastMappedDescColumn);
+                    _config.LastMappedMachineColumn, _config.LastMappedUnitColumn, _config.LastMappedNameColumn, _config.LastMappedValueColumn, _config.LastMappedDescColumn);
                 
-                // 3. 같은 설비 내에 동일한 변수명이 중복으로 존재하는지 검사 후 알림
-                var duplicates = _parsedData.GroupBy(x => new { x.MachineName, x.VariableName }).Where(g => g.Count() > 1).ToList();
+                // 3. 같은 설비 내에 동일한 변수명이 중복으로 존재하는지 검사 후 알림 (StockerSEM 등 의도적 중복은 예외 처리)
+                var duplicates = _parsedData
+                    .Where(x => !string.Equals(x.VariableName, "StockerSEM", StringComparison.OrdinalIgnoreCase))
+                    .GroupBy(x => new { x.MachineName, x.VariableName }).Where(g => g.Count() > 1).ToList();
                 if (duplicates.Count > 0)
                 {
                     string dupMsg = string.Join("\n", duplicates.Take(5).Select(g => $"- {g.Key.MachineName} : {g.Key.VariableName}"));
@@ -432,6 +460,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             foreach (var m in distinctMachines) 
             {
                 MaterialCheckbox cb = new MaterialCheckbox { Text = m, Tag = m, Checked = false };
+                cb.CheckedChanged += (s, ev) => { if (!_isUpdatingUI) _isDirty = true; };
                 ClbMachines.Items.Add(cb);
             }
 
@@ -540,8 +569,34 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             {
                 string varName = row.Cells["ColVarName"].Value?.ToString();
                 if (string.IsNullOrEmpty(varName)) continue;
+
+                if (profile.ExceptionVariables == null) profile.ExceptionVariables = new List<string>();
+                if (profile.HighlightVariables == null) profile.HighlightVariables = new List<string>();
+
+                // 과거에 두 곳 모두 체크된 상태로 저장된 데이터가 있다면 여기서 정화(Sanitize)합니다.
+                if (profile.UniqueVariables.Contains(varName) && profile.CommonVariables.Contains(varName))
+                {
+                    profile.CommonVariables.Remove(varName);
+                }
+
                 row.Cells["ColUnique"].Value = profile.UniqueVariables.Contains(varName);
                 row.Cells["ColCommon"].Value = profile.CommonVariables.Contains(varName);
+
+                if (profile.ExceptionVariables.Contains(varName))
+                {
+                    row.DefaultCellStyle.BackColor = Color.DimGray;
+                    row.DefaultCellStyle.ForeColor = Color.DarkGray;
+                }
+                else if (profile.HighlightVariables.Contains(varName))
+                {
+                    row.DefaultCellStyle.BackColor = Color.LightGoldenrodYellow;
+                    row.DefaultCellStyle.ForeColor = Color.Black;
+                }
+                else
+                {
+                    row.DefaultCellStyle.BackColor = DgvVariables.DefaultCellStyle.BackColor;
+                    row.DefaultCellStyle.ForeColor = DgvVariables.DefaultCellStyle.ForeColor;
+                }
             }
 
             _isUpdatingUI = false;
@@ -565,10 +620,14 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             string varName = DgvVariables.Rows[e.RowIndex].Cells["ColVarName"].Value?.ToString();
             if (string.IsNullOrEmpty(varName)) return;
 
+            if (profile.ExceptionVariables == null) profile.ExceptionVariables = new List<string>();
+            if (profile.HighlightVariables == null) profile.HighlightVariables = new List<string>();
+
             bool isChecked = Convert.ToBoolean(DgvVariables.Rows[e.RowIndex].Cells[e.ColumnIndex].Value);
             bool isUniqueCol = e.ColumnIndex == DgvVariables.Columns["ColUnique"].Index;
 
             _isUpdatingUI = true; 
+            _isDirty = true;
             
             if (isUniqueCol)
             {
@@ -597,7 +656,16 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                 }
             }
             
+            if (isChecked && profile.ExceptionVariables.Contains(varName))
+            {
+                profile.ExceptionVariables.Remove(varName);
+                DgvVariables.Rows[e.RowIndex].DefaultCellStyle.BackColor = DgvVariables.DefaultCellStyle.BackColor;
+                DgvVariables.Rows[e.RowIndex].DefaultCellStyle.ForeColor = DgvVariables.DefaultCellStyle.ForeColor;
+            }
+            
             _isUpdatingUI = false;
+            
+            DgvVariables.InvalidateRow(e.RowIndex);
         }
 
         private string ShowInputBox(string promptText, string title, string defaultResponse)
@@ -657,6 +725,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             // 여기서 순회하며 갱신할 필요가 없습니다.
 
             SaveConfig();
+            _isDirty = false;
             MessageBox.Show($"[{profile.RuleName}] 규칙이 성공적으로 저장되었습니다!", "저장 완료", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
@@ -670,6 +739,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
 
             // 매핑 기록 저장
             _config.LastMappedMachineColumn = CmbMachineCol.SelectedItem.ToString();
+            _config.LastMappedUnitColumn = CmbUnitCol != null && CmbUnitCol.SelectedItem != null ? CmbUnitCol.SelectedItem.ToString() : "";
             _config.LastMappedNameColumn = CmbNameCol.SelectedItem.ToString();
             _config.LastMappedValueColumn = CmbValueCol.SelectedItem.ToString();
             _config.LastMappedDescColumn = CmbDescCol != null && CmbDescCol.SelectedItem != null ? CmbDescCol.SelectedItem.ToString() : "";
@@ -682,7 +752,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                 
                 _parsedData = await Util_ExcelAnalyzer.ParseExcelDataAsync(
                     _droppedFilePath, sheetName,
-                    _config.LastMappedMachineColumn, _config.LastMappedNameColumn, _config.LastMappedValueColumn, _config.LastMappedDescColumn);
+                    _config.LastMappedMachineColumn, _config.LastMappedUnitColumn, _config.LastMappedNameColumn, _config.LastMappedValueColumn, _config.LastMappedDescColumn);
                     
                 SwitchToPanel(PnlAnalysis);
                 
@@ -745,26 +815,7 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
             dgv.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
         }
 
-        private void DgvVariables_CellClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.RowIndex >= 0 && (e.ColumnIndex == DgvVariables.Columns["ColUnique"].Index || e.ColumnIndex == DgvVariables.Columns["ColCommon"].Index))
-            {
-                bool currentState = false;
-                var cellValue = DgvVariables.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
-                if (cellValue != null && bool.TryParse(cellValue.ToString(), out bool b))
-                    currentState = b;
 
-                // 클릭 즉시 수동으로 값 반전
-                DgvVariables.Rows[e.RowIndex].Cells[e.ColumnIndex].Value = !currentState;
-                
-                // ReadOnly 상태에서는 프로그래밍 방식으로 값을 변경해도 CellValueChanged가 자동 발생하지 않음.
-                // 상호 배타(Mutual Exclusion) 로직과 Profile 저장을 수행하기 위해 수동으로 강제 호출합니다.
-                DgvVariables_CellValueChanged(sender, e);
-                
-                // 표를 즉시 다시 그려서 상호 배타 처리된 체크박스 상태를 UI에 즉시 반영
-                DgvVariables.InvalidateRow(e.RowIndex);
-            }
-        }
 
         private void DgvVariables_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
         {
@@ -774,6 +825,14 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                 bool isChecked = false;
                 if (e.Value != null && bool.TryParse(e.Value.ToString(), out bool b))
                     isChecked = b;
+
+                // 예외 처리(무시) 항목인지 확인
+                bool isException = false;
+                string varName = DgvVariables.Rows[e.RowIndex].Cells["ColVarName"].Value?.ToString();
+                if (!string.IsNullOrEmpty(varName) && LstScenarios.SelectedIndex >= 0 && LstScenarios.SelectedIndex < _config.Profiles.Count)
+                {
+                    isException = _config.Profiles[LstScenarios.SelectedIndex].ExceptionVariables?.Contains(varName) == true;
+                }
 
                 // 20x20 크기의 커스텀 체크박스 영역 계산
                 int size = 20; 
@@ -785,7 +844,18 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                 var skin = MaterialSkinManager.Instance;
                 e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
 
-                if (isChecked)
+                if (isException)
+                {
+                    // 예외 항목: 테두리를 그리고 안쪽에 빨간색 X를 그립니다.
+                    using (Pen boxPen = new Pen(skin.TextMediumEmphasisColor, 1.5f))
+                    using (Pen xPen = new Pen(Color.IndianRed, 2.5f))
+                    {
+                        e.Graphics.DrawRectangle(boxPen, rect);
+                        e.Graphics.DrawLine(xPen, rect.X + 5, rect.Y + 5, rect.Right - 5, rect.Bottom - 5);
+                        e.Graphics.DrawLine(xPen, rect.Right - 5, rect.Y + 5, rect.X + 5, rect.Bottom - 5);
+                    }
+                }
+                else if (isChecked)
                 {
                     using (SolidBrush brush = new SolidBrush(skin.ColorScheme.AccentColor))
                     {
@@ -1081,6 +1151,134 @@ namespace GateHelper.Mgmt.ExcelAnalyzer
                     _isUpdatingUI = false;
                 }
             }
+        }
+
+        private ContextMenuStrip _variablesContextMenu;
+        private int _contextMenuRowIndex = -1;
+
+        private void InitVariablesContextMenu()
+        {
+            _variablesContextMenu = new ContextMenuStrip();
+            _variablesContextMenu.Items.Add("예외 처리(무시) 지정 / 해제", null, ContextMenu_ToggleException_Click);
+            _variablesContextMenu.Items.Add("특별 관리(강조) 지정 / 해제", null, ContextMenu_ToggleHighlight_Click);
+
+            DgvVariables.ContextMenuStrip = _variablesContextMenu;
+            DgvVariables.CellMouseDown += DgvVariables_CellMouseDown;
+            DgvVariables.CellClick += DgvVariables_CellClick;
+        }
+
+        private void DgvVariables_CellMouseDown(object sender, DataGridViewCellMouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Right && e.RowIndex >= 0 && e.RowIndex < DgvVariables.Rows.Count)
+            {
+                if (LstScenarios.SelectedIndex < 0 || LstScenarios.SelectedIndex >= _config.Profiles.Count) return;
+
+                _contextMenuRowIndex = e.RowIndex;
+                DgvVariables.ClearSelection();
+                DgvVariables.Rows[e.RowIndex].Selected = true;
+            }
+        }
+
+        private void DgvVariables_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+            if (e.ColumnIndex == DgvVariables.Columns["ColUnique"].Index || e.ColumnIndex == DgvVariables.Columns["ColCommon"].Index)
+            {
+                bool currentState = false;
+                var cellValue = DgvVariables.Rows[e.RowIndex].Cells[e.ColumnIndex].Value;
+                if (cellValue != null && bool.TryParse(cellValue.ToString(), out bool b))
+                    currentState = b;
+
+                // 클릭 즉시 수동으로 값 반전. 상호 배타 로직을 위해 다른 쪽은 즉시 강제 해제.
+                if (!currentState)
+                {
+                    string otherCol = (e.ColumnIndex == DgvVariables.Columns["ColUnique"].Index) ? "ColCommon" : "ColUnique";
+                    DgvVariables.Rows[e.RowIndex].Cells[otherCol].Value = false;
+                }
+
+                DgvVariables.Rows[e.RowIndex].Cells[e.ColumnIndex].Value = !currentState;
+                
+                DgvVariables_CellValueChanged(sender, e);
+                
+                DgvVariables.InvalidateRow(e.RowIndex);
+            }
+        }
+
+        private void ContextMenu_ToggleException_Click(object sender, EventArgs e)
+        {
+            if (_contextMenuRowIndex < 0 || _contextMenuRowIndex >= DgvVariables.Rows.Count) return;
+            var varName = DgvVariables.Rows[_contextMenuRowIndex].Cells["ColVarName"].Value?.ToString();
+            if (string.IsNullOrEmpty(varName)) return;
+
+            var profile = _config.Profiles[LstScenarios.SelectedIndex];
+            if (profile.ExceptionVariables == null) profile.ExceptionVariables = new List<string>();
+            if (profile.HighlightVariables == null) profile.HighlightVariables = new List<string>();
+
+            if (profile.ExceptionVariables.Contains(varName))
+            {
+                profile.ExceptionVariables.Remove(varName);
+            }
+            else
+            {
+                profile.ExceptionVariables.Add(varName);
+                profile.HighlightVariables.Remove(varName);
+                profile.UniqueVariables.Remove(varName);
+                profile.CommonVariables.Remove(varName);
+                
+                // 예외 처리 지정 시 체크박스 자동 해제
+                DgvVariables.Rows[_contextMenuRowIndex].Cells["ColUnique"].Value = false;
+                DgvVariables.Rows[_contextMenuRowIndex].Cells["ColCommon"].Value = false;
+            }
+            
+            _isDirty = true;
+            UpdateRowColor(_contextMenuRowIndex, profile, varName);
+        }
+
+        private void ContextMenu_ToggleHighlight_Click(object sender, EventArgs e)
+        {
+            if (_contextMenuRowIndex < 0 || _contextMenuRowIndex >= DgvVariables.Rows.Count) return;
+            var varName = DgvVariables.Rows[_contextMenuRowIndex].Cells["ColVarName"].Value?.ToString();
+            if (string.IsNullOrEmpty(varName)) return;
+
+            var profile = _config.Profiles[LstScenarios.SelectedIndex];
+            if (profile.ExceptionVariables == null) profile.ExceptionVariables = new List<string>();
+            if (profile.HighlightVariables == null) profile.HighlightVariables = new List<string>();
+
+            if (profile.HighlightVariables.Contains(varName))
+            {
+                profile.HighlightVariables.Remove(varName);
+            }
+            else
+            {
+                profile.HighlightVariables.Add(varName);
+                profile.ExceptionVariables.Remove(varName);
+            }
+            
+            _isDirty = true;
+            UpdateRowColor(_contextMenuRowIndex, profile, varName);
+        }
+
+        private void UpdateRowColor(int rowIndex, RuleProfile profile, string varName)
+        {
+            var row = DgvVariables.Rows[rowIndex];
+            
+            if (profile.ExceptionVariables.Contains(varName))
+            {
+                row.DefaultCellStyle.BackColor = Color.DimGray;
+                row.DefaultCellStyle.ForeColor = Color.DarkGray;
+            }
+            else if (profile.HighlightVariables.Contains(varName))
+            {
+                row.DefaultCellStyle.BackColor = Color.LightGoldenrodYellow;
+                row.DefaultCellStyle.ForeColor = Color.Black;
+            }
+            else
+            {
+                row.DefaultCellStyle.BackColor = DgvVariables.DefaultCellStyle.BackColor;
+                row.DefaultCellStyle.ForeColor = DgvVariables.DefaultCellStyle.ForeColor;
+            }
+            
+            DgvVariables.InvalidateRow(rowIndex);
         }
 
         private string PromptForInput(string title, string promptText, string defaultValue = "")
