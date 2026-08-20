@@ -221,13 +221,13 @@ v2.1.5 / 25.12.17 개선 - Listview 컨텍스트 메뉴 색상 반전 (현재 �
 v2.2.0 / 25.12.22 신규 - WorkLog 추가 (작업 메모용, Reference 탭)
 v2.2.1 / 26.01.07 개선 - WorkLog 기능추가 (이미지붙여넣기)
 v2.2.2 / 26.01.13 신규 - SandBox 추가
-v2.2.3 / 26.01.17 신규 - SandBox - BitFlip
-v2.2.4 / 26.01.29 신규 - SandBox - SignalLink
+v2.2.3 / 26.01.17 개선 - SandBox - BitFlip
+v2.2.4 / 26.01.29 개선 - SandBox - SignalLink
 v2.2.5 / 26.03.30 개선 - 프로그램 종료(X) 클릭 시 확인 창 띄우기 / 리스트뷰에서 바로 접속 시 검색 텍스트 박스 비우기
 v2.2.6 / 26.04.08 개선 - Disable Pop up -> Auto Screen Unlock 으로 변경, 통합관리시스템(Manufacturing Management) 연결
 
 v2.3.0 / 26.05.12 신규 - MGMT 사이트 오픈 및 이동
-v2.3.1 / 26.05.14 신규 - MGMT 자동로그인 기능 구현 / Main과 Management Handle 관리 구분 및 인터락 구현
+v2.3.1 / 26.05.14 개선 - MGMT 자동로그인 기능 구현 / Main과 Management Handle 관리 구분 및 인터락 구현
 v2.3.2 / 26.06.10 신규 - (안정화버전) 통합모니터링(MGMT) STO 데이터 수집 / 신규 - ServerMapping 기능 추가 (호기명 입력 시 서버 매핑)
 v2.3.3 / 26.06.19 신규 - Drag & Drop 기능 추가 (파일 즐겨찾기 등록)
 
