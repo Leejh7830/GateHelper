@@ -451,6 +451,7 @@ namespace GateHelper
             this.BtnMgmtAnalyzer.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BtnMgmtAnalyzer.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.BtnMgmtAnalyzer.Depth = 0;
+            this.BtnMgmtAnalyzer.Enabled = false;
             this.BtnMgmtAnalyzer.HighEmphasis = true;
             this.BtnMgmtAnalyzer.Icon = null;
             this.BtnMgmtAnalyzer.Location = new System.Drawing.Point(14, 277);
@@ -472,6 +473,7 @@ namespace GateHelper
             this.BtnStopCollect.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BtnStopCollect.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.BtnStopCollect.Depth = 0;
+            this.BtnStopCollect.Enabled = false;
             this.BtnStopCollect.HighEmphasis = true;
             this.BtnStopCollect.Icon = null;
             this.BtnStopCollect.Location = new System.Drawing.Point(14, 212);
@@ -493,6 +495,7 @@ namespace GateHelper
             this.BtnStoCollect.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BtnStoCollect.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.BtnStoCollect.Depth = 0;
+            this.BtnStoCollect.Enabled = false;
             this.BtnStoCollect.HighEmphasis = true;
             this.BtnStoCollect.Icon = null;
             this.BtnStoCollect.Location = new System.Drawing.Point(14, 116);
@@ -514,6 +517,7 @@ namespace GateHelper
             this.BtnPauseCollect.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BtnPauseCollect.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.BtnPauseCollect.Depth = 0;
+            this.BtnPauseCollect.Enabled = false;
             this.BtnPauseCollect.HighEmphasis = true;
             this.BtnPauseCollect.Icon = null;
             this.BtnPauseCollect.Location = new System.Drawing.Point(14, 164);
@@ -535,6 +539,7 @@ namespace GateHelper
             this.BtnMoveVariable.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BtnMoveVariable.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.BtnMoveVariable.Depth = 0;
+            this.BtnMoveVariable.Enabled = false;
             this.BtnMoveVariable.HighEmphasis = true;
             this.BtnMoveVariable.Icon = null;
             this.BtnMoveVariable.Location = new System.Drawing.Point(14, 68);
@@ -556,6 +561,7 @@ namespace GateHelper
             this.BtnStartManagement.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BtnStartManagement.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.BtnStartManagement.Depth = 0;
+            this.BtnStartManagement.Enabled = false;
             this.BtnStartManagement.Font = new System.Drawing.Font("돋움", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.BtnStartManagement.HighEmphasis = true;
             this.BtnStartManagement.Icon = null;
@@ -1204,6 +1210,7 @@ namespace GateHelper
             this.BtnLogValidator.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BtnLogValidator.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.BtnLogValidator.Depth = 0;
+            this.BtnLogValidator.Enabled = false;
             this.BtnLogValidator.HighEmphasis = true;
             this.BtnLogValidator.Icon = null;
             this.BtnLogValidator.Location = new System.Drawing.Point(218, 613);
