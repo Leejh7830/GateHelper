@@ -1131,9 +1131,10 @@ namespace GateHelper
             this.BtnOpenLog2.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.BtnOpenLog2.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
             this.BtnOpenLog2.Depth = 0;
+            this.BtnOpenLog2.Enabled = false;
             this.BtnOpenLog2.HighEmphasis = true;
             this.BtnOpenLog2.Icon = null;
-            this.BtnOpenLog2.Location = new System.Drawing.Point(92, 668);
+            this.BtnOpenLog2.Location = new System.Drawing.Point(767, 554);
             this.BtnOpenLog2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnOpenLog2.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnOpenLog2.Name = "BtnOpenLog2";
@@ -1213,7 +1214,7 @@ namespace GateHelper
             this.BtnLogValidator.Enabled = false;
             this.BtnLogValidator.HighEmphasis = true;
             this.BtnLogValidator.Icon = null;
-            this.BtnLogValidator.Location = new System.Drawing.Point(218, 613);
+            this.BtnLogValidator.Location = new System.Drawing.Point(831, 547);
             this.BtnLogValidator.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnLogValidator.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnLogValidator.Name = "BtnLogValidator";
