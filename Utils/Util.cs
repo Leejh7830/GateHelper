@@ -234,7 +234,7 @@ v2.4.2 / 26.07.20 개선 - DisplayChange Detect 시, 가장자리 잘림 현상 
 v2.4.3 / 26.07.23 개선 - Auto Login 기능 추가 / BackgroundMonitoring 추가 / toast 알림 추가
 v2.4.4 / 26.07.27 신규 - Variable Excel 분석 탭 추가
 v2.4.5 / 26.07.29 개선 - UI 화면크기 윈도우 배율에 따라 화면 밖으로 밀려나가는 현상 수정 (화면 원복) / Region 포맷 통일
-         
+          
 ";
 
             try
