@@ -59,7 +59,8 @@ namespace GateHelper
                 { CBox_AutoLogin, "Config 정보로 자동 로그인합니다. ID/PW입력, 메일 인증번호 추출" },
                 { CBox_FavOneClickConnect, "즐겨찾기 클릭 시 해당 서버로 바로 연결합니다." },
                 { CBox_UseUDP, "사용자 간 서버접속현황을 송신/수신 합니다." },
-                { CBox_SaveOption, "체크하면 현재 설정된 옵션 상태를 저장하여 다음 프로그램 실행 시 그대로 불러옵니다." }
+                { CBox_SaveOption, "체크하면 현재 설정된 옵션 상태를 저장하여 다음 프로그램 실행 시 그대로 불러옵니다." },
+                { CBox_EncryptCredentialsOnStart, "시작 시 설정 파일의 비밀번호를 자동 암호화합니다." }
             };
 
             // 설명 라벨을 동적으로 생성하여 폼 하단에 표시
@@ -152,6 +153,7 @@ namespace GateHelper
                 CBox_FavOneClickConnect.Checked = AppSettings.FavOneClickConnect;
                 CBox_UseUDP.Checked = AppSettings.UseUDP;
                 CBox_SaveOption.Checked = AppSettings.SaveOption;
+                CBox_EncryptCredentialsOnStart.Checked = AppSettings.EncryptCredentialsOnStart;
             }
             // ms → 초 단위로 변환 후 ComboBox에 반영
             string graceSec = (AppSettings.PopupGraceMs / 1000).ToString();
@@ -174,6 +176,7 @@ namespace GateHelper
                 AppSettings.FavOneClickConnect = CBox_FavOneClickConnect.Checked;
                 AppSettings.UseUDP = CBox_UseUDP.Checked;
                 AppSettings.SaveOption = CBox_SaveOption.Checked;
+                AppSettings.EncryptCredentialsOnStart = CBox_EncryptCredentialsOnStart.Checked;
             }
 
             this.DialogResult = DialogResult.OK;
@@ -224,15 +227,5 @@ namespace GateHelper
                 MessageBox.Show($"파일을 열 수 없습니다.\n\n오류 내용: {ex.Message}", "실행 실패", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
-
-
-
-
-
-
-
-
-
-
     } // OptionForm END
 }

@@ -354,6 +354,19 @@ namespace GateHelper
                     GatePW = pw;
                 }
 
+                // --- 새 로직: Start 클릭 시 (옵션에 따라) 평문 비밀번호 자동 암호화 시도 ---
+                try
+                {
+                    LogManager.LogMessage($"Start clicked - attempting credential migration (EncryptCredentialsOnStart={_appSettings.EncryptCredentialsOnStart})", Level.Info);
+                    configManager.MigratePlainPasswords(_appSettings.EncryptCredentialsOnStart);
+                    LogManager.LogMessage("Credential migration attempt completed.", Level.Info);
+                }
+                catch (Exception ex)
+                {
+                    LogMessage("Credential migration error: " + ex.Message, Level.Warning);
+                }
+                // --------------------------------------------------------------
+
                 // 드라이버 비동기 초기화
                 _driver = await Task.Run(() => ChromeDriverManager.InitializeDriverWithSeleniumManager(_config));
 

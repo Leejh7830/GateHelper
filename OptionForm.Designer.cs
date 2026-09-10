@@ -44,6 +44,7 @@ namespace GateHelper
             this.CBox_UseUDP = new MaterialSkin.Controls.MaterialCheckbox();
             this.BtnOpenMappingConfig = new MaterialSkin.Controls.MaterialButton();
             this.CBox_SaveOption = new MaterialSkin.Controls.MaterialCheckbox();
+            this.CBox_EncryptCredentialsOnStart = new MaterialSkin.Controls.MaterialCheckbox();
             this.SuspendLayout();
             // 
             // CBox_RemoveDuplicate
@@ -99,7 +100,7 @@ namespace GateHelper
             this.CBox_TestMode.AutoSize = true;
             this.CBox_TestMode.Depth = 0;
             this.CBox_TestMode.Enabled = false;
-            this.CBox_TestMode.Location = new System.Drawing.Point(17, 220);
+            this.CBox_TestMode.Location = new System.Drawing.Point(17, 249);
             this.CBox_TestMode.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_TestMode.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_TestMode.MouseState = MaterialSkin.MouseState.HOVER;
@@ -132,7 +133,7 @@ namespace GateHelper
             this.CBox_FavOneClickConnect.AutoSize = true;
             this.CBox_FavOneClickConnect.Depth = 0;
             this.CBox_FavOneClickConnect.Enabled = false;
-            this.CBox_FavOneClickConnect.Location = new System.Drawing.Point(17, 249);
+            this.CBox_FavOneClickConnect.Location = new System.Drawing.Point(17, 278);
             this.CBox_FavOneClickConnect.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_FavOneClickConnect.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_FavOneClickConnect.MouseState = MaterialSkin.MouseState.HOVER;
@@ -152,7 +153,7 @@ namespace GateHelper
             this.materialButton1.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.materialButton1.HighEmphasis = true;
             this.materialButton1.Icon = null;
-            this.materialButton1.Location = new System.Drawing.Point(153, 465);
+            this.materialButton1.Location = new System.Drawing.Point(153, 494);
             this.materialButton1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.materialButton1.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialButton1.Name = "materialButton1";
@@ -173,7 +174,7 @@ namespace GateHelper
             this.materialButton2.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.materialButton2.HighEmphasis = true;
             this.materialButton2.Icon = null;
-            this.materialButton2.Location = new System.Drawing.Point(225, 465);
+            this.materialButton2.Location = new System.Drawing.Point(225, 494);
             this.materialButton2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.materialButton2.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialButton2.Name = "materialButton2";
@@ -187,7 +188,7 @@ namespace GateHelper
             // 
             // textBox1
             // 
-            this.textBox1.Location = new System.Drawing.Point(442, 398);
+            this.textBox1.Location = new System.Drawing.Point(388, 707);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(100, 21);
             this.textBox1.TabIndex = 0;
@@ -211,7 +212,7 @@ namespace GateHelper
             "10",
             "30",
             "60"});
-            this.ComboBoxGraceMs1.Location = new System.Drawing.Point(147, 379);
+            this.ComboBoxGraceMs1.Location = new System.Drawing.Point(147, 408);
             this.ComboBoxGraceMs1.MaxDropDownItems = 4;
             this.ComboBoxGraceMs1.MouseState = MaterialSkin.MouseState.OUT;
             this.ComboBoxGraceMs1.Name = "ComboBoxGraceMs1";
@@ -225,7 +226,7 @@ namespace GateHelper
             this.materialLabel1.AutoSize = true;
             this.materialLabel1.Depth = 0;
             this.materialLabel1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel1.Location = new System.Drawing.Point(37, 409);
+            this.materialLabel1.Location = new System.Drawing.Point(37, 438);
             this.materialLabel1.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialLabel1.Name = "materialLabel1";
             this.materialLabel1.Size = new System.Drawing.Size(83, 19);
@@ -237,7 +238,7 @@ namespace GateHelper
             this.materialLabel2.AutoSize = true;
             this.materialLabel2.Depth = 0;
             this.materialLabel2.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel2.Location = new System.Drawing.Point(17, 384);
+            this.materialLabel2.Location = new System.Drawing.Point(17, 413);
             this.materialLabel2.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialLabel2.Name = "materialLabel2";
             this.materialLabel2.Size = new System.Drawing.Size(124, 19);
@@ -249,7 +250,7 @@ namespace GateHelper
             this.CBox_UseUDP.AutoSize = true;
             this.CBox_UseUDP.Depth = 0;
             this.CBox_UseUDP.Enabled = false;
-            this.CBox_UseUDP.Location = new System.Drawing.Point(17, 280);
+            this.CBox_UseUDP.Location = new System.Drawing.Point(17, 309);
             this.CBox_UseUDP.Margin = new System.Windows.Forms.Padding(0);
             this.CBox_UseUDP.MouseLocation = new System.Drawing.Point(-1, -1);
             this.CBox_UseUDP.MouseState = MaterialSkin.MouseState.HOVER;
@@ -269,7 +270,7 @@ namespace GateHelper
             this.BtnOpenMappingConfig.Depth = 0;
             this.BtnOpenMappingConfig.HighEmphasis = true;
             this.BtnOpenMappingConfig.Icon = null;
-            this.BtnOpenMappingConfig.Location = new System.Drawing.Point(17, 321);
+            this.BtnOpenMappingConfig.Location = new System.Drawing.Point(17, 350);
             this.BtnOpenMappingConfig.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnOpenMappingConfig.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnOpenMappingConfig.Name = "BtnOpenMappingConfig";
@@ -298,11 +299,28 @@ namespace GateHelper
             this.CBox_SaveOption.Text = "Save Option";
             this.CBox_SaveOption.UseVisualStyleBackColor = true;
             // 
+            // CBox_EncryptCredentialsOnStart
+            // 
+            this.CBox_EncryptCredentialsOnStart.AutoSize = true;
+            this.CBox_EncryptCredentialsOnStart.Depth = 0;
+            this.CBox_EncryptCredentialsOnStart.Location = new System.Drawing.Point(17, 219);
+            this.CBox_EncryptCredentialsOnStart.Margin = new System.Windows.Forms.Padding(0);
+            this.CBox_EncryptCredentialsOnStart.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.CBox_EncryptCredentialsOnStart.MouseState = MaterialSkin.MouseState.HOVER;
+            this.CBox_EncryptCredentialsOnStart.Name = "CBox_EncryptCredentialsOnStart";
+            this.CBox_EncryptCredentialsOnStart.ReadOnly = false;
+            this.CBox_EncryptCredentialsOnStart.Ripple = true;
+            this.CBox_EncryptCredentialsOnStart.Size = new System.Drawing.Size(233, 37);
+            this.CBox_EncryptCredentialsOnStart.TabIndex = 105;
+            this.CBox_EncryptCredentialsOnStart.Text = "Encrypt Credentials On Start";
+            this.CBox_EncryptCredentialsOnStart.UseVisualStyleBackColor = true;
+            // 
             // OptionForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(436, 695);
+            this.ClientSize = new System.Drawing.Size(452, 734);
+            this.Controls.Add(this.CBox_EncryptCredentialsOnStart);
             this.Controls.Add(this.CBox_SaveOption);
             this.Controls.Add(this.BtnOpenMappingConfig);
             this.Controls.Add(this.CBox_UseUDP);
@@ -347,5 +365,6 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialCheckbox CBox_UseUDP;
         private MaterialSkin.Controls.MaterialButton BtnOpenMappingConfig;
         private MaterialSkin.Controls.MaterialCheckbox CBox_SaveOption;
+        private MaterialSkin.Controls.MaterialCheckbox CBox_EncryptCredentialsOnStart;
     }
 }

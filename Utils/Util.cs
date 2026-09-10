@@ -171,6 +171,7 @@ v2.4.5 / 26.07.29 / Test Version
 6. 신규 / 전체 서버를 리스트에 저장하는 기능
 7. 신규 / 마우스 감지 및 일정 시간(사용자 비활성) 후 자동 마우스 움직임 기능 추가
 8. 신규 / 레이아웃 폼 생성, 설비 레이아웃 클릭 시 바로 해당 AP로 이동
+9. 신규 / EncryptCredential Option 추가 (ID/PW 암호화 저장)
 
 
 [ 개선 사항 ] 진행중 : 
@@ -184,6 +185,7 @@ v2.4.5 / 26.07.29 / Test Version
 11. 개선 / ExcelAnalysis 기능 개선 (Dgv 가로스크롤 추가, HeaderColumn 길이 조정)
 12. 개선 / ExcelAnalysis 기능 개선 (변수명이 중복됨. 한번만 올라가도록, SEM에서 등록 한 변수가 Port에서 보임)
 13. 개선 / ExcelAnalysis 기능 개선 (엑셀드랍후 바로 분석 할 때, Rule은 어떤걸로 하게 되는지?)
+14. 개선 / MDOHelper Handle이 Auto Login Off 일때도 동작함
 
 
 [완료]

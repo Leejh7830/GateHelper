@@ -8,6 +8,7 @@ namespace GateHelper
     public static class CredentialHelper
     {
         private static readonly byte[] _entropy = Encoding.UTF8.GetBytes("GateHelperEntropy_v1");
+        private const string Prefix = "DPAPI:";
 
         public static string Protect(string plaintext)
         {
@@ -16,7 +17,7 @@ namespace GateHelper
             try
             {
                 var protectedData = ProtectedData.Protect(data, _entropy, DataProtectionScope.CurrentUser);
-                return Convert.ToBase64String(protectedData);
+                return Prefix + Convert.ToBase64String(protectedData);
             }
             finally
             {
@@ -29,7 +30,9 @@ namespace GateHelper
             if (string.IsNullOrEmpty(protectedBase64)) return string.Empty;
             try
             {
-                var protectedData = Convert.FromBase64String(protectedBase64);
+                if (!protectedBase64.StartsWith(Prefix)) return string.Empty; // 명확한 판별
+                var base64 = protectedBase64.Substring(Prefix.Length);
+                var protectedData = Convert.FromBase64String(base64);
                 var data = ProtectedData.Unprotect(protectedData, _entropy, DataProtectionScope.CurrentUser);
                 try
                 {
@@ -46,7 +49,6 @@ namespace GateHelper
             }
         }
 
-        // 메모리상 평문 노출 시간을 줄이기 위한 SecureString 반환
         public static SecureString UnprotectToSecureString(string protectedBase64)
         {
             var secure = new SecureString();
@@ -54,7 +56,9 @@ namespace GateHelper
 
             try
             {
-                var protectedData = Convert.FromBase64String(protectedBase64);
+                if (!protectedBase64.StartsWith(Prefix)) return secure;
+                var base64 = protectedBase64.Substring(Prefix.Length);
+                var protectedData = Convert.FromBase64String(base64);
                 var data = ProtectedData.Unprotect(protectedData, _entropy, DataProtectionScope.CurrentUser);
                 try
                 {
@@ -70,7 +74,7 @@ namespace GateHelper
             }
             catch
             {
-                // 실패하면 빈 SecureString 반환
+                // 실패 시 빈 SecureString 반환
             }
             return secure;
         }
