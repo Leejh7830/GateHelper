@@ -141,6 +141,30 @@ namespace GateHelper
             LoadConfig(); // 설정 파일 로드
         }
 
+        private string UnprotectIfNeeded(string stored, string keyName = "")
+        {
+            if (string.IsNullOrEmpty(stored)) return string.Empty;
+            try
+            {
+                if (stored.StartsWith("DPAPI:"))
+                {
+                    // CredentialHelper.Unprotect가 실패하면 빈 문자열을 반환하므로 그 케이스를 감지
+                    string un = CredentialHelper.Unprotect(stored);
+                    if (!string.IsNullOrEmpty(un))
+                        return un;
+
+                    LogManager.LogMessage($"Config key '{keyName}' has DPAPI prefix but Unprotect failed - returning empty to avoid using encrypted blob.", Level.Warning);
+                    return string.Empty;
+                }
+                return stored;
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogException(ex, Level.Warning, $"UnprotectIfNeeded error for key '{keyName}'");
+                return string.Empty;
+            }
+        }
+
         private void LoadConfig()
         {
             try
@@ -175,24 +199,25 @@ namespace GateHelper
                     return;
                 }
 
+                // 복호화(또는 평문 그대로) 처리를 적용하여 LoadedConfig를 채움
                 LoadedConfig = new Config
                 {
                     GateOneURL = config.AppSettings.Settings["GateOneURL"]?.Value ?? "",
                     EnportalURL = config.AppSettings.Settings["EnportalURL"]?.Value ?? "",
                     GateUserID = config.AppSettings.Settings["GateUserID"]?.Value ?? "",
-                    GateUserPW = config.AppSettings.Settings["GateUserPW"]?.Value ?? "",
+                    GateUserPW = UnprotectIfNeeded(config.AppSettings.Settings["GateUserPW"]?.Value ?? "", "GateUserPW"),
                     GateName_A = config.AppSettings.Settings["GateName_A"]?.Value ?? "",
                     GateID_A = config.AppSettings.Settings["GateID_A"]?.Value ?? "",
-                    GatePW_A = config.AppSettings.Settings["GatePW_A"]?.Value ?? "",
+                    GatePW_A = UnprotectIfNeeded(config.AppSettings.Settings["GatePW_A"]?.Value ?? "", "GatePW_A"),
                     GateName_B = config.AppSettings.Settings["GateName_B"]?.Value ?? "",
                     GateID_B = config.AppSettings.Settings["GateID_B"]?.Value ?? "",
-                    GatePW_B = config.AppSettings.Settings["GatePW_B"]?.Value ?? "",
+                    GatePW_B = UnprotectIfNeeded(config.AppSettings.Settings["GatePW_B"]?.Value ?? "", "GatePW_B"),
                     Fav1 = config.AppSettings.Settings["Favorite1"]?.Value ?? "",
                     Fav2 = config.AppSettings.Settings["Favorite2"]?.Value ?? "",
                     Fav3 = config.AppSettings.Settings["Favorite3"]?.Value ?? "",
                     ManagementUrl = config.AppSettings.Settings["ManagementUrl"]?.Value ?? "",
                     ManagementUserID = config.AppSettings.Settings["ManagementUserID"]?.Value ?? "",
-                    ManagementUserPW = config.AppSettings.Settings["ManagementUserPW"]?.Value ?? "",
+                    ManagementUserPW = UnprotectIfNeeded(config.AppSettings.Settings["ManagementUserPW"]?.Value ?? "", "ManagementUserPW"),
                     ChromePath = config.AppSettings.Settings["ChromePath"]?.Value ?? @"C:\Program Files\Google\Chrome\Application\chrome.exe"
                 };
 
@@ -283,9 +308,17 @@ namespace GateHelper
                             // 복호화 확인 (정상인지 체크)
                             try
                             {
-                                var _ = CredentialHelper.Unprotect(stored);
-                                LogManager.LogMessage($"Config key '{key}' already protected (DPAPI prefix + unprotect OK).", Level.Info);
-                                continue;
+                                var un = CredentialHelper.Unprotect(stored);
+                                if (!string.IsNullOrEmpty(un))
+                                {
+                                    LogManager.LogMessage($"Config key '{key}' already protected (DPAPI prefix + unprotect OK).", Level.Info);
+                                    continue;
+                                }
+                                else
+                                {
+                                    LogManager.LogMessage($"Config key '{key}' has DPAPI prefix but unprotect returned empty - leaving as-is.", Level.Warning);
+                                    continue;
+                                }
                             }
                             catch
                             {
@@ -344,6 +377,17 @@ namespace GateHelper
                     {
                         configuration.Save(ConfigurationSaveMode.Modified);
                         LogManager.LogMessage($"Credential migration: configuration saved. Protected keys: {protectedCount}", Level.Info);
+
+                        // 중요한 변경 사항 발생 시 메모리상의 LoadedConfig도 최신화
+                        try
+                        {
+                            LoadConfig();
+                            LogManager.LogMessage("Credential migration: reloaded in-memory configuration.", Level.Info);
+                        }
+                        catch (Exception exReload)
+                        {
+                            LogManager.LogException(exReload, Level.Warning, "Failed to reload configuration after migration.");
+                        }
                     }
                     catch (Exception ex)
                     {
