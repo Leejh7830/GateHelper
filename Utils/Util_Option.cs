@@ -1,4 +1,4 @@
-using OpenQA.Selenium;
+﻿using OpenQA.Selenium;
 using System;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -179,17 +179,22 @@ namespace GateHelper
                 if (elems == null || elems.Count == 0)
                     return false;
 
-                try { return elems[0].Displayed; }
+                try 
+                { 
+                    if (elems[0].Displayed) return true;
+
+                    // 애니메이션/렌더링 지연으로 순간 Displayed가 false일 수 있으므로 300ms 후 재확인
+                    System.Threading.Thread.Sleep(300);
+                    var retryElems = driver.FindElements(By.XPath("//*[@id='lock_passwd']"));
+                    if (retryElems != null && retryElems.Count > 0 && retryElems[0].Displayed)
+                        return true;
+
+                    return false;
+                }
                 catch { return true; } // 표시 여부 접근 실패시 존재만 true
             }
             catch (WebDriverException ex)
             {
-                // 1. 전체 화면을 먼저 찍고 (현재 사용자가 보는 그대로)
-                // Util_Option.SaveFullDesktopScreenshot("WebDriver_Error_1");
-
-                // 2. 브라우저 내부를 찍습니다.
-                // Util_Option.SaveScreenshot(driver, "WebDriver_Error_2");
-
                 LogMessage($"IsLockModalPresent skipped: {ex.Message}", Level.Info);
                 return false;
             }
@@ -449,3 +454,4 @@ namespace GateHelper
 
     }
 }
+

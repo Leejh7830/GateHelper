@@ -277,7 +277,7 @@ namespace GateHelper
                 var map = new ExeConfigurationFileMap { ExeConfigFilename = _configFilePath };
                 var configuration = ConfigurationManager.OpenMappedExeConfiguration(map, ConfigurationUserLevel.None);
 
-                string[] keys = new[] { "GateUserPW", "ManagementUserPW" };
+                string[] keys = new[] { "GateUserPW", "GatePW_A", "GatePW_B", "ManagementUserPW" };
                 bool changed = false;
                 int protectedCount = 0;
 

@@ -178,11 +178,20 @@ namespace GateHelper
 
             if (_isStatusTickRunning)
             {
-                timer1.Start();
-                return;
+                if ((DateTime.UtcNow - _lastTickAtUtc).TotalSeconds > 15)
+                {
+                    LogMessage("TimerStatusChecker_Tick safety timeout triggered. Resetting flag.", Level.Warning);
+                    _isStatusTickRunning = false;
+                }
+                else
+                {
+                    timer1.Start();
+                    return;
+                }
             }
 
             _isStatusTickRunning = true;
+            _lastTickAtUtc = DateTime.UtcNow;
 
             try
             {
