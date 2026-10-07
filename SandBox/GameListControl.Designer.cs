@@ -1,4 +1,4 @@
-﻿namespace GateHelper
+namespace GateHelper
 {
     partial class GameListControl
     {
@@ -33,15 +33,19 @@
             this.materialLabel1 = new MaterialSkin.Controls.MaterialLabel();
             this.GL_btnSelectSignalLink = new MaterialSkin.Controls.MaterialCard();
             this.materialLabel2 = new MaterialSkin.Controls.MaterialLabel();
+            this.GL_btnSelectMysteryTime = new MaterialSkin.Controls.MaterialCard();
+            this.materialLabel3 = new MaterialSkin.Controls.MaterialLabel();
             this.GL_FlowPanel1.SuspendLayout();
             this.GL_btnSelectBitFlip.SuspendLayout();
             this.GL_btnSelectSignalLink.SuspendLayout();
+            this.GL_btnSelectMysteryTime.SuspendLayout();
             this.SuspendLayout();
             // 
             // GL_FlowPanel1
             // 
             this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectBitFlip);
             this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectSignalLink);
+            this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectMysteryTime);
             this.GL_FlowPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.GL_FlowPanel1.Location = new System.Drawing.Point(0, 0);
             this.GL_FlowPanel1.Name = "GL_FlowPanel1";
@@ -102,6 +106,33 @@
             this.materialLabel2.TabIndex = 3;
             this.materialLabel2.Text = "Signal Link";
             // 
+            // GL_btnSelectMysteryTime
+            // 
+            this.GL_btnSelectMysteryTime.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.GL_btnSelectMysteryTime.Controls.Add(this.materialLabel3);
+            this.GL_btnSelectMysteryTime.Depth = 0;
+            this.GL_btnSelectMysteryTime.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.GL_btnSelectMysteryTime.Location = new System.Drawing.Point(14, 112);
+            this.GL_btnSelectMysteryTime.Margin = new System.Windows.Forms.Padding(14);
+            this.GL_btnSelectMysteryTime.MouseState = MaterialSkin.MouseState.HOVER;
+            this.GL_btnSelectMysteryTime.Name = "GL_btnSelectMysteryTime";
+            this.GL_btnSelectMysteryTime.Padding = new System.Windows.Forms.Padding(14);
+            this.GL_btnSelectMysteryTime.Size = new System.Drawing.Size(150, 70);
+            this.GL_btnSelectMysteryTime.TabIndex = 2;
+            this.GL_btnSelectMysteryTime.Click += new System.EventHandler(this.btnSelectMysteryTime_Click);
+            // 
+            // materialLabel3
+            // 
+            this.materialLabel3.AutoSize = true;
+            this.materialLabel3.Depth = 0;
+            this.materialLabel3.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialLabel3.Location = new System.Drawing.Point(26, 26);
+            this.materialLabel3.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialLabel3.Name = "materialLabel3";
+            this.materialLabel3.Size = new System.Drawing.Size(98, 19);
+            this.materialLabel3.TabIndex = 4;
+            this.materialLabel3.Text = "Mystery Time";
+            // 
             // GameListControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -114,6 +145,8 @@
             this.GL_btnSelectBitFlip.PerformLayout();
             this.GL_btnSelectSignalLink.ResumeLayout(false);
             this.GL_btnSelectSignalLink.PerformLayout();
+            this.GL_btnSelectMysteryTime.ResumeLayout(false);
+            this.GL_btnSelectMysteryTime.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -123,7 +156,9 @@
         private System.Windows.Forms.FlowLayoutPanel GL_FlowPanel1;
         private MaterialSkin.Controls.MaterialCard GL_btnSelectBitFlip;
         private MaterialSkin.Controls.MaterialCard GL_btnSelectSignalLink;
+        private MaterialSkin.Controls.MaterialCard GL_btnSelectMysteryTime;
         private MaterialSkin.Controls.MaterialLabel materialLabel1;
         private MaterialSkin.Controls.MaterialLabel materialLabel2;
+        private MaterialSkin.Controls.MaterialLabel materialLabel3;
     }
 }

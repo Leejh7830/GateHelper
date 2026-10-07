@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Windows.Forms;
 
 namespace GateHelper
@@ -9,7 +9,6 @@ namespace GateHelper
         {
             InitializeComponent();
         }
-
 
         private void btnSelectBitFlip_Click(object sender, EventArgs e)
         {
@@ -24,6 +23,14 @@ namespace GateHelper
             if (this.ParentForm is SandBox sb)
             {
                 sb.SwitchToGame("SignalLink");
+            }
+        }
+
+        private void btnSelectMysteryTime_Click(object sender, EventArgs e)
+        {
+            if (this.ParentForm is SandBox sb)
+            {
+                sb.SwitchToGame("MysteryTime");
             }
         }
     }

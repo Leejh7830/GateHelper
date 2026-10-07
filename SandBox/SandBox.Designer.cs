@@ -1,4 +1,4 @@
-﻿namespace GateHelper
+namespace GateHelper
 {
     partial class SandBox
     {
@@ -32,6 +32,7 @@
             this.tpList = new System.Windows.Forms.TabPage();
             this.tpBitFlip = new System.Windows.Forms.TabPage();
             this.tpSignalLink = new System.Windows.Forms.TabPage();
+            this.tpMysteryTime = new System.Windows.Forms.TabPage();
             this.SB_tabControl1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -40,6 +41,7 @@
             this.SB_tabControl1.Controls.Add(this.tpList);
             this.SB_tabControl1.Controls.Add(this.tpBitFlip);
             this.SB_tabControl1.Controls.Add(this.tpSignalLink);
+            this.SB_tabControl1.Controls.Add(this.tpMysteryTime);
             this.SB_tabControl1.Depth = 0;
             this.SB_tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.SB_tabControl1.ItemSize = new System.Drawing.Size(40, 20);
@@ -82,6 +84,16 @@
             this.tpSignalLink.Text = "M3";
             this.tpSignalLink.UseVisualStyleBackColor = true;
             // 
+            // tpMysteryTime
+            // 
+            this.tpMysteryTime.Location = new System.Drawing.Point(4, 24);
+            this.tpMysteryTime.Name = "tpMysteryTime";
+            this.tpMysteryTime.Padding = new System.Windows.Forms.Padding(3);
+            this.tpMysteryTime.Size = new System.Drawing.Size(636, 605);
+            this.tpMysteryTime.TabIndex = 3;
+            this.tpMysteryTime.Text = "M4";
+            this.tpMysteryTime.UseVisualStyleBackColor = true;
+            // 
             // SandBox
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -99,6 +111,7 @@
         private MaterialSkin.Controls.MaterialTabControl SB_tabControl1;
         private System.Windows.Forms.TabPage tpBitFlip;
         private System.Windows.Forms.TabPage tpSignalLink;
+        private System.Windows.Forms.TabPage tpMysteryTime;
         private System.Windows.Forms.TabPage tpList;
     }
 }

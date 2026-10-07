@@ -1,5 +1,6 @@
-﻿using MaterialSkin.Controls;
+using MaterialSkin.Controls;
 using System.Windows.Forms;
+using GateHelper.MysteryTime;
 
 namespace GateHelper
 {
@@ -8,6 +9,7 @@ namespace GateHelper
         private GameListControl _gameList;
         private BitFlipControl _bitFlipGame;
         private SignalLinkControl _signalLinkGame;
+        private MysteryTimeControl _mysteryTimeGame;
 
         public SandBox()
         {
@@ -21,7 +23,7 @@ namespace GateHelper
 
         private void InitializeCustomControls()
         {
-            // 1. 게임 목록 컨트롤 생성 및 추가
+            // 1. 게임 리스트 추가
             _gameList = new GameListControl();
             _gameList.Dock = DockStyle.Fill;
 
@@ -30,7 +32,7 @@ namespace GateHelper
                 tpList.Controls.Add(_gameList);
             }
 
-            // 2. Bit Flip 컨트롤 생성 및 추가
+            // 2. Bit Flip 컨트롤 추가
             _bitFlipGame = new BitFlipControl();
             _bitFlipGame.Dock = DockStyle.Fill;
             if (SB_tabControl1.TabPages.Contains(tpBitFlip))
@@ -38,7 +40,7 @@ namespace GateHelper
                 tpBitFlip.Controls.Add(_bitFlipGame);
             }
 
-            // 3. Signal Link 컨트롤 생성 및 추가
+            // 3. Signal Link 컨트롤 추가
             _signalLinkGame = new SignalLinkControl();
             _signalLinkGame.Dock = DockStyle.Fill;
             if (SB_tabControl1.TabPages.Contains(tpSignalLink))
@@ -46,11 +48,24 @@ namespace GateHelper
                 tpSignalLink.Controls.Add(_signalLinkGame);
             }
 
-            // 초기 탭 설정 (목록 화면)
+            // 4. Mystery Time 컨트롤 추가
+            _mysteryTimeGame = new MysteryTimeControl();
+            _mysteryTimeGame.Dock = DockStyle.Fill;
+            if (SB_tabControl1.TabPages.Contains(tpMysteryTime))
+            {
+                tpMysteryTime.Controls.Add(_mysteryTimeGame);
+            }
+
+            // 초기 탭 (리스트 화면)
             SB_tabControl1.SelectedTab = tpList;
         }
 
         public void BackToList()
+        {
+            SB_tabControl1.SelectedTab = tpList;
+        }
+
+        public void ShowGameList()
         {
             SB_tabControl1.SelectedTab = tpList;
         }
@@ -64,6 +79,13 @@ namespace GateHelper
             else if (gameName == "SignalLink")
             {
                 SB_tabControl1.SelectedTab = tpSignalLink; 
+            }
+            else if (gameName == "MysteryTime")
+            {
+                if (SB_tabControl1.TabPages.Contains(tpMysteryTime))
+                {
+                    SB_tabControl1.SelectedTab = tpMysteryTime;
+                }
             }
         }
     }

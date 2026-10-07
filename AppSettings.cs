@@ -12,8 +12,11 @@ namespace GateHelper
         public bool UseUDP { get; set; }
         public bool SaveOption { get; set; }
 
-        // 새 옵션: Start Operation 시 설정 파일의 비밀번호를 자동 암호화할지 여부
+        // 옵션: Start Operation 시 설정 파일의 비밀번호를 자동 암호화할지 여부
         public bool EncryptCredentialsOnStart { get; set; }
+
+        // AI 샌드박스 옵션: Gemini API Key
+        public string GeminiApiKey { get; set; }
 
         public AppSettings() // 옵션 변수들
         {
@@ -27,6 +30,7 @@ namespace GateHelper
             UseUDP = false;
             SaveOption = false;
             EncryptCredentialsOnStart = false;
+            GeminiApiKey = "";
         }
     }
 }
