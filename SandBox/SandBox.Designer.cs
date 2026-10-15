@@ -33,6 +33,7 @@ namespace GateHelper
             this.tpBitFlip = new System.Windows.Forms.TabPage();
             this.tpSignalLink = new System.Windows.Forms.TabPage();
             this.tpMysteryTime = new System.Windows.Forms.TabPage();
+            this.tpAiTrend = new System.Windows.Forms.TabPage();
             this.SB_tabControl1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -42,6 +43,7 @@ namespace GateHelper
             this.SB_tabControl1.Controls.Add(this.tpBitFlip);
             this.SB_tabControl1.Controls.Add(this.tpSignalLink);
             this.SB_tabControl1.Controls.Add(this.tpMysteryTime);
+            this.SB_tabControl1.Controls.Add(this.tpAiTrend);
             this.SB_tabControl1.Depth = 0;
             this.SB_tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.SB_tabControl1.ItemSize = new System.Drawing.Size(40, 20);
@@ -94,6 +96,16 @@ namespace GateHelper
             this.tpMysteryTime.Text = "M4";
             this.tpMysteryTime.UseVisualStyleBackColor = true;
             // 
+            // tpAiTrend
+            // 
+            this.tpAiTrend.Location = new System.Drawing.Point(4, 24);
+            this.tpAiTrend.Name = "tpAiTrend";
+            this.tpAiTrend.Padding = new System.Windows.Forms.Padding(3);
+            this.tpAiTrend.Size = new System.Drawing.Size(636, 605);
+            this.tpAiTrend.TabIndex = 4;
+            this.tpAiTrend.Text = "M5";
+            this.tpAiTrend.UseVisualStyleBackColor = true;
+            // 
             // SandBox
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -112,6 +124,7 @@ namespace GateHelper
         private System.Windows.Forms.TabPage tpBitFlip;
         private System.Windows.Forms.TabPage tpSignalLink;
         private System.Windows.Forms.TabPage tpMysteryTime;
+        private System.Windows.Forms.TabPage tpAiTrend;
         private System.Windows.Forms.TabPage tpList;
     }
 }

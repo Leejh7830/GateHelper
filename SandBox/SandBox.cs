@@ -1,6 +1,7 @@
 using MaterialSkin.Controls;
 using System.Windows.Forms;
 using GateHelper.MysteryTime;
+using GateHelper.AiTrend;
 
 namespace GateHelper
 {
@@ -10,6 +11,7 @@ namespace GateHelper
         private BitFlipControl _bitFlipGame;
         private SignalLinkControl _signalLinkGame;
         private MysteryTimeControl _mysteryTimeGame;
+        private AiTrendControl _aiTrendControl;
 
         public SandBox()
         {
@@ -56,6 +58,14 @@ namespace GateHelper
                 tpMysteryTime.Controls.Add(_mysteryTimeGame);
             }
 
+            // 5. AI Trend 컨트롤 추가
+            _aiTrendControl = new AiTrendControl();
+            _aiTrendControl.Dock = DockStyle.Fill;
+            if (SB_tabControl1.TabPages.Contains(tpAiTrend))
+            {
+                tpAiTrend.Controls.Add(_aiTrendControl);
+            }
+
             // 초기 탭 (리스트 화면)
             SB_tabControl1.SelectedTab = tpList;
         }
@@ -85,6 +95,14 @@ namespace GateHelper
                 if (SB_tabControl1.TabPages.Contains(tpMysteryTime))
                 {
                     SB_tabControl1.SelectedTab = tpMysteryTime;
+                }
+            }
+            else if (gameName == "AiTrend")
+            {
+                if (SB_tabControl1.TabPages.Contains(tpAiTrend))
+                {
+                    _aiTrendControl?.ApplyTheme(MaterialSkin.MaterialSkinManager.Instance.Theme == MaterialSkin.MaterialSkinManager.Themes.DARK);
+                    SB_tabControl1.SelectedTab = tpAiTrend;
                 }
             }
         }

@@ -256,6 +256,20 @@
     <Compile Include="SandBox\3. MysteryTime\MysteryTimeControl.Designer.cs">
       <DependentUpon>MysteryTimeControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="SandBox\3. MysteryTime\MysteryApiKeyForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SandBox\3. MysteryTime\MysteryApiKeyForm.Designer.cs">
+      <DependentUpon>MysteryApiKeyForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SandBox\4. AiTrend\AiTrendModel.cs" />
+    <Compile Include="SandBox\4. AiTrend\AiTrendService.cs" />
+    <Compile Include="SandBox\4. AiTrend\AiTrendControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SandBox\4. AiTrend\AiTrendControl.Designer.cs">
+      <DependentUpon>AiTrendControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="SandBox\GameListControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -353,6 +367,12 @@
     </EmbeddedResource>
     <EmbeddedResource Include="SandBox\3. MysteryTime\MysteryTimeControl.resx">
       <DependentUpon>MysteryTimeControl.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SandBox\3. MysteryTime\MysteryApiKeyForm.resx">
+      <DependentUpon>MysteryApiKeyForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SandBox\4. AiTrend\AiTrendControl.resx">
+      <DependentUpon>AiTrendControl.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="WorkLog\WorkLogForm.resx">
       <DependentUpon>WorkLogForm.cs</DependentUpon>

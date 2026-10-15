@@ -35,10 +35,13 @@ namespace GateHelper
             this.materialLabel2 = new MaterialSkin.Controls.MaterialLabel();
             this.GL_btnSelectMysteryTime = new MaterialSkin.Controls.MaterialCard();
             this.materialLabel3 = new MaterialSkin.Controls.MaterialLabel();
+            this.GL_btnSelectAiTrend = new MaterialSkin.Controls.MaterialCard();
+            this.materialLabelAiTrend = new MaterialSkin.Controls.MaterialLabel();
             this.GL_FlowPanel1.SuspendLayout();
             this.GL_btnSelectBitFlip.SuspendLayout();
             this.GL_btnSelectSignalLink.SuspendLayout();
             this.GL_btnSelectMysteryTime.SuspendLayout();
+            this.GL_btnSelectAiTrend.SuspendLayout();
             this.SuspendLayout();
             // 
             // GL_FlowPanel1
@@ -46,6 +49,7 @@ namespace GateHelper
             this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectBitFlip);
             this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectSignalLink);
             this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectMysteryTime);
+            this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectAiTrend);
             this.GL_FlowPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.GL_FlowPanel1.Location = new System.Drawing.Point(0, 0);
             this.GL_FlowPanel1.Name = "GL_FlowPanel1";
@@ -133,6 +137,33 @@ namespace GateHelper
             this.materialLabel3.TabIndex = 4;
             this.materialLabel3.Text = "Mystery Time";
             // 
+            // GL_btnSelectAiTrend
+            // 
+            this.GL_btnSelectAiTrend.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.GL_btnSelectAiTrend.Controls.Add(this.materialLabelAiTrend);
+            this.GL_btnSelectAiTrend.Depth = 0;
+            this.GL_btnSelectAiTrend.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.GL_btnSelectAiTrend.Location = new System.Drawing.Point(192, 112);
+            this.GL_btnSelectAiTrend.Margin = new System.Windows.Forms.Padding(14);
+            this.GL_btnSelectAiTrend.MouseState = MaterialSkin.MouseState.HOVER;
+            this.GL_btnSelectAiTrend.Name = "GL_btnSelectAiTrend";
+            this.GL_btnSelectAiTrend.Padding = new System.Windows.Forms.Padding(14);
+            this.GL_btnSelectAiTrend.Size = new System.Drawing.Size(150, 70);
+            this.GL_btnSelectAiTrend.TabIndex = 3;
+            this.GL_btnSelectAiTrend.Click += new System.EventHandler(this.GL_btnSelectAiTrend_Click);
+            // 
+            // materialLabelAiTrend
+            // 
+            this.materialLabelAiTrend.AutoSize = true;
+            this.materialLabelAiTrend.Depth = 0;
+            this.materialLabelAiTrend.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialLabelAiTrend.Location = new System.Drawing.Point(40, 26);
+            this.materialLabelAiTrend.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialLabelAiTrend.Name = "materialLabelAiTrend";
+            this.materialLabelAiTrend.Size = new System.Drawing.Size(65, 19);
+            this.materialLabelAiTrend.TabIndex = 5;
+            this.materialLabelAiTrend.Text = "AI Trend";
+            // 
             // GameListControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -147,6 +178,8 @@ namespace GateHelper
             this.GL_btnSelectSignalLink.PerformLayout();
             this.GL_btnSelectMysteryTime.ResumeLayout(false);
             this.GL_btnSelectMysteryTime.PerformLayout();
+            this.GL_btnSelectAiTrend.ResumeLayout(false);
+            this.GL_btnSelectAiTrend.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -157,8 +190,10 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialCard GL_btnSelectBitFlip;
         private MaterialSkin.Controls.MaterialCard GL_btnSelectSignalLink;
         private MaterialSkin.Controls.MaterialCard GL_btnSelectMysteryTime;
+        private MaterialSkin.Controls.MaterialCard GL_btnSelectAiTrend;
         private MaterialSkin.Controls.MaterialLabel materialLabel1;
         private MaterialSkin.Controls.MaterialLabel materialLabel2;
         private MaterialSkin.Controls.MaterialLabel materialLabel3;
+        private MaterialSkin.Controls.MaterialLabel materialLabelAiTrend;
     }
 }

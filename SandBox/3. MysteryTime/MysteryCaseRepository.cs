@@ -18,6 +18,14 @@ namespace GateHelper.MysteryTime
             return _presetCases.ToList();
         }
 
+        public void AddCase(MysteryCase newCase)
+        {
+            if (newCase != null)
+            {
+                _presetCases.Insert(0, newCase);
+            }
+        }
+
         public MysteryCase GetCaseById(string id)
         {
             return _presetCases.FirstOrDefault(c => c.Id == id);

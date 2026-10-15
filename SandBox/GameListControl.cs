@@ -33,5 +33,13 @@ namespace GateHelper
                 sb.SwitchToGame("MysteryTime");
             }
         }
+
+        private void GL_btnSelectAiTrend_Click(object sender, EventArgs e)
+        {
+            if (this.ParentForm is SandBox sb)
+            {
+                sb.SwitchToGame("AiTrend");
+            }
+        }
     }
 }

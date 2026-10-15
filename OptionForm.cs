@@ -60,7 +60,9 @@ namespace GateHelper
                 { CBox_FavOneClickConnect, "즐겨찾기 클릭 시 해당 서버로 바로 연결합니다." },
                 { CBox_UseUDP, "사용자 간 서버접속현황을 송신/수신 합니다." },
                 { CBox_SaveOption, "체크하면 현재 설정된 옵션 상태를 저장하여 다음 프로그램 실행 시 그대로 불러옵니다." },
-                { CBox_EncryptCredentialsOnStart, "시작 시 설정 파일의 비밀번호를 자동 암호화합니다." }
+                { CBox_EncryptCredentialsOnStart, "시작 시 설정 파일의 비밀번호를 자동 암호화합니다." },
+                { BtnOpenMappingConfig, "서버 매핑 마스터 엑셀 설정 파일을 엽니다." },
+                { BtnGeminiApiKey, "Google Gemini AI API Key를 등록 및 관리합니다." }
             };
 
             // 설명 라벨을 동적으로 생성하여 폼 하단에 표시
@@ -225,6 +227,29 @@ namespace GateHelper
             {
                 LogException(ex, Level.Error, "매핑 설정 파일 오픈 중 예외 발생");
                 MessageBox.Show($"파일을 열 수 없습니다.\n\n오류 내용: {ex.Message}", "실행 실패", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        // Gemini API Key 설정 다이얼로그 열기
+        private void BtnGeminiApiKey_Click(object sender, EventArgs e)
+        {
+            LogMessage("BtnGeminiApiKey Click", Level.Info);
+
+            string currentKey = AppSettings?.GeminiApiKey;
+            if (string.IsNullOrEmpty(currentKey))
+            {
+                currentKey = Util_Option.LoadUserOptions()?.GeminiApiKey ?? "";
+            }
+
+            using (var form = new GateHelper.MysteryTime.MysteryApiKeyForm(currentKey))
+            {
+                if (form.ShowDialog(this) == DialogResult.OK)
+                {
+                    if (AppSettings != null)
+                    {
+                        AppSettings.GeminiApiKey = form.CurrentApiKey;
+                    }
+                }
             }
         }
     } // OptionForm END

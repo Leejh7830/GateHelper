@@ -1,4 +1,4 @@
-﻿
+
 namespace GateHelper
 {
     partial class OptionForm
@@ -43,6 +43,7 @@ namespace GateHelper
             this.materialLabel2 = new MaterialSkin.Controls.MaterialLabel();
             this.CBox_UseUDP = new MaterialSkin.Controls.MaterialCheckbox();
             this.BtnOpenMappingConfig = new MaterialSkin.Controls.MaterialButton();
+            this.BtnGeminiApiKey = new MaterialSkin.Controls.MaterialButton();
             this.CBox_SaveOption = new MaterialSkin.Controls.MaterialCheckbox();
             this.CBox_EncryptCredentialsOnStart = new MaterialSkin.Controls.MaterialCheckbox();
             this.SuspendLayout();
@@ -283,6 +284,27 @@ namespace GateHelper
             this.BtnOpenMappingConfig.UseVisualStyleBackColor = true;
             this.BtnOpenMappingConfig.Click += new System.EventHandler(this.BtnOpenMappingConfig_Click);
             // 
+            // BtnGeminiApiKey
+            // 
+            this.BtnGeminiApiKey.AutoSize = false;
+            this.BtnGeminiApiKey.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnGeminiApiKey.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnGeminiApiKey.Depth = 0;
+            this.BtnGeminiApiKey.HighEmphasis = true;
+            this.BtnGeminiApiKey.Icon = null;
+            this.BtnGeminiApiKey.Location = new System.Drawing.Point(95, 350);
+            this.BtnGeminiApiKey.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnGeminiApiKey.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnGeminiApiKey.Name = "BtnGeminiApiKey";
+            this.BtnGeminiApiKey.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnGeminiApiKey.Size = new System.Drawing.Size(110, 39);
+            this.BtnGeminiApiKey.TabIndex = 106;
+            this.BtnGeminiApiKey.Text = "GEMINI API";
+            this.BtnGeminiApiKey.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnGeminiApiKey.UseAccentColor = false;
+            this.BtnGeminiApiKey.UseVisualStyleBackColor = true;
+            this.BtnGeminiApiKey.Click += new System.EventHandler(this.BtnGeminiApiKey_Click);
+            // 
             // CBox_SaveOption
             // 
             this.CBox_SaveOption.AutoSize = true;
@@ -323,6 +345,7 @@ namespace GateHelper
             this.Controls.Add(this.CBox_EncryptCredentialsOnStart);
             this.Controls.Add(this.CBox_SaveOption);
             this.Controls.Add(this.BtnOpenMappingConfig);
+            this.Controls.Add(this.BtnGeminiApiKey);
             this.Controls.Add(this.CBox_UseUDP);
             this.Controls.Add(this.CBox_RemoveDuplicate);
             this.Controls.Add(this.CBox_ServerClickConnect);
@@ -364,6 +387,7 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialLabel materialLabel2;
         private MaterialSkin.Controls.MaterialCheckbox CBox_UseUDP;
         private MaterialSkin.Controls.MaterialButton BtnOpenMappingConfig;
+        private MaterialSkin.Controls.MaterialButton BtnGeminiApiKey;
         private MaterialSkin.Controls.MaterialCheckbox CBox_SaveOption;
         private MaterialSkin.Controls.MaterialCheckbox CBox_EncryptCredentialsOnStart;
     }
