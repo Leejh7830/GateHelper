@@ -160,7 +160,7 @@ namespace GateHelper
             string metaNotesPath = GetMetaPath("ReleaseNotes.txt");
             string content =
 @"
-v2.4.5 / 26.07.29 / Test Version
+v2.5.0 / 26.10.15 / Test Version
 - leejh7830@lgespartner.com
 - 비영리 목적으로 제작한 유틸리티입니다.
 
@@ -171,7 +171,6 @@ v2.4.5 / 26.07.29 / Test Version
 6. 신규 / 전체 서버를 리스트에 저장하는 기능
 7. 신규 / 마우스 감지 및 일정 시간(사용자 비활성) 후 자동 마우스 움직임 기능 추가
 8. 신규 / 레이아웃 폼 생성, 설비 레이아웃 클릭 시 바로 해당 AP로 이동
-9. 신규 / EncryptCredential Option 추가 (ID/PW 암호화 저장)
 
 
 [ 개선 사항 ] 진행중 : 
@@ -179,12 +178,8 @@ v2.4.5 / 26.07.29 / Test Version
 2. 개선 / 드라이버종료되면 팝업옵션 끄기
 3. 개선 / 날짜별로그확인 기능
 4. 개선 / 접속할때 웹페이지가 접속목록이 아닌 다른 페이지에 있으면 접속목록 페이지로 이동
-
-9. 개선 / ExcelAnalysis 기능 개선 (엑셀파일이 열려있으면 어떻게 처리할지)
 10. 개선 / ExcelAnalysis 기능 개선 (대표기준이 되는 호기를 사용자가 선정)
 11. 개선 / ExcelAnalysis 기능 개선 (Dgv 가로스크롤 추가, HeaderColumn 길이 조정)
-12. 개선 / ExcelAnalysis 기능 개선 (변수명이 중복됨. 한번만 올라가도록, SEM에서 등록 한 변수가 Port에서 보임)
-13. 개선 / ExcelAnalysis 기능 개선 (엑셀드랍후 바로 분석 할 때, Rule은 어떤걸로 하게 되는지?)
 14. 개선 / MDOHelper Handle이 Auto Login Off 일때도 동작함
 
 
@@ -236,6 +231,10 @@ v2.4.2 / 26.07.20 개선 - DisplayChange Detect 시, 가장자리 잘림 현상 
 v2.4.3 / 26.07.23 개선 - Auto Login 기능 추가 / BackgroundMonitoring 추가 / toast 알림 추가
 v2.4.4 / 26.07.27 신규 - Variable Excel 분석 탭 추가
 v2.4.5 / 26.07.29 개선 - UI 화면크기 윈도우 배율에 따라 화면 밖으로 밀려나가는 현상 수정 (화면 원복) / Region 포맷 통일
+v2.4.6 / 26.08.13 개선 - Excel Analyzer 고유/공통 변수 상호 배타 로직 및 우클릭 메뉴, 예외 처리 시각화(X 마크) 적용
+v2.4.7 / 26.09.10 신규 - EncryptCredentialsOnStart 기능 추가 (ID/PW 암호화 안전 저장)
+v2.4.8 / 26.10.07 신규 - SandBox - MysteryTime (Gemini API 기반 바다거북스프 AI 추리 게임) 추가
+v2.5.0 / 26.10.15 신규 - SandBox - AI TREND (GitHub 실시간 급상승 및 Gemini 한국어 심층 요약 분석기) 추가 및 안정화
         
 ";
 
