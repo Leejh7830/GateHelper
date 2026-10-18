@@ -15,6 +15,8 @@ namespace GateHelper.AiTrend
         private AiTrendFetchResult _lastResult = null;
         private bool _isLoading = false;
         private bool _isDarkMode = false;
+        private int _currentLoadRequestId = 0;
+        private int _hoveredRowIndex = -1;
 
         // 빈 상태 및 오류 안내 오버레이 컨트롤
         private Panel _pnlEmptyOverlay = null;
@@ -46,6 +48,14 @@ namespace GateHelper.AiTrend
 
             // 그리드 툴팁 바인딩 (긴 요약문 마우스 호버 시 전체 표시)
             dgvAiTrends.CellToolTipTextNeeded += DgvAiTrends_CellToolTipTextNeeded;
+
+            // 상세 텍스트박스 포커스 시 전체선택 방지
+            txtDetailDescription.TabStop = false;
+            txtDetailDescription.Enter += (s, ev) =>
+            {
+                txtDetailDescription.Select(0, 0);
+                txtDetailDescription.SelectionLength = 0;
+            };
 
             if (cmbCategory.Items.Count > 0)
             {
@@ -98,11 +108,17 @@ namespace GateHelper.AiTrend
                 btnToggleFavorite.BackColor = Color.FromArgb(50, 52, 58);
                 btnToggleFavorite.ForeColor = Color.White;
 
+                btnCardPreview.BackColor = Color.FromArgb(50, 52, 58);
+                btnCardPreview.ForeColor = Color.White;
+
                 btnCopyUrl.BackColor = Color.FromArgb(50, 52, 58);
                 btnCopyUrl.ForeColor = Color.White;
 
                 btnConfigApiKey.BackColor = Color.FromArgb(50, 52, 58);
                 btnConfigApiKey.ForeColor = Color.White;
+
+                btnManageKeywords.BackColor = Color.FromArgb(50, 52, 58);
+                btnManageKeywords.ForeColor = Color.White;
             }
             else
             {
@@ -121,6 +137,9 @@ namespace GateHelper.AiTrend
                 cmbCategory.ForeColor = Color.Black;
                 btnRefresh.BackColor = Color.FromArgb(240, 240, 240);
                 btnRefresh.ForeColor = Color.Black;
+
+                btnManageKeywords.BackColor = Color.FromArgb(240, 240, 240);
+                btnManageKeywords.ForeColor = Color.Black;
 
                 dgvAiTrends.BackgroundColor = Color.White;
                 dgvAiTrends.GridColor = Color.FromArgb(230, 230, 230);
@@ -145,6 +164,9 @@ namespace GateHelper.AiTrend
                 btnToggleFavorite.BackColor = Color.FromArgb(240, 242, 245);
                 btnToggleFavorite.ForeColor = Color.FromArgb(33, 33, 33);
 
+                btnCardPreview.BackColor = Color.FromArgb(240, 242, 245);
+                btnCardPreview.ForeColor = Color.FromArgb(33, 33, 33);
+
                 btnCopyUrl.BackColor = Color.FromArgb(240, 242, 245);
                 btnCopyUrl.ForeColor = Color.FromArgb(33, 33, 33);
 
@@ -159,105 +181,225 @@ namespace GateHelper.AiTrend
             }
         }
 
-        private void InitCategories()
+        private void InitCategories(string selectCategoryId = null)
         {
+            string prevId = selectCategoryId ?? (cmbCategory.SelectedItem as AiTrendCategory)?.Id;
             cmbCategory.Items.Clear();
             var categories = _service.GetCategories();
-            foreach (var cat in categories)
+            int targetIndex = 0;
+
+            for (int i = 0; i < categories.Count; i++)
             {
-                cmbCategory.Items.Add(cat);
+                cmbCategory.Items.Add(categories[i]);
+                if (prevId != null && categories[i].Id == prevId)
+                {
+                    targetIndex = i;
+                }
+            }
+
+            if (cmbCategory.Items.Count > 0)
+            {
+                cmbCategory.SelectedIndex = targetIndex;
             }
         }
 
         private async void cmbCategory_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (DesignMode || _isLoading) return;
+            if (DesignMode) return;
             await LoadDataAsync(forceRefresh: false);
         }
 
         private async void btnRefresh_Click(object sender, EventArgs e)
         {
-            if (DesignMode || _isLoading) return;
+            if (DesignMode) return;
             await LoadDataAsync(forceRefresh: true);
+        }
+
+        private void btnManageKeywords_Click(object sender, EventArgs e)
+        {
+            if (DesignMode) return;
+
+            // 1단계: 검색 가이드(쿼리 변환 규칙 및 삭제 방법) 안내 팝업 폼 표시
+            using (var guide = new KeywordGuideDialog(_isDarkMode))
+            {
+                if (guide.ShowDialog(this.FindForm()) != DialogResult.OK)
+                {
+                    return; // 사용자가 '닫기'를 누르면 가이드만 확인하고 종료
+                }
+            }
+
+            // 2단계: 관심 키워드 추가/삭제 관리 다이얼로그 표시
+            using (var dlg = new CustomKeywordDialog(_service, _isDarkMode))
+            {
+                dlg.ShowDialog(this.FindForm());
+                if (dlg.HasChanges)
+                {
+                    string targetId = dlg.LastAddedItem != null ? $"custom_{dlg.LastAddedItem.Id}" : null;
+                    InitCategories(targetId);
+                }
+            }
         }
 
         private async Task LoadDataAsync(bool forceRefresh)
         {
             if (!(cmbCategory.SelectedItem is AiTrendCategory selectedCat)) return;
 
+            int requestId = ++_currentLoadRequestId;
+            bool isNews = selectedCat.Kind != CategoryKind.GitHub;
+            string sourceName = isNews ? "실시간 최신 뉴스" : "GitHub 최신 데이터";
+
             try
             {
                 SetLoading(true);
-                lblStatus.Text = forceRefresh ? "GitHub 및 AI 요약 데이터 갱신 중..." : "데이터 로딩 중...";
+                lblStatus.Text = forceRefresh ? $"{sourceName} 수집 중..." : "데이터 로딩 중...";
                 lblStatus.ForeColor = _isDarkMode ? Color.LightGray : Color.DimGray;
                 lblStatus.Font = new Font(lblStatus.Font.FontFamily, 8.25F, FontStyle.Regular);
 
+                UpdateGridHeaders(selectedCat);
+
+                // [Stage 1: 초고속 1단계 목록 수집 및 즉시 렌더링 - 체감 0.8초 이내]
                 var result = await _service.FetchRepositoriesAsync(selectedCat, forceRefresh);
+                if (requestId != _currentLoadRequestId) return;
+
                 _lastResult = result;
                 _currentItems = result.Items ?? new List<AiRepoItem>();
 
                 BindGrid(_currentItems);
-
                 lblStatus.Text = result.DisplayStatus;
 
-                // 최신 데이터, 과거 캐시, 오프라인 스타터 팩의 시각적 구분 강화
-                if (result.IsAiQuotaExceeded)
+                // 스타터 팩 / 통신 실패 폴백 / 에러 케이스 처리
+                if (result.IsStarterPack)
                 {
-                    // ⚠️ Gemini 429 무료 쿼터 초과 시 알림 (DarkOrange)
-                    lblStatus.ForeColor = Color.DarkOrange;
-                    lblStatus.Font = new Font(lblStatus.Font.FontFamily, 8.25F, FontStyle.Regular);
-                    HideEmptyOverlay();
-                }
-                else if (result.IsStarterPack)
-                {
-                    // 📡 캐시조차 없는 오프라인: 주황색 볼드로 스타터 팩 표시
                     lblStatus.ForeColor = Color.DarkOrange;
                     lblStatus.Font = new Font(lblStatus.Font.FontFamily, 8.5F, FontStyle.Bold);
                     HideEmptyOverlay();
+                    SetLoading(false);
+                    return;
                 }
                 else if (result.IsFallbackCache)
                 {
-                    // ⚠️ 통신 실패로 이전 캐시 표시 중: 적갈색 볼드로 경고 표시
                     lblStatus.ForeColor = Color.Crimson;
                     lblStatus.Font = new Font(lblStatus.Font.FontFamily, 8.5F, FontStyle.Bold);
                     HideEmptyOverlay();
+                    SetLoading(false);
+                    return;
                 }
                 else if (!result.IsLiveSuccess && _currentItems.Count == 0)
                 {
-                    // 완전 실패 (캐시도 없고 스타터팩도 없는 극단적 상황)
                     lblStatus.ForeColor = Color.Red;
                     lblStatus.Font = new Font(lblStatus.Font.FontFamily, 8.5F, FontStyle.Bold);
                     ShowEmptyOverlay(result.FailureReason);
-                }
-                else if (result.IsLiveSuccess && !result.IsFallbackCache)
-                {
-                    // 실시간 최신 성공
-                    lblStatus.ForeColor = Color.ForestGreen;
-                    lblStatus.Font = new Font(lblStatus.Font.FontFamily, 8.25F, FontStyle.Regular);
-                    HideEmptyOverlay();
+                    SetLoading(false);
+                    return;
                 }
                 else
                 {
-                    // 일반 캐시 (평상시 3시간 이내)
-                    lblStatus.ForeColor = _isDarkMode ? Color.LightGray : Color.DimGray;
-                    lblStatus.Font = new Font(lblStatus.Font.FontFamily, 8.25F, FontStyle.Regular);
                     HideEmptyOverlay();
                 }
+
+                // 이미 모든 AI 요약이 완비되어 있는 경우 (캐시 히트 or 기존 저장본 완전 재사용)
+                if (result.IsFullyEnriched)
+                {
+                    lblStatus.ForeColor = result.IsLiveSuccess && !result.IsFallbackCache
+                        ? Color.ForestGreen
+                        : (_isDarkMode ? Color.LightGray : Color.DimGray);
+                    lblStatus.Font = new Font(lblStatus.Font.FontFamily, 8.25F, FontStyle.Regular);
+                    SetLoading(false);
+                    return;
+                }
+
+                // [Stage 2 진입 준비]: 그리드는 이미 0.8초 시점에 표시되었으므로, 버튼과 콤보박스는 즉시 조작 가능하도록 활성화!
+                _isLoading = false;
+                btnRefresh.Enabled = true;
+                btnManageKeywords.Enabled = true;
+                cmbCategory.Enabled = true;
+                progressBar.Visible = true; // 요약 진행 중임을 알리는 상단 인디케이터만 유지
+                lblStatus.ForeColor = Color.DodgerBlue;
+                lblStatus.Font = new Font(lblStatus.Font.FontFamily, 8.25F, FontStyle.Regular);
+
+                // [Stage 2: 백그라운드 AI 핵심 요약 및 실무 팁/시사점 생성 - 1.5초~2초]
+                var enrichStatus = await _service.EnrichRepositoriesAsync(selectedCat, _currentItems);
+                if (requestId != _currentLoadRequestId) return;
+
+                // 그리드 요약 컬럼 갱신 & 하단 상세 뷰 동기화
+                RefreshGridSummaries();
+                if (dgvAiTrends.SelectedRows.Count > 0 && dgvAiTrends.SelectedRows[0].Tag is AiRepoItem curItem)
+                {
+                    UpdateDetailView(curItem);
+                }
+
+                if (enrichStatus == AiEnrichStatus.QuotaExceeded)
+                {
+                    lblStatus.Text = $"✔ {sourceName} (⚠️ AI 요약 분당 한도 초과로 원문 표시 중 - 잠시 후 새로고침)";
+                    lblStatus.ForeColor = Color.DarkOrange;
+                }
+                else
+                {
+                    lblStatus.Text = $"✔ {sourceName} ({DateTime.Now:yyyy-MM-dd HH:mm})";
+                    lblStatus.ForeColor = Color.ForestGreen;
+                }
+                lblStatus.Font = new Font(lblStatus.Font.FontFamily, 8.25F, FontStyle.Regular);
             }
             catch (Exception ex)
             {
-                lblStatus.Text = "오류: " + ex.Message;
-                lblStatus.ForeColor = Color.Red;
-                LogManager.LogException(ex, LogManager.Level.Warning, "AiTrendControl LoadDataAsync Failed");
-                if (_currentItems.Count == 0)
+                if (requestId == _currentLoadRequestId)
                 {
-                    ShowEmptyOverlay(ex.Message);
+                    lblStatus.Text = "오류: " + ex.Message;
+                    lblStatus.ForeColor = Color.Red;
+                    LogManager.LogException(ex, LogManager.Level.Warning, "AiTrendControl LoadDataAsync Failed");
+                    if (_currentItems.Count == 0)
+                    {
+                        ShowEmptyOverlay(ex.Message);
+                    }
                 }
             }
             finally
             {
-                SetLoading(false);
+                if (requestId == _currentLoadRequestId)
+                {
+                    SetLoading(false);
+                }
             }
+        }
+
+        private void UpdateGridHeaders(AiTrendCategory category)
+        {
+            if (category == null) return;
+
+            bool isNews = category.Kind == CategoryKind.NewsRss || category.Kind == CategoryKind.CustomKeyword;
+            if (isNews)
+            {
+                colName.HeaderText = "주요 뉴스 헤드라인";
+                colName.Width = 360; // 기존 240에서 1.5배 확대
+                colStars.HeaderText = "언론사";
+                colStars.Width = 100;
+                colLanguage.HeaderText = "발행 시간";
+                colLanguage.Width = 100;
+                colSummary.HeaderText = "💡 AI 핵심 1줄 브리핑 & 핵심 시사점";
+            }
+            else
+            {
+                colName.HeaderText = "프로젝트명";
+                colName.Width = 260; // 기존 170에서 1.5배 확대
+                colStars.HeaderText = "Stars ⭐";
+                colStars.Width = 85;
+                colLanguage.HeaderText = "언어";
+                colLanguage.Width = 85;
+                colSummary.HeaderText = "💡 AI 핵심 1줄 요약 & 실무 활용 팁";
+            }
+        }
+
+        private void RefreshGridSummaries()
+        {
+            for (int i = 0; i < dgvAiTrends.Rows.Count; i++)
+            {
+                var row = dgvAiTrends.Rows[i];
+                if (row.Tag is AiRepoItem item)
+                {
+                    row.Cells[colSummary.Index].Value = item.DisplayFullSummary;
+                }
+            }
+            dgvAiTrends.InvalidateColumn(colSummary.Index);
         }
 
         private void SetLoading(bool loading)
@@ -265,6 +407,7 @@ namespace GateHelper.AiTrend
             _isLoading = loading;
             progressBar.Visible = loading;
             btnRefresh.Enabled = !loading;
+            btnManageKeywords.Enabled = !loading;
             cmbCategory.Enabled = !loading;
         }
 
@@ -277,11 +420,14 @@ namespace GateHelper.AiTrend
                 string favIcon = item.IsFavorite ? "★ " : "";
                 string displaySummary = item.DisplayFullSummary;
 
+                string col3Value = item.ItemType == TrendItemType.NewsArticle ? item.Owner : item.StarsFormatted;
+                string col4Value = item.ItemType == TrendItemType.NewsArticle ? item.TimeFormatted : item.Language;
+
                 int rowIndex = dgvAiTrends.Rows.Add(
                     item.Rank,
                     favIcon + item.FullName,
-                    item.StarsFormatted,
-                    item.Language,
+                    col3Value,
+                    col4Value,
                     displaySummary
                 );
 
@@ -315,19 +461,212 @@ namespace GateHelper.AiTrend
         {
             if (e.RowIndex >= 0 && e.RowIndex < dgvAiTrends.Rows.Count)
             {
-                btnOpenGithub_Click(sender, EventArgs.Empty);
+                OpenPreviewDialog(e.RowIndex);
+            }
+        }
+
+        private void dgvAiTrends_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Space)
+            {
+                e.Handled = true;
+                e.SuppressKeyPress = true;
+                if (dgvAiTrends.SelectedRows.Count > 0)
+                {
+                    OpenPreviewDialog(dgvAiTrends.SelectedRows[0].Index);
+                }
+            }
+        }
+
+        private void dgvAiTrends_CellMouseEnter(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.RowIndex >= 0 && e.RowIndex != _hoveredRowIndex)
+            {
+                int oldIdx = _hoveredRowIndex;
+                _hoveredRowIndex = e.RowIndex;
+                if (oldIdx >= 0 && oldIdx < dgvAiTrends.Rows.Count) dgvAiTrends.InvalidateRow(oldIdx);
+                dgvAiTrends.InvalidateRow(_hoveredRowIndex);
+            }
+        }
+
+        private void dgvAiTrends_CellMouseLeave(object sender, DataGridViewCellEventArgs e)
+        {
+            if (_hoveredRowIndex >= 0)
+            {
+                int oldIdx = _hoveredRowIndex;
+                _hoveredRowIndex = -1;
+                if (oldIdx >= 0 && oldIdx < dgvAiTrends.Rows.Count) dgvAiTrends.InvalidateRow(oldIdx);
+            }
+        }
+
+        private void btnCardPreview_Click(object sender, EventArgs e)
+        {
+            OpenPreviewDialog();
+        }
+
+        private void OpenPreviewDialog(int startIndex = -1)
+        {
+            if (_currentItems == null || _currentItems.Count == 0) return;
+            int idx = startIndex >= 0 ? startIndex : (dgvAiTrends.SelectedRows.Count > 0 ? dgvAiTrends.SelectedRows[0].Index : 0);
+
+            using (var dlg = new AiTrendPreviewDialog(_currentItems, idx, _service, _isDarkMode))
+            {
+                dlg.ShowDialog(this.FindForm());
+
+                // 팝업에서 마지막으로 보던 기사로 메인 그리드 선택 행 동기화
+                if (dlg.CurrentIndex >= 0 && dlg.CurrentIndex < dgvAiTrends.Rows.Count)
+                {
+                    dgvAiTrends.ClearSelection();
+                    dgvAiTrends.Rows[dlg.CurrentIndex].Selected = true;
+                    UpdateDetailView(_currentItems[dlg.CurrentIndex]);
+                }
+
+                if (dlg.HasChanges)
+                {
+                    if (cmbCategory.SelectedItem is AiTrendCategory curCat && curCat.Id == "favorites")
+                    {
+                        _ = LoadDataAsync(forceRefresh: false);
+                    }
+                    else
+                    {
+                        for (int i = 0; i < dgvAiTrends.Rows.Count; i++)
+                        {
+                            var row = dgvAiTrends.Rows[i];
+                            if (row.Tag is AiRepoItem it)
+                            {
+                                string favIcon = it.IsFavorite ? "★ " : "";
+                                row.Cells[colName.Index].Value = favIcon + it.FullName;
+                            }
+                        }
+                        if (dgvAiTrends.SelectedRows.Count > 0 && dgvAiTrends.SelectedRows[0].Tag is AiRepoItem cur)
+                        {
+                            UpdateDetailView(cur);
+                        }
+                    }
+                }
             }
         }
 
         private void dgvAiTrends_CellPainting(object sender, DataGridViewCellPaintingEventArgs e)
         {
-            // 요약 열(colSummary) 데이터 셀의 세로 간격 쾌적화 렌더링 & 테두리선(Border) 보존
-            if (e.RowIndex >= 0 && e.ColumnIndex >= 0 && dgvAiTrends.Columns[e.ColumnIndex] == colSummary)
+            if (e.RowIndex < 0 || e.ColumnIndex < 0) return;
+
+            bool isSelected = (e.State & DataGridViewElementStates.Selected) != 0;
+            bool isHovered = !isSelected && e.RowIndex == _hoveredRowIndex;
+
+            // 1) 순위 열 (colRank): 선택 시 세련된 4px 네온 블루 Accent Bar 렌더링
+            if (dgvAiTrends.Columns[e.ColumnIndex] == colRank)
+            {
+                if (isHovered)
+                {
+                    Color hoverColor = _isDarkMode ? Color.FromArgb(45, 48, 55) : Color.FromArgb(242, 246, 252);
+                    using (var b = new SolidBrush(hoverColor)) e.Graphics.FillRectangle(b, e.CellBounds);
+                    e.Paint(e.ClipBounds, DataGridViewPaintParts.All & ~DataGridViewPaintParts.Background & ~DataGridViewPaintParts.Border);
+                }
+                else
+                {
+                    e.Paint(e.ClipBounds, DataGridViewPaintParts.All & ~DataGridViewPaintParts.Border);
+                }
+
+                if (isSelected)
+                {
+                    // 행 선택 시 맨 왼쪽에 선명한 4px 네온 블루 세로 포인트 바 (Accent Bar)
+                    using (var accentBrush = new SolidBrush(Color.FromArgb(0, 150, 255)))
+                    {
+                        e.Graphics.FillRectangle(accentBrush, e.CellBounds.X, e.CellBounds.Y, 4, e.CellBounds.Height);
+                    }
+                }
+
+                e.Paint(e.CellBounds, DataGridViewPaintParts.Border);
+                e.Handled = true;
+                return;
+            }
+
+            // 2) 호버(Hover) 시 다른 일반 셀들의 배경 은은하게 하이라이트
+            if (isHovered && dgvAiTrends.Columns[e.ColumnIndex] != colLanguage && dgvAiTrends.Columns[e.ColumnIndex] != colSummary)
+            {
+                Color hoverColor = _isDarkMode ? Color.FromArgb(45, 48, 55) : Color.FromArgb(242, 246, 252);
+                using (var b = new SolidBrush(hoverColor)) e.Graphics.FillRectangle(b, e.CellBounds);
+                e.Paint(e.ClipBounds, DataGridViewPaintParts.All & ~DataGridViewPaintParts.Background & ~DataGridViewPaintParts.Border);
+                e.Paint(e.CellBounds, DataGridViewPaintParts.Border);
+                e.Handled = true;
+                return;
+            }
+
+            // 1) 뉴스 모드 발행 시간 열: 24시간 이내 최신 뉴스에 주황색(DarkOrange) 불꽃 🔥 렌더링
+            if (dgvAiTrends.Columns[e.ColumnIndex] == colLanguage)
+            {
+                if (dgvAiTrends.Rows[e.RowIndex].Tag is AiRepoItem item && item.ItemType == TrendItemType.NewsArticle)
+                {
+                    if (isHovered)
+                    {
+                        Color hoverColor = _isDarkMode ? Color.FromArgb(45, 48, 55) : Color.FromArgb(242, 246, 252);
+                        using (var b = new SolidBrush(hoverColor)) e.Graphics.FillRectangle(b, e.CellBounds);
+                    }
+                    else
+                    {
+                        e.PaintBackground(e.ClipBounds, isSelected);
+                    }
+
+                    Rectangle contentBounds = e.CellBounds;
+                    contentBounds.X += 6;
+                    contentBounds.Width -= 12;
+
+                    Color normalTextColor = isSelected
+                        ? e.CellStyle.SelectionForeColor
+                        : (_isDarkMode ? Color.FromArgb(235, 240, 245) : Color.FromArgb(40, 40, 40));
+
+                    if (item.IsRecentNews)
+                    {
+                        // 주황색 불꽃 🔥 + 시간 문자열 (예: " 35분 전", " 2시간 전")
+                        using (var flameFont = new Font(e.CellStyle.Font.FontFamily, 9F, FontStyle.Bold))
+                        using (var timeFont = new Font(e.CellStyle.Font.FontFamily, 8.5F, FontStyle.Regular))
+                        {
+                            string flame = "🔥";
+                            string timeText = " " + item.TimeFormatted;
+
+                            Color flameColor = isSelected ? Color.Yellow : Color.FromArgb(255, 120, 0); // 선명하고 산뜻한 주황색
+                            Size flameSize = TextRenderer.MeasureText(e.Graphics, flame, flameFont, Size.Empty, TextFormatFlags.NoPadding);
+
+                            var flameRect = new Rectangle(contentBounds.X, contentBounds.Y, flameSize.Width, contentBounds.Height);
+                            TextRenderer.DrawText(e.Graphics, flame, flameFont, flameRect, flameColor,
+                                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix | TextFormatFlags.NoPadding);
+
+                            var timeRect = new Rectangle(contentBounds.X + flameSize.Width, contentBounds.Y, contentBounds.Width - flameSize.Width, contentBounds.Height);
+                            TextRenderer.DrawText(e.Graphics, timeText, timeFont, timeRect, normalTextColor,
+                                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+                        }
+                    }
+                    else
+                    {
+                        using (var font = new Font(e.CellStyle.Font.FontFamily, 8.5F, FontStyle.Regular))
+                        {
+                            Color pastTextColor = isSelected ? e.CellStyle.SelectionForeColor : (_isDarkMode ? Color.LightGray : Color.Gray);
+                            TextRenderer.DrawText(e.Graphics, item.TimeFormatted, font, contentBounds, pastTextColor,
+                                TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.NoPrefix);
+                        }
+                    }
+
+                    e.Paint(e.CellBounds, DataGridViewPaintParts.Border);
+                    e.Handled = true;
+                    return;
+                }
+            }
+
+            // 2) 요약 열(colSummary) 데이터 셀의 세로 간격 쾌적화 렌더링 & 테두리선(Border) 보존
+            if (dgvAiTrends.Columns[e.ColumnIndex] == colSummary)
             {
                 if (dgvAiTrends.Rows[e.RowIndex].Tag is AiRepoItem item)
                 {
-                    bool isSelected = (e.State & DataGridViewElementStates.Selected) != 0;
-                    e.PaintBackground(e.ClipBounds, isSelected);
+                    if (isHovered)
+                    {
+                        Color hoverColor = _isDarkMode ? Color.FromArgb(45, 48, 55) : Color.FromArgb(242, 246, 252);
+                        using (var b = new SolidBrush(hoverColor)) e.Graphics.FillRectangle(b, e.CellBounds);
+                    }
+                    else
+                    {
+                        e.PaintBackground(e.ClipBounds, isSelected);
+                    }
 
                     // 셀 내부 여백 (좌우 6px, 상하 5px)
                     Rectangle contentBounds = e.CellBounds;
@@ -349,16 +688,17 @@ namespace GateHelper.AiTrend
                         using (var font1 = new Font(e.CellStyle.Font.FontFamily, 8.75F, FontStyle.Regular))
                         using (var font2 = new Font(e.CellStyle.Font.FontFamily, 8.25F, FontStyle.Regular))
                         {
+                            string tipPrefix = item.ItemType == TrendItemType.NewsArticle ? "💡 [시사점]" : "🚀 [활용]";
                             string line1 = $"📌 {item.AiSummary}";
-                            string line2 = $"🚀 [활용] {item.PracticalTip}";
+                            string line2 = $"{tipPrefix} {item.PracticalTip}";
 
-                            // 1번째 줄 (핵심 요약)
+                            // 1번째 줄 (핵심 요약 / 팩트)
                             int line1Height = 17;
                             var rect1 = new Rectangle(contentBounds.X, contentBounds.Y, contentBounds.Width, line1Height);
                             TextRenderer.DrawText(e.Graphics, line1, font1, rect1, textColor,
                                 TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis | TextFormatFlags.NoPrefix);
 
-                            // 2번째 줄 (실무 활용) - 1번째 줄과의 세로 간격을 5px 띄워서 시원하게 렌더링!
+                            // 2번째 줄 (실무 활용 / 시사점) - 1번째 줄과의 세로 간격을 5px 띄워서 시원하게 렌더링!
                             int lineGap = 5;
                             int line2Y = contentBounds.Y + line1Height + lineGap;
                             int line2Height = 17;
@@ -397,6 +737,7 @@ namespace GateHelper.AiTrend
                 return;
             }
 
+            bool isNews = item.ItemType == TrendItemType.NewsArticle;
             string favMark = item.IsFavorite ? " ⭐" : "";
             lblDetailRepo.Text = $"#{item.Rank} {item.FullName}{favMark}";
 
@@ -411,10 +752,35 @@ namespace GateHelper.AiTrend
                 statusBadge = $"  |  ⚠️ [오프라인 저장본: {_lastResult.DataTimestamp:yyyy-MM-dd HH:mm}]";
             }
 
-            lblDetailMeta.Text = $"⭐ Stars: {item.StarsFormatted} ({item.Stars:N0})  |  🍴 Forks: {item.Forks:N0}  |  💻 언어: {item.Language}  |  ⏰ 최근 커밋: {item.PushedAtFormatted}{statusBadge}";
+            if (isNews)
+            {
+                lblDetailMeta.Text = $"📰 언론사: {item.Owner}  |  🔥 발행: {item.TimeFormatted} ({item.PushedAt:yyyy-MM-dd HH:mm}){statusBadge}";
+                btnToggleFavorite.Text = item.IsFavorite ? "★ 스크랩 해제" : "⭐ 뉴스 스크랩";
+                btnOpenGithub.Text = "🔗 기사 원문";
+
+                if (!string.IsNullOrWhiteSpace(item.DetailStory))
+                {
+                    txtDetailDescription.Text = "📖 [AI 심층 스토리] " + item.DetailStory;
+                }
+                else
+                {
+                    bool isDuplicate = string.Equals(item.FullName?.Trim(), item.Description?.Trim(), StringComparison.OrdinalIgnoreCase);
+                    txtDetailDescription.Text = isDuplicate
+                        ? "⏳ [AI 심층 브리핑 작성 중...] 기사의 배경 맥락과 전개 상황을 분석하고 있습니다."
+                        : "📄 [기사 본문 요약] " + item.Description;
+                }
+            }
+            else
+            {
+                lblDetailMeta.Text = $"⭐ Stars: {item.StarsFormatted} ({item.Stars:N0})  |  🍴 Forks: {item.Forks:N0}  |  💻 언어: {item.Language}  |  ⏰ 최근 커밋: {item.PushedAtFormatted}{statusBadge}";
+                btnToggleFavorite.Text = item.IsFavorite ? "★ 찜 해제" : "⭐ 찜하기";
+                btnOpenGithub.Text = "🔗 GitHub";
+                txtDetailDescription.Text = !string.IsNullOrWhiteSpace(item.DetailStory)
+                    ? "📖 [AI 심층 분석] " + item.DetailStory
+                    : "📄 [원문 설명] " + item.Description;
+            }
 
             // 찜하기 버튼 상태 동기화 및 고대비 색상 적용
-            btnToggleFavorite.Text = item.IsFavorite ? "★ 찜 해제" : "⭐ 찜하기";
             if (item.IsFavorite)
             {
                 btnToggleFavorite.BackColor = _isDarkMode ? Color.FromArgb(70, 60, 20) : Color.FromArgb(255, 243, 205);
@@ -426,11 +792,11 @@ namespace GateHelper.AiTrend
                 btnToggleFavorite.ForeColor = _isDarkMode ? Color.White : Color.FromArgb(33, 33, 33);
             }
 
-            // 요약 표시 (2줄 구조: 1줄 핵심 정의, 2줄 실무/업무 활용 포인트 - 세로 여백 추가)
+            // 요약 표시 (2줄 구조: 1줄 핵심 정의/팩트, 2줄 실무/시사점 포인트 - 세로 여백 최적화)
             if (_lastResult != null && _lastResult.IsStarterPack)
             {
                 btnConfigApiKey.Visible = false; // 스타터 팩은 이미 최고 품질 한국어 해설이 완비됨
-                txtDetailSummary.Text = $"📌 [핵심 요약] {item.AiSummary}\r\n\r\n🚀 [실무 활용] {item.PracticalTip}";
+                txtDetailSummary.Text = $"📌 [핵심 요약] {item.AiSummary}\r\n🚀 [실무 활용] {item.PracticalTip}";
             }
             else
             {
@@ -440,7 +806,9 @@ namespace GateHelper.AiTrend
                 {
                     btnConfigApiKey.Text = "🔑 API 등록";
                     btnConfigApiKey.BackColor = Color.FromArgb(255, 236, 179); // 골드 옐로우 강조
-                    txtDetailSummary.Text = "💡 [Gemini API Key 미등록]\r\n\r\n우측 상단의 '🔑 API 등록' 버튼을 눌러 무료 키를 등록하시면 각 도구의 핵심 역할과 실무 활용 팁을 2줄로 요약해 드립니다.";
+                    txtDetailSummary.Text = isNews
+                        ? "💡 [Gemini API Key 미등록]\r\n우측 상단의 '🔑 API 등록' 버튼을 눌러 무료 키를 등록하시면 기사의 핵심 사실과 주요 시사점을 2줄로 브리핑해 드립니다."
+                        : "💡 [Gemini API Key 미등록]\r\n우측 상단의 '🔑 API 등록' 버튼을 눌러 무료 키를 등록하시면 각 도구의 핵심 역할과 실무 활용 팁을 2줄로 요약해 드립니다.";
                 }
                 else
                 {
@@ -449,18 +817,21 @@ namespace GateHelper.AiTrend
 
                     if (!string.IsNullOrWhiteSpace(item.PracticalTip))
                     {
-                        txtDetailSummary.Text = $"📌 [핵심 요약] {item.AiSummary}\r\n\r\n🚀 [실무 활용] {item.PracticalTip}";
+                        string tipHeader = isNews ? "💡 [핵심 시사점]" : "🚀 [실무 활용]";
+                        string summaryHeader = isNews ? "📌 [핵심 팩트]" : "📌 [핵심 요약]";
+                        txtDetailSummary.Text = $"{summaryHeader} {item.AiSummary}\r\n{tipHeader} {item.PracticalTip}";
                     }
                     else
                     {
+                        string summaryHeader = isNews ? "📌 [핵심 팩트] " : "📌 [핵심 요약] ";
+                        string rawHeader = isNews ? "📄 [기사 내용] " : "📄 [원문 요약] ";
                         txtDetailSummary.Text = string.IsNullOrWhiteSpace(item.AiSummary)
-                            ? ("📄 [원문 요약] " + item.Description)
-                            : ("📌 [핵심 요약] " + item.AiSummary);
+                            ? (isNews ? "⏳ [AI 브리핑 생성 중...] 잠시 후 핵심 팩트와 주요 시사점이 자동으로 채워집니다." : (rawHeader + item.Description))
+                            : (summaryHeader + item.AiSummary);
                     }
                 }
             }
 
-            txtDetailDescription.Text = "📄 [원문 설명] " + item.Description;
             btnOpenGithub.Tag = item.HtmlUrl;
             btnOpenGithub.Enabled = !string.IsNullOrWhiteSpace(item.HtmlUrl);
             btnCopyUrl.Tag = item.HtmlUrl;

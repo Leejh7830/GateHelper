@@ -235,9 +235,10 @@ v2.4.6 / 26.08.13 개선 - Excel Analyzer 고유/공통 변수 상호 배타 로
 v2.4.7 / 26.09.10 신규 - EncryptCredentialsOnStart 기능 추가 (ID/PW 암호화 안전 저장)
 v2.4.8 / 26.10.07 신규 - SandBox - MysteryTime (Gemini API 기반 바다거북스프 AI 추리 게임) 추가
 v2.5.0 / 26.10.15 신규 - SandBox - AI TREND (GitHub 실시간 급상승 및 Gemini 한국어 심층 요약 분석기) 추가 및 안정화
+v2.5.1 / 26.10.18 개선 - AI TREND 5대 핵심 뉴스(IT/세계경제/국내경제/스포츠/E스포츠) 확장 및 사용자 관심 키워드 추가/관리 기능 구축, 2단계 점진적 초고속 렌더링(0.8초)
+v2.5.2 / 26.10.18 신규 - AI TREND 초경량 카드뉴스 퀵 뷰어(단축키 및 이전/다음 내비게이션), Gemini 3단 AI 심층 스토리 브리핑(DetailStory) 및 스크랩 실시간 동기화
         
 ";
-
             try
             {
                 // 항상 덮어쓰기

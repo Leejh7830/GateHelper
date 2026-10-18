@@ -1,4 +1,4 @@
-﻿using GateHelper.LogValidator;
+using GateHelper.LogValidator;
 using System;
 using System.Windows.Forms;
 
@@ -14,7 +14,12 @@ namespace GateHelper
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new MainUI());
+            
+            // [바로가기] 당분간 AI 트렌드(SandBox) 기능 집중 테스트를 위해 바로 실행
+            Application.Run(new SandBox("AiTrend"));
+
+            // [기존 메인 UI 진입점 - 필요 시 위 줄을 주석하고 아래 줄 활성화]
+            // Application.Run(new MainUI());
             // Application.Run(new LogValidatorMain());
         }
     }

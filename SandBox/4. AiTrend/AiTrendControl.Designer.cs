@@ -38,6 +38,7 @@ namespace GateHelper.AiTrend
             this.progressBar = new System.Windows.Forms.ProgressBar();
             this.lblStatus = new System.Windows.Forms.Label();
             this.btnRefresh = new System.Windows.Forms.Button();
+            this.btnManageKeywords = new System.Windows.Forms.Button();
             this.cmbCategory = new System.Windows.Forms.ComboBox();
             this.lblCategory = new System.Windows.Forms.Label();
             this.dgvAiTrends = new System.Windows.Forms.DataGridView();
@@ -47,6 +48,7 @@ namespace GateHelper.AiTrend
             this.colLanguage = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colSummary = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.pnlDetail = new System.Windows.Forms.Panel();
+            this.btnCardPreview = new System.Windows.Forms.Button();
             this.btnToggleFavorite = new System.Windows.Forms.Button();
             this.btnCopyUrl = new System.Windows.Forms.Button();
             this.btnConfigApiKey = new System.Windows.Forms.Button();
@@ -117,6 +119,7 @@ namespace GateHelper.AiTrend
             this.pnlToolbar.BackColor = System.Drawing.Color.White;
             this.pnlToolbar.Controls.Add(this.progressBar);
             this.pnlToolbar.Controls.Add(this.lblStatus);
+            this.pnlToolbar.Controls.Add(this.btnManageKeywords);
             this.pnlToolbar.Controls.Add(this.btnRefresh);
             this.pnlToolbar.Controls.Add(this.cmbCategory);
             this.pnlToolbar.Controls.Add(this.lblCategory);
@@ -143,12 +146,26 @@ namespace GateHelper.AiTrend
             this.lblStatus.AutoEllipsis = true;
             this.lblStatus.Font = new System.Drawing.Font("맑은 고딕", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.lblStatus.ForeColor = System.Drawing.Color.Gray;
-            this.lblStatus.Location = new System.Drawing.Point(460, 10);
+            this.lblStatus.Location = new System.Drawing.Point(590, 10);
             this.lblStatus.Name = "lblStatus";
-            this.lblStatus.Size = new System.Drawing.Size(1354, 18);
+            this.lblStatus.Size = new System.Drawing.Size(1224, 18);
             this.lblStatus.TabIndex = 3;
             this.lblStatus.Text = "마지막 갱신: -";
             this.lblStatus.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
+            // 
+            // btnManageKeywords
+            // 
+            this.btnManageKeywords.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(240)))), ((int)(((byte)(240)))));
+            this.btnManageKeywords.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
+            this.btnManageKeywords.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnManageKeywords.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.btnManageKeywords.Location = new System.Drawing.Point(458, 6);
+            this.btnManageKeywords.Name = "btnManageKeywords";
+            this.btnManageKeywords.Size = new System.Drawing.Size(120, 26);
+            this.btnManageKeywords.TabIndex = 5;
+            this.btnManageKeywords.Text = "📌 관심 키워드";
+            this.btnManageKeywords.UseVisualStyleBackColor = false;
+            this.btnManageKeywords.Click += new System.EventHandler(this.btnManageKeywords_Click);
             // 
             // btnRefresh
             // 
@@ -223,6 +240,9 @@ namespace GateHelper.AiTrend
             this.dgvAiTrends.TabIndex = 2;
             this.dgvAiTrends.CellDoubleClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvAiTrends_CellDoubleClick);
             this.dgvAiTrends.CellPainting += new System.Windows.Forms.DataGridViewCellPaintingEventHandler(this.dgvAiTrends_CellPainting);
+            this.dgvAiTrends.CellMouseEnter += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvAiTrends_CellMouseEnter);
+            this.dgvAiTrends.CellMouseLeave += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvAiTrends_CellMouseLeave);
+            this.dgvAiTrends.KeyDown += new System.Windows.Forms.KeyEventHandler(this.dgvAiTrends_KeyDown);
             this.dgvAiTrends.SelectionChanged += new System.EventHandler(this.dgvAiTrends_SelectionChanged);
             // 
             // colRank
@@ -243,7 +263,7 @@ namespace GateHelper.AiTrend
             this.colName.Name = "colName";
             this.colName.ReadOnly = true;
             this.colName.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.colName.Width = 160;
+            this.colName.Width = 260;
             // 
             // colStars
             // 
@@ -252,7 +272,7 @@ namespace GateHelper.AiTrend
             this.colStars.Name = "colStars";
             this.colStars.ReadOnly = true;
             this.colStars.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.colStars.Width = 80;
+            this.colStars.Width = 85;
             // 
             // colLanguage
             // 
@@ -261,7 +281,7 @@ namespace GateHelper.AiTrend
             this.colLanguage.Name = "colLanguage";
             this.colLanguage.ReadOnly = true;
             this.colLanguage.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.colLanguage.Width = 80;
+            this.colLanguage.Width = 100;
             // 
             // colSummary
             // 
@@ -279,6 +299,7 @@ namespace GateHelper.AiTrend
             | System.Windows.Forms.AnchorStyles.Right)));
             this.pnlDetail.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(250)))), ((int)(((byte)(250)))), ((int)(((byte)(250)))));
             this.pnlDetail.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlDetail.Controls.Add(this.btnCardPreview);
             this.pnlDetail.Controls.Add(this.btnToggleFavorite);
             this.pnlDetail.Controls.Add(this.btnCopyUrl);
             this.pnlDetail.Controls.Add(this.btnConfigApiKey);
@@ -292,6 +313,22 @@ namespace GateHelper.AiTrend
             this.pnlDetail.Padding = new System.Windows.Forms.Padding(10);
             this.pnlDetail.Size = new System.Drawing.Size(1806, 155);
             this.pnlDetail.TabIndex = 3;
+            // 
+            // btnCardPreview
+            // 
+            this.btnCardPreview.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnCardPreview.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(240)))), ((int)(((byte)(242)))), ((int)(((byte)(245)))));
+            this.btnCardPreview.FlatAppearance.BorderColor = System.Drawing.Color.Silver;
+            this.btnCardPreview.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.btnCardPreview.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.btnCardPreview.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
+            this.btnCardPreview.Location = new System.Drawing.Point(1208, 6);
+            this.btnCardPreview.Name = "btnCardPreview";
+            this.btnCardPreview.Size = new System.Drawing.Size(135, 28);
+            this.btnCardPreview.TabIndex = 8;
+            this.btnCardPreview.Text = "📰 카드뉴스 보기";
+            this.btnCardPreview.UseVisualStyleBackColor = false;
+            this.btnCardPreview.Click += new System.EventHandler(this.btnCardPreview_Click);
             // 
             // btnToggleFavorite
             // 
@@ -365,12 +402,12 @@ namespace GateHelper.AiTrend
             this.txtDetailDescription.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtDetailDescription.Font = new System.Drawing.Font("맑은 고딕", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.txtDetailDescription.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(80)))), ((int)(((byte)(80)))), ((int)(((byte)(80)))));
-            this.txtDetailDescription.Location = new System.Drawing.Point(10, 102);
+            this.txtDetailDescription.Location = new System.Drawing.Point(10, 105);
             this.txtDetailDescription.Multiline = true;
             this.txtDetailDescription.Name = "txtDetailDescription";
             this.txtDetailDescription.ReadOnly = true;
             this.txtDetailDescription.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtDetailDescription.Size = new System.Drawing.Size(1784, 42);
+            this.txtDetailDescription.Size = new System.Drawing.Size(1784, 39);
             this.txtDetailDescription.TabIndex = 3;
             // 
             // txtDetailSummary
@@ -386,7 +423,7 @@ namespace GateHelper.AiTrend
             this.txtDetailSummary.Name = "txtDetailSummary";
             this.txtDetailSummary.ReadOnly = true;
             this.txtDetailSummary.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtDetailSummary.Size = new System.Drawing.Size(1784, 44);
+            this.txtDetailSummary.Size = new System.Drawing.Size(1784, 48);
             this.txtDetailSummary.TabIndex = 2;
             // 
             // lblDetailMeta
@@ -444,6 +481,7 @@ namespace GateHelper.AiTrend
         public System.Windows.Forms.Label lblCategory;
         public System.Windows.Forms.ComboBox cmbCategory;
         public System.Windows.Forms.Button btnRefresh;
+        public System.Windows.Forms.Button btnManageKeywords;
         public System.Windows.Forms.Label lblStatus;
         public System.Windows.Forms.ProgressBar progressBar;
         public System.Windows.Forms.DataGridView dgvAiTrends;
@@ -452,6 +490,7 @@ namespace GateHelper.AiTrend
         public System.Windows.Forms.Label lblDetailMeta;
         public System.Windows.Forms.TextBox txtDetailSummary;
         public System.Windows.Forms.TextBox txtDetailDescription;
+        public System.Windows.Forms.Button btnCardPreview;
         public System.Windows.Forms.Button btnToggleFavorite;
         public System.Windows.Forms.Button btnCopyUrl;
         public System.Windows.Forms.Button btnConfigApiKey;

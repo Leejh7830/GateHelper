@@ -270,6 +270,15 @@
     <Compile Include="SandBox\4. AiTrend\AiTrendControl.Designer.cs">
       <DependentUpon>AiTrendControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="SandBox\4. AiTrend\CustomKeywordDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SandBox\4. AiTrend\KeywordGuideDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SandBox\4. AiTrend\AiTrendPreviewDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="SandBox\GameListControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

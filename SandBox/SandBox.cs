@@ -13,13 +13,21 @@ namespace GateHelper
         private MysteryTimeControl _mysteryTimeGame;
         private AiTrendControl _aiTrendControl;
 
-        public SandBox()
+        public SandBox() : this(null)
+        {
+        }
+
+        public SandBox(string initialGame)
         {
             InitializeComponent();
 
             if (!DesignMode)
             {
                 InitializeCustomControls();
+                if (!string.IsNullOrEmpty(initialGame))
+                {
+                    SwitchToGame(initialGame);
+                }
             }
         }
 
