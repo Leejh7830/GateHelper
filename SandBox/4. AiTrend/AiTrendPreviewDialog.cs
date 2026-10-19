@@ -379,12 +379,12 @@ namespace GateHelper.AiTrend
                         : item.Description;
                 }
 
-                btnFavorite.Text = item.IsFavorite ? "★ 스크랩 해제" : "⭐ 스크랩";
+                btnFavorite.Text = item.IsFavorite ? "★ 찜 해제" : "⭐ 찜하기";
                 btnOpenOriginal.Text = "🔗 기사 원문 ↗";
             }
             else
             {
-                lblCategoryBadge.Text = "🌐 GitHub 급상승 AI 오픈소스";
+                lblCategoryBadge.Text = "🌐 실시간 급상승 AI 오픈소스";
                 lblMetaInfo.Text = $"⭐ Stars: {item.StarsFormatted}  |  🍴 Forks: {item.Forks:N0}  |  💻 언어: {item.Language}  |  ⏰ 최근 커밋: {item.PushedAtFormatted}";
                 lblAiBadge.Text = "💡 Gemini AI 2줄 핵심 역할 & 실무 팁";
                 lblFactBriefing.Text = string.IsNullOrWhiteSpace(item.AiSummary)
@@ -406,7 +406,7 @@ namespace GateHelper.AiTrend
                 }
 
                 btnFavorite.Text = item.IsFavorite ? "★ 찜 해제" : "⭐ 찜하기";
-                btnOpenOriginal.Text = "🌐 GitHub 열기 ↗";
+                btnOpenOriginal.Text = "🌐 프로젝트 저장소 열기 ↗";
             }
 
             // 즐겨찾기 버튼 색상

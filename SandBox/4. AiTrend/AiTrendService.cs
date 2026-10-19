@@ -4,6 +4,7 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Newtonsoft.Json;
@@ -33,6 +34,230 @@ namespace GateHelper.AiTrend
                 return "";
             }
         }
+
+        #region [Cache Housekeeping & Auto-Purge]
+
+        /// <summary>
+        /// _meta/cache/ 디렉토리 내의 오래된 임시 캐시 파일(ai_*.json)을 안전하게 자동 정리합니다.
+        /// (설정 파일, 즐겨찾기, 커스텀 키워드 등 사용자 영구 데이터는 절대 건드리지 않습니다.)
+        /// </summary>
+        public static int PurgeStaleCaches(int days = 3)
+        {
+            try
+            {
+                if (!Directory.Exists(CacheDir)) return 0;
+
+                int deletedCount = 0;
+                var dirInfo = new DirectoryInfo(CacheDir);
+                var files = dirInfo.GetFiles("ai_*.json");
+
+                DateTime threshold = DateTime.Now.AddDays(-days);
+
+                foreach (var file in files)
+                {
+                    try
+                    {
+                        // 3일 이상 경과한 캐시 파일만 삭제
+                        if (file.LastWriteTime < threshold)
+                        {
+                            file.Delete();
+                            deletedCount++;
+                        }
+                    }
+                    catch
+                    {
+                        // 다른 스레드가 읽기/쓰기 중인 파일은 에러 없이 조용히 패스 (FileLock 방어)
+                    }
+                }
+
+                if (deletedCount > 0)
+                {
+                    LogManager.LogMessage($"[AiTrend] 3일 이상 경과한 오래된 캐시 파일 {deletedCount}개 자동 정리 완료", LogManager.Level.Info);
+                }
+
+                return deletedCount;
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogException(ex, LogManager.Level.Warning, "AiTrend PurgeStaleCaches Failed");
+                return 0;
+            }
+        }
+
+        #endregion
+
+        #region [Sequential Background Preload Queue]
+
+        private static bool _isPreloadRunning = false;
+        private static readonly object _preloadLock = new object();
+        private static CancellationTokenSource _globalPreloadCts = new CancellationTokenSource();
+
+        static AiTrendService()
+        {
+            try
+            {
+                // 프로그램 종료 시 백그라운드 프리로딩 큐를 즉각 취소(Cancel)하여 좀비 프로세스 방지
+                System.Windows.Forms.Application.ApplicationExit += (s, e) => CancelAllPreloads();
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// 실행 중인 모든 백그라운드 AI 프리로딩 작업을 즉각 안전하게 중단합니다.
+        /// (프로그램 종료 시 호출되어 좀비 프로세스 잔류를 100% 방지)
+        /// </summary>
+        public static void CancelAllPreloads()
+        {
+            try
+            {
+                _globalPreloadCts?.Cancel();
+                _globalPreloadCts = new CancellationTokenSource();
+            }
+            catch { }
+        }
+
+        /// <summary>
+        /// 모든 AI 트렌드 카테고리를 순차적 백그라운드 유휴 큐로 안전하게 미리 분석/캐싱합니다.
+        /// (관심 키워드 -> 뉴스 -> 오픈소스 순서, Gemini 15 RPM 한도 방어, 캐시 존재 시 API 호출 100% 스킵)
+        /// </summary>
+        public async Task PreloadAllCategoriesAsync(CancellationToken ct, Func<bool> canProceed = null, Action<string, int, int> onProgress = null)
+        {
+            // 1. 중복 실행 방지
+            lock (_preloadLock)
+            {
+                if (_isPreloadRunning) return;
+                _isPreloadRunning = true;
+            }
+
+            // 외부 토큰과 전역 종료 토큰을 연결
+            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, _globalPreloadCts.Token))
+            {
+                var effectiveToken = linkedCts.Token;
+
+                try
+                {
+                    // 2. Gemini API Key 미등록 시 백그라운드 프리로딩 즉시 스킵 (캐시 오염 방지)
+                    if (!HasApiKey) return;
+
+                var allCategories = GetCategories();
+                var targets = new List<AiTrendCategory>();
+
+                // 우선순위 정렬: 1순위 커스텀 관심 키워드
+                targets.AddRange(allCategories.FindAll(c => c.Kind == CategoryKind.CustomKeyword));
+                // 2순위: 실시간 뉴스 (즐겨찾기 보관함 제외)
+                targets.AddRange(allCategories.FindAll(c => c.Kind == CategoryKind.NewsRss && c.Id != "favorites_news"));
+                // 3순위: GitHub 오픈소스 트렌드 (즐겨찾기 보관함 제외)
+                targets.AddRange(allCategories.FindAll(c => c.Kind == CategoryKind.GitHub && c.Id != "favorites_github"));
+
+                int totalCount = targets.Count;
+                int processedCount = 0;
+                int consecutiveFailures = 0;
+
+                foreach (var cat in targets)
+                {
+                    if (effectiveToken.IsCancellationRequested) break;
+
+                    // 외부 조건 검사 (서버 접속, 자동 로그인, UI 조작 등 메인 작업이 끝날 때까지 1초씩 안전하게 대기/양보)
+                    while (canProceed != null && !canProceed())
+                    {
+                        if (effectiveToken.IsCancellationRequested) break;
+                        await Task.Delay(1000, effectiveToken);
+                    }
+
+                    if (effectiveToken.IsCancellationRequested) break;
+
+                    processedCount++;
+                    onProgress?.Invoke(cat.DisplayName, processedCount, totalCount);
+
+                    // Zero-Request Cache Skip 검사
+                    string queryStr = cat.GetEffectiveQuery();
+                    string queryHash = GetShortHash(queryStr);
+                    string filePrefix = cat.Kind == CategoryKind.GitHub ? "ai_trend" : "ai_news";
+                    string cacheFilePath = Path.Combine(CacheDir, $"{filePrefix}_{cat.Id}_{queryHash}.json");
+                    double validHours = cat.Kind == CategoryKind.GitHub ? 3.0 : 1.0;
+
+                    if (File.Exists(cacheFilePath))
+                    {
+                        var (cachedItems, fTime) = TryReadCache(cacheFilePath);
+                        if (cachedItems != null && cachedItems.Count > 0 && (DateTime.Now - fTime).TotalHours < validHours)
+                        {
+                            bool allEnriched = cachedItems.TrueForAll(x => !string.IsNullOrWhiteSpace(x.PracticalTip) && !string.IsNullOrWhiteSpace(x.DetailStory));
+                            if (allEnriched)
+                            {
+                                // 이미 3단 심층 브리핑까지 완비된 유효 캐시가 있으므로 네트워크 요청 0건, 즉시 통과!
+                                continue;
+                            }
+                        }
+                    }
+
+                    // 캐시가 없거나 불완전한 경우 수집 및 AI 요약 비동기 진행
+                    try
+                    {
+                        var fetchResult = await FetchRepositoriesAsync(cat, forceRefresh: false);
+
+                        if (fetchResult != null && fetchResult.Items != null && fetchResult.Items.Count > 0)
+                        {
+                            consecutiveFailures = 0; // 성공 시 실패 카운트 리셋
+
+                            // 만약 아직 Gemini 3단 브리핑이 안 채워져 있다면 생성
+                            if (!fetchResult.IsFullyEnriched)
+                            {
+                                if (effectiveToken.IsCancellationRequested) break;
+
+                                var status = await EnrichRepositoriesAsync(cat, fetchResult.Items);
+                                if (status == AiEnrichStatus.QuotaExceeded)
+                                {
+                                    // 쿼터 초과 시 15초 추가 휴식
+                                    await Task.Delay(15000, effectiveToken);
+                                }
+                                else
+                                {
+                                    // Gemini 15 RPM 한도 완벽 방어를 위한 5초 안전 쿨다운
+                                    await Task.Delay(5000, effectiveToken);
+                                }
+                            }
+                        }
+                        else
+                        {
+                            consecutiveFailures++;
+                        }
+                    }
+                    catch (WebException)
+                    {
+                        consecutiveFailures++;
+                    }
+                    catch (Exception)
+                    {
+                        consecutiveFailures++;
+                    }
+
+                    // 서킷 브레이커: 연속 2회 이상 네트워크 실패 시 외부 인터넷 불가 환경으로 판단하고 즉시 중단
+                    if (consecutiveFailures >= 2)
+                    {
+                        LogManager.LogMessage("[AiTrend] 네트워크 연결 불가로 백그라운드 프리로딩 큐를 안전하게 조기 종료합니다.", LogManager.Level.Warning);
+                        break;
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // 취소 요청은 정상 종료 처리
+            }
+            catch (Exception ex)
+            {
+                LogManager.LogException(ex, LogManager.Level.Warning, "AiTrend PreloadAllCategoriesAsync Error");
+            }
+            finally
+            {
+                lock (_preloadLock)
+                {
+                    _isPreloadRunning = false;
+                }
+            }
+            }
+        }
+
+        #endregion
 
         #region [Favorites Management]
 
@@ -250,7 +475,7 @@ namespace GateHelper.AiTrend
                 new AiTrendCategory
                 {
                     Id = "trending",
-                    DisplayName = "🔥 전체 깃허브 급상승 (최근 30일)",
+                    DisplayName = "🔥 실시간 전체 급상승 (최근 30일)",
                     Kind = CategoryKind.GitHub,
                     DynamicQuery = () => $"created:>{DateTime.UtcNow.AddDays(-30):yyyy-MM-dd}&sort=stars&order=desc"
                 },
@@ -291,8 +516,8 @@ namespace GateHelper.AiTrend
                 },
                 new AiTrendCategory
                 {
-                    Id = "favorites",
-                    DisplayName = "⭐ 내가 찜한 프로젝트 / 뉴스",
+                    Id = "favorites_github",
+                    DisplayName = "⭐ [보관] 내가 찜한 오픈소스",
                     Kind = CategoryKind.GitHub,
                     Query = ""
                 },
@@ -329,9 +554,16 @@ namespace GateHelper.AiTrend
                 new AiTrendCategory
                 {
                     Id = "news_esports",
-                    DisplayName = "🎮 [뉴스] E스포츠 (LCK / 롤드컵 / T1)",
+                    DisplayName = "🎮 [뉴스] E스포츠 (LCK / 롤드컵)",
                     Kind = CategoryKind.NewsRss,
                     Query = "LCK OR 롤드컵 OR T1 OR 페이커 OR 젠지 OR 오버워치 when:2d"
+                },
+                new AiTrendCategory
+                {
+                    Id = "favorites_news",
+                    DisplayName = "⭐ [보관] 내가 찜한 뉴스 (스크랩)",
+                    Kind = CategoryKind.NewsRss,
+                    Query = ""
                 }
             };
 
@@ -364,19 +596,41 @@ namespace GateHelper.AiTrend
                 };
             }
 
-            // [관심 저장소 / 뉴스 (즐겨찾기) 전용 분기]
-            if (category.Id == "favorites")
+            // [오픈소스 찜 (즐겨찾기) 전용 분기 - GitHub 컬럼 헤더 자동 매핑]
+            if (category.Id == "favorites_github")
             {
-                var favs = LoadFavorites();
+                var allFavs = LoadFavorites();
+                var githubFavs = allFavs.FindAll(x => x.ItemType == TrendItemType.GitHubRepo);
+                int rank = 1;
+                foreach (var it in githubFavs) it.Rank = rank++;
                 return new AiTrendFetchResult
                 {
-                    Items = favs,
+                    Items = githubFavs,
                     IsLiveSuccess = true,
                     IsFallbackCache = false,
                     DataTimestamp = DateTime.Now,
-                    DisplayStatus = favs.Count > 0
-                        ? $"⭐ 내가 찜한 프로젝트 / 뉴스 ({favs.Count}개 보관 중)"
-                        : "⭐ 찜한 항목이 없습니다. 세부 정보창에서 '⭐ 찜하기/스크랩'을 눌러 저장해보세요!"
+                    DisplayStatus = githubFavs.Count > 0
+                        ? $"⭐ 내가 찜한 오픈소스 프로젝트 ({githubFavs.Count}개 보관 중)"
+                        : "⭐ 찜한 오픈소스가 없습니다. 프로젝트 세부 정보창에서 '⭐ 찜하기'를 눌러 저장해보세요!"
+                };
+            }
+
+            // [뉴스 찜/스크랩 (즐겨찾기) 전용 분기 - 뉴스 컬럼 헤더 자동 매핑]
+            if (category.Id == "favorites_news" || category.Id == "favorites")
+            {
+                var allFavs = LoadFavorites();
+                var newsFavs = allFavs.FindAll(x => x.ItemType == TrendItemType.NewsArticle);
+                int rank = 1;
+                foreach (var it in newsFavs) it.Rank = rank++;
+                return new AiTrendFetchResult
+                {
+                    Items = newsFavs,
+                    IsLiveSuccess = true,
+                    IsFallbackCache = false,
+                    DataTimestamp = DateTime.Now,
+                    DisplayStatus = newsFavs.Count > 0
+                        ? $"⭐ 내가 찜한 뉴스 기사 ({newsFavs.Count}건 보관 중)"
+                        : "⭐ 찜한 뉴스가 없습니다. 기사 세부 정보창이나 카드뉴스에서 '⭐ 찜하기'를 눌러 저장해보세요!"
                 };
             }
 

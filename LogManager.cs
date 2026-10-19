@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows.Forms;
@@ -39,6 +39,12 @@ namespace GateHelper
                     writer.WriteLine($"[{DateTime.Now}] [{GetLogLevelString(level)}] {memberName} :: {message}");
                     writer.WriteLine("-------------------------------------------------------------------------------");
                 }
+
+                try
+                {
+                    Dashboard.DashboardManager.RecordLogEntry(level, memberName, message);
+                }
+                catch { }
             }
             catch (Exception logEx)
             {
@@ -60,6 +66,12 @@ namespace GateHelper
                     writer.WriteLine(ex.StackTrace);
                     writer.WriteLine("-------------------------------------------------------------------------------");
                 }
+
+                try
+                {
+                    Dashboard.DashboardManager.RecordLogEntry(level, memberName, ex.Message);
+                }
+                catch { }
             }
             catch (Exception logEx)
             {

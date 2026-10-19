@@ -1,4 +1,4 @@
-﻿using OpenQA.Selenium;
+using OpenQA.Selenium;
 using System.Drawing;
 using System.Threading;
 using System.Windows.Forms;
@@ -23,7 +23,7 @@ namespace GateHelper
             control.Location = new Point(x, y);
         }
 
-        public static void MovePictureBoxIcons(Form form, PictureBox pictureBoxA, PictureBox pictureBoxB, PictureBox pictureBoxC, Control pictureBoxOption, Control btnLogValidator, Control txtQuickSearch, Control btnQuickConnect, Size formOriginalSize, bool isExpanded)
+        public static void MovePictureBoxIcons(Form form, PictureBox pictureBoxA, PictureBox pictureBoxB, PictureBox pictureBoxC, Control pictureBoxOption, Control btnLogValidator, Control txtQuickSearch, Control btnQuickConnect, Size formOriginalSize, bool isExpanded, Control btnDashboard = null)
         {
             int iconSpacing = 10;
             int xPos;
@@ -44,7 +44,13 @@ namespace GateHelper
 
             pictureBoxOption.Location = new Point(pictureBoxB.Location.X + 10, pictureBoxB.Location.Y - pictureBoxOption.Height - iconSpacing);
 
-            btnLogValidator.Location = new Point(pictureBoxOption.Location.X - btnLogValidator.Width - iconSpacing, pictureBoxOption.Location.Y);
+            if (btnDashboard != null)
+            {
+                btnDashboard.Location = new Point(pictureBoxOption.Location.X - btnDashboard.Width - 6, pictureBoxOption.Location.Y);
+            }
+
+            Control leftPivot = btnDashboard ?? pictureBoxOption;
+            btnLogValidator.Location = new Point(leftPivot.Location.X - btnLogValidator.Width - iconSpacing, pictureBoxOption.Location.Y);
 
             int quickY = pictureBoxOption.Location.Y - btnQuickConnect.Height - 8;
             btnQuickConnect.Location = new Point(pictureBoxOption.Location.X + pictureBoxOption.Width - btnQuickConnect.Width, quickY);
@@ -92,7 +98,8 @@ namespace GateHelper
             Control groupConnect,
             Size groupConnectOriginalSize,
             Size tabControlSize,
-            ref bool changeArrow)
+            ref bool changeArrow,
+            Control btnDashboard = null)
         {
             if (changeArrow)
             {
@@ -104,7 +111,7 @@ namespace GateHelper
 
                 changeArrow = false;
 
-                MovePictureBoxIcons(form, arrowPicBox, settingPicBox, questionPicBox, BtnOption1, BtnLogValidator, TxtQuickSearch, BtnQuickConnect, formOriginalSize, true);
+                MovePictureBoxIcons(form, arrowPicBox, settingPicBox, questionPicBox, BtnOption1, BtnLogValidator, TxtQuickSearch, BtnQuickConnect, formOriginalSize, true, btnDashboard);
             }
             else
             {
@@ -115,7 +122,7 @@ namespace GateHelper
 
                 changeArrow = true;
 
-                MovePictureBoxIcons(form, arrowPicBox, settingPicBox, questionPicBox, BtnOption1, BtnLogValidator, TxtQuickSearch, BtnQuickConnect, formOriginalSize, false);
+                MovePictureBoxIcons(form, arrowPicBox, settingPicBox, questionPicBox, BtnOption1, BtnLogValidator, TxtQuickSearch, BtnQuickConnect, formOriginalSize, false, btnDashboard);
             }
         }
 

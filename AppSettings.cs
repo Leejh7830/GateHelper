@@ -18,6 +18,9 @@ namespace GateHelper
         // AI 샌드박스 옵션: Gemini API Key
         public string GeminiApiKey { get; set; }
 
+        // AI 샌드박스 옵션: 프로그램 시작 시 AI 데일리 브리핑 백그라운드 자동 예열 여부
+        public bool AutoPreloadAiTrend { get; set; }
+
         public AppSettings() // 옵션 변수들
         {
             RemoveDuplicates = true;
@@ -31,6 +34,7 @@ namespace GateHelper
             SaveOption = false;
             EncryptCredentialsOnStart = false;
             GeminiApiKey = "";
+            AutoPreloadAiTrend = false;
         }
     }
 }

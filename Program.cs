@@ -1,5 +1,6 @@
 using GateHelper.LogValidator;
 using System;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace GateHelper
@@ -14,13 +15,43 @@ namespace GateHelper
         {
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            
-            // [바로가기] 당분간 AI 트렌드(SandBox) 기능 집중 테스트를 위해 바로 실행
-            Application.Run(new SandBox("AiTrend"));
 
-            // [기존 메인 UI 진입점 - 필요 시 위 줄을 주석하고 아래 줄 활성화]
-            // Application.Run(new MainUI());
+            // 1. 3일 경과 오래된 임시 캐시 파일 자동 청소
+            try
+            {
+                AiTrend.AiTrendService.PurgeStaleCaches(days: 3);
+            }
+            catch { }
+
+            // 2. [사용자 옵션] 프로그램 시작 시 AI 데일리 브리핑 백그라운드 자동 예열
+            try
+            {
+                var options = Util_Option.LoadUserOptions();
+                if (options != null && options.AutoPreloadAiTrend && !string.IsNullOrWhiteSpace(options.GeminiApiKey))
+                {
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            // 폼이 화면에 완전히 뜨고 안정화되도록 5초 대기 후 순차 예열
+                            await Task.Delay(5000);
+                            var svc = new AiTrend.AiTrendService();
+                            await svc.PreloadAllCategoriesAsync(
+                                System.Threading.CancellationToken.None,
+                                canProceed: () => !AiTrend.AiTrendControl.IsUiActive && !Util_Connect.IsAuthInProgress
+                            );
+                        }
+                        catch { }
+                    });
+                }
+            }
+            catch { }
+            
+            
+            // [] 메인 UI 진입점 ]
+            Application.Run(new MainUI());
             // Application.Run(new LogValidatorMain());
+            // Application.Run(new SandBox("AiTrend"));
         }
     }
 }

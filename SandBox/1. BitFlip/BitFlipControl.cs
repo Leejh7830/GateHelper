@@ -1,4 +1,4 @@
-﻿using MaterialSkin.Controls;
+using MaterialSkin.Controls;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -113,6 +113,12 @@ namespace GateHelper
                 _isGameActive = false;
                 _isProcessing = true;
                 gameTimer.Stop();
+
+                try
+                {
+                    GateHelper.Dashboard.DashboardManager.RecordBitFlipWin();
+                }
+                catch { }
 
                 // [수정] MaterialSkin 스타일의 승리 화면 호출
                 ShowVictoryOverlay(lblTimer.Text, cmbDifficulty.Text, GimmickHandler.UsedGimmicks);

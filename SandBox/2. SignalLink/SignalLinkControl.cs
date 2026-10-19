@@ -1,4 +1,4 @@
-﻿using MaterialSkin.Controls;
+using MaterialSkin.Controls;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -488,6 +488,12 @@ namespace GateHelper
             {
                 _isGameActive = false;
                 _gameTimer.Stop(); // 승리 시 타이머 정지
+
+                try
+                {
+                    GateHelper.Dashboard.DashboardManager.RecordSignalLinkWin();
+                }
+                catch { }
 
                 // 현재까지의 시간을 MM:SS 형식으로 변환
                 string finalTime = string.Format("{0:D2}:{1:D2}", _playTimeSeconds / 60, _playTimeSeconds % 60);

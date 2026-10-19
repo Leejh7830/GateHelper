@@ -85,7 +85,7 @@ namespace GateHelper.AiTrend
             this.lblSubtitle.Name = "lblSubtitle";
             this.lblSubtitle.Size = new System.Drawing.Size(262, 15);
             this.lblSubtitle.TabIndex = 2;
-            this.lblSubtitle.Text = "실시간 인기 AI 오픈소스 및 핵심 요약 뉴스피드";
+            this.lblSubtitle.Text = "실시간 AI 오픈소스 트렌드 & 핵심 데일리 브리핑";
             // 
             // lblTitle
             // 
@@ -94,9 +94,9 @@ namespace GateHelper.AiTrend
             this.lblTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
             this.lblTitle.Location = new System.Drawing.Point(98, 12);
             this.lblTitle.Name = "lblTitle";
-            this.lblTitle.Size = new System.Drawing.Size(248, 21);
+            this.lblTitle.Size = new System.Drawing.Size(260, 21);
             this.lblTitle.TabIndex = 1;
-            this.lblTitle.Text = "🔥 GitHub AI Ranking & Trends";
+            this.lblTitle.Text = "🔥 AI Trends & Daily Briefing";
             // 
             // btnBack
             // 
@@ -390,7 +390,7 @@ namespace GateHelper.AiTrend
             this.btnOpenGithub.Name = "btnOpenGithub";
             this.btnOpenGithub.Size = new System.Drawing.Size(143, 28);
             this.btnOpenGithub.TabIndex = 4;
-            this.btnOpenGithub.Text = "🌐 GitHub 열기 ↗";
+            this.btnOpenGithub.Text = "🌐 원문 열기 ↗";
             this.btnOpenGithub.UseVisualStyleBackColor = false;
             this.btnOpenGithub.Click += new System.EventHandler(this.btnOpenGithub_Click);
             // 

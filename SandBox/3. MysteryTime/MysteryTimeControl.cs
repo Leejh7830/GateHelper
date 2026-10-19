@@ -633,6 +633,16 @@ namespace GateHelper.MysteryTime
             try
             {
                 var result = await _aiEngine.EvaluateAnswerAsync(_currentCase, solutionText);
+
+                try
+                {
+                    GateHelper.Dashboard.DashboardManager.RecordMysteryAttempt();
+                    if (result.isCorrect)
+                    {
+                        GateHelper.Dashboard.DashboardManager.RecordMysterySolved();
+                    }
+                }
+                catch { }
                 
                 string titleStr = result.isCorrect ? "🎉 정답입니다!" : "❌ 아쉬운 오답입니다.";
                 MessageBoxIcon iconStr = result.isCorrect ? MessageBoxIcon.Information : MessageBoxIcon.Warning;

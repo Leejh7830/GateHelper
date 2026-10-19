@@ -1,4 +1,5 @@
 using ClosedXML.Excel;
+using GateHelper.Dashboard;
 using GateHelper.LogValidator;
 using GateHelper.Mgmt;
 using GateHelper.Mgmt.ExcelAnalyzer;
@@ -74,6 +75,9 @@ namespace GateHelper
         // [SandBox] 관리용
         private SandBox _sandbox = null;
 
+        // [Dashboard] 관리용
+        private DashboardForm _dashboardForm = null;
+
         // [ServerMapping] 엔터연타방지
         private bool _isQuickSearching = false;
 
@@ -102,6 +106,7 @@ namespace GateHelper
             // 이하 기존 코드
             InitializeLogFile();
             LogMessage("========== Initialize ==========", Level.Info);
+            DashboardManager.Initialize();
             InitializeComponent();
 
             _config = configManager.LoadedConfig;
@@ -457,7 +462,10 @@ namespace GateHelper
                                 {
                                 }
                                 else
+                                {
+                                    DashboardManager.RecordAutoLogin(true);
                                     LogMessage("자동 로그인 전 과정이 성공적으로 완료되었습니다!", Level.Info);
+                                }
                             }
                         }
                     }
@@ -467,6 +475,7 @@ namespace GateHelper
 
                 if (!string.IsNullOrEmpty(err))
                 {
+                    DashboardManager.RecordAutoLogin(false);
                     ToastNotification.Show(err, "자동 로그인 오류", ToastIcon.Warning);
                 }
             }
@@ -811,6 +820,23 @@ namespace GateHelper
                 _themeManager.SetTheme(newIsDarkMode, PicBox_Setting, OlvServerList);
                 Util_Option.SetPopupGraceMs(_appSettings.PopupGraceMs);
 
+                // 💡 [AI 데일리 브리핑] 옵션 체크 후 저장 즉시 백그라운드 프리로딩 시동 (서버접속/로그인 등 메인 작업 진행 중이면 완료 후 이어서 진행)
+                if (_appSettings.AutoPreloadAiTrend && !string.IsNullOrWhiteSpace(_appSettings.GeminiApiKey))
+                {
+                    Task.Run(async () =>
+                    {
+                        try
+                        {
+                            var svc = new AiTrend.AiTrendService();
+                            await svc.PreloadAllCategoriesAsync(
+                                System.Threading.CancellationToken.None,
+                                canProceed: () => !AiTrend.AiTrendControl.IsUiActive && !Util.IsAnyMainOperationBusy()
+                            );
+                        }
+                        catch { }
+                    });
+                }
+
                 if (oldTestMode != _appSettings.TestMode)
                 {
                     ApplyTestMode(_appSettings.TestMode);
@@ -934,7 +960,20 @@ namespace GateHelper
             Util_Control.ToggleFormLayout(
                 this, PicBox_Arrow, PicBox_Setting, PicBox_Question, BtnOption1, BtnLogValidator, TxtQuickSearch, BtnQuickConnect,
                 FormOriginalSize, FormExtendedSize, TabSelector1,
-                tabSelector1OriginalSize, GroupConnect1, groupConnect1OriginalSize, TabControl1.Size, ref changeArrow);
+                tabSelector1OriginalSize, GroupConnect1, groupConnect1OriginalSize, TabControl1.Size, ref changeArrow, BtnDashboard);
+        }
+
+        private void BtnDashboard_Click(object sender, EventArgs e)
+        {
+            if (_dashboardForm == null || _dashboardForm.IsDisposed)
+            {
+                _dashboardForm = new DashboardForm();
+                _dashboardForm.Show(this);
+            }
+            else
+            {
+                _dashboardForm.BringToFront();
+            }
         }
 
         private void PicBox_Question_Click(object sender, EventArgs e)
@@ -1030,8 +1069,10 @@ namespace GateHelper
                 return;
             }
 
+            DashboardManager.OnAppClosing();
             Util_Rdp.SendExitMessage(_config); // 프로그램 종료 시 메시지 송신
             Util_Rdp.StopBroadcastReceiveLoop(); // RDP 수신 루프 종료
+            AiTrend.AiTrendService.CancelAllPreloads(); // AI 트렌드 백그라운드 프리로딩 즉시 취소 및 정리
 
             if (_driver != null)
             {
@@ -1329,6 +1370,7 @@ namespace GateHelper
         {
             try
             {
+                DashboardManager.RecordServerConnect(targetServer);
                 StartRdpDetect(targetServer);
                 bool success = await Task.Run(() => Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, targetServer, OlvServerList, _appSettings.RemoveDuplicates));
                 if (!success)
@@ -1966,7 +2008,7 @@ namespace GateHelper
             Util_Control.ToggleFormLayout(
                 this, PicBox_Arrow, PicBox_Setting, PicBox_Question, BtnOption1, BtnLogValidator, TxtQuickSearch, BtnQuickConnect,
                 FormOriginalSize, FormExtendedSize, TabSelector1,
-                tabSelector1OriginalSize, GroupConnect1, groupConnect1OriginalSize, TabControl1.Size, ref changeArrow);
+                tabSelector1OriginalSize, GroupConnect1, groupConnect1OriginalSize, TabControl1.Size, ref changeArrow, BtnDashboard);
             
             this.PerformLayout();
             this.ResumeLayout(true);

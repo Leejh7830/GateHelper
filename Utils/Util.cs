@@ -148,6 +148,22 @@ namespace GateHelper
         // 중앙화된 _meta 경로 접근
         public static string MetaFolder => CreateMetaFolderAndGetPath();
 
+        /// <summary>
+        /// 서버 접속(Connecting), 자동 로그인 및 OTP 인증(AuthInProgress) 등 프로그램의 핵심 메인 작업이 진행 중인지 확인합니다.
+        /// </summary>
+        public static bool IsAnyMainOperationBusy()
+        {
+            try
+            {
+                if (Util_Connect.IsConnecting || Util_Connect.IsAuthInProgress) return true;
+                return false;
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         public static string GetMetaPath(params string[] parts)
         {
             string basePath = MetaFolder;
@@ -237,6 +253,7 @@ v2.4.8 / 26.10.07 신규 - SandBox - MysteryTime (Gemini API 기반 바다거북
 v2.5.0 / 26.10.15 신규 - SandBox - AI TREND (GitHub 실시간 급상승 및 Gemini 한국어 심층 요약 분석기) 추가 및 안정화
 v2.5.1 / 26.10.18 개선 - AI TREND 5대 핵심 뉴스(IT/세계경제/국내경제/스포츠/E스포츠) 확장 및 사용자 관심 키워드 추가/관리 기능 구축, 2단계 점진적 초고속 렌더링(0.8초)
 v2.5.2 / 26.10.18 신규 - AI TREND 초경량 카드뉴스 퀵 뷰어(단축키 및 이전/다음 내비게이션), Gemini 3단 AI 심층 스토리 브리핑(DetailStory) 및 스크랩 실시간 동기화
+v2.5.3 / 26.10.19 신규 - GateHelper Analytics & System Dashboard (_meta/dashboard 별도 관리, 실시간 리소스 모니터リング, 총 가동시간/접속통계, 샌드박스 업적 전당, 최근 에러 로그 타임라인)
         
 ";
             try

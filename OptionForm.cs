@@ -62,7 +62,8 @@ namespace GateHelper
                 { CBox_SaveOption, "체크하면 현재 설정된 옵션 상태를 저장하여 다음 프로그램 실행 시 그대로 불러옵니다." },
                 { CBox_EncryptCredentialsOnStart, "시작 시 설정 파일의 비밀번호를 자동 암호화합니다." },
                 { BtnOpenMappingConfig, "서버 매핑 마스터 엑셀 설정 파일을 엽니다." },
-                { BtnGeminiApiKey, "Google Gemini AI API Key를 등록 및 관리합니다." }
+                { BtnGeminiApiKey, "Google Gemini AI API Key를 등록 및 관리합니다." },
+                { CBox_AutoPreloadAiTrend, "프로그램 시작 시 AI 데일리 브리핑(관심 키워드/뉴스/오픈소스)을\n백그라운드에서 순차적으로 미리 분석하여 캐싱합니다." }
             };
 
             // 설명 라벨을 동적으로 생성하여 폼 하단에 표시
@@ -156,6 +157,11 @@ namespace GateHelper
                 CBox_UseUDP.Checked = AppSettings.UseUDP;
                 CBox_SaveOption.Checked = AppSettings.SaveOption;
                 CBox_EncryptCredentialsOnStart.Checked = AppSettings.EncryptCredentialsOnStart;
+
+                // Gemini API Key 등록 여부에 따른 활성화 인터락
+                bool hasKey = !string.IsNullOrWhiteSpace(AppSettings.GeminiApiKey) || !string.IsNullOrWhiteSpace(Util_Option.LoadUserOptions()?.GeminiApiKey);
+                CBox_AutoPreloadAiTrend.Enabled = hasKey;
+                CBox_AutoPreloadAiTrend.Checked = hasKey && AppSettings.AutoPreloadAiTrend;
             }
             // ms → 초 단위로 변환 후 ComboBox에 반영
             string graceSec = (AppSettings.PopupGraceMs / 1000).ToString();
@@ -179,6 +185,7 @@ namespace GateHelper
                 AppSettings.UseUDP = CBox_UseUDP.Checked;
                 AppSettings.SaveOption = CBox_SaveOption.Checked;
                 AppSettings.EncryptCredentialsOnStart = CBox_EncryptCredentialsOnStart.Checked;
+                AppSettings.AutoPreloadAiTrend = CBox_AutoPreloadAiTrend.Enabled && CBox_AutoPreloadAiTrend.Checked;
             }
 
             this.DialogResult = DialogResult.OK;
@@ -248,6 +255,9 @@ namespace GateHelper
                     if (AppSettings != null)
                     {
                         AppSettings.GeminiApiKey = form.CurrentApiKey;
+                        bool hasKey = !string.IsNullOrWhiteSpace(AppSettings.GeminiApiKey);
+                        CBox_AutoPreloadAiTrend.Enabled = hasKey;
+                        if (!hasKey) CBox_AutoPreloadAiTrend.Checked = false;
                     }
                 }
             }

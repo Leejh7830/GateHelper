@@ -100,6 +100,7 @@ namespace GateHelper
             this.TxtQuickSearch = new MaterialSkin.Controls.MaterialTextBox2();
             this.BtnQuickConnect = new MaterialSkin.Controls.MaterialButton();
             this.BtnLogValidator = new MaterialSkin.Controls.MaterialButton();
+            this.BtnDashboard = new MaterialSkin.Controls.MaterialButton();
             this.PicBox_Arrow = new System.Windows.Forms.PictureBox();
             this.PicBox_Setting = new System.Windows.Forms.PictureBox();
             this.GroupConnect1.SuspendLayout();
@@ -1025,6 +1026,27 @@ namespace GateHelper
             this.lblInternetStatus.TabIndex = 30;
             this.lblInternetStatus.Text = "Internet";
             // 
+            // BtnDashboard
+            // 
+            this.BtnDashboard.AutoSize = false;
+            this.BtnDashboard.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.BtnDashboard.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.BtnDashboard.Depth = 0;
+            this.BtnDashboard.HighEmphasis = true;
+            this.BtnDashboard.Icon = null;
+            this.BtnDashboard.Location = new System.Drawing.Point(213, 613);
+            this.BtnDashboard.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.BtnDashboard.MouseState = MaterialSkin.MouseState.HOVER;
+            this.BtnDashboard.Name = "BtnDashboard";
+            this.BtnDashboard.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.BtnDashboard.Size = new System.Drawing.Size(95, 33);
+            this.BtnDashboard.TabIndex = 37;
+            this.BtnDashboard.Text = "DASHBOARD";
+            this.BtnDashboard.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.BtnDashboard.UseAccentColor = false;
+            this.BtnDashboard.UseVisualStyleBackColor = true;
+            this.BtnDashboard.Click += new System.EventHandler(this.BtnDashboard_Click);
+            // 
             // BtnOption1
             // 
             this.BtnOption1.AutoSize = false;
@@ -1266,6 +1288,7 @@ namespace GateHelper
             this.Controls.Add(this.BtnSend1);
             this.Controls.Add(this.lblPopupStatus);
             this.Controls.Add(this.BtnOption1);
+            this.Controls.Add(this.BtnDashboard);
             this.Controls.Add(this.lblInternetStatus);
             this.Controls.Add(this.lblDriverStatus);
             this.Controls.Add(this.PicBox_Arrow);
@@ -1379,6 +1402,7 @@ namespace GateHelper
         private System.Windows.Forms.GroupBox groupBox1;
         private MaterialSkin.Controls.MaterialButton BtnLogValidator;
         private MaterialSkin.Controls.MaterialButton BtnMgmtAnalyzer;
+        private MaterialSkin.Controls.MaterialButton BtnDashboard;
     }
 }
 

@@ -46,6 +46,7 @@ namespace GateHelper
             this.BtnGeminiApiKey = new MaterialSkin.Controls.MaterialButton();
             this.CBox_SaveOption = new MaterialSkin.Controls.MaterialCheckbox();
             this.CBox_EncryptCredentialsOnStart = new MaterialSkin.Controls.MaterialCheckbox();
+            this.CBox_AutoPreloadAiTrend = new MaterialSkin.Controls.MaterialCheckbox();
             this.SuspendLayout();
             // 
             // CBox_RemoveDuplicate
@@ -154,7 +155,7 @@ namespace GateHelper
             this.materialButton1.DialogResult = System.Windows.Forms.DialogResult.OK;
             this.materialButton1.HighEmphasis = true;
             this.materialButton1.Icon = null;
-            this.materialButton1.Location = new System.Drawing.Point(153, 494);
+            this.materialButton1.Location = new System.Drawing.Point(153, 546);
             this.materialButton1.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.materialButton1.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialButton1.Name = "materialButton1";
@@ -175,7 +176,7 @@ namespace GateHelper
             this.materialButton2.DialogResult = System.Windows.Forms.DialogResult.Cancel;
             this.materialButton2.HighEmphasis = true;
             this.materialButton2.Icon = null;
-            this.materialButton2.Location = new System.Drawing.Point(225, 494);
+            this.materialButton2.Location = new System.Drawing.Point(225, 546);
             this.materialButton2.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.materialButton2.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialButton2.Name = "materialButton2";
@@ -213,7 +214,7 @@ namespace GateHelper
             "10",
             "30",
             "60"});
-            this.ComboBoxGraceMs1.Location = new System.Drawing.Point(147, 408);
+            this.ComboBoxGraceMs1.Location = new System.Drawing.Point(147, 444);
             this.ComboBoxGraceMs1.MaxDropDownItems = 4;
             this.ComboBoxGraceMs1.MouseState = MaterialSkin.MouseState.OUT;
             this.ComboBoxGraceMs1.Name = "ComboBoxGraceMs1";
@@ -227,7 +228,7 @@ namespace GateHelper
             this.materialLabel1.AutoSize = true;
             this.materialLabel1.Depth = 0;
             this.materialLabel1.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel1.Location = new System.Drawing.Point(37, 438);
+            this.materialLabel1.Location = new System.Drawing.Point(37, 474);
             this.materialLabel1.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialLabel1.Name = "materialLabel1";
             this.materialLabel1.Size = new System.Drawing.Size(83, 19);
@@ -239,7 +240,7 @@ namespace GateHelper
             this.materialLabel2.AutoSize = true;
             this.materialLabel2.Depth = 0;
             this.materialLabel2.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
-            this.materialLabel2.Location = new System.Drawing.Point(17, 413);
+            this.materialLabel2.Location = new System.Drawing.Point(17, 449);
             this.materialLabel2.MouseState = MaterialSkin.MouseState.HOVER;
             this.materialLabel2.Name = "materialLabel2";
             this.materialLabel2.Size = new System.Drawing.Size(124, 19);
@@ -271,7 +272,7 @@ namespace GateHelper
             this.BtnOpenMappingConfig.Depth = 0;
             this.BtnOpenMappingConfig.HighEmphasis = true;
             this.BtnOpenMappingConfig.Icon = null;
-            this.BtnOpenMappingConfig.Location = new System.Drawing.Point(17, 350);
+            this.BtnOpenMappingConfig.Location = new System.Drawing.Point(17, 386);
             this.BtnOpenMappingConfig.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnOpenMappingConfig.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnOpenMappingConfig.Name = "BtnOpenMappingConfig";
@@ -292,7 +293,7 @@ namespace GateHelper
             this.BtnGeminiApiKey.Depth = 0;
             this.BtnGeminiApiKey.HighEmphasis = true;
             this.BtnGeminiApiKey.Icon = null;
-            this.BtnGeminiApiKey.Location = new System.Drawing.Point(95, 350);
+            this.BtnGeminiApiKey.Location = new System.Drawing.Point(95, 386);
             this.BtnGeminiApiKey.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.BtnGeminiApiKey.MouseState = MaterialSkin.MouseState.HOVER;
             this.BtnGeminiApiKey.Name = "BtnGeminiApiKey";
@@ -337,11 +338,28 @@ namespace GateHelper
             this.CBox_EncryptCredentialsOnStart.Text = "Encrypt Credentials On Start";
             this.CBox_EncryptCredentialsOnStart.UseVisualStyleBackColor = true;
             // 
+            // CBox_AutoPreloadAiTrend
+            // 
+            this.CBox_AutoPreloadAiTrend.AutoSize = true;
+            this.CBox_AutoPreloadAiTrend.Depth = 0;
+            this.CBox_AutoPreloadAiTrend.Location = new System.Drawing.Point(17, 339);
+            this.CBox_AutoPreloadAiTrend.Margin = new System.Windows.Forms.Padding(0);
+            this.CBox_AutoPreloadAiTrend.MouseLocation = new System.Drawing.Point(-1, -1);
+            this.CBox_AutoPreloadAiTrend.MouseState = MaterialSkin.MouseState.HOVER;
+            this.CBox_AutoPreloadAiTrend.Name = "CBox_AutoPreloadAiTrend";
+            this.CBox_AutoPreloadAiTrend.ReadOnly = false;
+            this.CBox_AutoPreloadAiTrend.Ripple = true;
+            this.CBox_AutoPreloadAiTrend.Size = new System.Drawing.Size(289, 37);
+            this.CBox_AutoPreloadAiTrend.TabIndex = 107;
+            this.CBox_AutoPreloadAiTrend.Text = "Auto Preload AI Trend (Background)";
+            this.CBox_AutoPreloadAiTrend.UseVisualStyleBackColor = true;
+            // 
             // OptionForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(452, 734);
+            this.ClientSize = new System.Drawing.Size(480, 813);
+            this.Controls.Add(this.CBox_AutoPreloadAiTrend);
             this.Controls.Add(this.CBox_EncryptCredentialsOnStart);
             this.Controls.Add(this.CBox_SaveOption);
             this.Controls.Add(this.BtnOpenMappingConfig);
@@ -390,5 +408,6 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialButton BtnGeminiApiKey;
         private MaterialSkin.Controls.MaterialCheckbox CBox_SaveOption;
         private MaterialSkin.Controls.MaterialCheckbox CBox_EncryptCredentialsOnStart;
+        private MaterialSkin.Controls.MaterialCheckbox CBox_AutoPreloadAiTrend;
     }
 }

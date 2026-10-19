@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using MaterialSkin;
@@ -17,6 +18,11 @@ namespace GateHelper.AiTrend
         private bool _isDarkMode = false;
         private int _currentLoadRequestId = 0;
         private int _hoveredRowIndex = -1;
+
+        // UI 활성 여부 인터락 (UI가 카테고리를 조회 중일 때 백그라운드 프리로딩 양보)
+        public static bool IsUiActive { get; private set; } = false;
+        private CancellationTokenSource _preloadCts = new CancellationTokenSource();
+        private bool _hasPreloadStartedOnEnter = false;
 
         // 빈 상태 및 오류 안내 오버레이 컨트롤
         private Panel _pnlEmptyOverlay = null;
@@ -61,6 +67,9 @@ namespace GateHelper.AiTrend
             {
                 cmbCategory.SelectedIndex = 0;
             }
+
+            // AI Trend 화면 진입 시 유휴 상태에서 백그라운드 순차 프리로딩 시동
+            TriggerBackgroundPreloadIfIdle();
         }
 
         public void ApplyTheme(bool isDark)
@@ -250,6 +259,7 @@ namespace GateHelper.AiTrend
 
             try
             {
+                IsUiActive = true;
                 SetLoading(true);
                 lblStatus.Text = forceRefresh ? $"{sourceName} 수집 중..." : "데이터 로딩 중...";
                 lblStatus.ForeColor = _isDarkMode ? Color.LightGray : Color.DimGray;
@@ -359,6 +369,7 @@ namespace GateHelper.AiTrend
                 {
                     SetLoading(false);
                 }
+                IsUiActive = false;
             }
         }
 
@@ -523,7 +534,7 @@ namespace GateHelper.AiTrend
 
                 if (dlg.HasChanges)
                 {
-                    if (cmbCategory.SelectedItem is AiTrendCategory curCat && curCat.Id == "favorites")
+                    if (cmbCategory.SelectedItem is AiTrendCategory curCat && (curCat.Id == "favorites_github" || curCat.Id == "favorites_news" || curCat.Id == "favorites"))
                     {
                         _ = LoadDataAsync(forceRefresh: false);
                     }
@@ -755,7 +766,7 @@ namespace GateHelper.AiTrend
             if (isNews)
             {
                 lblDetailMeta.Text = $"📰 언론사: {item.Owner}  |  🔥 발행: {item.TimeFormatted} ({item.PushedAt:yyyy-MM-dd HH:mm}){statusBadge}";
-                btnToggleFavorite.Text = item.IsFavorite ? "★ 스크랩 해제" : "⭐ 뉴스 스크랩";
+                btnToggleFavorite.Text = item.IsFavorite ? "★ 찜 해제" : "⭐ 찜하기";
                 btnOpenGithub.Text = "🔗 기사 원문";
 
                 if (!string.IsNullOrWhiteSpace(item.DetailStory))
@@ -774,7 +785,7 @@ namespace GateHelper.AiTrend
             {
                 lblDetailMeta.Text = $"⭐ Stars: {item.StarsFormatted} ({item.Stars:N0})  |  🍴 Forks: {item.Forks:N0}  |  💻 언어: {item.Language}  |  ⏰ 최근 커밋: {item.PushedAtFormatted}{statusBadge}";
                 btnToggleFavorite.Text = item.IsFavorite ? "★ 찜 해제" : "⭐ 찜하기";
-                btnOpenGithub.Text = "🔗 GitHub";
+                btnOpenGithub.Text = "🔗 프로젝트 원문";
                 txtDetailDescription.Text = !string.IsNullOrWhiteSpace(item.DetailStory)
                     ? "📖 [AI 심층 분석] " + item.DetailStory
                     : "📄 [원문 설명] " + item.Description;
@@ -859,14 +870,15 @@ namespace GateHelper.AiTrend
             bool isFavNow = _service.ToggleFavorite(item);
             UpdateDetailView(item);
 
-            // 현재 '내가 찜한 프로젝트' 카테고리를 보고 있는 상태에서 찜 해제 시 목록에서 즉시 제거
-            if (cmbCategory.SelectedItem is AiTrendCategory curCat && curCat.Id == "favorites")
+            // 현재 '내가 찜한 오픈소스/뉴스' 보관함 카테고리를 보고 있는 상태에서 찜 해제 시 목록에서 즉시 제거
+            if (cmbCategory.SelectedItem is AiTrendCategory curCat && (curCat.Id == "favorites_github" || curCat.Id == "favorites_news" || curCat.Id == "favorites"))
             {
                 if (!isFavNow)
                 {
                     _currentItems.Remove(item);
                     BindGrid(_currentItems);
-                    lblStatus.Text = $"⭐ 내가 찜한 AI 프로젝트 ({_currentItems.Count}개 보관 중)";
+                    string typeName = curCat.Id == "favorites_news" ? "뉴스 기사" : "오픈소스 프로젝트";
+                    lblStatus.Text = $"⭐ 내가 찜한 {typeName} ({_currentItems.Count}개 보관 중)";
                     return;
                 }
             }
@@ -1094,6 +1106,42 @@ namespace GateHelper.AiTrend
             {
                 sb.BackToList();
             }
+        }
+
+        private void TriggerBackgroundPreloadIfIdle()
+        {
+            if (_hasPreloadStartedOnEnter) return;
+            _hasPreloadStartedOnEnter = true;
+
+            // 옵션이 꺼져 있더라도 AI Trend 탭에 사용자가 들어온 순간 백그라운드 유휴 큐 시동!
+            // (옵션이 켜져 있었다면 이미 프로그램 시작 시 가동되었으므로 안전한 내부 락으로 중복 실행 방지됨)
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    // 첫 화면 즉시 렌더링(0.8초) 후 곧바로 백그라운드 전체 순차 예열 시작 (2초 대기)
+                    await Task.Delay(2000, _preloadCts.Token);
+                    await _service.PreloadAllCategoriesAsync(
+                        _preloadCts.Token,
+                        canProceed: () => !IsUiActive && !Util.IsAnyMainOperationBusy()
+                    );
+                }
+                catch (OperationCanceledException) { }
+                catch (Exception ex)
+                {
+                    LogManager.LogException(ex, LogManager.Level.Warning, "AiTrendControl Preload Task Error");
+                }
+            }, _preloadCts.Token);
+        }
+
+        protected override void OnHandleDestroyed(EventArgs e)
+        {
+            try
+            {
+                _preloadCts?.Cancel();
+            }
+            catch { }
+            base.OnHandleDestroyed(e);
         }
     }
 }
