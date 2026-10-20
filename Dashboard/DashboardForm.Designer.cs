@@ -57,22 +57,23 @@ namespace GateHelper.Dashboard
             this.colPercentage = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.gaugeAutoLogin = new GateHelper.Dashboard.CircularProgressControl();
             this.chartServerDonut = new GateHelper.Dashboard.DonutChartControl();
+            this.heatmapHourly = new GateHelper.Dashboard.HourlyHeatmapControl();
             this.tpSandbox = new System.Windows.Forms.TabPage();
             this.pnlSandboxContent = new System.Windows.Forms.Panel();
-            this.pnlBoxAiTrend = new System.Windows.Forms.Panel();
-            this.lblAiTrendDetails = new System.Windows.Forms.Label();
-            this.lblAiTrendTitle = new System.Windows.Forms.Label();
-            this.pnlBoxMystery = new System.Windows.Forms.Panel();
-            this.lblMysteryDetails = new System.Windows.Forms.Label();
-            this.lblMysteryTitle = new System.Windows.Forms.Label();
-            this.pnlBoxSignalLink = new System.Windows.Forms.Panel();
-            this.lblSignalLinkDetails = new System.Windows.Forms.Label();
-            this.lblSignalLinkTitle = new System.Windows.Forms.Label();
-            this.pnlBoxBitFlip = new System.Windows.Forms.Panel();
-            this.lblBitFlipDetails = new System.Windows.Forms.Label();
-            this.lblBitFlipTitle = new System.Windows.Forms.Label();
+            this.bannerMastery = new GateHelper.Dashboard.MasteryBannerControl();
+            this.dgvAchievements = new System.Windows.Forms.DataGridView();
+            this.colAchStatus = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colAchCategory = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colAchTitle = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colAchDesc = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colAchProgress = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colAchPoints = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.tpLogs = new System.Windows.Forms.TabPage();
             this.pnlLogContent = new System.Windows.Forms.Panel();
+            this.lblLogTabGuide = new System.Windows.Forms.Label();
+            this.btnFilterAlerts = new MaterialSkin.Controls.MaterialButton();
+            this.btnAckLogs = new MaterialSkin.Controls.MaterialButton();
+            this.btnOpenLogDir = new MaterialSkin.Controls.MaterialButton();
             this.txtLogDetail = new System.Windows.Forms.TextBox();
             this.dgvRecentLogs = new System.Windows.Forms.DataGridView();
             this.colLogTime = new System.Windows.Forms.DataGridViewTextBoxColumn();
@@ -82,8 +83,6 @@ namespace GateHelper.Dashboard
             this.tabSelectorMain = new MaterialSkin.Controls.MaterialTabSelector();
             this.pnlBottomBar = new System.Windows.Forms.Panel();
             this.lblStoragePath = new System.Windows.Forms.Label();
-            this.btnOpenLogDir = new MaterialSkin.Controls.MaterialButton();
-            this.btnOpenDashboardDir = new MaterialSkin.Controls.MaterialButton();
             this.btnRefresh = new MaterialSkin.Controls.MaterialButton();
             this.btnResetStats = new MaterialSkin.Controls.MaterialButton();
             this.pnlTopCards.SuspendLayout();
@@ -101,10 +100,7 @@ namespace GateHelper.Dashboard
             ((System.ComponentModel.ISupportInitialize)(this.dgvTopServers)).BeginInit();
             this.tpSandbox.SuspendLayout();
             this.pnlSandboxContent.SuspendLayout();
-            this.pnlBoxAiTrend.SuspendLayout();
-            this.pnlBoxMystery.SuspendLayout();
-            this.pnlBoxSignalLink.SuspendLayout();
-            this.pnlBoxBitFlip.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvAchievements)).BeginInit();
             this.tpLogs.SuspendLayout();
             this.pnlLogContent.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvRecentLogs)).BeginInit();
@@ -306,12 +302,12 @@ namespace GateHelper.Dashboard
             this.tabControlMain.Controls.Add(this.tpSandbox);
             this.tabControlMain.Controls.Add(this.tpLogs);
             this.tabControlMain.Depth = 0;
-            this.tabControlMain.Location = new System.Drawing.Point(12, 212);
+            this.tabControlMain.Location = new System.Drawing.Point(12, 208);
             this.tabControlMain.MouseState = MaterialSkin.MouseState.HOVER;
             this.tabControlMain.Multiline = true;
             this.tabControlMain.Name = "tabControlMain";
             this.tabControlMain.SelectedIndex = 0;
-            this.tabControlMain.Size = new System.Drawing.Size(796, 360);
+            this.tabControlMain.Size = new System.Drawing.Size(796, 396);
             this.tabControlMain.TabIndex = 1;
             // 
             // tpResource
@@ -321,7 +317,7 @@ namespace GateHelper.Dashboard
             this.tpResource.Location = new System.Drawing.Point(4, 22);
             this.tpResource.Name = "tpResource";
             this.tpResource.Padding = new System.Windows.Forms.Padding(3);
-            this.tpResource.Size = new System.Drawing.Size(788, 334);
+            this.tpResource.Size = new System.Drawing.Size(788, 364);
             this.tpResource.TabIndex = 0;
             this.tpResource.Text = "💻 리소스 & 헬스 모니터";
             // 
@@ -348,16 +344,16 @@ namespace GateHelper.Dashboard
             this.pnlNetworkCard.Controls.Add(this.lblNetworkTitle);
             this.pnlNetworkCard.Location = new System.Drawing.Point(12, 175);
             this.pnlNetworkCard.Name = "pnlNetworkCard";
-            this.pnlNetworkCard.Size = new System.Drawing.Size(350, 140);
+            this.pnlNetworkCard.Size = new System.Drawing.Size(350, 175);
             this.pnlNetworkCard.TabIndex = 3;
             // 
             // lblNetworkDetails
             // 
             this.lblNetworkDetails.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.lblNetworkDetails.ForeColor = System.Drawing.Color.Silver;
-            this.lblNetworkDetails.Location = new System.Drawing.Point(15, 88);
+            this.lblNetworkDetails.Location = new System.Drawing.Point(15, 95);
             this.lblNetworkDetails.Name = "lblNetworkDetails";
-            this.lblNetworkDetails.Size = new System.Drawing.Size(320, 42);
+            this.lblNetworkDetails.Size = new System.Drawing.Size(320, 60);
             this.lblNetworkDetails.TabIndex = 2;
             this.lblNetworkDetails.Text = "• 사내망/게이트웨이 통신 상태: 매우 양호\n• 실시간 3초 주기 ICMP 핑 패킷 측정";
             // 
@@ -365,7 +361,7 @@ namespace GateHelper.Dashboard
             // 
             this.lblNetworkPing.Font = new System.Drawing.Font("맑은 고딕", 13.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.lblNetworkPing.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(46)))), ((int)(((byte)(204)))), ((int)(((byte)(113)))));
-            this.lblNetworkPing.Location = new System.Drawing.Point(15, 38);
+            this.lblNetworkPing.Location = new System.Drawing.Point(15, 42);
             this.lblNetworkPing.Name = "lblNetworkPing";
             this.lblNetworkPing.Size = new System.Drawing.Size(320, 36);
             this.lblNetworkPing.TabIndex = 1;
@@ -392,7 +388,7 @@ namespace GateHelper.Dashboard
             this.pnlDriverCard.Controls.Add(this.lblDriverTitle);
             this.pnlDriverCard.Location = new System.Drawing.Point(375, 175);
             this.pnlDriverCard.Name = "pnlDriverCard";
-            this.pnlDriverCard.Size = new System.Drawing.Size(395, 140);
+            this.pnlDriverCard.Size = new System.Drawing.Size(395, 175);
             this.pnlDriverCard.TabIndex = 2;
             // 
             // btnGcCollect
@@ -403,7 +399,7 @@ namespace GateHelper.Dashboard
             this.btnGcCollect.Depth = 0;
             this.btnGcCollect.HighEmphasis = true;
             this.btnGcCollect.Icon = null;
-            this.btnGcCollect.Location = new System.Drawing.Point(18, 92);
+            this.btnGcCollect.Location = new System.Drawing.Point(18, 118);
             this.btnGcCollect.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.btnGcCollect.MouseState = MaterialSkin.MouseState.HOVER;
             this.btnGcCollect.Name = "btnGcCollect";
@@ -420,7 +416,7 @@ namespace GateHelper.Dashboard
             // 
             this.lblThreadsHandles.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.lblThreadsHandles.ForeColor = System.Drawing.Color.DarkGray;
-            this.lblThreadsHandles.Location = new System.Drawing.Point(15, 65);
+            this.lblThreadsHandles.Location = new System.Drawing.Point(15, 75);
             this.lblThreadsHandles.Name = "lblThreadsHandles";
             this.lblThreadsHandles.Size = new System.Drawing.Size(365, 20);
             this.lblThreadsHandles.TabIndex = 2;
@@ -474,7 +470,7 @@ namespace GateHelper.Dashboard
             this.tpServer.Location = new System.Drawing.Point(4, 22);
             this.tpServer.Name = "tpServer";
             this.tpServer.Padding = new System.Windows.Forms.Padding(3);
-            this.tpServer.Size = new System.Drawing.Size(788, 334);
+            this.tpServer.Size = new System.Drawing.Size(788, 364);
             this.tpServer.TabIndex = 1;
             this.tpServer.Text = "🚀 서버 접속 통계";
             // 
@@ -483,12 +479,13 @@ namespace GateHelper.Dashboard
             this.pnlServerContent.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
             this.pnlServerContent.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.pnlServerContent.Controls.Add(this.dgvTopServers);
+            this.pnlServerContent.Controls.Add(this.heatmapHourly);
             this.pnlServerContent.Controls.Add(this.gaugeAutoLogin);
             this.pnlServerContent.Controls.Add(this.chartServerDonut);
             this.pnlServerContent.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.pnlServerContent.Location = new System.Drawing.Point(3, 3);
+            this.pnlServerContent.Location = new System.Drawing.Point(0, 0);
             this.pnlServerContent.Name = "pnlServerContent";
-            this.pnlServerContent.Size = new System.Drawing.Size(782, 328);
+            this.pnlServerContent.Size = new System.Drawing.Size(788, 364);
             this.pnlServerContent.TabIndex = 0;
             // 
             // dgvTopServers
@@ -504,49 +501,58 @@ namespace GateHelper.Dashboard
             this.colAccessCount,
             this.colPercentage});
             this.dgvTopServers.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.dgvTopServers.Location = new System.Drawing.Point(448, 15);
+            this.dgvTopServers.Location = new System.Drawing.Point(415, 12);
             this.dgvTopServers.Name = "dgvTopServers";
             this.dgvTopServers.ReadOnly = true;
             this.dgvTopServers.RowHeadersVisible = false;
             this.dgvTopServers.RowTemplate.Height = 27;
-            this.dgvTopServers.Size = new System.Drawing.Size(320, 298);
+            this.dgvTopServers.Size = new System.Drawing.Size(358, 255);
             this.dgvTopServers.TabIndex = 2;
             // 
             // colRank
             // 
-            this.colRank.FillWeight = 38F;
+            this.colRank.FillWeight = 55F;
             this.colRank.HeaderText = "순위";
+            this.colRank.MinimumWidth = 55;
             this.colRank.Name = "colRank";
             this.colRank.ReadOnly = true;
+            this.colRank.Resizable = System.Windows.Forms.DataGridViewTriState.False;
+            this.colRank.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
             // colServerName
             // 
-            this.colServerName.FillWeight = 120F;
+            this.colServerName.FillWeight = 115F;
             this.colServerName.HeaderText = "서버명";
+            this.colServerName.MinimumWidth = 90;
             this.colServerName.Name = "colServerName";
             this.colServerName.ReadOnly = true;
+            this.colServerName.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
             // colAccessCount
             // 
-            this.colAccessCount.FillWeight = 55F;
+            this.colAccessCount.FillWeight = 60F;
             this.colAccessCount.HeaderText = "접속수";
+            this.colAccessCount.MinimumWidth = 60;
             this.colAccessCount.Name = "colAccessCount";
             this.colAccessCount.ReadOnly = true;
+            this.colAccessCount.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
             // colPercentage
             // 
             this.colPercentage.FillWeight = 55F;
             this.colPercentage.HeaderText = "비율";
+            this.colPercentage.MinimumWidth = 55;
             this.colPercentage.Name = "colPercentage";
             this.colPercentage.ReadOnly = true;
+            this.colPercentage.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
             // gaugeAutoLogin
             // 
             this.gaugeAutoLogin.Font = new System.Drawing.Font("맑은 고딕", 9F);
-            this.gaugeAutoLogin.Location = new System.Drawing.Point(245, 15);
+            this.gaugeAutoLogin.Location = new System.Drawing.Point(215, 12);
             this.gaugeAutoLogin.Name = "gaugeAutoLogin";
             this.gaugeAutoLogin.RingColor = System.Drawing.Color.FromArgb(((int)(((byte)(46)))), ((int)(((byte)(204)))), ((int)(((byte)(113)))));
-            this.gaugeAutoLogin.Size = new System.Drawing.Size(185, 298);
+            this.gaugeAutoLogin.Size = new System.Drawing.Size(190, 255);
             this.gaugeAutoLogin.SubTitle = "자동 로그인 성공률";
             this.gaugeAutoLogin.TabIndex = 1;
             this.gaugeAutoLogin.Value = 0D;
@@ -554,10 +560,18 @@ namespace GateHelper.Dashboard
             // chartServerDonut
             // 
             this.chartServerDonut.Font = new System.Drawing.Font("맑은 고딕", 9F);
-            this.chartServerDonut.Location = new System.Drawing.Point(15, 15);
+            this.chartServerDonut.Location = new System.Drawing.Point(15, 12);
             this.chartServerDonut.Name = "chartServerDonut";
-            this.chartServerDonut.Size = new System.Drawing.Size(215, 298);
+            this.chartServerDonut.Size = new System.Drawing.Size(190, 255);
             this.chartServerDonut.TabIndex = 0;
+            // 
+            // heatmapHourly
+            // 
+            this.heatmapHourly.Font = new System.Drawing.Font("맑은 고딕", 8.5F);
+            this.heatmapHourly.Location = new System.Drawing.Point(15, 278);
+            this.heatmapHourly.Name = "heatmapHourly";
+            this.heatmapHourly.Size = new System.Drawing.Size(758, 68);
+            this.heatmapHourly.TabIndex = 3;
             // 
             // tpSandbox
             // 
@@ -565,7 +579,7 @@ namespace GateHelper.Dashboard
             this.tpSandbox.Controls.Add(this.pnlSandboxContent);
             this.tpSandbox.Location = new System.Drawing.Point(4, 22);
             this.tpSandbox.Name = "tpSandbox";
-            this.tpSandbox.Size = new System.Drawing.Size(788, 334);
+            this.tpSandbox.Size = new System.Drawing.Size(788, 364);
             this.tpSandbox.TabIndex = 2;
             this.tpSandbox.Text = "🎮 샌드박스 & 업적";
             // 
@@ -573,143 +587,87 @@ namespace GateHelper.Dashboard
             // 
             this.pnlSandboxContent.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
             this.pnlSandboxContent.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlSandboxContent.Controls.Add(this.pnlBoxAiTrend);
-            this.pnlSandboxContent.Controls.Add(this.pnlBoxMystery);
-            this.pnlSandboxContent.Controls.Add(this.pnlBoxSignalLink);
-            this.pnlSandboxContent.Controls.Add(this.pnlBoxBitFlip);
+            this.pnlSandboxContent.Controls.Add(this.dgvAchievements);
+            this.pnlSandboxContent.Controls.Add(this.bannerMastery);
             this.pnlSandboxContent.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlSandboxContent.Location = new System.Drawing.Point(0, 0);
             this.pnlSandboxContent.Name = "pnlSandboxContent";
-            this.pnlSandboxContent.Size = new System.Drawing.Size(788, 334);
+            this.pnlSandboxContent.Size = new System.Drawing.Size(788, 364);
             this.pnlSandboxContent.TabIndex = 0;
             // 
-            // pnlBoxAiTrend
+            // bannerMastery
             // 
-            this.pnlBoxAiTrend.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
-            this.pnlBoxAiTrend.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlBoxAiTrend.Controls.Add(this.lblAiTrendDetails);
-            this.pnlBoxAiTrend.Controls.Add(this.lblAiTrendTitle);
-            this.pnlBoxAiTrend.Location = new System.Drawing.Point(403, 172);
-            this.pnlBoxAiTrend.Name = "pnlBoxAiTrend";
-            this.pnlBoxAiTrend.Size = new System.Drawing.Size(360, 140);
-            this.pnlBoxAiTrend.TabIndex = 3;
+            this.bannerMastery.Location = new System.Drawing.Point(15, 10);
+            this.bannerMastery.Name = "bannerMastery";
+            this.bannerMastery.Size = new System.Drawing.Size(755, 116);
+            this.bannerMastery.TabIndex = 0;
             // 
-            // lblAiTrendDetails
+            // dgvAchievements
             // 
-            this.lblAiTrendDetails.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.lblAiTrendDetails.ForeColor = System.Drawing.Color.Silver;
-            this.lblAiTrendDetails.Location = new System.Drawing.Point(15, 45);
-            this.lblAiTrendDetails.Name = "lblAiTrendDetails";
-            this.lblAiTrendDetails.Size = new System.Drawing.Size(325, 80);
-            this.lblAiTrendDetails.TabIndex = 1;
-            this.lblAiTrendDetails.Text = "• 찜(스크랩)한 오픈소스: 0개\n• 등록된 맞춤 관심 키워드: 0개\n• 실시간 데일리 브리핑 연동";
+            this.dgvAchievements.AllowUserToAddRows = false;
+            this.dgvAchievements.AllowUserToDeleteRows = false;
+            this.dgvAchievements.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            this.dgvAchievements.BackgroundColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(30)))), ((int)(((byte)(30)))));
+            this.dgvAchievements.ColumnHeadersHeightSizeMode = System.Windows.Forms.DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            this.dgvAchievements.Columns.AddRange(new System.Windows.Forms.DataGridViewColumn[] {
+            this.colAchStatus,
+            this.colAchCategory,
+            this.colAchTitle,
+            this.colAchDesc,
+            this.colAchProgress,
+            this.colAchPoints});
+            this.dgvAchievements.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.dgvAchievements.Location = new System.Drawing.Point(15, 134);
+            this.dgvAchievements.MultiSelect = false;
+            this.dgvAchievements.Name = "dgvAchievements";
+            this.dgvAchievements.ReadOnly = true;
+            this.dgvAchievements.RowHeadersVisible = false;
+            this.dgvAchievements.RowTemplate.Height = 28;
+            this.dgvAchievements.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
+            this.dgvAchievements.Size = new System.Drawing.Size(755, 218);
+            this.dgvAchievements.TabIndex = 1;
             // 
-            // lblAiTrendTitle
+            // colAchStatus
             // 
-            this.lblAiTrendTitle.AutoSize = true;
-            this.lblAiTrendTitle.Font = new System.Drawing.Font("맑은 고딕", 9.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.lblAiTrendTitle.ForeColor = System.Drawing.Color.DeepSkyBlue;
-            this.lblAiTrendTitle.Location = new System.Drawing.Point(15, 15);
-            this.lblAiTrendTitle.Name = "lblAiTrendTitle";
-            this.lblAiTrendTitle.Size = new System.Drawing.Size(183, 20);
-            this.lblAiTrendTitle.TabIndex = 0;
-            this.lblAiTrendTitle.Text = "📰 AI TREND (트렌드 허브)";
+            this.colAchStatus.FillWeight = 38F;
+            this.colAchStatus.HeaderText = "상태";
+            this.colAchStatus.Name = "colAchStatus";
+            this.colAchStatus.ReadOnly = true;
             // 
-            // pnlBoxMystery
+            // colAchCategory
             // 
-            this.pnlBoxMystery.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
-            this.pnlBoxMystery.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlBoxMystery.Controls.Add(this.lblMysteryDetails);
-            this.pnlBoxMystery.Controls.Add(this.lblMysteryTitle);
-            this.pnlBoxMystery.Location = new System.Drawing.Point(20, 172);
-            this.pnlBoxMystery.Name = "pnlBoxMystery";
-            this.pnlBoxMystery.Size = new System.Drawing.Size(360, 140);
-            this.pnlBoxMystery.TabIndex = 2;
+            this.colAchCategory.FillWeight = 55F;
+            this.colAchCategory.HeaderText = "분야";
+            this.colAchCategory.Name = "colAchCategory";
+            this.colAchCategory.ReadOnly = true;
             // 
-            // lblMysteryDetails
+            // colAchTitle
             // 
-            this.lblMysteryDetails.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.lblMysteryDetails.ForeColor = System.Drawing.Color.Silver;
-            this.lblMysteryDetails.Location = new System.Drawing.Point(15, 45);
-            this.lblMysteryDetails.Name = "lblMysteryDetails";
-            this.lblMysteryDetails.Size = new System.Drawing.Size(325, 80);
-            this.lblMysteryDetails.TabIndex = 1;
-            this.lblMysteryDetails.Text = "• 해결한 사건(정답): 0건\n• 질문 및 추리 도전: 0회\n• 사건 규명 정답률: 0.0%";
+            this.colAchTitle.FillWeight = 85F;
+            this.colAchTitle.HeaderText = "도전과제 명칭";
+            this.colAchTitle.Name = "colAchTitle";
+            this.colAchTitle.ReadOnly = true;
             // 
-            // lblMysteryTitle
+            // colAchDesc
             // 
-            this.lblMysteryTitle.AutoSize = true;
-            this.lblMysteryTitle.Font = new System.Drawing.Font("맑은 고딕", 9.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.lblMysteryTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(165)))), ((int)(((byte)(0)))));
-            this.lblMysteryTitle.Location = new System.Drawing.Point(15, 15);
-            this.lblMysteryTitle.Name = "lblMysteryTitle";
-            this.lblMysteryTitle.Size = new System.Drawing.Size(189, 20);
-            this.lblMysteryTitle.TabIndex = 0;
-            this.lblMysteryTitle.Text = "🕵️ Mystery Time (AI 추리)";
+            this.colAchDesc.FillWeight = 135F;
+            this.colAchDesc.HeaderText = "달성 조건";
+            this.colAchDesc.Name = "colAchDesc";
+            this.colAchDesc.ReadOnly = true;
             // 
-            // pnlBoxSignalLink
+            // colAchProgress
             // 
-            this.pnlBoxSignalLink.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
-            this.pnlBoxSignalLink.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlBoxSignalLink.Controls.Add(this.lblSignalLinkDetails);
-            this.pnlBoxSignalLink.Controls.Add(this.lblSignalLinkTitle);
-            this.pnlBoxSignalLink.Location = new System.Drawing.Point(403, 18);
-            this.pnlBoxSignalLink.Name = "pnlBoxSignalLink";
-            this.pnlBoxSignalLink.Size = new System.Drawing.Size(360, 140);
-            this.pnlBoxSignalLink.TabIndex = 1;
+            this.colAchProgress.FillWeight = 65F;
+            this.colAchProgress.HeaderText = "진척도";
+            this.colAchProgress.Name = "colAchProgress";
+            this.colAchProgress.ReadOnly = true;
             // 
-            // lblSignalLinkDetails
+            // colAchPoints
             // 
-            this.lblSignalLinkDetails.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.lblSignalLinkDetails.ForeColor = System.Drawing.Color.Silver;
-            this.lblSignalLinkDetails.Location = new System.Drawing.Point(15, 45);
-            this.lblSignalLinkDetails.Name = "lblSignalLinkDetails";
-            this.lblSignalLinkDetails.Size = new System.Drawing.Size(325, 80);
-            this.lblSignalLinkDetails.TabIndex = 1;
-            this.lblSignalLinkDetails.Text = "• 회로 퍼즐 클리어: 0회\n• 신호 노드 암호 해독 완료\n• 완벽한 루트 연결 성공";
-            // 
-            // lblSignalLinkTitle
-            // 
-            this.lblSignalLinkTitle.AutoSize = true;
-            this.lblSignalLinkTitle.Font = new System.Drawing.Font("맑은 고딕", 9.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.lblSignalLinkTitle.ForeColor = System.Drawing.Color.Cyan;
-            this.lblSignalLinkTitle.Location = new System.Drawing.Point(15, 15);
-            this.lblSignalLinkTitle.Name = "lblSignalLinkTitle";
-            this.lblSignalLinkTitle.Size = new System.Drawing.Size(201, 20);
-            this.lblSignalLinkTitle.TabIndex = 0;
-            this.lblSignalLinkTitle.Text = "⚡ Signal Link (회로 연결)";
-            // 
-            // pnlBoxBitFlip
-            // 
-            this.pnlBoxBitFlip.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(45)))), ((int)(((byte)(45)))), ((int)(((byte)(48)))));
-            this.pnlBoxBitFlip.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.pnlBoxBitFlip.Controls.Add(this.lblBitFlipDetails);
-            this.pnlBoxBitFlip.Controls.Add(this.lblBitFlipTitle);
-            this.pnlBoxBitFlip.Location = new System.Drawing.Point(20, 18);
-            this.pnlBoxBitFlip.Name = "pnlBoxBitFlip";
-            this.pnlBoxBitFlip.Size = new System.Drawing.Size(360, 140);
-            this.pnlBoxBitFlip.TabIndex = 0;
-            // 
-            // lblBitFlipDetails
-            // 
-            this.lblBitFlipDetails.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.lblBitFlipDetails.ForeColor = System.Drawing.Color.Silver;
-            this.lblBitFlipDetails.Location = new System.Drawing.Point(15, 45);
-            this.lblBitFlipDetails.Name = "lblBitFlipDetails";
-            this.lblBitFlipDetails.Size = new System.Drawing.Size(325, 80);
-            this.lblBitFlipDetails.TabIndex = 1;
-            this.lblBitFlipDetails.Text = "• 비트 반전 승리: 0회\n• 모든 노드 동기화 달성\n• 기믹 극복 퍼즐 클리어";
-            // 
-            // lblBitFlipTitle
-            // 
-            this.lblBitFlipTitle.AutoSize = true;
-            this.lblBitFlipTitle.Font = new System.Drawing.Font("맑은 고딕", 9.5F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.lblBitFlipTitle.ForeColor = System.Drawing.Color.LightGreen;
-            this.lblBitFlipTitle.Location = new System.Drawing.Point(15, 15);
-            this.lblBitFlipTitle.Name = "lblBitFlipTitle";
-            this.lblBitFlipTitle.Size = new System.Drawing.Size(183, 20);
-            this.lblBitFlipTitle.TabIndex = 0;
-            this.lblBitFlipTitle.Text = "🧩 Bit Flip (비트 퍼즐)";
+            this.colAchPoints.FillWeight = 42F;
+            this.colAchPoints.HeaderText = "보상";
+            this.colAchPoints.Name = "colAchPoints";
+            this.colAchPoints.ReadOnly = true;
             // 
             // tpLogs
             // 
@@ -717,7 +675,7 @@ namespace GateHelper.Dashboard
             this.tpLogs.Controls.Add(this.pnlLogContent);
             this.tpLogs.Location = new System.Drawing.Point(4, 22);
             this.tpLogs.Name = "tpLogs";
-            this.tpLogs.Size = new System.Drawing.Size(788, 334);
+            this.tpLogs.Size = new System.Drawing.Size(788, 364);
             this.tpLogs.TabIndex = 3;
             this.tpLogs.Text = "🚨 최근 중요 로그";
             // 
@@ -725,13 +683,91 @@ namespace GateHelper.Dashboard
             // 
             this.pnlLogContent.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(37)))), ((int)(((byte)(37)))), ((int)(((byte)(38)))));
             this.pnlLogContent.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.pnlLogContent.Controls.Add(this.lblLogTabGuide);
+            this.pnlLogContent.Controls.Add(this.btnFilterAlerts);
+            this.pnlLogContent.Controls.Add(this.btnAckLogs);
+            this.pnlLogContent.Controls.Add(this.btnOpenLogDir);
             this.pnlLogContent.Controls.Add(this.txtLogDetail);
             this.pnlLogContent.Controls.Add(this.dgvRecentLogs);
             this.pnlLogContent.Dock = System.Windows.Forms.DockStyle.Fill;
             this.pnlLogContent.Location = new System.Drawing.Point(0, 0);
             this.pnlLogContent.Name = "pnlLogContent";
-            this.pnlLogContent.Size = new System.Drawing.Size(788, 334);
+            this.pnlLogContent.Size = new System.Drawing.Size(788, 364);
             this.pnlLogContent.TabIndex = 0;
+            // 
+            // lblLogTabGuide
+            // 
+            this.lblLogTabGuide.AutoSize = true;
+            this.lblLogTabGuide.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
+            this.lblLogTabGuide.ForeColor = System.Drawing.Color.DarkGray;
+            this.lblLogTabGuide.Location = new System.Drawing.Point(15, 13);
+            this.lblLogTabGuide.Name = "lblLogTabGuide";
+            this.lblLogTabGuide.Size = new System.Drawing.Size(260, 15);
+            this.lblLogTabGuide.TabIndex = 2;
+            this.lblLogTabGuide.Text = "💡 시스템 이벤트 & 최근 중요 로그 모니터링";
+            // 
+            // btnFilterAlerts
+            // 
+            this.btnFilterAlerts.AutoSize = false;
+            this.btnFilterAlerts.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnFilterAlerts.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnFilterAlerts.Depth = 0;
+            this.btnFilterAlerts.HighEmphasis = false;
+            this.btnFilterAlerts.Icon = null;
+            this.btnFilterAlerts.Location = new System.Drawing.Point(325, 5);
+            this.btnFilterAlerts.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnFilterAlerts.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnFilterAlerts.Name = "btnFilterAlerts";
+            this.btnFilterAlerts.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnFilterAlerts.Size = new System.Drawing.Size(140, 32);
+            this.btnFilterAlerts.TabIndex = 5;
+            this.btnFilterAlerts.Text = "⚠️ 주의/심각만 보기";
+            this.btnFilterAlerts.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
+            this.btnFilterAlerts.UseAccentColor = false;
+            this.btnFilterAlerts.UseVisualStyleBackColor = true;
+            this.btnFilterAlerts.Click += new System.EventHandler(this.BtnFilterAlerts_Click);
+            // 
+            // btnAckLogs
+            // 
+            this.btnAckLogs.AutoSize = false;
+            this.btnAckLogs.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnAckLogs.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnAckLogs.Depth = 0;
+            this.btnAckLogs.HighEmphasis = true;
+            this.btnAckLogs.Icon = null;
+            this.btnAckLogs.Location = new System.Drawing.Point(475, 5);
+            this.btnAckLogs.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnAckLogs.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnAckLogs.Name = "btnAckLogs";
+            this.btnAckLogs.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnAckLogs.Size = new System.Drawing.Size(160, 32);
+            this.btnAckLogs.TabIndex = 4;
+            this.btnAckLogs.Text = "✔️ 로그 확인 (클리어)";
+            this.btnAckLogs.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+            this.btnAckLogs.UseAccentColor = false;
+            this.btnAckLogs.UseVisualStyleBackColor = true;
+            this.btnAckLogs.Click += new System.EventHandler(this.BtnAckLogs_Click);
+            // 
+            // btnOpenLogDir
+            // 
+            this.btnOpenLogDir.AutoSize = false;
+            this.btnOpenLogDir.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.btnOpenLogDir.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
+            this.btnOpenLogDir.Depth = 0;
+            this.btnOpenLogDir.HighEmphasis = false;
+            this.btnOpenLogDir.Icon = null;
+            this.btnOpenLogDir.Location = new System.Drawing.Point(645, 5);
+            this.btnOpenLogDir.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
+            this.btnOpenLogDir.MouseState = MaterialSkin.MouseState.HOVER;
+            this.btnOpenLogDir.Name = "btnOpenLogDir";
+            this.btnOpenLogDir.NoAccentTextColor = System.Drawing.Color.Empty;
+            this.btnOpenLogDir.Size = new System.Drawing.Size(125, 32);
+            this.btnOpenLogDir.TabIndex = 3;
+            this.btnOpenLogDir.Text = "📂 로그 폴더 열기";
+            this.btnOpenLogDir.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
+            this.btnOpenLogDir.UseAccentColor = false;
+            this.btnOpenLogDir.UseVisualStyleBackColor = true;
+            this.btnOpenLogDir.Click += new System.EventHandler(this.BtnOpenLogDir_Click);
             // 
             // txtLogDetail
             // 
@@ -739,12 +775,12 @@ namespace GateHelper.Dashboard
             this.txtLogDetail.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.txtLogDetail.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.txtLogDetail.ForeColor = System.Drawing.Color.Gainsboro;
-            this.txtLogDetail.Location = new System.Drawing.Point(15, 230);
+            this.txtLogDetail.Location = new System.Drawing.Point(15, 248);
             this.txtLogDetail.Multiline = true;
             this.txtLogDetail.Name = "txtLogDetail";
             this.txtLogDetail.ReadOnly = true;
             this.txtLogDetail.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-            this.txtLogDetail.Size = new System.Drawing.Size(755, 88);
+            this.txtLogDetail.Size = new System.Drawing.Size(755, 102);
             this.txtLogDetail.TabIndex = 1;
             // 
             // dgvRecentLogs
@@ -760,14 +796,14 @@ namespace GateHelper.Dashboard
             this.colLogCaller,
             this.colLogMsg});
             this.dgvRecentLogs.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.dgvRecentLogs.Location = new System.Drawing.Point(15, 15);
+            this.dgvRecentLogs.Location = new System.Drawing.Point(15, 42);
             this.dgvRecentLogs.MultiSelect = false;
             this.dgvRecentLogs.Name = "dgvRecentLogs";
             this.dgvRecentLogs.ReadOnly = true;
             this.dgvRecentLogs.RowHeadersVisible = false;
             this.dgvRecentLogs.RowTemplate.Height = 25;
             this.dgvRecentLogs.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvRecentLogs.Size = new System.Drawing.Size(755, 205);
+            this.dgvRecentLogs.Size = new System.Drawing.Size(755, 198);
             this.dgvRecentLogs.TabIndex = 0;
             this.dgvRecentLogs.SelectionChanged += new System.EventHandler(this.DgvRecentLogs_SelectionChanged);
             // 
@@ -814,67 +850,23 @@ namespace GateHelper.Dashboard
             // pnlBottomBar
             // 
             this.pnlBottomBar.Controls.Add(this.lblStoragePath);
-            this.pnlBottomBar.Controls.Add(this.btnOpenLogDir);
-            this.pnlBottomBar.Controls.Add(this.btnOpenDashboardDir);
             this.pnlBottomBar.Controls.Add(this.btnRefresh);
             this.pnlBottomBar.Controls.Add(this.btnResetStats);
-            this.pnlBottomBar.Location = new System.Drawing.Point(12, 578);
+            this.pnlBottomBar.Location = new System.Drawing.Point(12, 608);
             this.pnlBottomBar.Name = "pnlBottomBar";
             this.pnlBottomBar.Size = new System.Drawing.Size(796, 50);
             this.pnlBottomBar.TabIndex = 3;
             // 
             // lblStoragePath
             // 
-            this.lblStoragePath.AutoSize = true;
+            this.lblStoragePath.AutoEllipsis = true;
             this.lblStoragePath.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.lblStoragePath.ForeColor = System.Drawing.Color.Gray;
-            this.lblStoragePath.Location = new System.Drawing.Point(8, 18);
+            this.lblStoragePath.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(160)))), ((int)(((byte)(160)))), ((int)(((byte)(160)))));
+            this.lblStoragePath.Location = new System.Drawing.Point(15, 16);
             this.lblStoragePath.Name = "lblStoragePath";
-            this.lblStoragePath.Size = new System.Drawing.Size(270, 15);
+            this.lblStoragePath.Size = new System.Drawing.Size(500, 20);
             this.lblStoragePath.TabIndex = 4;
-            this.lblStoragePath.Text = "📁 저장 위치: _meta/dashboard/dashboard_stats.json";
-            // 
-            // btnOpenLogDir
-            // 
-            this.btnOpenLogDir.AutoSize = false;
-            this.btnOpenLogDir.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.btnOpenLogDir.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.btnOpenLogDir.Depth = 0;
-            this.btnOpenLogDir.HighEmphasis = false;
-            this.btnOpenLogDir.Icon = null;
-            this.btnOpenLogDir.Location = new System.Drawing.Point(340, 7);
-            this.btnOpenLogDir.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.btnOpenLogDir.MouseState = MaterialSkin.MouseState.HOVER;
-            this.btnOpenLogDir.Name = "btnOpenLogDir";
-            this.btnOpenLogDir.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.btnOpenLogDir.Size = new System.Drawing.Size(100, 36);
-            this.btnOpenLogDir.TabIndex = 3;
-            this.btnOpenLogDir.Text = "로그 폴더";
-            this.btnOpenLogDir.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
-            this.btnOpenLogDir.UseAccentColor = false;
-            this.btnOpenLogDir.UseVisualStyleBackColor = true;
-            this.btnOpenLogDir.Click += new System.EventHandler(this.BtnOpenLogDir_Click);
-            // 
-            // btnOpenDashboardDir
-            // 
-            this.btnOpenDashboardDir.AutoSize = false;
-            this.btnOpenDashboardDir.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
-            this.btnOpenDashboardDir.Density = MaterialSkin.Controls.MaterialButton.MaterialButtonDensity.Default;
-            this.btnOpenDashboardDir.Depth = 0;
-            this.btnOpenDashboardDir.HighEmphasis = false;
-            this.btnOpenDashboardDir.Icon = null;
-            this.btnOpenDashboardDir.Location = new System.Drawing.Point(448, 7);
-            this.btnOpenDashboardDir.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
-            this.btnOpenDashboardDir.MouseState = MaterialSkin.MouseState.HOVER;
-            this.btnOpenDashboardDir.Name = "btnOpenDashboardDir";
-            this.btnOpenDashboardDir.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.btnOpenDashboardDir.Size = new System.Drawing.Size(110, 36);
-            this.btnOpenDashboardDir.TabIndex = 2;
-            this.btnOpenDashboardDir.Text = "대시보드 폴더";
-            this.btnOpenDashboardDir.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
-            this.btnOpenDashboardDir.UseAccentColor = false;
-            this.btnOpenDashboardDir.UseVisualStyleBackColor = true;
-            this.btnOpenDashboardDir.Click += new System.EventHandler(this.BtnOpenDashboardDir_Click);
+            this.lblStoragePath.Text = "🕒 마지막 동기화: --:--:-- · 실시간 모니터링 중";
             // 
             // btnRefresh
             // 
@@ -884,12 +876,12 @@ namespace GateHelper.Dashboard
             this.btnRefresh.Depth = 0;
             this.btnRefresh.HighEmphasis = true;
             this.btnRefresh.Icon = null;
-            this.btnRefresh.Location = new System.Drawing.Point(566, 7);
+            this.btnRefresh.Location = new System.Drawing.Point(545, 7);
             this.btnRefresh.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.btnRefresh.MouseState = MaterialSkin.MouseState.HOVER;
             this.btnRefresh.Name = "btnRefresh";
             this.btnRefresh.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.btnRefresh.Size = new System.Drawing.Size(100, 36);
+            this.btnRefresh.Size = new System.Drawing.Size(115, 36);
             this.btnRefresh.TabIndex = 1;
             this.btnRefresh.Text = "🔄 새로고침";
             this.btnRefresh.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -905,12 +897,12 @@ namespace GateHelper.Dashboard
             this.btnResetStats.Depth = 0;
             this.btnResetStats.HighEmphasis = false;
             this.btnResetStats.Icon = null;
-            this.btnResetStats.Location = new System.Drawing.Point(674, 7);
+            this.btnResetStats.Location = new System.Drawing.Point(670, 7);
             this.btnResetStats.Margin = new System.Windows.Forms.Padding(4, 6, 4, 6);
             this.btnResetStats.MouseState = MaterialSkin.MouseState.HOVER;
             this.btnResetStats.Name = "btnResetStats";
             this.btnResetStats.NoAccentTextColor = System.Drawing.Color.Empty;
-            this.btnResetStats.Size = new System.Drawing.Size(112, 36);
+            this.btnResetStats.Size = new System.Drawing.Size(115, 36);
             this.btnResetStats.TabIndex = 0;
             this.btnResetStats.Text = "⚠️ 통계 초기화";
             this.btnResetStats.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
@@ -922,7 +914,7 @@ namespace GateHelper.Dashboard
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(820, 640);
+            this.ClientSize = new System.Drawing.Size(820, 670);
             this.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.Controls.Add(this.pnlBottomBar);
             this.Controls.Add(this.tabSelectorMain);
@@ -955,14 +947,7 @@ namespace GateHelper.Dashboard
             ((System.ComponentModel.ISupportInitialize)(this.dgvTopServers)).EndInit();
             this.tpSandbox.ResumeLayout(false);
             this.pnlSandboxContent.ResumeLayout(false);
-            this.pnlBoxAiTrend.ResumeLayout(false);
-            this.pnlBoxAiTrend.PerformLayout();
-            this.pnlBoxMystery.ResumeLayout(false);
-            this.pnlBoxMystery.PerformLayout();
-            this.pnlBoxSignalLink.ResumeLayout(false);
-            this.pnlBoxSignalLink.PerformLayout();
-            this.pnlBoxBitFlip.ResumeLayout(false);
-            this.pnlBoxBitFlip.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.dgvAchievements)).EndInit();
             this.tpLogs.ResumeLayout(false);
             this.pnlLogContent.ResumeLayout(false);
             this.pnlLogContent.PerformLayout();
@@ -1012,24 +997,21 @@ namespace GateHelper.Dashboard
         private System.Windows.Forms.Panel pnlServerContent;
         private DonutChartControl chartServerDonut;
         private CircularProgressControl gaugeAutoLogin;
+        private HourlyHeatmapControl heatmapHourly;
         private System.Windows.Forms.DataGridView dgvTopServers;
         private System.Windows.Forms.DataGridViewTextBoxColumn colRank;
         private System.Windows.Forms.DataGridViewTextBoxColumn colServerName;
         private System.Windows.Forms.DataGridViewTextBoxColumn colAccessCount;
         private System.Windows.Forms.DataGridViewTextBoxColumn colPercentage;
         private System.Windows.Forms.Panel pnlSandboxContent;
-        private System.Windows.Forms.Panel pnlBoxBitFlip;
-        private System.Windows.Forms.Label lblBitFlipTitle;
-        private System.Windows.Forms.Label lblBitFlipDetails;
-        private System.Windows.Forms.Panel pnlBoxSignalLink;
-        private System.Windows.Forms.Label lblSignalLinkTitle;
-        private System.Windows.Forms.Label lblSignalLinkDetails;
-        private System.Windows.Forms.Panel pnlBoxMystery;
-        private System.Windows.Forms.Label lblMysteryTitle;
-        private System.Windows.Forms.Label lblMysteryDetails;
-        private System.Windows.Forms.Panel pnlBoxAiTrend;
-        private System.Windows.Forms.Label lblAiTrendTitle;
-        private System.Windows.Forms.Label lblAiTrendDetails;
+        private MasteryBannerControl bannerMastery;
+        private System.Windows.Forms.DataGridView dgvAchievements;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colAchStatus;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colAchCategory;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colAchTitle;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colAchDesc;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colAchProgress;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colAchPoints;
         private System.Windows.Forms.Panel pnlLogContent;
         private System.Windows.Forms.DataGridView dgvRecentLogs;
         private System.Windows.Forms.DataGridViewTextBoxColumn colLogTime;
@@ -1041,7 +1023,9 @@ namespace GateHelper.Dashboard
         private System.Windows.Forms.Label lblStoragePath;
         private MaterialSkin.Controls.MaterialButton btnResetStats;
         private MaterialSkin.Controls.MaterialButton btnRefresh;
-        private MaterialSkin.Controls.MaterialButton btnOpenDashboardDir;
+        private System.Windows.Forms.Label lblLogTabGuide;
+        private MaterialSkin.Controls.MaterialButton btnFilterAlerts;
+        private MaterialSkin.Controls.MaterialButton btnAckLogs;
         private MaterialSkin.Controls.MaterialButton btnOpenLogDir;
     }
 }

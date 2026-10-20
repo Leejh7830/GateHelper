@@ -312,6 +312,7 @@ namespace GateHelper
                 {
                     _popupCount = Util_Option.GetLockHandledCount();
                     LogMessage($"[자동화] 잠금 화면 해제 완료 (누적: {_popupCount})", Level.Info);
+                    DashboardManager.RecordScreenUnlock();
                 }
 
                 // [핵심 수정] 성공/실패 여부와 상관없이, 원래 메인이 아닌 다른 탭을 보고 있었다면 복구
@@ -1370,10 +1371,13 @@ namespace GateHelper
         {
             try
             {
-                DashboardManager.RecordServerConnect(targetServer);
                 StartRdpDetect(targetServer);
                 bool success = await Task.Run(() => Util_Connect.ConnectToServer(_driver, mainHandle, managementHandle, GateID, GatePW, targetServer, OlvServerList, _appSettings.RemoveDuplicates));
-                if (!success)
+                if (success)
+                {
+                    DashboardManager.RecordServerConnect(targetServer);
+                }
+                else
                 {
                     MessageBox.Show("자동 로그인 진행 중 시간 초과 또는 오류가 발생했습니다.\n로그 창을 확인해주세요.", "로그인 실패", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 }

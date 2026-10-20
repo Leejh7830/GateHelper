@@ -13,6 +13,7 @@ namespace GateHelper.Dashboard
     public partial class DashboardForm : MaterialForm
     {
         private readonly MaterialSkinManager _materialSkinManager;
+        private bool _showOnlyAlerts = false;
 
         public DashboardForm()
         {
@@ -32,8 +33,9 @@ namespace GateHelper.Dashboard
 
         private void SetupCardInteractions()
         {
-            // 시스템 헬스 클릭 시 최근 중요 로그 탭으로 즉시 이동
             var tip = new ToolTip();
+
+            // 1. 시스템 헬스 클릭 시 최근 중요 로그 탭으로 즉시 이동
             string healthTip = "클릭 시 최근 중요 로그(Error/Warning) 탭으로 이동합니다.";
             foreach (Control c in new Control[] { cardHealth, lblHealthTitle, lblHealthMain, lblHealthSub })
             {
@@ -41,7 +43,23 @@ namespace GateHelper.Dashboard
                 tip.SetToolTip(c, healthTip);
                 c.Click += (s, ev) =>
                 {
+                    _showOnlyAlerts = true;
+                    btnFilterAlerts.Text = "📋 전체 로그 보기";
+                    btnFilterAlerts.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+                    UpdateRecentLogsView();
                     tabControlMain.SelectedTab = tpLogs;
+                };
+            }
+
+            // 2. 샌드박스 & 업적 카드 클릭 시 샌드박스 탭으로 즉시 이동
+            string sandboxTip = "클릭 시 스팀 스타일 도전과제 & 샌드박스 마스터리 탭으로 이동합니다.";
+            foreach (Control c in new Control[] { cardSandbox, lblSandboxTitle, lblSandboxMain, lblSandboxSub })
+            {
+                c.Cursor = Cursors.Hand;
+                tip.SetToolTip(c, sandboxTip);
+                c.Click += (s, ev) =>
+                {
+                    tabControlMain.SelectedTab = tpSandbox;
                 };
             }
         }
@@ -67,7 +85,7 @@ namespace GateHelper.Dashboard
             Color dgvCellText = isDark ? Color.Gainsboro : Color.Black;
 
             // 상단 카드 테마 적용
-            foreach (Panel card in new[] { cardUptime, cardActivity, cardHealth, cardSandbox, pnlBoxBitFlip, pnlBoxSignalLink, pnlBoxMystery, pnlBoxAiTrend, pnlNetworkCard, pnlDriverCard })
+            foreach (Panel card in new[] { cardUptime, cardActivity, cardHealth, cardSandbox, pnlNetworkCard, pnlDriverCard })
             {
                 card.BackColor = cardBg;
                 card.BorderStyle = BorderStyle.FixedSingle;
@@ -78,8 +96,8 @@ namespace GateHelper.Dashboard
             pnlSandboxContent.BackColor = contentBg;
             pnlLogContent.BackColor = contentBg;
 
-            // 데이터그리드뷰 테마 스타일
-            foreach (DataGridView dgv in new[] { dgvTopServers, dgvRecentLogs })
+            // 데이터그리드뷰 테마 스타일 (도전과제 dgvAchievements 포함)
+            foreach (DataGridView dgv in new[] { dgvTopServers, dgvRecentLogs, dgvAchievements })
             {
                 dgv.BackgroundColor = dgvBg;
                 dgv.DefaultCellStyle.BackColor = dgvBg;
@@ -90,9 +108,26 @@ namespace GateHelper.Dashboard
                 dgv.ColumnHeadersDefaultCellStyle.BackColor = isDark ? Color.FromArgb(50, 50, 52) : Color.FromArgb(230, 230, 230);
                 dgv.ColumnHeadersDefaultCellStyle.ForeColor = textMain;
                 dgv.ColumnHeadersDefaultCellStyle.Font = new Font("맑은 고딕", 9F, FontStyle.Bold);
+                dgv.ColumnHeadersDefaultCellStyle.WrapMode = DataGridViewTriState.False;
                 dgv.EnableHeadersVisualStyles = false;
                 dgv.GridColor = isDark ? Color.FromArgb(55, 55, 58) : Color.FromArgb(220, 220, 220);
             }
+
+            // 서버 통계 그리드 정렬 최적화 (순위 가로 출력 보장 및 줄바꿈 방지, 중앙 정렬)
+            colRank.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colRank.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colRank.HeaderCell.Style.WrapMode = DataGridViewTriState.False;
+            colRank.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
+
+            colAccessCount.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colAccessCount.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colAccessCount.HeaderCell.Style.WrapMode = DataGridViewTriState.False;
+            colAccessCount.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
+
+            colPercentage.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colPercentage.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colPercentage.HeaderCell.Style.WrapMode = DataGridViewTriState.False;
+            colPercentage.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
 
             txtLogDetail.BackColor = isDark ? Color.FromArgb(25, 25, 26) : Color.FromArgb(245, 245, 245);
             txtLogDetail.ForeColor = isDark ? Color.Gainsboro : Color.Black;
@@ -133,26 +168,33 @@ namespace GateHelper.Dashboard
             }
             lblActivitySub.Text = $"서버 접속 {totalConnect:N0}회 · 자동 로그인 {autoLoginRate:F1}%";
 
-            // 시스템 헬스
-            int errorCount = stats.TotalErrorCount + stats.TotalCriticalCount;
-            if (errorCount == 0)
+            // 시스템 헬스 (확인/클리어 상태 반영)
+            int unackedErrors = stats.GetUnacknowledgedErrorCount();
+            if (unackedErrors == 0)
             {
-                lblHealthMain.Text = "Clean (정상)";
+                lblHealthMain.Text = "Clean ✨";
                 lblHealthMain.ForeColor = Color.FromArgb(100, 220, 100);
-                lblHealthSub.Text = "최근 발생한 에러가 없습니다.";
+                if (stats.LastErrorAcknowledgedTime.HasValue)
+                {
+                    lblHealthSub.Text = $"확인 완료 ({stats.LastErrorAcknowledgedTime.Value:HH:mm}) · 신규 에러 없음";
+                }
+                else
+                {
+                    lblHealthSub.Text = "최근 발생한 에러가 없습니다.";
+                }
             }
             else
             {
-                lblHealthMain.Text = $"주의 ({errorCount}건)";
-                lblHealthMain.ForeColor = Color.FromArgb(255, 140, 100);
-                lblHealthSub.Text = $"에러 {stats.TotalErrorCount}건 · 치명적 {stats.TotalCriticalCount}건";
+                lblHealthMain.Text = $"주의 (신규 {unackedErrors}건)";
+                lblHealthMain.ForeColor = Color.FromArgb(255, 120, 90);
+                lblHealthSub.Text = $"미확인 에러 {unackedErrors}건 · 클릭하여 로그 확인";
             }
 
-            // 샌드박스
-            int totalClears = stats.BitFlipWins + stats.SignalLinkWins + stats.MysterySolves;
-            lblSandboxMain.Text = $"{totalClears:N0}회 달성";
-            int scraps = DashboardManager.GetAiTrendScrapCount();
-            lblSandboxSub.Text = $"사건 규명 {stats.MysterySolves}건 · 찜 {scraps}개";
+            // 샌드박스 & 업적
+            var mastery = DashboardManager.GetMasteryTierInfo();
+            lblSandboxMain.Font = new Font("맑은 고딕", 11F, FontStyle.Bold);
+            lblSandboxMain.Text = mastery.TierName;
+            lblSandboxSub.Text = $"AP {mastery.TotalEarnedPoints}점 · 달성 {mastery.UnlockedCount}/{mastery.TotalCount}개";
         }
 
         #endregion
@@ -227,7 +269,7 @@ namespace GateHelper.Dashboard
 
         #endregion
 
-        #region [ 3. 서버 접속 통계 (원형 도넛 차트 & 링 게이지 & 표) ]
+        #region [ 3. 서버 접속 통계 (원형 도넛 차트 & 링 게이지 & 표 & 24시간 잔디 히트맵) ]
 
         private void UpdateServerAccessView()
         {
@@ -263,48 +305,63 @@ namespace GateHelper.Dashboard
             gaugeAutoLogin.Value = rate;
             gaugeAutoLogin.SubTitle = $"자동 로그인 {stats.AutoLoginSuccessCount}/{totalAuto}회";
             gaugeAutoLogin.RingColor = rate >= 90.0 ? Color.FromArgb(46, 204, 113) : (rate >= 70.0 ? Color.FromArgb(241, 196, 15) : Color.FromArgb(231, 76, 60));
+
+            // 4. 24시간 접속 활동 잔디 히트맵 (서버 접속 및 화면 잠금 해제 횟수 연동)
+            heatmapHourly.SetData(DashboardManager.GetHourlyAccessCounts(), stats.ScreenUnlockCount);
         }
 
         #endregion
 
-        #region [ 4. 샌드박스 & 업적 ]
+        #region [ 4. 샌드박스 & 업적 (스팀 스타일 도전과제 & 2단 HUD 배너) ]
 
         private void UpdateSandboxView()
         {
-            var stats = DashboardManager.Stats;
+            var mastery = DashboardManager.GetMasteryTierInfo();
+            var catTiers = DashboardManager.GetCategoryTiers();
+            var achievements = DashboardManager.GetAchievements();
 
-            // BitFlip
-            lblBitFlipDetails.Text =
-                $"• 비트 반전 클리어: {stats.BitFlipWins:N0}회\n" +
-                $"• 달성 상태: {(stats.BitFlipWins > 0 ? "🏆 마스터 달성" : "도전 대기 중")}\n" +
-                "• 모든 노드를 녹색 1로 동기화 완료";
+            // 1. 상단 2단 와이드 마스터리 배너 갱신
+            bannerMastery.SetData(mastery, catTiers);
 
-            // SignalLink
-            lblSignalLinkDetails.Text =
-                $"• 회로 퍼즐 클리어: {stats.SignalLinkWins:N0}회\n" +
-                $"• 달성 상태: {(stats.SignalLinkWins > 0 ? "⚡ 신호망 해독가" : "도전 대기 중")}\n" +
-                "• 신호 노드 간 충돌 없는 완벽한 연결";
+            // 2. 스팀 스타일 도전과제 DataGridView 갱신
+            dgvAchievements.Rows.Clear();
 
-            // Mystery Time
-            double mysteryRate = 0.0;
-            if (stats.MysteryAttempts > 0)
+            bool isDark = _materialSkinManager.Theme == MaterialSkinManager.Themes.DARK;
+            Color unlockedFore = isDark ? Color.FromArgb(255, 215, 0) : Color.FromArgb(180, 120, 0); // 골드
+            Color lockedFore = isDark ? Color.DarkGray : Color.Gray;
+
+            foreach (var ach in achievements)
             {
-                mysteryRate = Math.Round((double)stats.MysterySolves / stats.MysteryAttempts * 100.0, 1);
-            }
-            lblMysteryDetails.Text =
-                $"• 사건 규명 해결: {stats.MysterySolves:N0}건\n" +
-                $"• 질문/추리 도전: {stats.MysteryAttempts:N0}회\n" +
-                $"• 사건 규명 성공률: {mysteryRate:F1}%\n" +
-                $"• 탐정 등급: {(stats.MysterySolves >= 10 ? "🕵️ 명탐정" : (stats.MysterySolves >= 3 ? "🔍 수사관" : "초보 탐정"))}";
+                string statusText = ach.IsUnlocked ? "🏆 달성" : "🔒 잠김";
+                string progressText = ach.IsUnlocked 
+                    ? $"완료 ({ach.CurrentCount}/{ach.RequiredCount})" 
+                    : $"{ach.CurrentCount} / {ach.RequiredCount} ({ach.ProgressPercent:F0}%)";
 
-            // AI Trend
-            int scraps = DashboardManager.GetAiTrendScrapCount();
-            int keywords = DashboardManager.GetCustomKeywordCount();
-            lblAiTrendDetails.Text =
-                $"• 찜(스크랩) 오픈소스: {scraps:N0}개\n" +
-                $"• 등록된 맞춤 키워드: {keywords:N0}개\n" +
-                "• GitHub 글로벌 인기 저장소 & Gemini 요약 연동\n" +
-                "• 5대 실시간 뉴스 & 초경량 카드뉴스 지원";
+                int rowIndex = dgvAchievements.Rows.Add(
+                    statusText,
+                    ach.CategoryName,
+                    ach.Title,
+                    ach.Description,
+                    progressText,
+                    $"{ach.Points} AP"
+                );
+
+                var row = dgvAchievements.Rows[rowIndex];
+                if (ach.IsUnlocked)
+                {
+                    row.DefaultCellStyle.ForeColor = unlockedFore;
+                    row.DefaultCellStyle.Font = new Font(dgvAchievements.Font, FontStyle.Bold);
+                }
+                else
+                {
+                    row.DefaultCellStyle.ForeColor = lockedFore;
+                }
+            }
+
+            if (dgvAchievements.Rows.Count > 0)
+            {
+                dgvAchievements.ClearSelection();
+            }
         }
 
         #endregion
@@ -313,8 +370,18 @@ namespace GateHelper.Dashboard
 
         private void UpdateRecentLogsView()
         {
-            var logs = DashboardManager.GetRecentLogs();
+            var logs = DashboardManager.GetRecentLogs(50, _showOnlyAlerts);
             dgvRecentLogs.Rows.Clear();
+
+            int unacked = DashboardManager.Stats.GetUnacknowledgedErrorCount();
+            btnAckLogs.Enabled = unacked > 0;
+            btnAckLogs.Text = unacked > 0 ? $"✔️ 로그 확인 ({unacked}건 클리어)" : "✔️ 모든 로그 확인됨";
+
+            // 주의/심각만 보기 필터 적용
+            if (_showOnlyAlerts)
+            {
+                logs = logs.Where(x => x.Level == "Warning" || x.Level == "Error" || x.Level == "Critical").ToList();
+            }
 
             foreach (var log in logs)
             {
@@ -326,18 +393,43 @@ namespace GateHelper.Dashboard
                 );
 
                 var row = dgvRecentLogs.Rows[rowIndex];
-                if (log.Level == "Critical")
+
+                // 확인 완료된 과거 로그는 차분한 톤으로 구별, 신규 미확인 에러는 굵고 선명한 경고색
+                if (log.IsAcknowledged)
                 {
-                    row.DefaultCellStyle.ForeColor = Color.IndianRed;
-                    row.DefaultCellStyle.Font = new Font(dgvRecentLogs.Font, FontStyle.Bold);
+                    if (log.Level == "Critical")
+                    {
+                        row.DefaultCellStyle.ForeColor = Color.FromArgb(190, 105, 105);
+                    }
+                    else if (log.Level == "Error")
+                    {
+                        row.DefaultCellStyle.ForeColor = Color.FromArgb(195, 125, 105);
+                    }
+                    else if (log.Level == "Warning")
+                    {
+                        row.DefaultCellStyle.ForeColor = Color.FromArgb(185, 155, 95);
+                    }
+                    else
+                    {
+                        row.DefaultCellStyle.ForeColor = Color.DarkGray;
+                    }
                 }
-                else if (log.Level == "Error")
+                else
                 {
-                    row.DefaultCellStyle.ForeColor = Color.Coral;
-                }
-                else if (log.Level == "Warning")
-                {
-                    row.DefaultCellStyle.ForeColor = Color.Goldenrod;
+                    if (log.Level == "Critical")
+                    {
+                        row.DefaultCellStyle.ForeColor = Color.IndianRed;
+                        row.DefaultCellStyle.Font = new Font(dgvRecentLogs.Font, FontStyle.Bold);
+                    }
+                    else if (log.Level == "Error")
+                    {
+                        row.DefaultCellStyle.ForeColor = Color.Coral;
+                        row.DefaultCellStyle.Font = new Font(dgvRecentLogs.Font, FontStyle.Bold);
+                    }
+                    else if (log.Level == "Warning")
+                    {
+                        row.DefaultCellStyle.ForeColor = Color.Goldenrod;
+                    }
                 }
             }
 
@@ -348,7 +440,9 @@ namespace GateHelper.Dashboard
             }
             else
             {
-                txtLogDetail.Text = "🎉 최근 기록된 에러나 경고 로그가 없습니다. 시스템이 아주 깨끗합니다!";
+                txtLogDetail.Text = _showOnlyAlerts
+                    ? "🎉 최근 기록된 주의(Warning)나 심각(Error/Critical) 로그가 없습니다. 시스템이 아주 깨끗합니다!"
+                    : "🎉 최근 기록된 에러나 경고 로그가 없습니다. 시스템이 아주 깨끗합니다!";
             }
         }
 
@@ -369,6 +463,28 @@ namespace GateHelper.Dashboard
         #endregion
 
         #region [ 6. 버튼 이벤트들 ]
+
+        private void BtnFilterAlerts_Click(object sender, EventArgs e)
+        {
+            _showOnlyAlerts = !_showOnlyAlerts;
+            btnFilterAlerts.Text = _showOnlyAlerts ? "📋 전체 로그 보기" : "⚠️ 주의/심각만 보기";
+            btnFilterAlerts.Type = _showOnlyAlerts ? MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained : MaterialSkin.Controls.MaterialButton.MaterialButtonType.Outlined;
+            UpdateRecentLogsView();
+        }
+
+        private void BtnAckLogs_Click(object sender, EventArgs e)
+        {
+            // 1. 에러 확인(클리어) 처리
+            DashboardManager.AcknowledgeErrors();
+
+            // 2. 메시지박스 없이, 사용자가 즉시 주의/심각 로그를 모아볼 수 있도록 자동 전환
+            _showOnlyAlerts = true;
+            btnFilterAlerts.Text = "📋 전체 로그 보기";
+            btnFilterAlerts.Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained;
+
+            // 3. 전체 뷰 갱신 (상단 헬스 Clean 복구 + 주의/심각 로그 모아서 표시)
+            UpdateAllViews();
+        }
 
         private void BtnGcCollect_Click(object sender, EventArgs e)
         {

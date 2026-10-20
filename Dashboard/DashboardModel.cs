@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace GateHelper.Dashboard
 {
     /// <summary>
-    /// _meta/dashboard/dashboard_stats.json에 영구 보존되는 통계 모델
+    /// _meta/dashboard/dashboard_stats.dat (AES-256 암호화)에 영구 보존되는 통계 모델
     /// </summary>
     public class DashboardStats
     {
@@ -18,7 +18,31 @@ namespace GateHelper.Dashboard
         public int TotalConnectAttempts { get; set; } = 0;
         public int AutoLoginSuccessCount { get; set; } = 0;
         public int AutoLoginFailureCount { get; set; } = 0;
+        public int ScreenUnlockCount { get; set; } = 0;
         public Dictionary<string, int> ServerAccessCounts { get; set; } = new Dictionary<string, int>();
+        public int[] HourlyAccessCounts { get; set; } = new int[24];
+
+        /// <summary>
+        /// GateHelper가 절약해준 예상 총 업무 시간 (초)
+        /// (OTP 자동 로그인 1회당 25초, 서버 직접 접속 1회당 15초, 화면 잠금 해제 1회당 15초 절약 기준)
+        /// </summary>
+        public long GetEstimatedSavedSeconds()
+        {
+            return (AutoLoginSuccessCount * 25L) + (TotalConnectAttempts * 15L) + (ScreenUnlockCount * 15L);
+        }
+
+        public string GetEstimatedSavedFormatted()
+        {
+            long sec = GetEstimatedSavedSeconds();
+            if (sec <= 0) return "0분";
+            long hours = sec / 3600;
+            long mins = (sec % 3600) / 60;
+            if (hours > 0)
+            {
+                return $"{hours}시간 {mins:D2}분";
+            }
+            return $"{Math.Max(1, mins)}분";
+        }
 
         // 3. 샌드박스 클리어 기록
         public int BitFlipWins { get; set; } = 0;
@@ -27,9 +51,22 @@ namespace GateHelper.Dashboard
         public int MysteryAttempts { get; set; } = 0;
         public int AiTrendScraps { get; set; } = 0;
 
-        // 4. 에러 카운터
+        // 4. 에러 카운터 및 확인(Acknowledge) 상태 관리
         public int TotalErrorCount { get; set; } = 0;
         public int TotalCriticalCount { get; set; } = 0;
+        public DateTime? LastErrorAcknowledgedTime { get; set; } = null;
+        public int AcknowledgedErrorCount { get; set; } = 0;
+        public int AcknowledgedCriticalCount { get; set; } = 0;
+
+        /// <summary>
+        /// 사용자가 아직 확인(클리어)하지 않은 신규 에러/크리티컬 발생 건수
+        /// </summary>
+        public int GetUnacknowledgedErrorCount()
+        {
+            int total = TotalErrorCount + TotalCriticalCount;
+            int acked = AcknowledgedErrorCount + AcknowledgedCriticalCount;
+            return Math.Max(0, total - acked);
+        }
     }
 
     /// <summary>
@@ -61,5 +98,57 @@ namespace GateHelper.Dashboard
         public string Level { get; set; }
         public string Caller { get; set; }
         public string Message { get; set; }
+        public bool IsAcknowledged { get; set; } = false;
     }
+
+    #region [ Steam-Style Achievement Models ]
+
+    public enum AchievementCategory
+    {
+        BitFlip,
+        SignalLink,
+        MysteryTime,
+        AiTrend,
+        Special
+    }
+
+    public class AchievementItem
+    {
+        public string Id { get; set; }
+        public AchievementCategory Category { get; set; }
+        public string CategoryName { get; set; }
+        public string Title { get; set; }
+        public string Description { get; set; }
+        public int Points { get; set; }
+        public int RequiredCount { get; set; }
+        public int CurrentCount { get; set; }
+        public bool IsUnlocked => CurrentCount >= RequiredCount;
+        public float ProgressPercent => RequiredCount <= 0 ? 100f : Math.Min(100f, (float)CurrentCount / RequiredCount * 100f);
+        public string IconSymbol { get; set; } = "🏆";
+    }
+
+    public class MasteryTierInfo
+    {
+        public int TotalEarnedPoints { get; set; }
+        public int MaxPoints { get; set; }
+        public int TierLevel { get; set; } // 1 ~ 5
+        public string TierName { get; set; }
+        public string TierTitle { get; set; }
+        public System.Drawing.Color AccentColor { get; set; }
+        public float ProgressPercent => MaxPoints <= 0 ? 0f : Math.Min(100f, (float)TotalEarnedPoints / MaxPoints * 100f);
+        public int UnlockedCount { get; set; }
+        public int TotalCount { get; set; }
+    }
+
+    public class CategoryTierInfo
+    {
+        public AchievementCategory Category { get; set; }
+        public string CategoryName { get; set; }
+        public string CurrentTierName { get; set; }
+        public int CurrentLevel { get; set; } // 0 ~ 4
+        public int CurrentCount { get; set; }
+        public System.Drawing.Color TierColor { get; set; }
+    }
+
+    #endregion
 }

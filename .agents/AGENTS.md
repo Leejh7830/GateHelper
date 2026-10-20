@@ -2,29 +2,22 @@
 
 이 문서는 Antigravity Agent가 다른 PC나 새로운 대화 세션에서도 프로젝트의 현재 상태와 맥락을 곧바로 파악할 수 있도록 기록된 인수인계(Handover) 문서입니다. Agent는 새로운 대화가 시작될 때 자동으로 이 문서를 읽고 이전 상황을 이어갑니다.
 
-## 📌 최근 작업 내역 (최종 업데이트: 2026-10-19)
+## 📌 최근 작업 내역 (최종 업데이트: 2026-10-20)
 
-**[GateHelper Analytics & System Dashboard 신규 구현 및 UX/타이포그래피/로그 고도화]**
-1. **대시보드 전용 매니저 및 데이터 모델 구축 (`DashboardManager.cs`, `DashboardModel.cs`)**
-   - `_meta/dashboard/` 서브 디렉토리를 신설하여 과부하 방지 및 `dashboard_stats.json` 독립 격리 저장.
-   - 프로그램 누적 가동 시간(분), 세션 시간(Stopwatch), 총 실행 횟수, 서버별 접속 카운트(Top 5), GateOne 자동 로그인 성공률, 샌드박스 클리어(BitFlip, SignalLink, MysteryTime, AI Trend 찜 수) 통계 집계.
-2. **GDI+ 커스텀 비주얼 컨트롤 4종 신규 구현 (`DashboardControls.cs`)**
-   - `SegmentedGaugeControl`: 16칸 모던 세그먼트 RAM 게이지 (초록 0~150MB -> 노랑 150~300MB -> 빨강 >300MB).
-   - `RealtimeTrendChartControl`: 최근 40초간 실시간 CPU% & RAM 네온 곡선 파동 차트. (범례 동적 우측 정렬로 타이틀 겹침 원천 차단)
-   - `DonutChartControl`: 최다 접속 서버 Top 5 네온 원형 도넛 차트 (중앙 총 접속 횟수 표시).
-   - `CircularProgressControl`: GateOne 자동 로그인 성공률 원형 아크 링 게이지.
-3. **타이포그래피 단일화 및 폰트 글리프 불균형 완벽 해소 (`DashboardForm.Designer.cs`, `DashboardForm.cs`)**
-   - 맑은 고딕 특유의 한글 대비 숫자 왜소화(크기 불일치) 현상을 문장 포맷팅 리팩토링(`"0시간 00분"`, `"0회 실행"`, `"서버 접속 0회 · 자동 로그인 0.0%"`)으로 정돈.
-   - 폼 전체 폰트 스케일을 단 3단계(`13.5F Bold`, `9.5F Bold`, `9F Regular`)로 엄격 통일하고, DataGridView 헤더/셀에 명시적 폰트를 바인딩하여 굴림 노출 차단.
-4. **네트워크 핑 패킷 측정 카드 & 시스템 헬스 원클릭 연동**
-   - 개인 크롬과 합산되어 혼란을 주던 기존 '백그라운드 크롬 RAM 바'를 전면 삭제하고, 3초 주기 비동기 ICMP 네트워크 핑 패킷 카드로 교체. (80ms 이하 정상 초록색 처리)
-   - 상단 `[🛡️ 시스템 헬스]` 카드 클릭 시 최근 중요 로그 탭으로 즉시 화면 전환 및 에러 행 자동 포커싱(UX 극대화).
-5. **로그 파일 대소문자 매칭 및 UTF-8 인코딩/한국어 날짜 파서 픽스**
-   - 파일 내 `[ERROR]`, `[CRITICAL]`, `[WARNING]` 대문자 태그 미인식 및 UTF-8 한글 깨짐(`吏?뺥븳...`) 버그 완벽 수정.
-   - 한국어 오전/오후 날짜 파서를 탑재하여 과거 로그가 `DateTime.Now`로 왜곡되던 현상 원천 차단.
-6. **메인 화면 연동 및 반응형 레이아웃 (`MainUI.cs`, `MainUI.Designer.cs`, `Util_Control.cs`)**
-   - 메인 화면 하단 OPTION 버튼 좌측에 `[DASHBOARD]` 버튼 신설 및 창 크기 토글(확장/축소) 시 동기화.
-   - 전역 훅 연동: LogManager 에러 훅, 샌드박스 3종 승리 훅, 서버 접속 및 자동 로그인 결과 실시간 수집.
+**[GateHelper Analytics & System Dashboard 고도화 및 스팀 업적 / 무소음 로그 필터링 구축]**
+1. **무소음 로그 확인(클리어) & 주의/심각 로그 모아보기 필터링 (`DashboardForm.cs`, `DashboardManager.cs`)**
+   - 사용자 확인 시 번거로운 `MessageBox.Show` 팝업을 전면 배제하고, 원클릭 시 즉시 확인 타임스탬프(`LastErrorAcknowledgedTime`) 갱신 및 상단 헬스 카드를 `Clean ✨` 상태로 무소음 초기화.
+   - `[✔️ 로그 확인]` 클릭 시 또는 상단 `[🛡️ 시스템 헬스]` 카드 클릭 시 자동으로 주의(Warning)와 심각(Error/Critical) 로그만 모아보는 필터(`_showOnlyAlerts`)로 즉각 화면 전환.
+   - `[⚠️ 주의/심각만 보기] ⮀ [📋 전체 로그 보기]` 토글 버튼을 신설하여 언제든 정보성 로그와 주의/심각 로그를 자유롭게 원클릭 스위칭.
+   - 확인 완료된 과거 에러 로그는 차분한 톤의 심각도 색상(Critical: 딤레드, Error: 딤코랄, Warning: 딤골드)으로 세련되게 구분하여 가독성 보존.
+   - 로그 파일 읽기 시 파일 끝부분(가장 최신 에러)부터 역순 수집하도록 파서 고도화.
+2. **24시간 서버 접속 잔디 히트맵 & 화면 잠금 해제(Screen Unlock) 연동 (`DashboardControls.cs`, `DashboardManager.cs`)**
+   - 0시~23시 시간대별 서버 접속 빈도를 GitHub 스타일 녹색 4단계 잔디 큐브로 시각화하는 `HourlyHeatmapControl` 탑재.
+   - 주요 편의 기능인 `Auto Screen Unlock` 누적 해제 횟수를 서버 접속 통계 섹션에 깔끔하게 바인딩.
+3. **스팀(Steam) 스타일 샌드박스 도전과제 & 2단 마스터리 배너 구축 (`DashboardControls.cs`)**
+   - 4대 샌드박스(BitFlip, SignalLink, MysteryTime, AI Trend) 종합 랭크(루키 ➔ 마스터) 및 AP(업적 포인트) 산출 엔진 구축.
+   - 칭호 텍스트 잘림 현상을 해결하기 위해 가로 174px 4분할 카드 그리드 및 네온 프로그레스 바로 레이아웃 전면 리팩토링.
+   - DataGridView를 통해 총 12종의 스팀 스타일 업적 항목, 조건, 진행률(%), 보상 AP 제공.
 
 ---
 

@@ -597,4 +597,333 @@ namespace GateHelper.Dashboard
         }
     }
     #endregion
+
+    #region [ 5. 24시간 접속 활동 리듬 잔디 히트맵 (HourlyHeatmapControl) ]
+    /// <summary>
+    /// 하루 24시간(00~23시) 동안의 서버 접속 빈도 및 화면 잠금 해제 활동을 GitHub 스타일 네온 블록으로 시각화하는 컨트롤
+    /// </summary>
+    public class HourlyHeatmapControl : Control
+    {
+        private int[] _hourlyCounts = new int[24];
+        private int _screenUnlockCount = 0;
+        private int _hoveredHour = -1;
+        private readonly ToolTip _tip = new ToolTip();
+
+        public HourlyHeatmapControl()
+        {
+            this.SetStyle(ControlStyles.AllPaintingInWmPaint |
+                          ControlStyles.UserPaint |
+                          ControlStyles.OptimizedDoubleBuffer |
+                          ControlStyles.ResizeRedraw, true);
+            this.DoubleBuffered = true;
+            this.Size = new Size(755, 68);
+            this.Font = new Font("맑은 고딕", 8.5F, FontStyle.Regular);
+
+            this.MouseMove += HourlyHeatmapControl_MouseMove;
+            this.MouseLeave += (s, e) => { _hoveredHour = -1; Invalidate(); };
+        }
+
+        public void SetData(int[] hourlyCounts, int screenUnlockCount)
+        {
+            if (hourlyCounts != null && hourlyCounts.Length == 24)
+            {
+                _hourlyCounts = (int[])hourlyCounts.Clone();
+            }
+            _screenUnlockCount = screenUnlockCount;
+            Invalidate();
+        }
+
+        private void HourlyHeatmapControl_MouseMove(object sender, MouseEventArgs e)
+        {
+            int blockW = (Width - 30) / 24;
+            int startX = 15;
+            int startY = 24;
+            int blockH = 22;
+
+            int newHover = -1;
+            for (int h = 0; h < 24; h++)
+            {
+                int bx = startX + (h * blockW);
+                var rect = new Rectangle(bx, startY, blockW - 2, blockH);
+                if (rect.Contains(e.Location))
+                {
+                    newHover = h;
+                    break;
+                }
+            }
+
+            if (newHover != _hoveredHour)
+            {
+                _hoveredHour = newHover;
+                if (_hoveredHour >= 0 && _hoveredHour < 24)
+                {
+                    int cnt = _hourlyCounts[_hoveredHour];
+                    _tip.SetToolTip(this, $"{_hoveredHour:D2}:00 ~ {_hoveredHour:D2}:59\n서버 접속: {cnt}회");
+                }
+                Invalidate();
+            }
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            Graphics g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            // 배경
+            using (var bgBrush = new SolidBrush(Color.FromArgb(32, 32, 35)))
+            {
+                g.FillRectangle(bgBrush, ClientRectangle);
+            }
+
+            // 상단 타이틀
+            string title = _screenUnlockCount > 0
+                ? $"🕒 24시간 활동 리듬 (접속 {_hourlyCounts.Sum():N0}회 · 🔓 화면잠금 해제 {_screenUnlockCount:N0}회)"
+                : $"🕒 24시간 서버 접속 및 활동 리듬 (총 {_hourlyCounts.Sum():N0}회 접속)";
+
+            using (var titleFont = new Font("맑은 고딕", 8.5F, FontStyle.Bold))
+            {
+                g.DrawString(title, titleFont, Brushes.LightGray, 14, 6);
+            }
+
+            int blockW = (Width - 30) / 24;
+            int startX = 15;
+            int startY = 25;
+            int blockH = 20;
+            int currentHour = DateTime.Now.Hour;
+            int maxVal = _hourlyCounts.Max();
+
+            using (var hourFont = new Font("맑은 고딕", 7F, FontStyle.Regular))
+            using (var curPen = new Pen(Color.Gold, 1.5f))
+            {
+                for (int h = 0; h < 24; h++)
+                {
+                    int bx = startX + (h * blockW);
+                    int count = _hourlyCounts[h];
+
+                    Color blockColor;
+                    if (count == 0)
+                    {
+                        blockColor = Color.FromArgb(45, 45, 50);
+                    }
+                    else
+                    {
+                        double ratio = (double)count / Math.Max(3, maxVal);
+                        if (ratio <= 0.33) blockColor = Color.FromArgb(0, 110, 140);
+                        else if (ratio <= 0.66) blockColor = Color.FromArgb(0, 180, 210);
+                        else blockColor = Color.FromArgb(0, 240, 255);
+                    }
+
+                    if (h == _hoveredHour)
+                    {
+                        blockColor = Color.FromArgb(Math.Min(255, blockColor.R + 40),
+                                                    Math.Min(255, blockColor.G + 40),
+                                                    Math.Min(255, blockColor.B + 40));
+                    }
+
+                    using (var bBrush = new SolidBrush(blockColor))
+                    {
+                        g.FillRectangle(bBrush, bx, startY, blockW - 2, blockH);
+                    }
+
+                    if (h == currentHour)
+                    {
+                        g.DrawRectangle(curPen, bx - 1, startY - 1, blockW - 1, blockH + 1);
+                    }
+
+                    if (h % 3 == 0)
+                    {
+                        string hStr = $"{h:D2}";
+                        g.DrawString(hStr, hourFont, (h == currentHour ? Brushes.Gold : Brushes.Gray), new PointF(bx - 1, startY + blockH + 2));
+                    }
+                }
+            }
+
+            // 테두리
+            using (var borderPen = new Pen(Color.FromArgb(60, 60, 65), 1))
+            {
+                g.DrawRectangle(borderPen, 0, 0, Width - 1, Height - 1);
+            }
+        }
+    }
+    #endregion
+
+    #region [ 6. 종합 마스터리 랭크 2단 와이드 HUD 배너 (MasteryBannerControl) ]
+    /// <summary>
+    /// 1층: 전체 업적 진행도 (종합 랭크 + 풀 와이드 네온 AP 게이지 바)
+    /// 2층: 4대 분야별 레벨 & 칭호 박스 (174px 너비 4등분으로 긴 칭호도 잘림 없이 완벽 노출)
+    /// </summary>
+    public class MasteryBannerControl : Control
+    {
+        private MasteryTierInfo _masteryInfo;
+        private List<CategoryTierInfo> _categoryTiers;
+
+        public MasteryBannerControl()
+        {
+            this.SetStyle(ControlStyles.AllPaintingInWmPaint |
+                          ControlStyles.UserPaint |
+                          ControlStyles.OptimizedDoubleBuffer |
+                          ControlStyles.ResizeRedraw, true);
+            this.DoubleBuffered = true;
+            this.Size = new Size(755, 116);
+            this.Font = new Font("맑은 고딕", 9F, FontStyle.Regular);
+        }
+
+        public void SetData(MasteryTierInfo mastery, List<CategoryTierInfo> categoryTiers)
+        {
+            _masteryInfo = mastery;
+            _categoryTiers = categoryTiers;
+            Invalidate();
+        }
+
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            base.OnPaint(e);
+            Graphics g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+            g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+
+            // 전체 배경
+            using (var bgBrush = new SolidBrush(Color.FromArgb(32, 32, 35)))
+            {
+                g.FillRectangle(bgBrush, 0, 0, Width, Height);
+            }
+
+            var tier = _masteryInfo ?? new MasteryTierInfo
+            {
+                TierName = "🥉 Tier 1: Novice",
+                TierTitle = "샌드박스 입문 요원",
+                AccentColor = Color.FromArgb(205, 127, 50),
+                TotalEarnedPoints = 0,
+                MaxPoints = 520,
+                UnlockedCount = 0,
+                TotalCount = 15
+            };
+
+            // 1. 상단 3px 네온 액센트 탑 라인
+            using (var lineBrush = new LinearGradientBrush(
+                new Point(0, 0), new Point(Width, 0),
+                tier.AccentColor, Color.FromArgb(30, tier.AccentColor)))
+            {
+                g.FillRectangle(lineBrush, 0, 0, Width, 3);
+            }
+
+            // -----------------------------------------------------------------
+            // [ 1층: 전체 업적 진행도 (Y: 4 ~ 48) ]
+            // -----------------------------------------------------------------
+            // 좌측: 종합 랭크 이름 + 칭호 설명
+            float titleRightX = 250f;
+            using (var titleFont = new Font("맑은 고딕", 11.5F, FontStyle.Bold))
+            using (var titleBrush = new SolidBrush(tier.AccentColor))
+            {
+                g.DrawString(tier.TierName, titleFont, titleBrush, 14, 7);
+                var titleSz = g.MeasureString(tier.TierName, titleFont);
+                titleRightX = 14 + titleSz.Width + 10;
+            }
+
+            using (var descFont = new Font("맑은 고딕", 8.5F, FontStyle.Regular))
+            {
+                g.DrawString($"({tier.TierTitle})", descFont, Brushes.DarkGray, titleRightX, 11);
+
+                // 우측: 점수 및 달성 개수
+                string scoreText = $"진척도: {tier.TotalEarnedPoints} / {tier.MaxPoints} AP ({tier.ProgressPercent:F1}%)  •  도전과제 달성: {tier.UnlockedCount} / {tier.TotalCount}개";
+                var scoreSz = g.MeasureString(scoreText, descFont);
+                g.DrawString(scoreText, descFont, Brushes.Gainsboro, Width - scoreSz.Width - 16, 11);
+            }
+
+            // 풀 와이드 네온 게이지 바 (X: 16, Y: 33, W: Width - 32, H: 6)
+            int barX = 16;
+            int barY = 33;
+            int barW = Width - 32;
+            int barH = 6;
+
+            using (var trackBrush = new SolidBrush(Color.FromArgb(50, 50, 55)))
+            {
+                g.FillRectangle(trackBrush, barX, barY, barW, barH);
+            }
+
+            float fillW = barW * (tier.ProgressPercent / 100f);
+            if (fillW > 0)
+            {
+                using (var fillBrush = new LinearGradientBrush(
+                    new Point(barX, barY), new Point(barX + barW, barY),
+                    tier.AccentColor, Color.FromArgb(Math.Min(255, tier.AccentColor.R + 60),
+                                                    Math.Min(255, tier.AccentColor.G + 60),
+                                                    Math.Min(255, tier.AccentColor.B + 60))))
+                {
+                    g.FillRectangle(fillBrush, barX, barY, fillW, barH);
+                }
+            }
+
+            // 구분선 (1층과 2층 사이)
+            using (var divPen = new Pen(Color.FromArgb(48, 48, 52), 1))
+            {
+                g.DrawLine(divPen, 16, 47, Width - 16, 47);
+            }
+
+            // -----------------------------------------------------------------
+            // [ 2층: 4대 분야별 레벨 & 칭호 카드 4개 가로 분할 (Y: 53 ~ 107) ]
+            // -----------------------------------------------------------------
+            if (_categoryTiers != null && _categoryTiers.Count > 0)
+            {
+                int cardStartX = 16;
+                int cardGap = 8;
+                int totalAvailW = Width - 32;
+                int cardW = (totalAvailW - (cardGap * 3)) / 4; // 약 174px
+                int cardH = 55;
+                int cardY = 52;
+
+                string[] icons = { "🧩", "⚡", "🔍", "⭐" };
+
+                for (int i = 0; i < _categoryTiers.Count && i < 4; i++)
+                {
+                    var cat = _categoryTiers[i];
+                    int cx = cardStartX + (i * (cardW + cardGap));
+
+                    // 카드 배경 및 얇은 테두리
+                    using (var cardBg = new SolidBrush(Color.FromArgb(40, 40, 44)))
+                    using (var cardBorder = new Pen(Color.FromArgb(62, 62, 68), 1))
+                    {
+                        g.FillRectangle(cardBg, cx, cardY, cardW, cardH);
+                        g.DrawRectangle(cardBorder, cx, cardY, cardW, cardH);
+                    }
+
+                    // 좌측 세로 2px 티어 컬러 액센트 바
+                    using (var accentBrush = new SolidBrush(cat.TierColor))
+                    {
+                        g.FillRectangle(accentBrush, cx, cardY, 3, cardH);
+                    }
+
+                    // 1줄: 카테고리 헤더
+                    using (var catFont = new Font("맑은 고딕", 8F, FontStyle.Bold))
+                    {
+                        g.DrawString($"{icons[i]} {cat.CategoryName}", catFont, Brushes.LightGray, cx + 8, cardY + 5);
+                    }
+
+                    // 2줄: 티어 명칭 (174px 공간이므로 9글자 칭호도 전혀 안 잘림!)
+                    using (var tierFont = new Font("맑은 고딕", 9F, FontStyle.Bold))
+                    using (var tierBrush = new SolidBrush(cat.TierColor))
+                    {
+                        g.DrawString(cat.CurrentTierName, tierFont, tierBrush, cx + 8, cardY + 20);
+                    }
+
+                    // 3줄: 진행 실적
+                    using (var countFont = new Font("맑은 고딕", 7.5F, FontStyle.Regular))
+                    {
+                        string countText = cat.Category == AchievementCategory.AiTrend
+                            ? $"찜 등록 {cat.CurrentCount:N0}개"
+                            : $"퍼즐 클리어 {cat.CurrentCount:N0}회";
+                        g.DrawString(countText, countFont, Brushes.DarkGray, cx + 8, cardY + 37);
+                    }
+                }
+            }
+
+            // 바깥 테두리
+            using (var borderPen = new Pen(Color.FromArgb(60, 60, 65), 1))
+            {
+                g.DrawRectangle(borderPen, 0, 0, Width - 1, Height - 1);
+            }
+        }
+    }
+    #endregion
 }
