@@ -290,6 +290,13 @@
     <Compile Include="SandBox\4. AiTrend\AiTrendPreviewDialog.cs">
       <SubType>Form</SubType>
     </Compile>
+    <Compile Include="SandBox\5. ServerTycoon\ServerTycoonModel.cs" />
+    <Compile Include="SandBox\5. ServerTycoon\ServerTycoonControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SandBox\5. ServerTycoon\ServerTycoonControl.Designer.cs">
+      <DependentUpon>ServerTycoonControl.cs</DependentUpon>
+    </Compile>
     <Compile Include="SandBox\GameListControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

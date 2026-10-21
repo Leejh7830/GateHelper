@@ -54,7 +54,7 @@ namespace GateHelper.Dashboard
             this.colRank = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colServerName = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.colAccessCount = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.colPercentage = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.colLastConnected = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.gaugeAutoLogin = new GateHelper.Dashboard.CircularProgressControl();
             this.chartServerDonut = new GateHelper.Dashboard.DonutChartControl();
             this.heatmapHourly = new GateHelper.Dashboard.HourlyHeatmapControl();
@@ -499,7 +499,7 @@ namespace GateHelper.Dashboard
             this.colRank,
             this.colServerName,
             this.colAccessCount,
-            this.colPercentage});
+            this.colLastConnected});
             this.dgvTopServers.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.dgvTopServers.Location = new System.Drawing.Point(415, 12);
             this.dgvTopServers.Name = "dgvTopServers";
@@ -521,7 +521,7 @@ namespace GateHelper.Dashboard
             // 
             // colServerName
             // 
-            this.colServerName.FillWeight = 115F;
+            this.colServerName.FillWeight = 110F;
             this.colServerName.HeaderText = "서버명";
             this.colServerName.MinimumWidth = 90;
             this.colServerName.Name = "colServerName";
@@ -530,21 +530,21 @@ namespace GateHelper.Dashboard
             // 
             // colAccessCount
             // 
-            this.colAccessCount.FillWeight = 60F;
+            this.colAccessCount.FillWeight = 55F;
             this.colAccessCount.HeaderText = "접속수";
-            this.colAccessCount.MinimumWidth = 60;
+            this.colAccessCount.MinimumWidth = 50;
             this.colAccessCount.Name = "colAccessCount";
             this.colAccessCount.ReadOnly = true;
             this.colAccessCount.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
-            // colPercentage
+            // colLastConnected
             // 
-            this.colPercentage.FillWeight = 55F;
-            this.colPercentage.HeaderText = "비율";
-            this.colPercentage.MinimumWidth = 55;
-            this.colPercentage.Name = "colPercentage";
-            this.colPercentage.ReadOnly = true;
-            this.colPercentage.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.colLastConnected.FillWeight = 85F;
+            this.colLastConnected.HeaderText = "최근 접속";
+            this.colLastConnected.MinimumWidth = 75;
+            this.colLastConnected.Name = "colLastConnected";
+            this.colLastConnected.ReadOnly = true;
+            this.colLastConnected.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             // 
             // gaugeAutoLogin
             // 
@@ -1002,7 +1002,7 @@ namespace GateHelper.Dashboard
         private System.Windows.Forms.DataGridViewTextBoxColumn colRank;
         private System.Windows.Forms.DataGridViewTextBoxColumn colServerName;
         private System.Windows.Forms.DataGridViewTextBoxColumn colAccessCount;
-        private System.Windows.Forms.DataGridViewTextBoxColumn colPercentage;
+        private System.Windows.Forms.DataGridViewTextBoxColumn colLastConnected;
         private System.Windows.Forms.Panel pnlSandboxContent;
         private MasteryBannerControl bannerMastery;
         private System.Windows.Forms.DataGridView dgvAchievements;

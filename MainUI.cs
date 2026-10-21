@@ -973,7 +973,12 @@ namespace GateHelper
             }
             else
             {
+                if (_dashboardForm.WindowState == FormWindowState.Minimized)
+                {
+                    _dashboardForm.WindowState = FormWindowState.Normal;
+                }
                 _dashboardForm.BringToFront();
+                _dashboardForm.Activate();
             }
         }
 

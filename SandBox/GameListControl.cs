@@ -41,5 +41,13 @@ namespace GateHelper
                 sb.SwitchToGame("AiTrend");
             }
         }
+
+        private void GL_btnSelectServerTycoon_Click(object sender, EventArgs e)
+        {
+            if (this.ParentForm is SandBox sb)
+            {
+                sb.SwitchToGame("ServerTycoon");
+            }
+        }
     }
 }

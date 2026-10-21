@@ -1,7 +1,9 @@
 using MaterialSkin.Controls;
+using System;
 using System.Windows.Forms;
 using GateHelper.MysteryTime;
 using GateHelper.AiTrend;
+using GateHelper.ServerTycoon;
 
 namespace GateHelper
 {
@@ -12,6 +14,7 @@ namespace GateHelper
         private SignalLinkControl _signalLinkGame;
         private MysteryTimeControl _mysteryTimeGame;
         private AiTrendControl _aiTrendControl;
+        private ServerTycoonControl _serverTycoonControl;
 
         public SandBox() : this(null)
         {
@@ -74,8 +77,25 @@ namespace GateHelper
                 tpAiTrend.Controls.Add(_aiTrendControl);
             }
 
+            // 6. Server Tycoon 컨트롤 추가
+            _serverTycoonControl = new ServerTycoonControl();
+            _serverTycoonControl.Dock = DockStyle.Fill;
+            if (SB_tabControl1.TabPages.Contains(tpServerTycoon))
+            {
+                tpServerTycoon.Controls.Add(_serverTycoonControl);
+            }
+
+            // 탭 전환 이벤트: 활성 탭에 따른 스마트 렌더링/절전 제어
+            SB_tabControl1.SelectedIndexChanged += SB_tabControl1_SelectedIndexChanged;
+
             // 초기 탭 (리스트 화면)
             SB_tabControl1.SelectedTab = tpList;
+        }
+
+        private void SB_tabControl1_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            bool isTycoon = SB_tabControl1.SelectedTab == tpServerTycoon;
+            _serverTycoonControl?.OnTabVisibilityChanged(isTycoon);
         }
 
         public void BackToList()
@@ -111,6 +131,13 @@ namespace GateHelper
                 {
                     _aiTrendControl?.ApplyTheme(MaterialSkin.MaterialSkinManager.Instance.Theme == MaterialSkin.MaterialSkinManager.Themes.DARK);
                     SB_tabControl1.SelectedTab = tpAiTrend;
+                }
+            }
+            else if (gameName == "ServerTycoon")
+            {
+                if (SB_tabControl1.TabPages.Contains(tpServerTycoon))
+                {
+                    SB_tabControl1.SelectedTab = tpServerTycoon;
                 }
             }
         }

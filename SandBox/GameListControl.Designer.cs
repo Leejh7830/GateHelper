@@ -37,11 +37,14 @@ namespace GateHelper
             this.materialLabel3 = new MaterialSkin.Controls.MaterialLabel();
             this.GL_btnSelectAiTrend = new MaterialSkin.Controls.MaterialCard();
             this.materialLabelAiTrend = new MaterialSkin.Controls.MaterialLabel();
+            this.GL_btnSelectServerTycoon = new MaterialSkin.Controls.MaterialCard();
+            this.materialLabelServerTycoon = new MaterialSkin.Controls.MaterialLabel();
             this.GL_FlowPanel1.SuspendLayout();
             this.GL_btnSelectBitFlip.SuspendLayout();
             this.GL_btnSelectSignalLink.SuspendLayout();
             this.GL_btnSelectMysteryTime.SuspendLayout();
             this.GL_btnSelectAiTrend.SuspendLayout();
+            this.GL_btnSelectServerTycoon.SuspendLayout();
             this.SuspendLayout();
             // 
             // GL_FlowPanel1
@@ -50,6 +53,7 @@ namespace GateHelper
             this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectSignalLink);
             this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectMysteryTime);
             this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectAiTrend);
+            this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectServerTycoon);
             this.GL_FlowPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.GL_FlowPanel1.Location = new System.Drawing.Point(0, 0);
             this.GL_FlowPanel1.Name = "GL_FlowPanel1";
@@ -164,6 +168,34 @@ namespace GateHelper
             this.materialLabelAiTrend.TabIndex = 5;
             this.materialLabelAiTrend.Text = "AI Trend";
             // 
+            // GL_btnSelectServerTycoon
+            // 
+            this.GL_btnSelectServerTycoon.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.GL_btnSelectServerTycoon.Controls.Add(this.materialLabelServerTycoon);
+            this.GL_btnSelectServerTycoon.Depth = 0;
+            this.GL_btnSelectServerTycoon.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.GL_btnSelectServerTycoon.Location = new System.Drawing.Point(14, 210);
+            this.GL_btnSelectServerTycoon.Margin = new System.Windows.Forms.Padding(14);
+            this.GL_btnSelectServerTycoon.MouseState = MaterialSkin.MouseState.HOVER;
+            this.GL_btnSelectServerTycoon.Name = "GL_btnSelectServerTycoon";
+            this.GL_btnSelectServerTycoon.Padding = new System.Windows.Forms.Padding(14);
+            this.GL_btnSelectServerTycoon.Size = new System.Drawing.Size(150, 70);
+            this.GL_btnSelectServerTycoon.TabIndex = 4;
+            this.GL_btnSelectServerTycoon.Click += new System.EventHandler(this.GL_btnSelectServerTycoon_Click);
+            // 
+            // materialLabelServerTycoon
+            // 
+            this.materialLabelServerTycoon.AutoSize = true;
+            this.materialLabelServerTycoon.Depth = 0;
+            this.materialLabelServerTycoon.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialLabelServerTycoon.Location = new System.Drawing.Point(22, 26);
+            this.materialLabelServerTycoon.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialLabelServerTycoon.Name = "materialLabelServerTycoon";
+            this.materialLabelServerTycoon.Size = new System.Drawing.Size(106, 19);
+            this.materialLabelServerTycoon.TabIndex = 6;
+            this.materialLabelServerTycoon.Text = "Server Tycoon";
+            this.materialLabelServerTycoon.Click += new System.EventHandler(this.GL_btnSelectServerTycoon_Click);
+            // 
             // GameListControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -180,6 +212,8 @@ namespace GateHelper
             this.GL_btnSelectMysteryTime.PerformLayout();
             this.GL_btnSelectAiTrend.ResumeLayout(false);
             this.GL_btnSelectAiTrend.PerformLayout();
+            this.GL_btnSelectServerTycoon.ResumeLayout(false);
+            this.GL_btnSelectServerTycoon.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -191,9 +225,11 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialCard GL_btnSelectSignalLink;
         private MaterialSkin.Controls.MaterialCard GL_btnSelectMysteryTime;
         private MaterialSkin.Controls.MaterialCard GL_btnSelectAiTrend;
+        private MaterialSkin.Controls.MaterialCard GL_btnSelectServerTycoon;
         private MaterialSkin.Controls.MaterialLabel materialLabel1;
         private MaterialSkin.Controls.MaterialLabel materialLabel2;
         private MaterialSkin.Controls.MaterialLabel materialLabel3;
         private MaterialSkin.Controls.MaterialLabel materialLabelAiTrend;
+        private MaterialSkin.Controls.MaterialLabel materialLabelServerTycoon;
     }
 }

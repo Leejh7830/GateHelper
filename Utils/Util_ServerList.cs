@@ -1,4 +1,4 @@
-﻿using BrightIdeasSoftware;
+using BrightIdeasSoftware;
 using OpenQA.Selenium;
 using System;
 using System.Collections.Generic;
@@ -212,12 +212,45 @@ namespace GateHelper
             return serverList;
         }
 
-
-
-
-
-
-
-
+        /// <summary>
+        /// serverData.json에서 각 서버별 가장 최근 접속 일시(LastConnected) 매핑을 조회합니다.
+        /// 별도의 변수나 플래그 신설 없이 기존에 영구 보존된 원본 데이터로부터 효율적으로 조회합니다.
+        /// </summary>
+        public static Dictionary<string, DateTime> GetServerLastConnectedMap()
+        {
+            var map = new Dictionary<string, DateTime>(StringComparer.OrdinalIgnoreCase);
+            try
+            {
+                if (File.Exists(_serverFilePath))
+                {
+                    List<ServerInfo> list = null;
+                    using (var fs = new FileStream(_serverFilePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    using (var sr = new StreamReader(fs, Encoding.UTF8))
+                    {
+                        string jsonString = sr.ReadToEnd();
+                        list = JsonSerializer.Deserialize<List<ServerInfo>>(jsonString);
+                    }
+                    if (list != null)
+                    {
+                        foreach (var s in list)
+                        {
+                            if (!string.IsNullOrWhiteSpace(s.ServerName))
+                            {
+                                string name = s.ServerName.Trim();
+                                if (!map.ContainsKey(name) || s.LastConnected > map[name])
+                                {
+                                    map[name] = s.LastConnected;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogMessage($"[대시보드 연동] 최근 서버 접속 일시 조회 실패: {ex.Message}", Level.Warning);
+            }
+            return map;
+        }
     }
 }

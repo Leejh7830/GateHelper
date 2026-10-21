@@ -28,6 +28,10 @@ namespace GateHelper.Dashboard
             ApplyThemeColors();
             SetupCardInteractions();
             UpdateAllViews();
+
+            // 탭 전환 시 활성 탭 데이터 즉각 자동 동기화 (불필요한 전체 리드로우 방지)
+            tabControlMain.SelectedIndexChanged += TabControlMain_SelectedIndexChanged;
+
             timerRefresh.Start();
         }
 
@@ -35,7 +39,25 @@ namespace GateHelper.Dashboard
         {
             var tip = new ToolTip();
 
-            // 1. 시스템 헬스 클릭 시 최근 중요 로그 탭으로 즉시 이동
+            // 1. 가동 시간 카드 클릭 시 리소스 모니터 탭으로 이동
+            string uptimeTip = "클릭 시 리소스 & 헬스 모니터 탭으로 이동합니다.";
+            foreach (Control c in new Control[] { cardUptime, lblUptimeTitle, lblUptimeMain, lblUptimeSub })
+            {
+                c.Cursor = Cursors.Hand;
+                tip.SetToolTip(c, uptimeTip);
+                c.Click += (s, ev) => tabControlMain.SelectedTab = tpResource;
+            }
+
+            // 2. 활동 카드 클릭 시 서버 접속 분석 탭으로 이동
+            string activityTip = "클릭 시 서버 접속 통계 & 자동 로그인 탭으로 이동합니다.";
+            foreach (Control c in new Control[] { cardActivity, lblActivityTitle, lblActivityMain, lblActivitySub })
+            {
+                c.Cursor = Cursors.Hand;
+                tip.SetToolTip(c, activityTip);
+                c.Click += (s, ev) => tabControlMain.SelectedTab = tpServer;
+            }
+
+            // 3. 시스템 헬스 클릭 시 최근 중요 로그 탭으로 즉시 이동
             string healthTip = "클릭 시 최근 중요 로그(Error/Warning) 탭으로 이동합니다.";
             foreach (Control c in new Control[] { cardHealth, lblHealthTitle, lblHealthMain, lblHealthSub })
             {
@@ -51,16 +73,13 @@ namespace GateHelper.Dashboard
                 };
             }
 
-            // 2. 샌드박스 & 업적 카드 클릭 시 샌드박스 탭으로 즉시 이동
+            // 4. 샌드박스 & 업적 카드 클릭 시 샌드박스 탭으로 즉시 이동
             string sandboxTip = "클릭 시 스팀 스타일 도전과제 & 샌드박스 마스터리 탭으로 이동합니다.";
             foreach (Control c in new Control[] { cardSandbox, lblSandboxTitle, lblSandboxMain, lblSandboxSub })
             {
                 c.Cursor = Cursors.Hand;
                 tip.SetToolTip(c, sandboxTip);
-                c.Click += (s, ev) =>
-                {
-                    tabControlMain.SelectedTab = tpSandbox;
-                };
+                c.Click += (s, ev) => tabControlMain.SelectedTab = tpSandbox;
             }
         }
 
@@ -69,9 +88,40 @@ namespace GateHelper.Dashboard
             timerRefresh.Stop();
         }
 
+        private void TabControlMain_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            // 상단 KPI 카드(가동 시간, 헬스 상태 등)는 항상 최신 상태 유지
+            UpdateTopKpiCards();
+
+            // 사용자가 선택한 활성 탭만 경량 동기화 (불필요한 타 탭 중복 계산 방지)
+            if (tabControlMain.SelectedTab == tpResource)
+            {
+                UpdateResourceAndUptimeViews();
+            }
+            else if (tabControlMain.SelectedTab == tpServer)
+            {
+                UpdateServerAccessView();
+            }
+            else if (tabControlMain.SelectedTab == tpSandbox)
+            {
+                UpdateSandboxView();
+            }
+            else if (tabControlMain.SelectedTab == tpLogs)
+            {
+                UpdateRecentLogsView();
+            }
+        }
+
         private void TimerRefresh_Tick(object sender, EventArgs e)
         {
-            UpdateResourceAndUptimeViews();
+            // 상단 세션 가동 시간은 1초마다 실시간 반영
+            UpdateTopKpiCards();
+
+            // 리소스 탭이 열려 있을 때만 실시간 차트/게이지 리드로우 (다른 탭 열람 중에는 CPU/GDI 부하 차단)
+            if (tabControlMain.SelectedTab == tpResource)
+            {
+                UpdateResourceAndUptimeViews();
+            }
         }
 
         private void ApplyThemeColors()
@@ -119,15 +169,23 @@ namespace GateHelper.Dashboard
             colRank.HeaderCell.Style.WrapMode = DataGridViewTriState.False;
             colRank.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
 
+            colServerName.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            colServerName.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleLeft;
+            colServerName.HeaderCell.Style.WrapMode = DataGridViewTriState.False;
+            colServerName.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
+
             colAccessCount.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colAccessCount.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
             colAccessCount.HeaderCell.Style.WrapMode = DataGridViewTriState.False;
             colAccessCount.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
 
-            colPercentage.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            colPercentage.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
-            colPercentage.HeaderCell.Style.WrapMode = DataGridViewTriState.False;
-            colPercentage.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
+            colLastConnected.HeaderCell.Style.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colLastConnected.DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+            colLastConnected.HeaderCell.Style.WrapMode = DataGridViewTriState.False;
+            colLastConnected.DefaultCellStyle.WrapMode = DataGridViewTriState.False;
+
+            dgvTopServers.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
+            dgvTopServers.MultiSelect = false;
 
             txtLogDetail.BackColor = isDark ? Color.FromArgb(25, 25, 26) : Color.FromArgb(245, 245, 245);
             txtLogDetail.ForeColor = isDark ? Color.Gainsboro : Color.Black;
@@ -274,26 +332,56 @@ namespace GateHelper.Dashboard
         private void UpdateServerAccessView()
         {
             var topServers = DashboardManager.GetTopServers(8);
-            int totalCount = topServers.Sum(x => x.Value);
 
             // 1. 도넛 차트에 데이터 전달
             chartServerDonut.SetData(topServers);
 
-            // 2. DataGridView에 표 바인딩
+            // 2. DataGridView에 표 바인딩 (순위 색상 도넛 차트 일치 & 최근 접속 일시 연동)
             dgvTopServers.Rows.Clear();
+            var lastConnectedMap = Util_ServerList.GetServerLastConnectedMap();
             int rank = 1;
             foreach (var kv in topServers)
             {
-                double pct = totalCount > 0 ? Math.Round((double)kv.Value / totalCount * 100.0, 1) : 0.0;
-                dgvTopServers.Rows.Add(rank++, kv.Key, $"{kv.Value:N0}회", $"{pct:F1}%");
+                int currentRank = rank++;
+                Color rankColor = (currentRank <= 5)
+                    ? DonutChartControl.Palette[currentRank - 1]
+                    : DonutChartControl.Palette[5];
+
+                string lastConnectedStr = "-";
+                if (lastConnectedMap != null && lastConnectedMap.TryGetValue(kv.Key, out DateTime lastDt) && lastDt > DateTime.MinValue && lastDt.Year > 2000)
+                {
+                    var now = DateTime.Now;
+                    if (lastDt.Date == now.Date)
+                    {
+                        lastConnectedStr = $"오늘 {lastDt:HH:mm}";
+                    }
+                    else if (lastDt.Date == now.Date.AddDays(-1))
+                    {
+                        lastConnectedStr = $"어제 {lastDt:HH:mm}";
+                    }
+                    else if (lastDt.Year == now.Year)
+                    {
+                        lastConnectedStr = lastDt.ToString("MM-dd HH:mm");
+                    }
+                    else
+                    {
+                        lastConnectedStr = lastDt.ToString("yyyy-MM-dd");
+                    }
+                }
+
+                int rowIdx = dgvTopServers.Rows.Add($"● {currentRank}위", kv.Key, $"{kv.Value:N0}회", lastConnectedStr);
+                var row = dgvTopServers.Rows[rowIdx];
+                row.Cells[0].Style.ForeColor = rankColor;
+                row.Cells[0].Style.SelectionForeColor = rankColor;
+                row.Cells[0].Style.Font = new Font(dgvTopServers.Font, FontStyle.Bold);
             }
 
             if (dgvTopServers.Rows.Count == 0)
             {
-                dgvTopServers.Rows.Add("-", "접속 이력 없음", "0회", "0.0%");
+                dgvTopServers.Rows.Add("-", "접속 이력 없음", "0회", "-");
             }
 
-            // 3. 자동 로그인 원형 링 게이지
+            // 3. 자동 로그인 원형 링 게이지 (성공/실패 카운트 분리 & 누적 절약 시간 연동)
             var stats = DashboardManager.Stats;
             int totalAuto = stats.AutoLoginSuccessCount + stats.AutoLoginFailureCount;
             double rate = 0.0;
@@ -302,9 +390,12 @@ namespace GateHelper.Dashboard
                 rate = Math.Round((double)stats.AutoLoginSuccessCount / totalAuto * 100.0, 1);
             }
 
-            gaugeAutoLogin.Value = rate;
-            gaugeAutoLogin.SubTitle = $"자동 로그인 {stats.AutoLoginSuccessCount}/{totalAuto}회";
-            gaugeAutoLogin.RingColor = rate >= 90.0 ? Color.FromArgb(46, 204, 113) : (rate >= 70.0 ? Color.FromArgb(241, 196, 15) : Color.FromArgb(231, 76, 60));
+            gaugeAutoLogin.SetProgress(
+                rate,
+                stats.AutoLoginSuccessCount,
+                stats.AutoLoginFailureCount,
+                stats.GetEstimatedSavedFormatted()
+            );
 
             // 4. 24시간 접속 활동 잔디 히트맵 (서버 접속 및 화면 잠금 해제 횟수 연동)
             heatmapHourly.SetData(DashboardManager.GetHourlyAccessCounts(), stats.ScreenUnlockCount);
@@ -448,9 +539,9 @@ namespace GateHelper.Dashboard
 
         private void DgvRecentLogs_SelectionChanged(object sender, EventArgs e)
         {
-            if (dgvRecentLogs.SelectedRows.Count > 0)
+            var row = dgvRecentLogs.CurrentRow ?? (dgvRecentLogs.SelectedRows.Count > 0 ? dgvRecentLogs.SelectedRows[0] : null);
+            if (row != null && row.Index >= 0)
             {
-                var row = dgvRecentLogs.SelectedRows[0];
                 string time = row.Cells[0].Value?.ToString();
                 string level = row.Cells[1].Value?.ToString();
                 string caller = row.Cells[2].Value?.ToString();

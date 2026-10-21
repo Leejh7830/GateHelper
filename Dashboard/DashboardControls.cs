@@ -245,8 +245,9 @@ namespace GateHelper.Dashboard
 
             if (plotW <= 0 || plotH <= 0 || _cpuHistory.Count < 2) return;
 
-            // 3. CPU 곡선 그리기 (네온 시안 컬러)
-            DrawCurve(g, _cpuHistory, 0f, 30f, Color.FromArgb(0, 210, 255), Color.FromArgb(35, 0, 210, 255), padLeft, padTop, plotW, plotH);
+            // 3. RAM 및 CPU 곡선 그리기 (초록 RAM 배경 곡선 + 파랑 CPU 전경 곡선)
+            DrawCurve(g, _ramHistory, 0f, 512f, Color.FromArgb(46, 204, 113), Color.FromArgb(18, 46, 204, 113), padLeft, padTop, plotW, plotH);
+            DrawCurve(g, _cpuHistory, 0f, 30f, Color.FromArgb(0, 210, 255), Color.FromArgb(32, 0, 210, 255), padLeft, padTop, plotW, plotH);
 
             // 4. 상단 헤더 & 범례 (Legend)
             using (var titleFont = new Font("맑은 고딕", 9.5F, FontStyle.Bold))
@@ -359,18 +360,20 @@ namespace GateHelper.Dashboard
             public Color Color { get; set; }
         }
 
-        private List<DonutSlice> _slices = new List<DonutSlice>();
-        private string _centerTitle = "서버 접속";
+        private readonly List<DonutSlice> _slices = new List<DonutSlice>();
+        private string _centerTitle = "총 접속 횟수";
         private string _centerSub = "0회";
+        private string _bottomTitle = "서버별 접속 분포";
+        private string _bottomHighlight = "📊 접속 이력 없음";
 
-        private static readonly Color[] Palette = new[]
+        public static readonly Color[] Palette = new[]
         {
-            Color.FromArgb(0, 195, 255),   // 네온 시안
-            Color.FromArgb(46, 204, 113),  // 에메랄드 그린
-            Color.FromArgb(241, 196, 15),  // 앰버 옐로우
-            Color.FromArgb(155, 89, 182),  // 퍼플
-            Color.FromArgb(230, 126, 34),  // 오렌지
-            Color.FromArgb(127, 140, 141)  // 슬레이트 그레이
+            Color.FromArgb(0, 195, 255),   // 1위: 네온 시안
+            Color.FromArgb(46, 204, 113),  // 2위: 에메랄드 그린
+            Color.FromArgb(241, 196, 15),  // 3위: 앰버 옐로우
+            Color.FromArgb(155, 89, 182),  // 4위: 퍼플
+            Color.FromArgb(230, 126, 34),  // 5위: 오렌지
+            Color.FromArgb(127, 140, 141)  // 6위+: 슬레이트 그레이
         };
 
         public DonutChartControl()
@@ -380,7 +383,7 @@ namespace GateHelper.Dashboard
                           ControlStyles.OptimizedDoubleBuffer |
                           ControlStyles.ResizeRedraw, true);
             this.DoubleBuffered = true;
-            this.Size = new Size(240, 240);
+            this.Size = new Size(190, 255);
         }
 
         public void SetData(List<KeyValuePair<string, int>> serverCounts)
@@ -388,15 +391,22 @@ namespace GateHelper.Dashboard
             _slices.Clear();
             if (serverCounts == null || serverCounts.Count == 0)
             {
-                _centerTitle = "접속 기록";
-                _centerSub = "없음";
+                _centerSub = "0회";
+                _centerTitle = "총 접속 횟수";
+                _bottomTitle = "서버별 접속 분포";
+                _bottomHighlight = "📊 접속 이력 없음";
                 Invalidate();
                 return;
             }
 
             int total = serverCounts.Sum(x => x.Value);
-            _centerTitle = "총 접속";
-            _centerSub = $"{total}회";
+            _centerSub = $"{total:N0}회";
+            _centerTitle = "총 접속 횟수";
+            _bottomTitle = "서버별 접속 분포";
+
+            var top1 = serverCounts[0];
+            string topServerName = top1.Key;
+            _bottomHighlight = $"📊 점유 1위: {topServerName}";
 
             int colorIdx = 0;
             foreach (var kv in serverCounts.Take(5))
@@ -438,25 +448,31 @@ namespace GateHelper.Dashboard
             }
 
             int total = _slices.Sum(s => s.Value);
-            int size = Math.Min(Width, Height) - 30;
-            int x = (Width - size) / 2;
-            int y = (Height - size) / 2;
-            Rectangle donutRect = new Rectangle(x, y, size, size);
+            int ringSize = Math.Min(Width, Height) - 34;
+            if (ringSize > 156) ringSize = 156;
+            int ringX = (Width - ringSize) / 2;
+            int ringY = 16;
+            int thickness = 13;
 
+            // 1. 도넛 링 그리기
             if (total == 0)
             {
-                // 데이터 없음 원형 플레이스홀더
-                using (var pen = new Pen(Color.FromArgb(60, 60, 65), 18))
+                // 데이터 없음 원형 플레이스홀더 (트랙 Pen)
+                using (var pen = new Pen(Color.FromArgb(55, 55, 60), thickness))
                 {
-                    g.DrawEllipse(pen, x + 9, y + 9, size - 18, size - 18);
+                    g.DrawEllipse(pen, ringX + thickness / 2, ringY + thickness / 2, ringSize - thickness, ringSize - thickness);
                 }
             }
             else
             {
-                // 슬라이스 그리기
-                float startAngle = -90f;
-                int thickness = 22;
+                // 트랙 배경 링
+                using (var trackPen = new Pen(Color.FromArgb(45, 45, 50), thickness))
+                {
+                    g.DrawEllipse(trackPen, ringX + thickness / 2, ringY + thickness / 2, ringSize - thickness, ringSize - thickness);
+                }
 
+                // 슬라이스 그리기 (-90도 상단부터 시계 방향 회전)
+                float startAngle = -90f;
                 foreach (var slice in _slices)
                 {
                     float sweepAngle = ((float)slice.Value / total) * 360f;
@@ -464,24 +480,70 @@ namespace GateHelper.Dashboard
                     {
                         pen.StartCap = LineCap.Flat;
                         pen.EndCap = LineCap.Flat;
-                        g.DrawArc(pen, x + thickness / 2, y + thickness / 2, size - thickness, size - thickness, startAngle, sweepAngle);
+                        g.DrawArc(pen, ringX + thickness / 2, ringY + thickness / 2, ringSize - thickness, ringSize - thickness, startAngle, sweepAngle);
                     }
                     startAngle += sweepAngle;
                 }
             }
 
-            // 중앙 텍스트 영역
-            using (var titleFont = new Font("맑은 고딕", 9F, FontStyle.Regular))
-            using (var subFont = new Font("맑은 고딕", 13.5F, FontStyle.Bold))
+            float cx = Width / 2f;
+            float cy = ringY + ringSize / 2f;
+
+            // 2. 링 내부: 총 접속수 & 설명 텍스트 (오른쪽 차트와 완벽 대칭)
+            using (var numFont = new Font("맑은 고딕", 13.5F, FontStyle.Bold))
+            using (var labelFont = new Font("맑은 고딕", 8.5F, FontStyle.Regular))
             {
-                var sz1 = g.MeasureString(_centerTitle, titleFont);
-                var sz2 = g.MeasureString(_centerSub, subFont);
+                var numSz = g.MeasureString(_centerSub, numFont);
+                var labelSz = g.MeasureString(_centerTitle, labelFont);
 
-                float cx = Width / 2f;
-                float cy = Height / 2f;
+                // 중앙 위: 숫자 (예: 15회)
+                using (var brush = new SolidBrush(Color.White))
+                {
+                    g.DrawString(_centerSub, numFont, brush, cx - numSz.Width / 2f, cy - numSz.Height + 2);
+                }
 
-                g.DrawString(_centerTitle, titleFont, Brushes.DarkGray, cx - sz1.Width / 2f, cy - sz1.Height + 2);
-                g.DrawString(_centerSub, subFont, Brushes.White, cx - sz2.Width / 2f, cy + 2);
+                // 중앙 아래: 설명 (예: 총 접속 횟수)
+                using (var brush = new SolidBrush(Color.Silver))
+                {
+                    g.DrawString(_centerTitle, labelFont, brush, cx - labelSz.Width / 2f, cy + 5);
+                }
+            }
+
+            // 3. 링 하단: 기능 명칭 & 최다 점유 서버 하이라이트
+            using (var titleFont = new Font("맑은 고딕", 9.5F, FontStyle.Bold))
+            using (var highlightFont = new Font("맑은 고딕", 9F, FontStyle.Bold))
+            {
+                string titleStr = _bottomTitle;
+                string highlightStr = _bottomHighlight;
+
+                var titleSz = g.MeasureString(titleStr, titleFont);
+
+                // 긴 서버명 말줄임 처리
+                string displayHighlight = highlightStr;
+                float maxTextW = Width - 16;
+                if (g.MeasureString(displayHighlight, highlightFont).Width > maxTextW)
+                {
+                    while (displayHighlight.Length > 8 && g.MeasureString(displayHighlight + "...", highlightFont).Width > maxTextW)
+                    {
+                        displayHighlight = displayHighlight.Substring(0, displayHighlight.Length - 1);
+                    }
+                    displayHighlight += "...";
+                }
+                var hlSz = g.MeasureString(displayHighlight, highlightFont);
+
+                int bottomBaseY = ringY + ringSize + 10;
+
+                // 타이틀 (서버별 접속 분포)
+                using (var brush = new SolidBrush(Color.Gainsboro))
+                {
+                    g.DrawString(titleStr, titleFont, brush, cx - titleSz.Width / 2f, bottomBaseY);
+                }
+
+                // 하이라이트 (1위 색상인 네온 시안)
+                using (var hlBrush = new SolidBrush(Color.FromArgb(0, 195, 255)))
+                {
+                    g.DrawString(displayHighlight, highlightFont, hlBrush, cx - hlSz.Width / 2f, bottomBaseY + 22);
+                }
             }
 
             // 테두리
@@ -501,7 +563,10 @@ namespace GateHelper.Dashboard
     {
         private double _value = 0.0;
         private double _maximum = 100.0;
-        private string _subTitle = "자동 로그인 성공률";
+        private int _successCount = 0;
+        private int _failCount = 0;
+        private string _savedTimeText = "0분";
+        private string _titleText = "GateOne 자동 로그인";
         private Color _ringColor = Color.FromArgb(46, 204, 113);
 
         public CircularProgressControl()
@@ -511,7 +576,7 @@ namespace GateHelper.Dashboard
                           ControlStyles.OptimizedDoubleBuffer |
                           ControlStyles.ResizeRedraw, true);
             this.DoubleBuffered = true;
-            this.Size = new Size(180, 180);
+            this.Size = new Size(190, 255);
         }
 
         public double Value
@@ -520,16 +585,45 @@ namespace GateHelper.Dashboard
             set { _value = Math.Max(0.0, Math.Min(_maximum, value)); Invalidate(); }
         }
 
-        public string SubTitle
-        {
-            get => _subTitle;
-            set { _subTitle = value; Invalidate(); }
-        }
-
         public Color RingColor
         {
             get => _ringColor;
             set { _ringColor = value; Invalidate(); }
+        }
+
+        public string SubTitle
+        {
+            get => _savedTimeText;
+            set { _savedTimeText = value; Invalidate(); }
+        }
+
+        public string TitleText
+        {
+            get => _titleText;
+            set { _titleText = value; Invalidate(); }
+        }
+
+        public void SetProgress(double rate, int successCount, int failCount, string savedTimeFormatted, string title = "GateOne 자동 로그인")
+        {
+            _value = Math.Max(0.0, Math.Min(_maximum, rate));
+            _successCount = successCount;
+            _failCount = failCount;
+            _savedTimeText = string.IsNullOrWhiteSpace(savedTimeFormatted) ? "0분" : savedTimeFormatted;
+            _titleText = string.IsNullOrWhiteSpace(title) ? "GateOne 자동 로그인" : title;
+
+            if (_value >= 90.0) _ringColor = Color.FromArgb(46, 204, 113);
+            else if (_value >= 70.0) _ringColor = Color.FromArgb(241, 196, 15);
+            else _ringColor = Color.FromArgb(231, 76, 60);
+
+            Invalidate();
+        }
+
+        public void SetProgress(double rate, string mainText, string title, string subText)
+        {
+            _value = Math.Max(0.0, Math.Min(_maximum, rate));
+            _titleText = title ?? "GateOne 자동 로그인";
+            _savedTimeText = subText ?? "";
+            Invalidate();
         }
 
         protected override void OnPaint(PaintEventArgs e)
@@ -544,18 +638,19 @@ namespace GateHelper.Dashboard
                 g.FillRectangle(brush, ClientRectangle);
             }
 
-            int size = Math.Min(Width, Height) - 24;
-            int x = (Width - size) / 2;
-            int y = (Height - size) / 2 - 8;
-            int thickness = 14;
+            int ringSize = Math.Min(Width, Height) - 34;
+            if (ringSize > 156) ringSize = 156;
+            int ringX = (Width - ringSize) / 2;
+            int ringY = 16;
+            int thickness = 13;
 
-            // 트랙 배경 링
+            // 1. 트랙 배경 링
             using (var trackPen = new Pen(Color.FromArgb(55, 55, 60), thickness))
             {
-                g.DrawEllipse(trackPen, x + thickness / 2, y + thickness / 2, size - thickness, size - thickness);
+                g.DrawEllipse(trackPen, ringX + thickness / 2, ringY + thickness / 2, ringSize - thickness, ringSize - thickness);
             }
 
-            // 활성 아크
+            // 2. 활성 아크
             float sweep = (float)(_value / _maximum * 360.0);
             if (sweep > 0.5f)
             {
@@ -563,29 +658,59 @@ namespace GateHelper.Dashboard
                 {
                     arcPen.StartCap = LineCap.Round;
                     arcPen.EndCap = LineCap.Round;
-                    g.DrawArc(arcPen, x + thickness / 2, y + thickness / 2, size - thickness, size - thickness, -90f, sweep);
+                    g.DrawArc(arcPen, ringX + thickness / 2, ringY + thickness / 2, ringSize - thickness, ringSize - thickness, -90f, sweep);
                 }
             }
 
-            // 중앙 숫자 (예: 98.2%)
+            float cx = Width / 2f;
+            float cy = ringY + ringSize / 2f;
+
+            // 3. 링 내부: 성공률 & 분리된 카운트
             string percentStr = $"{_value:F1}%";
+            string countStr = $"성공 {_successCount}회 · 실패 {_failCount}회";
+
             using (var numFont = new Font("맑은 고딕", 13.5F, FontStyle.Bold))
-            using (var subFont = new Font("맑은 고딕", 9F, FontStyle.Regular))
+            using (var countFont = new Font("맑은 고딕", 8.5F, FontStyle.Regular))
             {
                 var numSz = g.MeasureString(percentStr, numFont);
-                var subSz = g.MeasureString(_subTitle, subFont);
+                var countSz = g.MeasureString(countStr, countFont);
 
-                float cx = Width / 2f;
-                float cy = y + size / 2f;
-
+                // 중앙 위: 퍼센트 (100.0%)
                 using (var brush = new SolidBrush(Color.White))
                 {
-                    g.DrawString(percentStr, numFont, brush, cx - numSz.Width / 2f, cy - numSz.Height / 2f - 2);
+                    g.DrawString(percentStr, numFont, brush, cx - numSz.Width / 2f, cy - numSz.Height + 2);
                 }
 
-                using (var subBrush = new SolidBrush(Color.DarkGray))
+                // 중앙 아래: 명확한 카운트 (성공 3회 · 실패 0회)
+                Color countColor = _failCount > 0 ? Color.FromArgb(240, 140, 130) : Color.Silver;
+                using (var brush = new SolidBrush(countColor))
                 {
-                    g.DrawString(_subTitle, subFont, subBrush, cx - subSz.Width / 2f, Height - 22);
+                    g.DrawString(countStr, countFont, brush, cx - countSz.Width / 2f, cy + 5);
+                }
+            }
+
+            // 4. 링 하단: 기능 명칭 & 절약 시간 연동 (후보 A)
+            using (var titleFont = new Font("맑은 고딕", 9.5F, FontStyle.Bold))
+            using (var savedFont = new Font("맑은 고딕", 9F, FontStyle.Bold))
+            {
+                string titleStr = _titleText;
+                string savedStr = $"⏱️ 누적 절약: {_savedTimeText}";
+
+                var titleSz = g.MeasureString(titleStr, titleFont);
+                var savedSz = g.MeasureString(savedStr, savedFont);
+
+                int bottomBaseY = ringY + ringSize + 10;
+
+                // 타이틀 (GateOne 자동 로그인)
+                using (var brush = new SolidBrush(Color.Gainsboro))
+                {
+                    g.DrawString(titleStr, titleFont, brush, cx - titleSz.Width / 2f, bottomBaseY);
+                }
+
+                // 절약 시간 하이라이트 (골드 앰버)
+                using (var savedBrush = new SolidBrush(Color.FromArgb(241, 196, 15)))
+                {
+                    g.DrawString(savedStr, savedFont, savedBrush, cx - savedSz.Width / 2f, bottomBaseY + 22);
                 }
             }
 
