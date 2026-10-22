@@ -49,5 +49,13 @@ namespace GateHelper
                 sb.SwitchToGame("ServerTycoon");
             }
         }
+
+        private void GL_btnSelectDataFlip_Click(object sender, EventArgs e)
+        {
+            if (this.ParentForm is SandBox sb)
+            {
+                sb.SwitchToGame("DataFlip");
+            }
+        }
     }
 }

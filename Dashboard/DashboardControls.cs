@@ -364,7 +364,7 @@ namespace GateHelper.Dashboard
         private string _centerTitle = "총 접속 횟수";
         private string _centerSub = "0회";
         private string _bottomTitle = "서버별 접속 분포";
-        private string _bottomHighlight = "📊 접속 이력 없음";
+        private string _bottomHighlight = "● 접속 이력 없음";
 
         public static readonly Color[] Palette = new[]
         {
@@ -394,7 +394,7 @@ namespace GateHelper.Dashboard
                 _centerSub = "0회";
                 _centerTitle = "총 접속 횟수";
                 _bottomTitle = "서버별 접속 분포";
-                _bottomHighlight = "📊 접속 이력 없음";
+                _bottomHighlight = "● 접속 이력 없음";
                 Invalidate();
                 return;
             }
@@ -406,7 +406,7 @@ namespace GateHelper.Dashboard
 
             var top1 = serverCounts[0];
             string topServerName = top1.Key;
-            _bottomHighlight = $"📊 점유 1위: {topServerName}";
+            _bottomHighlight = $"● 점유 1위: {topServerName}";
 
             int colorIdx = 0;
             foreach (var kv in serverCounts.Take(5))
@@ -694,7 +694,7 @@ namespace GateHelper.Dashboard
             using (var savedFont = new Font("맑은 고딕", 9F, FontStyle.Bold))
             {
                 string titleStr = _titleText;
-                string savedStr = $"⏱️ 누적 절약: {_savedTimeText}";
+                string savedStr = $"● 누적 절약: {_savedTimeText}";
 
                 var titleSz = g.MeasureString(titleStr, titleFont);
                 var savedSz = g.MeasureString(savedStr, savedFont);
@@ -723,16 +723,33 @@ namespace GateHelper.Dashboard
     }
     #endregion
 
-    #region [ 5. 24시간 접속 활동 리듬 잔디 히트맵 (HourlyHeatmapControl) ]
+    #region [ 5. 접속 활동 리듬 위젯: 최근 7일 주간 잔디 & 오늘 24시간 타임라인 (HourlyHeatmapControl) ]
+    public enum RhythmMode
+    {
+        Weekly7Days,
+        Today24Hours
+    }
+
     /// <summary>
-    /// 하루 24시간(00~23시) 동안의 서버 접속 빈도 및 화면 잠금 해제 활동을 GitHub 스타일 네온 블록으로 시각화하는 컨트롤
+    /// 최근 7일 주간 접속 활동 리듬(GitHub 스타일 풍성한 잔디)과 오늘 24시간 타임라인을 원클릭으로 토글 전환하는 위젯
     /// </summary>
     public class HourlyHeatmapControl : Control
     {
-        private int[] _hourlyCounts = new int[24];
+        public RhythmMode CurrentMode { get; set; } = RhythmMode.Weekly7Days;
+
+        private List<DailyActivityItem> _weeklyItems = new List<DailyActivityItem>();
+        private int[] _todayHourly = new int[24];
         private int _screenUnlockCount = 0;
-        private int _hoveredHour = -1;
+        private int _hoveredIndex = -1;
+        private bool _isHoverToggle = false;
+        private Rectangle _toggleBtnRect = Rectangle.Empty;
         private readonly ToolTip _tip = new ToolTip();
+
+        private const int ToggleBtnY = 4;
+        private const int ToggleBtnH = 18;
+        private const int ContentStartY = 30; // 토글 버튼과 요일 카드 간의 세로 여백을 8px로 확보
+        private const int CardH = 38;
+        private const int BlockH = 22;
 
         public HourlyHeatmapControl()
         {
@@ -741,49 +758,162 @@ namespace GateHelper.Dashboard
                           ControlStyles.OptimizedDoubleBuffer |
                           ControlStyles.ResizeRedraw, true);
             this.DoubleBuffered = true;
-            this.Size = new Size(755, 68);
+            this.Size = new Size(755, 74);
             this.Font = new Font("맑은 고딕", 8.5F, FontStyle.Regular);
 
             this.MouseMove += HourlyHeatmapControl_MouseMove;
-            this.MouseLeave += (s, e) => { _hoveredHour = -1; Invalidate(); };
+            this.MouseClick += HourlyHeatmapControl_MouseClick;
+            this.MouseLeave += (s, e) =>
+            {
+                _hoveredIndex = -1;
+                _isHoverToggle = false;
+                this.Cursor = Cursors.Default;
+                _tip.Hide(this);
+                Invalidate();
+            };
+        }
+
+        public void SetData(List<DailyActivityItem> weeklyItems, int[] todayHourly, int screenUnlockCount)
+        {
+            if (weeklyItems != null)
+            {
+                _weeklyItems = weeklyItems;
+            }
+            if (todayHourly != null && todayHourly.Length == 24)
+            {
+                _todayHourly = (int[])todayHourly.Clone();
+            }
+            _screenUnlockCount = screenUnlockCount;
+            Invalidate();
         }
 
         public void SetData(int[] hourlyCounts, int screenUnlockCount)
         {
             if (hourlyCounts != null && hourlyCounts.Length == 24)
             {
-                _hourlyCounts = (int[])hourlyCounts.Clone();
+                _todayHourly = (int[])hourlyCounts.Clone();
             }
             _screenUnlockCount = screenUnlockCount;
             Invalidate();
         }
 
+        private void HourlyHeatmapControl_MouseClick(object sender, MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left && _toggleBtnRect.Contains(e.Location))
+            {
+                CurrentMode = (CurrentMode == RhythmMode.Weekly7Days)
+                    ? RhythmMode.Today24Hours
+                    : RhythmMode.Weekly7Days;
+                _hoveredIndex = -1;
+                _tip.Hide(this);
+                Invalidate();
+            }
+        }
+
         private void HourlyHeatmapControl_MouseMove(object sender, MouseEventArgs e)
         {
-            int blockW = (Width - 30) / 24;
-            int startX = 15;
-            int startY = 24;
-            int blockH = 22;
-
-            int newHover = -1;
-            for (int h = 0; h < 24; h++)
+            if (_toggleBtnRect.Contains(e.Location))
             {
-                int bx = startX + (h * blockW);
-                var rect = new Rectangle(bx, startY, blockW - 2, blockH);
-                if (rect.Contains(e.Location))
+                if (!_isHoverToggle)
                 {
-                    newHover = h;
-                    break;
+                    _isHoverToggle = true;
+                    this.Cursor = Cursors.Hand;
+                    _hoveredIndex = -1;
+                    string hint = (CurrentMode == RhythmMode.Weekly7Days)
+                        ? "오늘 24시간 타임라인으로 화면을 전환합니다."
+                        : "최근 7일 주간 활동 잔디로 화면을 전환합니다.";
+                    _tip.SetToolTip(this, hint);
+                    Invalidate();
+                }
+                return;
+            }
+            else
+            {
+                if (_isHoverToggle)
+                {
+                    _isHoverToggle = false;
+                    this.Cursor = Cursors.Default;
+                    _tip.Hide(this);
+                    Invalidate();
                 }
             }
 
-            if (newHover != _hoveredHour)
+            int newHover = -1;
+
+            if (CurrentMode == RhythmMode.Weekly7Days)
             {
-                _hoveredHour = newHover;
-                if (_hoveredHour >= 0 && _hoveredHour < 24)
+                int startX = 12;
+                int gap = 6;
+                int count = Math.Min(7, _weeklyItems.Count);
+                if (count > 0)
                 {
-                    int cnt = _hourlyCounts[_hoveredHour];
-                    _tip.SetToolTip(this, $"{_hoveredHour:D2}:00 ~ {_hoveredHour:D2}:59\n서버 접속: {cnt}회");
+                    int totalCardW = Width - startX - 12 - (Math.Max(0, count - 1) * gap);
+                    int cardW = Math.Max(30, totalCardW / count);
+                    int startY = ContentStartY;
+                    int cardH = CardH;
+
+                    for (int i = 0; i < count; i++)
+                    {
+                        int cx = startX + i * (cardW + gap);
+                        var rect = new Rectangle(cx, startY, cardW, cardH);
+                        if (rect.Contains(e.Location))
+                        {
+                            newHover = i;
+                            break;
+                        }
+                    }
+                }
+            }
+            else
+            {
+                int blockW = (Width - 28) / 24;
+                int startX = 14;
+                int startY = ContentStartY;
+                int blockH = BlockH;
+
+                for (int h = 0; h < 24; h++)
+                {
+                    int bx = startX + (h * blockW);
+                    var rect = new Rectangle(bx, startY, blockW - 2, blockH);
+                    if (rect.Contains(e.Location))
+                    {
+                        newHover = h;
+                        break;
+                    }
+                }
+            }
+
+            if (newHover != _hoveredIndex)
+            {
+                _hoveredIndex = newHover;
+                if (_hoveredIndex >= 0)
+                {
+                    if (CurrentMode == RhythmMode.Weekly7Days && _hoveredIndex < _weeklyItems.Count)
+                    {
+                        var item = _weeklyItems[_hoveredIndex];
+                        int dawn = 0, morn = 0, aft = 0, night = 0;
+                        if (item.HourlyCounts != null && item.HourlyCounts.Length == 24)
+                        {
+                            for (int h = 0; h < 6; h++) dawn += item.HourlyCounts[h];
+                            for (int h = 6; h < 12; h++) morn += item.HourlyCounts[h];
+                            for (int h = 12; h < 18; h++) aft += item.HourlyCounts[h];
+                            for (int h = 18; h < 24; h++) night += item.HourlyCounts[h];
+                        }
+                        string tipText = $"{item.Date:yyyy-MM-dd} ({item.Date:ddd}) {(item.IsToday ? "[오늘]" : "")}\n" +
+                                         $"서버 접속 합계: {item.TotalCount:N0}회\n" +
+                                         $"● 새벽(00~06): {dawn}회  ● 오전(06~12): {morn}회\n" +
+                                         $"● 오후(12~18): {aft}회  ● 야간(18~24): {night}회";
+                        _tip.SetToolTip(this, tipText);
+                    }
+                    else if (CurrentMode == RhythmMode.Today24Hours && _hoveredIndex < 24)
+                    {
+                        int cnt = _todayHourly[_hoveredIndex];
+                        _tip.SetToolTip(this, $"{_hoveredIndex:D2}:00 ~ {_hoveredIndex:D2}:59\n오늘 서버 접속: {cnt:N0}회");
+                    }
+                }
+                else
+                {
+                    _tip.Hide(this);
                 }
                 Invalidate();
             }
@@ -795,28 +925,199 @@ namespace GateHelper.Dashboard
             Graphics g = e.Graphics;
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
-            // 배경
+            // 1. 배경
             using (var bgBrush = new SolidBrush(Color.FromArgb(32, 32, 35)))
             {
                 g.FillRectangle(bgBrush, ClientRectangle);
             }
 
-            // 상단 타이틀
+            // 2. 우측 상단 모드 전환 토글 버튼
+            int btnW = 142;
+            _toggleBtnRect = new Rectangle(Width - btnW - 12, ToggleBtnY, btnW, ToggleBtnH);
+
+            Color btnBg = _isHoverToggle ? Color.FromArgb(52, 54, 62) : Color.FromArgb(42, 43, 49);
+            Color btnBorder = _isHoverToggle ? Color.FromArgb(0, 220, 255) : Color.FromArgb(70, 72, 80);
+            Color btnFore = _isHoverToggle ? Color.FromArgb(0, 240, 255) : Color.FromArgb(175, 185, 200);
+
+            using (var btnBrush = new SolidBrush(btnBg))
+            using (var pen = new Pen(btnBorder, 1f))
+            using (var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+            using (var btnFont = new Font("맑은 고딕", 7.5F, FontStyle.Bold))
+            {
+                g.FillRectangle(btnBrush, _toggleBtnRect);
+                g.DrawRectangle(pen, _toggleBtnRect);
+                string toggleText = (CurrentMode == RhythmMode.Weekly7Days)
+                    ? "◈ 오늘 24시간 보기 ❯"
+                    : "◈ 최근 7일 주간 보기 ❯";
+                using (var foreBrush = new SolidBrush(btnFore))
+                {
+                    g.DrawString(toggleText, btnFont, foreBrush, _toggleBtnRect, sf);
+                }
+            }
+
+            // 3. 모드별 렌더링
+            if (CurrentMode == RhythmMode.Weekly7Days)
+            {
+                PaintWeeklyMode(g);
+            }
+            else
+            {
+                PaintToday24HoursMode(g);
+            }
+
+            // 4. 컨트롤 외곽 테두리
+            using (var borderPen = new Pen(Color.FromArgb(60, 60, 65), 1))
+            {
+                g.DrawRectangle(borderPen, 0, 0, Width - 1, Height - 1);
+            }
+        }
+
+        private void PaintWeeklyMode(Graphics g)
+        {
+            int totalWeek = _weeklyItems.Sum(x => x.TotalCount);
             string title = _screenUnlockCount > 0
-                ? $"🕒 24시간 활동 리듬 (접속 {_hourlyCounts.Sum():N0}회 · 🔓 화면잠금 해제 {_screenUnlockCount:N0}회)"
-                : $"🕒 24시간 서버 접속 및 활동 리듬 (총 {_hourlyCounts.Sum():N0}회 접속)";
+                ? $"◈ 최근 7일 주간 활동 리듬 (주간 접속 {totalWeek:N0}회 · 잠금 해제 {_screenUnlockCount:N0}회)"
+                : $"◈ 최근 7일 주간 활동 리듬 (주간 총 {totalWeek:N0}회 접속)";
 
             using (var titleFont = new Font("맑은 고딕", 8.5F, FontStyle.Bold))
             {
-                g.DrawString(title, titleFont, Brushes.LightGray, 14, 6);
+                g.DrawString(title, titleFont, Brushes.LightGray, 14, 5);
             }
 
-            int blockW = (Width - 30) / 24;
-            int startX = 15;
-            int startY = 25;
-            int blockH = 20;
+            int count = Math.Min(7, _weeklyItems.Count);
+            if (count == 0) return;
+
+            int startX = 12;
+            int gap = 6;
+            int totalCardW = Width - startX - 12 - (Math.Max(0, count - 1) * gap);
+            int cardW = Math.Max(30, totalCardW / count);
+            int startY = ContentStartY;
+            int cardH = CardH;
+
+            using (var dateFont = new Font("맑은 고딕", 7.5F, FontStyle.Bold))
+            using (var countFont = new Font("맑은 고딕", 7.5F, FontStyle.Bold))
+            using (var microFont = new Font("맑은 고딕", 6.0F, FontStyle.Regular))
+            using (var sfRight = new StringFormat { Alignment = StringAlignment.Far, LineAlignment = StringAlignment.Near })
+            using (var sfCenter = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    var item = _weeklyItems[i];
+                    int cx = startX + i * (cardW + gap);
+                    var cardRect = new Rectangle(cx, startY, cardW, cardH);
+
+                    // 카드 배경색 (잔디 농도)
+                    int cnt = item.TotalCount;
+                    Color cardBg;
+                    if (cnt == 0) cardBg = Color.FromArgb(40, 41, 46);
+                    else if (cnt <= 3) cardBg = Color.FromArgb(23, 76, 44);
+                    else if (cnt <= 8) cardBg = Color.FromArgb(30, 117, 59);
+                    else if (cnt <= 15) cardBg = Color.FromArgb(39, 163, 79);
+                    else cardBg = Color.FromArgb(50, 200, 96);
+
+                    if (i == _hoveredIndex)
+                    {
+                        cardBg = Color.FromArgb(
+                            Math.Min(255, cardBg.R + 30),
+                            Math.Min(255, cardBg.G + 30),
+                            Math.Min(255, cardBg.B + 30));
+                    }
+
+                    using (var cardBrush = new SolidBrush(cardBg))
+                    {
+                        g.FillRectangle(cardBrush, cardRect);
+                    }
+
+                    // 카드 테두리
+                    Color borderColor;
+                    float borderWidth = 1.0f;
+                    if (item.IsToday)
+                    {
+                        borderColor = Color.FromArgb(0, 220, 255);
+                        borderWidth = 1.5f;
+                    }
+                    else if (i == _hoveredIndex)
+                    {
+                        borderColor = Color.FromArgb(140, 160, 180);
+                    }
+                    else
+                    {
+                        borderColor = Color.FromArgb(58, 60, 66);
+                    }
+
+                    using (var pen = new Pen(borderColor, borderWidth))
+                    {
+                        g.DrawRectangle(pen, cardRect);
+                    }
+
+                    // 날짜 텍스트 (좌측 상단)
+                    Brush dateBrush = item.IsToday ? Brushes.Cyan : Brushes.WhiteSmoke;
+                    g.DrawString(item.DateLabel ?? "", dateFont, dateBrush, cx + 5, startY + 3);
+
+                    // 접속 횟수 (우측 상단)
+                    string countStr = $"{cnt}회";
+                    Brush countBrush;
+                    if (cnt == 0) countBrush = Brushes.Gray;
+                    else if (item.IsToday) countBrush = Brushes.Gold;
+                    else countBrush = Brushes.LightGreen;
+
+                    g.DrawString(countStr, countFont, countBrush, new RectangleF(cx + 5, startY + 3, cardW - 10, 14), sfRight);
+
+                    // 하단 4대 시간대 마이크로 큐브 (새벽, 오전, 오후, 야간)
+                    int microW = Math.Max(12, (cardW - 10 - 6) / 4);
+                    int microH = 12;
+                    int microY = startY + 22;
+                    string[] quarterLabels = { "새", "오", "후", "야" };
+
+                    for (int q = 0; q < 4; q++)
+                    {
+                        int qCnt = 0;
+                        if (item.HourlyCounts != null && item.HourlyCounts.Length == 24)
+                        {
+                            for (int h = q * 6; h < (q + 1) * 6; h++)
+                            {
+                                qCnt += item.HourlyCounts[h];
+                            }
+                        }
+
+                        int qx = cx + 5 + q * (microW + 2);
+                        var qRect = new Rectangle(qx, microY, microW, microH);
+
+                        Color qBg = qCnt > 0 ? Color.FromArgb(46, 204, 113) : Color.FromArgb(30, 31, 35);
+                        Color qBorder = qCnt > 0 ? Color.FromArgb(30, 140, 75) : Color.FromArgb(48, 49, 54);
+
+                        using (var qBrush = new SolidBrush(qBg))
+                        using (var qPen = new Pen(qBorder, 1f))
+                        {
+                            g.FillRectangle(qBrush, qRect);
+                            g.DrawRectangle(qPen, qRect);
+                        }
+
+                        Brush qTextBrush = qCnt > 0 ? Brushes.White : Brushes.DimGray;
+                        g.DrawString(quarterLabels[q], microFont, qTextBrush, qRect, sfCenter);
+                    }
+                }
+            }
+        }
+
+        private void PaintToday24HoursMode(Graphics g)
+        {
+            int todayTotal = _todayHourly.Sum();
             int currentHour = DateTime.Now.Hour;
-            int maxVal = _hourlyCounts.Max();
+            string title = _screenUnlockCount > 0
+                ? $"◈ 오늘 24시간 타임라인 (오늘 접속 {todayTotal:N0}회 · 잠금 해제 {_screenUnlockCount:N0}회 · 현재 {currentHour:D2}시)"
+                : $"◈ 오늘 24시간 타임라인 (오늘 총 {todayTotal:N0}회 접속 · 현재 {currentHour:D2}시)";
+
+            using (var titleFont = new Font("맑은 고딕", 8.5F, FontStyle.Bold))
+            {
+                g.DrawString(title, titleFont, Brushes.LightGray, 14, 5);
+            }
+
+            int blockW = (Width - 28) / 24;
+            int startX = 14;
+            int startY = ContentStartY;
+            int blockH = BlockH;
+            int maxVal = _todayHourly.Max();
 
             using (var hourFont = new Font("맑은 고딕", 7F, FontStyle.Regular))
             using (var curPen = new Pen(Color.Gold, 1.5f))
@@ -824,26 +1125,27 @@ namespace GateHelper.Dashboard
                 for (int h = 0; h < 24; h++)
                 {
                     int bx = startX + (h * blockW);
-                    int count = _hourlyCounts[h];
+                    int count = _todayHourly[h];
 
                     Color blockColor;
                     if (count == 0)
                     {
-                        blockColor = Color.FromArgb(45, 45, 50);
+                        blockColor = Color.FromArgb(42, 43, 48);
                     }
                     else
                     {
-                        double ratio = (double)count / Math.Max(3, maxVal);
+                        double ratio = (double)count / Math.Max(2, maxVal);
                         if (ratio <= 0.33) blockColor = Color.FromArgb(0, 110, 140);
                         else if (ratio <= 0.66) blockColor = Color.FromArgb(0, 180, 210);
                         else blockColor = Color.FromArgb(0, 240, 255);
                     }
 
-                    if (h == _hoveredHour)
+                    if (h == _hoveredIndex)
                     {
-                        blockColor = Color.FromArgb(Math.Min(255, blockColor.R + 40),
-                                                    Math.Min(255, blockColor.G + 40),
-                                                    Math.Min(255, blockColor.B + 40));
+                        blockColor = Color.FromArgb(
+                            Math.Min(255, blockColor.R + 40),
+                            Math.Min(255, blockColor.G + 40),
+                            Math.Min(255, blockColor.B + 40));
                     }
 
                     using (var bBrush = new SolidBrush(blockColor))
@@ -856,18 +1158,12 @@ namespace GateHelper.Dashboard
                         g.DrawRectangle(curPen, bx - 1, startY - 1, blockW - 1, blockH + 1);
                     }
 
-                    if (h % 3 == 0)
+                    if (h % 3 == 0 || h == currentHour)
                     {
                         string hStr = $"{h:D2}";
                         g.DrawString(hStr, hourFont, (h == currentHour ? Brushes.Gold : Brushes.Gray), new PointF(bx - 1, startY + blockH + 2));
                     }
                 }
-            }
-
-            // 테두리
-            using (var borderPen = new Pen(Color.FromArgb(60, 60, 65), 1))
-            {
-                g.DrawRectangle(borderPen, 0, 0, Width - 1, Height - 1);
             }
         }
     }
@@ -916,7 +1212,7 @@ namespace GateHelper.Dashboard
 
             var tier = _masteryInfo ?? new MasteryTierInfo
             {
-                TierName = "🥉 Tier 1: Novice",
+                TierName = "★ Tier 1: Novice",
                 TierTitle = "샌드박스 입문 요원",
                 AccentColor = Color.FromArgb(205, 127, 50),
                 TotalEarnedPoints = 0,

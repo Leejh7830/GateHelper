@@ -397,8 +397,12 @@ namespace GateHelper.Dashboard
                 stats.GetEstimatedSavedFormatted()
             );
 
-            // 4. 24시간 접속 활동 잔디 히트맵 (서버 접속 및 화면 잠금 해제 횟수 연동)
-            heatmapHourly.SetData(DashboardManager.GetHourlyAccessCounts(), stats.ScreenUnlockCount);
+            // 4. 접속 활동 잔디 & 타임라인 위젯 (최근 7일 주간 잔디 및 오늘 24시간 타임라인)
+            heatmapHourly.SetData(
+                DashboardManager.GetWeeklyActivity(),
+                DashboardManager.GetTodayHourlyCounts(),
+                stats.ScreenUnlockCount
+            );
         }
 
         #endregion

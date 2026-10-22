@@ -39,12 +39,15 @@ namespace GateHelper
             this.materialLabelAiTrend = new MaterialSkin.Controls.MaterialLabel();
             this.GL_btnSelectServerTycoon = new MaterialSkin.Controls.MaterialCard();
             this.materialLabelServerTycoon = new MaterialSkin.Controls.MaterialLabel();
+            this.GL_btnSelectDataFlip = new MaterialSkin.Controls.MaterialCard();
+            this.materialLabelDataFlip = new MaterialSkin.Controls.MaterialLabel();
             this.GL_FlowPanel1.SuspendLayout();
             this.GL_btnSelectBitFlip.SuspendLayout();
             this.GL_btnSelectSignalLink.SuspendLayout();
             this.GL_btnSelectMysteryTime.SuspendLayout();
             this.GL_btnSelectAiTrend.SuspendLayout();
             this.GL_btnSelectServerTycoon.SuspendLayout();
+            this.GL_btnSelectDataFlip.SuspendLayout();
             this.SuspendLayout();
             // 
             // GL_FlowPanel1
@@ -54,6 +57,7 @@ namespace GateHelper
             this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectMysteryTime);
             this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectAiTrend);
             this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectServerTycoon);
+            this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectDataFlip);
             this.GL_FlowPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.GL_FlowPanel1.Location = new System.Drawing.Point(0, 0);
             this.GL_FlowPanel1.Name = "GL_FlowPanel1";
@@ -196,6 +200,34 @@ namespace GateHelper
             this.materialLabelServerTycoon.Text = "Server Tycoon";
             this.materialLabelServerTycoon.Click += new System.EventHandler(this.GL_btnSelectServerTycoon_Click);
             // 
+            // GL_btnSelectDataFlip
+            // 
+            this.GL_btnSelectDataFlip.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.GL_btnSelectDataFlip.Controls.Add(this.materialLabelDataFlip);
+            this.GL_btnSelectDataFlip.Depth = 0;
+            this.GL_btnSelectDataFlip.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.GL_btnSelectDataFlip.Location = new System.Drawing.Point(192, 210);
+            this.GL_btnSelectDataFlip.Margin = new System.Windows.Forms.Padding(14);
+            this.GL_btnSelectDataFlip.MouseState = MaterialSkin.MouseState.HOVER;
+            this.GL_btnSelectDataFlip.Name = "GL_btnSelectDataFlip";
+            this.GL_btnSelectDataFlip.Padding = new System.Windows.Forms.Padding(14);
+            this.GL_btnSelectDataFlip.Size = new System.Drawing.Size(150, 70);
+            this.GL_btnSelectDataFlip.TabIndex = 5;
+            this.GL_btnSelectDataFlip.Click += new System.EventHandler(this.GL_btnSelectDataFlip_Click);
+            // 
+            // materialLabelDataFlip
+            // 
+            this.materialLabelDataFlip.AutoSize = true;
+            this.materialLabelDataFlip.Depth = 0;
+            this.materialLabelDataFlip.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialLabelDataFlip.Location = new System.Drawing.Point(36, 26);
+            this.materialLabelDataFlip.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialLabelDataFlip.Name = "materialLabelDataFlip";
+            this.materialLabelDataFlip.Size = new System.Drawing.Size(76, 19);
+            this.materialLabelDataFlip.TabIndex = 7;
+            this.materialLabelDataFlip.Text = "Core Front";
+            this.materialLabelDataFlip.Click += new System.EventHandler(this.GL_btnSelectDataFlip_Click);
+            // 
             // GameListControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -214,6 +246,8 @@ namespace GateHelper
             this.GL_btnSelectAiTrend.PerformLayout();
             this.GL_btnSelectServerTycoon.ResumeLayout(false);
             this.GL_btnSelectServerTycoon.PerformLayout();
+            this.GL_btnSelectDataFlip.ResumeLayout(false);
+            this.GL_btnSelectDataFlip.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -226,10 +260,12 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialCard GL_btnSelectMysteryTime;
         private MaterialSkin.Controls.MaterialCard GL_btnSelectAiTrend;
         private MaterialSkin.Controls.MaterialCard GL_btnSelectServerTycoon;
+        private MaterialSkin.Controls.MaterialCard GL_btnSelectDataFlip;
         private MaterialSkin.Controls.MaterialLabel materialLabel1;
         private MaterialSkin.Controls.MaterialLabel materialLabel2;
         private MaterialSkin.Controls.MaterialLabel materialLabel3;
         private MaterialSkin.Controls.MaterialLabel materialLabelAiTrend;
         private MaterialSkin.Controls.MaterialLabel materialLabelServerTycoon;
+        private MaterialSkin.Controls.MaterialLabel materialLabelDataFlip;
     }
 }

@@ -21,6 +21,7 @@ namespace GateHelper.Dashboard
         public int ScreenUnlockCount { get; set; } = 0;
         public Dictionary<string, int> ServerAccessCounts { get; set; } = new Dictionary<string, int>();
         public int[] HourlyAccessCounts { get; set; } = new int[24];
+        public Dictionary<string, int[]> DailyHourlyAccessCounts { get; set; } = new Dictionary<string, int[]>();
 
         /// <summary>
         /// GateHelper가 절약해준 예상 총 업무 시간 (초)
@@ -99,6 +100,18 @@ namespace GateHelper.Dashboard
         public string Caller { get; set; }
         public string Message { get; set; }
         public bool IsAcknowledged { get; set; } = false;
+    }
+
+    /// <summary>
+    /// 최근 7일 주간 활동 리듬 및 오늘 타임라인 렌더링용 모델
+    /// </summary>
+    public class DailyActivityItem
+    {
+        public DateTime Date { get; set; }
+        public string DateLabel { get; set; }
+        public int[] HourlyCounts { get; set; } = new int[24];
+        public int TotalCount { get; set; }
+        public bool IsToday { get; set; }
     }
 
     #region [ Steam-Style Achievement Models ]

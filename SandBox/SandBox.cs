@@ -1,9 +1,11 @@
 using MaterialSkin.Controls;
 using System;
+using System.Drawing;
 using System.Windows.Forms;
 using GateHelper.MysteryTime;
 using GateHelper.AiTrend;
 using GateHelper.ServerTycoon;
+using GateHelper.DataFlip;
 
 namespace GateHelper
 {
@@ -15,6 +17,7 @@ namespace GateHelper
         private MysteryTimeControl _mysteryTimeGame;
         private AiTrendControl _aiTrendControl;
         private ServerTycoonControl _serverTycoonControl;
+        private DataFlipControl _dataFlipControl;
 
         public SandBox() : this(null)
         {
@@ -85,6 +88,14 @@ namespace GateHelper
                 tpServerTycoon.Controls.Add(_serverTycoonControl);
             }
 
+            // 7. Data Flip 컨트롤 추가
+            _dataFlipControl = new DataFlipControl();
+            _dataFlipControl.Dock = DockStyle.Fill;
+            if (SB_tabControl1.TabPages.Contains(tpDataFlip))
+            {
+                tpDataFlip.Controls.Add(_dataFlipControl);
+            }
+
             // 탭 전환 이벤트: 활성 탭에 따른 스마트 렌더링/절전 제어
             SB_tabControl1.SelectedIndexChanged += SB_tabControl1_SelectedIndexChanged;
 
@@ -101,11 +112,24 @@ namespace GateHelper
         public void BackToList()
         {
             SB_tabControl1.SelectedTab = tpList;
+            ResetToDefaultSize();
         }
 
         public void ShowGameList()
         {
             SB_tabControl1.SelectedTab = tpList;
+            ResetToDefaultSize();
+        }
+
+        public void ResetToDefaultSize()
+        {
+            if (this.ClientSize.Width != 650 || this.ClientSize.Height != 700)
+            {
+                Point center = new Point(this.Left + this.Width / 2, this.Top + this.Height / 2);
+                this.ClientSize = new System.Drawing.Size(650, 700);
+                this.Left = Math.Max(0, center.X - this.Width / 2);
+                this.Top = Math.Max(0, center.Y - this.Height / 2);
+            }
         }
 
         public void SwitchToGame(string gameName)
@@ -138,6 +162,14 @@ namespace GateHelper
                 if (SB_tabControl1.TabPages.Contains(tpServerTycoon))
                 {
                     SB_tabControl1.SelectedTab = tpServerTycoon;
+                }
+            }
+            else if (gameName == "DataFlip")
+            {
+                if (SB_tabControl1.TabPages.Contains(tpDataFlip))
+                {
+                    SB_tabControl1.SelectedTab = tpDataFlip;
+                    _dataFlipControl?.PromptMapSelection();
                 }
             }
         }

@@ -47,7 +47,6 @@ namespace GateHelper
             }
             catch { }
             
-            
             // [] 메인 UI 진입점 ]
             Application.Run(new MainUI());
             // Application.Run(new LogValidatorMain());

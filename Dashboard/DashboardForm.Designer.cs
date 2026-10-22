@@ -570,7 +570,7 @@ namespace GateHelper.Dashboard
             this.heatmapHourly.Font = new System.Drawing.Font("맑은 고딕", 8.5F);
             this.heatmapHourly.Location = new System.Drawing.Point(15, 278);
             this.heatmapHourly.Name = "heatmapHourly";
-            this.heatmapHourly.Size = new System.Drawing.Size(758, 68);
+            this.heatmapHourly.Size = new System.Drawing.Size(758, 74);
             this.heatmapHourly.TabIndex = 3;
             // 
             // tpSandbox
@@ -866,7 +866,7 @@ namespace GateHelper.Dashboard
             this.lblStoragePath.Name = "lblStoragePath";
             this.lblStoragePath.Size = new System.Drawing.Size(500, 20);
             this.lblStoragePath.TabIndex = 4;
-            this.lblStoragePath.Text = "🕒 마지막 동기화: --:--:-- · 실시간 모니터링 중";
+            this.lblStoragePath.Text = "● 마지막 동기화: --:--:-- · 실시간 모니터링 중";
             // 
             // btnRefresh
             // 

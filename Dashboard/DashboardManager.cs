@@ -177,14 +177,7 @@ namespace GateHelper.Dashboard
                     if (!string.IsNullOrEmpty(json))
                     {
                         Stats = JsonConvert.DeserializeObject<DashboardStats>(json) ?? new DashboardStats();
-                        if (Stats.ServerAccessCounts == null)
-                        {
-                            Stats.ServerAccessCounts = new Dictionary<string, int>();
-                        }
-                        if (Stats.HourlyAccessCounts == null || Stats.HourlyAccessCounts.Length != 24)
-                        {
-                            Stats.HourlyAccessCounts = new int[24];
-                        }
+                        EnsureStatsIntegrity();
                         return;
                     }
                 }
@@ -193,14 +186,7 @@ namespace GateHelper.Dashboard
                 {
                     string json = File.ReadAllText(LegacyStatsFilePath, Encoding.UTF8);
                     Stats = JsonConvert.DeserializeObject<DashboardStats>(json) ?? new DashboardStats();
-                    if (Stats.ServerAccessCounts == null)
-                    {
-                        Stats.ServerAccessCounts = new Dictionary<string, int>();
-                    }
-                    if (Stats.HourlyAccessCounts == null || Stats.HourlyAccessCounts.Length != 24)
-                    {
-                        Stats.HourlyAccessCounts = new int[24];
-                    }
+                    EnsureStatsIntegrity();
 
                     // 암호화된 파일로 즉시 저장 후 이전 평문 파일 삭제
                     SaveStats();
@@ -214,6 +200,11 @@ namespace GateHelper.Dashboard
             }
 
             Stats = new DashboardStats();
+            EnsureStatsIntegrity();
+        }
+
+        private static void EnsureStatsIntegrity()
+        {
             if (Stats.ServerAccessCounts == null)
             {
                 Stats.ServerAccessCounts = new Dictionary<string, int>();
@@ -221,6 +212,15 @@ namespace GateHelper.Dashboard
             if (Stats.HourlyAccessCounts == null || Stats.HourlyAccessCounts.Length != 24)
             {
                 Stats.HourlyAccessCounts = new int[24];
+            }
+            if (Stats.DailyHourlyAccessCounts == null)
+            {
+                Stats.DailyHourlyAccessCounts = new Dictionary<string, int[]>();
+            }
+            string todayStr = DateTime.Today.ToString("yyyy-MM-dd");
+            if (Stats.DailyHourlyAccessCounts.Count == 0 && Stats.HourlyAccessCounts != null)
+            {
+                Stats.DailyHourlyAccessCounts[todayStr] = (int[])Stats.HourlyAccessCounts.Clone();
             }
         }
 
@@ -329,10 +329,37 @@ namespace GateHelper.Dashboard
                 {
                     Stats.HourlyAccessCounts = new int[24];
                 }
+
+                if (Stats.DailyHourlyAccessCounts == null)
+                {
+                    Stats.DailyHourlyAccessCounts = new Dictionary<string, int[]>();
+                }
+
+                string todayKey = DateTime.Today.ToString("yyyy-MM-dd");
+                if (!Stats.DailyHourlyAccessCounts.TryGetValue(todayKey, out var todayCounts) || todayCounts == null || todayCounts.Length != 24)
+                {
+                    todayCounts = new int[24];
+                    Stats.DailyHourlyAccessCounts[todayKey] = todayCounts;
+                }
+
                 int hour = DateTime.Now.Hour;
                 if (hour >= 0 && hour < 24)
                 {
                     Stats.HourlyAccessCounts[hour]++;
+                    todayCounts[hour]++;
+                }
+
+                // 60일 이상 지난 과거 날짜 자동 정리 (초경량 유지)
+                if (Stats.DailyHourlyAccessCounts.Count > 60)
+                {
+                    var cutoff = DateTime.Today.AddDays(-60).ToString("yyyy-MM-dd");
+                    var expiredKeys = Stats.DailyHourlyAccessCounts.Keys
+                        .Where(k => string.Compare(k, cutoff, StringComparison.Ordinal) < 0)
+                        .ToList();
+                    foreach (var exp in expiredKeys)
+                    {
+                        Stats.DailyHourlyAccessCounts.Remove(exp);
+                    }
                 }
 
                 SaveStats();
@@ -349,6 +376,67 @@ namespace GateHelper.Dashboard
                     Stats.HourlyAccessCounts = new int[24];
                 }
                 return (int[])Stats.HourlyAccessCounts.Clone();
+            }
+        }
+
+        public static int[] GetTodayHourlyCounts()
+        {
+            lock (_syncLock)
+            {
+                string todayKey = DateTime.Today.ToString("yyyy-MM-dd");
+                if (Stats.DailyHourlyAccessCounts != null &&
+                    Stats.DailyHourlyAccessCounts.TryGetValue(todayKey, out var arr) &&
+                    arr != null && arr.Length == 24)
+                {
+                    return (int[])arr.Clone();
+                }
+
+                return new int[24];
+            }
+        }
+
+        public static List<DailyActivityItem> GetWeeklyActivity()
+        {
+            lock (_syncLock)
+            {
+                var result = new List<DailyActivityItem>();
+                DateTime today = DateTime.Today;
+
+                if (Stats.DailyHourlyAccessCounts == null)
+                {
+                    Stats.DailyHourlyAccessCounts = new Dictionary<string, int[]>();
+                }
+
+                for (int i = 6; i >= 0; i--)
+                {
+                    DateTime targetDate = today.AddDays(-i);
+                    string key = targetDate.ToString("yyyy-MM-dd");
+                    bool isToday = (i == 0);
+
+                    int[] hourly = null;
+                    if (Stats.DailyHourlyAccessCounts.TryGetValue(key, out var arr) && arr != null && arr.Length == 24)
+                    {
+                        hourly = (int[])arr.Clone();
+                    }
+                    else
+                    {
+                        hourly = new int[24];
+                    }
+
+                    int sum = hourly.Sum();
+                    string label = isToday ? $"오늘 ({targetDate:ddd})" : $"{targetDate:MM/dd} ({targetDate:ddd})";
+
+                    result.Add(new DailyActivityItem
+                    {
+                        Date = targetDate,
+                        DateLabel = label,
+                        HourlyCounts = hourly,
+                        TotalCount = sum,
+                        IsToday = isToday
+                    });
+                }
+
+                return result;
             }
         }
 
@@ -1043,35 +1131,35 @@ namespace GateHelper.Dashboard
             if (totalEarned >= 450)
             {
                 info.TierLevel = 5;
-                info.TierName = "👑 Tier 5: Gate Mastermind";
+                info.TierName = "★ Tier 5: Gate Mastermind";
                 info.TierTitle = "샌드박스의 모든 규칙을 정복한 최고 권위자";
                 info.AccentColor = Color.FromArgb(186, 85, 211); // Orchid Purple
             }
             else if (totalEarned >= 300)
             {
                 info.TierLevel = 4;
-                info.TierName = "💎 Tier 4: Cyber Architect";
+                info.TierName = "★ Tier 4: Cyber Architect";
                 info.TierTitle = "시스템 아키텍처와 논리를 자유자재로 다루는 설계자";
                 info.AccentColor = Color.FromArgb(0, 220, 255); // Cyan Neon
             }
             else if (totalEarned >= 180)
             {
                 info.TierLevel = 3;
-                info.TierName = "🥇 Tier 3: Logic Breaker";
+                info.TierName = "★ Tier 3: Logic Breaker";
                 info.TierTitle = "복잡한 문제의 해답을 찾아내는 숙련된 요원";
                 info.AccentColor = Color.FromArgb(255, 215, 0); // Gold
             }
             else if (totalEarned >= 80)
             {
                 info.TierLevel = 2;
-                info.TierName = "🥈 Tier 2: Code Explorer";
+                info.TierName = "★ Tier 2: Code Explorer";
                 info.TierTitle = "시스템 곳곳의 숨겨진 기능을 탐색하는 탐험가";
                 info.AccentColor = Color.FromArgb(192, 192, 210); // Silver
             }
             else
             {
                 info.TierLevel = 1;
-                info.TierName = "🥉 Tier 1: Novice";
+                info.TierName = "★ Tier 1: Novice";
                 info.TierTitle = "샌드박스의 문을 두드린 호기심 많은 입문자";
                 info.AccentColor = Color.FromArgb(205, 127, 50); // Bronze
             }
