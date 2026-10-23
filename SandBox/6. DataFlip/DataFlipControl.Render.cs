@@ -434,6 +434,36 @@ namespace GateHelper.DataFlip
                                 TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
                         }
                     }
+                    // 5. 수리 격납고 (RepairDepot)
+                    else if (b.Type == BuildingType.RepairDepot)
+                    {
+                        using (var bgBrush = new SolidBrush(Color.FromArgb(45, 0, 229, 255)))
+                        using (var rimPen = new Pen(Color.FromArgb(0, 229, 255), 2f))
+                        {
+                            g.FillRoundedRectangle(bgBrush, rect, 4);
+                            g.DrawRoundedRectangle(rimPen, rect, 4);
+                        }
+                        using (var font = new Font("Segoe UI", 9.5f, FontStyle.Bold))
+                        {
+                            TextRenderer.DrawText(g, "🏥", font, rect, Color.FromArgb(0, 229, 255),
+                                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                        }
+                    }
+                    // 6. 가속 관문 (PhaseGate)
+                    else if (b.Type == BuildingType.PhaseGate)
+                    {
+                        using (var bgBrush = new SolidBrush(Color.FromArgb(50, 186, 104, 200)))
+                        using (var rimPen = new Pen(Color.FromArgb(206, 147, 216), 2f))
+                        {
+                            g.FillEllipse(bgBrush, rect);
+                            g.DrawEllipse(rimPen, rect);
+                        }
+                        using (var font = new Font("Segoe UI", 9.5f, FontStyle.Bold))
+                        {
+                            TextRenderer.DrawText(g, "⏩", font, rect, Color.FromArgb(225, 190, 231),
+                                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                        }
+                    }
 
                     // 피격 플래시 (Hit Flash)
                     if (b.HitFlashAlpha > 0f)
@@ -661,6 +691,43 @@ namespace GateHelper.DataFlip
 
                 // 상단 체력 도트 게이지
                 DrawHpDots(g, rect.X, rect.Y - 2, rect.Width, u.Hp, u.MaxHp, teamColor);
+
+                // 자폭 폭탄 장착 시 유닛 좌측 하단 💣 뱃지 렌더링
+                if (u.HasBomb)
+                {
+                    var bombBadgeRect = new Rectangle(rect.Left + 1, rect.Bottom - 13, 14, 12);
+                    using (var bBg = new SolidBrush(Color.FromArgb(230, 30, 10, 15)))
+                    using (var bPen = new Pen(Color.FromArgb(255, 23, 68), 1.2f))
+                    using (var bFont = new Font("Segoe UI", 6f, FontStyle.Bold))
+                    {
+                        g.FillRoundedRectangle(bBg, bombBadgeRect, 2);
+                        g.DrawRoundedRectangle(bPen, bombBadgeRect, 2);
+                        TextRenderer.DrawText(g, "💣", bFont, bombBadgeRect, Color.FromArgb(255, 60, 60),
+                            TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                    }
+                }
+
+                // 건물 중첩 시 타일 우하단에 건물 미니 뱃지 렌더링
+                var underBldg = _game.Buildings[u.Row, u.Col];
+                if (underBldg != null && underBldg.Hp > 0)
+                {
+                    string bIcon = underBldg.Type == BuildingType.PowerPlant ? "⚡" :
+                                   underBldg.Type == BuildingType.Turret ? "🛡️" :
+                                   underBldg.Type == BuildingType.Wall ? "🧱" :
+                                   underBldg.Type == BuildingType.Factory ? "🏭" :
+                                   underBldg.Type == BuildingType.RepairDepot ? "🏥" : "⏩";
+                    Color bCol = underBldg.Owner == Owner.Player ? _colorGold : _colorCrimson;
+                    var bBadgeRect = new Rectangle(rect.Right - 15, rect.Bottom - 13, 14, 12);
+                    using (var bBg = new SolidBrush(Color.FromArgb(220, 10, 14, 22)))
+                    using (var bPen = new Pen(bCol, 1.2f))
+                    using (var bFont = new Font("Segoe UI", 6f, FontStyle.Bold))
+                    {
+                        g.FillRoundedRectangle(bBg, bBadgeRect, 2);
+                        g.DrawRoundedRectangle(bPen, bBadgeRect, 2);
+                        TextRenderer.DrawText(g, bIcon, bFont, bBadgeRect, bCol,
+                            TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                    }
+                }
             }
         }
 
@@ -776,9 +843,9 @@ namespace GateHelper.DataFlip
                     }
                 }
 
-                // (C) 전장 상단 안내 배너
-                int bannerW = 380;
-                int bannerH = 24;
+                // (C) 전장 상단 안내 배너 (가변 맵 최적화 및 텍스트 잘림 방지)
+                int bannerW = Math.Max(460, Math.Min(_boardRect.Width - 10, 560));
+                int bannerH = 26;
                 int bx = _boardRect.X + (_boardRect.Width - bannerW) / 2;
                 int by = _boardRect.Y + 6;
                 var bannerRect = new Rectangle(bx, by, bannerW, bannerH);
@@ -790,7 +857,7 @@ namespace GateHelper.DataFlip
                 }
                 using (var bFont = new Font("Segoe UI", 8.5f, FontStyle.Bold))
                 {
-                    string msg = "⚡ [초기 기지 설립] 원하는 위치(Col 1~2)를 클릭하여 첫 발전소를 무료 배치하세요!";
+                    string msg = "⚡ [초기 기지 설립] 1~2열을 클릭하여 첫 발전소를 무료 건설하세요";
                     TextRenderer.DrawText(g, msg, bFont, bannerRect, _colorGold,
                         TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
                 }
@@ -798,7 +865,6 @@ namespace GateHelper.DataFlip
             }
 
             // 1. [프로토콜 카드 전술 투하/배치 지정 모드]
-            if (_game.PendingDropRemainingCount > 0 && _game.PendingDropUnitType != UnitType.None)
             if (_game.PendingDropRemainingCount > 0 && _game.PendingDropUnitType != UnitType.None)
             {
                 // (A) 배치 가능 구역 전체에 부드러운 네온 점선 격자 하이라이트 표시
@@ -907,7 +973,10 @@ namespace GateHelper.DataFlip
                         int hx = _boardRect.X + _hoverTile.X * _tileW;
                         int hy = _boardRect.Y + _hoverTile.Y * _tileH;
                         var tRect = new Rectangle(hx + 2, hy + 2, _tileW - 4, _tileH - 4);
-                        bool isTarget = (_game.Buildings[_hoverTile.Y, _hoverTile.X]?.Owner == Owner.Ai) || (_game.MapTiles[_hoverTile.Y, _hoverTile.X] == TileType.Obstacle);
+                        var targetBldg = _game.Buildings[_hoverTile.Y, _hoverTile.X];
+                        bool isAiBldg = targetBldg?.Owner == Owner.Ai;
+                        bool isObstacle = _game.MapTiles[_hoverTile.Y, _hoverTile.X] == TileType.Obstacle;
+                        bool isTarget = isAiBldg || isObstacle;
                         Color cColor = isTarget ? _colorCrimson : Color.FromArgb(120, 100, 100, 100);
 
                         using (var brush = new SolidBrush(Color.FromArgb(50, cColor)))
@@ -917,6 +986,31 @@ namespace GateHelper.DataFlip
                             g.DrawRectangle(pen, tRect);
                             g.DrawLine(pen, tRect.X, tRect.Y + tRect.Height / 2, tRect.Right, tRect.Y + tRect.Height / 2);
                             g.DrawLine(pen, tRect.X + tRect.Width / 2, tRect.Y, tRect.X + tRect.Width / 2, tRect.Bottom);
+                        }
+
+                        // 타깃 기물 명칭 및 체력 실시간 플로팅 뱃지 (유닛 중첩 시 함께 표시)
+                        if (isTarget)
+                        {
+                            string targetName = isObstacle ? $"서버랙 (HP {_game.ObstacleHp[_hoverTile.Y, _hoverTile.X]})" :
+                                                targetBldg.Type == BuildingType.PowerPlant ? $"적 발전소 (HP {targetBldg.Hp})" :
+                                                targetBldg.Type == BuildingType.Turret ? $"적 포탑 (HP {targetBldg.Hp})" :
+                                                targetBldg.Type == BuildingType.Wall ? $"적 방화벽 (HP {targetBldg.Hp})" : $"적 공장 (HP {targetBldg.Hp})";
+
+                            var onUnit = _game.Units.Find(u => u.Col == _hoverTile.X && u.Row == _hoverTile.Y && u.Hp > 0);
+                            if (onUnit != null) targetName += $" + {onUnit.Type}";
+
+                            int tipW = Math.Max(120, targetName.Length * 9 + 16);
+                            int tipH = 20;
+                            var tipRect = new Rectangle(tRect.X + (tRect.Width - tipW) / 2, tRect.Y - tipH - 3, tipW, tipH);
+                            using (var tipBrush = new SolidBrush(Color.FromArgb(230, 20, 10, 15)))
+                            using (var tipPen = new Pen(_colorCrimson, 1.2f))
+                            using (var tipFont = new Font("Segoe UI", 7.5f, FontStyle.Bold))
+                            {
+                                g.FillRoundedRectangle(tipBrush, tipRect, 3);
+                                g.DrawRoundedRectangle(tipPen, tipRect, 3);
+                                TextRenderer.DrawText(g, targetName, tipFont, tipRect, Color.White,
+                                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                            }
                         }
                     }
                     return;
@@ -961,6 +1055,99 @@ namespace GateHelper.DataFlip
                                     }
                                 }
                             }
+                        }
+                    }
+                    return;
+                }
+                else if (_selectedSkill == UserSkillType.HealingBeam)
+                {
+                    int bannerW = 440;
+                    int bannerH = 24;
+                    int bx = _boardRect.X + (_boardRect.Width - bannerW) / 2;
+                    int by = _boardRect.Y + 6;
+                    var bannerRect = new Rectangle(bx, by, bannerW, bannerH);
+                    using (var bbBrush = new SolidBrush(Color.FromArgb(220, 10, 30, 20)))
+                    using (var bbPen = new Pen(Color.FromArgb(0, 230, 118), 1.5f))
+                    {
+                        g.FillRoundedRectangle(bbBrush, bannerRect, 4);
+                        g.DrawRoundedRectangle(bbPen, bannerRect, 4);
+                    }
+                    using (var bFont = new Font("Segoe UI", 8.5f, FontStyle.Bold))
+                    {
+                        TextRenderer.DrawText(g, "💚 [전술 치료 광선 (4G)] 치유할 행(Row)을 클릭하세요 (해당 행 모든 아군 유닛 HP +4)", bFont, bannerRect, Color.FromArgb(0, 230, 118),
+                            TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                    }
+
+                    if (_hoverTile.Y >= 0 && _hoverTile.Y < _game.Rows)
+                    {
+                        int hy = _boardRect.Y + _hoverTile.Y * _tileH;
+                        var rowRect = new Rectangle(_boardRect.X + _tileW, hy + 2, _boardRect.Width - _tileW * 2, _tileH - 4);
+                        using (var brush = new SolidBrush(Color.FromArgb(35, 0, 230, 118)))
+                        using (var pen = new Pen(Color.FromArgb(0, 230, 118), 1.8f) { DashStyle = DashStyle.Dash })
+                        {
+                            g.FillRectangle(brush, rowRect);
+                            g.DrawRectangle(pen, rowRect);
+                        }
+
+                        int friendlyCount = _game.Units.FindAll(u => u.Owner == Owner.Player && u.Row == _hoverTile.Y && u.Hp > 0).Count;
+                        int woundedCount = _game.Units.FindAll(u => u.Owner == Owner.Player && u.Row == _hoverTile.Y && u.Hp > 0 && u.Hp < u.MaxHp).Count;
+                        string tip = $"💚 치료 대상: Row {_hoverTile.Y + 1} (아군 {friendlyCount}기 / 부상 {woundedCount}기)";
+                        int tipW = Math.Max(180, tip.Length * 9);
+                        var tipRect = new Rectangle(_boardRect.X + (_boardRect.Width - tipW) / 2, hy + (_tileH - 22) / 2, tipW, 22);
+                        using (var tipBg = new SolidBrush(Color.FromArgb(230, 10, 30, 20)))
+                        using (var tipPen = new Pen(Color.FromArgb(0, 230, 118), 1.2f))
+                        using (var tipFont = new Font("Segoe UI", 8f, FontStyle.Bold))
+                        {
+                            g.FillRoundedRectangle(tipBg, tipRect, 3);
+                            g.DrawRoundedRectangle(tipPen, tipRect, 3);
+                            TextRenderer.DrawText(g, tip, tipFont, tipRect, Color.White,
+                                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                        }
+                    }
+                    return;
+                }
+                else if (_selectedSkill == UserSkillType.FortifyBeam)
+                {
+                    int bannerW = 460;
+                    int bannerH = 24;
+                    int bx = _boardRect.X + (_boardRect.Width - bannerW) / 2;
+                    int by = _boardRect.Y + 6;
+                    var bannerRect = new Rectangle(bx, by, bannerW, bannerH);
+                    using (var bbBrush = new SolidBrush(Color.FromArgb(220, 10, 25, 35)))
+                    using (var bbPen = new Pen(Color.FromArgb(0, 229, 255), 1.5f))
+                    {
+                        g.FillRoundedRectangle(bbBrush, bannerRect, 4);
+                        g.DrawRoundedRectangle(bbPen, bannerRect, 4);
+                    }
+                    using (var bFont = new Font("Segoe UI", 8.5f, FontStyle.Bold))
+                    {
+                        TextRenderer.DrawText(g, "🛡️ [전술 구축 광선 (5G)] 강화할 행(Row)을 클릭하세요 (해당 행 아군 최대HP+2 & 현재HP+2)", bFont, bannerRect, Color.FromArgb(0, 229, 255),
+                            TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                    }
+
+                    if (_hoverTile.Y >= 0 && _hoverTile.Y < _game.Rows)
+                    {
+                        int hy = _boardRect.Y + _hoverTile.Y * _tileH;
+                        var rowRect = new Rectangle(_boardRect.X + _tileW, hy + 2, _boardRect.Width - _tileW * 2, _tileH - 4);
+                        using (var brush = new SolidBrush(Color.FromArgb(35, 0, 229, 255)))
+                        using (var pen = new Pen(Color.FromArgb(0, 229, 255), 1.8f) { DashStyle = DashStyle.Dash })
+                        {
+                            g.FillRectangle(brush, rowRect);
+                            g.DrawRectangle(pen, rowRect);
+                        }
+
+                        int friendlyCount = _game.Units.FindAll(u => u.Owner == Owner.Player && u.Row == _hoverTile.Y && u.Hp > 0).Count;
+                        string tip = $"🛡️ 구축 대상: Row {_hoverTile.Y + 1} (아군 유닛 {friendlyCount}기 최대HP/현재HP +2)";
+                        int tipW = Math.Max(200, tip.Length * 9);
+                        var tipRect = new Rectangle(_boardRect.X + (_boardRect.Width - tipW) / 2, hy + (_tileH - 22) / 2, tipW, 22);
+                        using (var tipBg = new SolidBrush(Color.FromArgb(230, 10, 25, 35)))
+                        using (var tipPen = new Pen(Color.FromArgb(0, 229, 255), 1.2f))
+                        using (var tipFont = new Font("Segoe UI", 8f, FontStyle.Bold))
+                        {
+                            g.FillRoundedRectangle(tipBg, tipRect, 3);
+                            g.DrawRoundedRectangle(tipPen, tipRect, 3);
+                            TextRenderer.DrawText(g, tip, tipFont, tipRect, Color.White,
+                                TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
                         }
                     }
                     return;
@@ -1233,16 +1420,27 @@ namespace GateHelper.DataFlip
             int cardY = 0;
 
             // 1. 하단 슬롯 액션 버튼에 마우스 호버 시 실시간 스펙 가이드 팝업
-            if (_hoverButtonId >= 1 && _hoverButtonId <= 6)
+            if ((_hoverButtonId >= 1 && _hoverButtonId <= 6) || _hoverButtonId == 95)
             {
-                int slotIndex = _hoverButtonId - 1;
-                Rectangle slotRect = _slotRects[slotIndex];
+                Rectangle slotRect = (_hoverButtonId == 95) ? _btnExpandGridRect : _slotRects[_hoverButtonId - 1];
                 cardX = slotRect.X + (slotRect.Width - cardW) / 2;
                 cardX = Math.Max(12, Math.Min(this.Width - cardW - 12, cardX));
-                cardY = slotRect.Y - cardH - 8;
+                cardY = (_hoverButtonId == 95) ? _slotRects[0].Y - cardH - 8 : slotRect.Y - cardH - 8;
 
-                if (_currentCategory == BottomCategory.Units)
+                if (_hoverButtonId == 95)
                 {
+                    title = "⚡ 전력망 한도 증설";
+                    int eCost = _game.GetGridExpandCost(Owner.Player);
+                    accentColor = _colorGold;
+                    teamTag = $"{eCost}G 연구";
+                    stat1 = $"비용 {eCost}G  |  현재 한도 {_game.PlayerPlantLimit}기";
+                    stat2 = "발전소 보유 최대 한도를 즉시 +1기 확장";
+                    desc1 = "발전소 3기 초과 건설을 위한 전력망 인프라 투자";
+                    desc2 = "증설할 때마다 다음 비용이 +4G 점진 증가";
+                }
+                else if (_currentCategory == BottomCategory.Units)
+                {
+                    int slotIndex = _hoverButtonId - 1;
                     switch (slotIndex)
                     {
                         case 0: // 보병
@@ -1258,10 +1456,10 @@ namespace GateHelper.DataFlip
                             title = "▲ 고속 침투병 (Raider)";
                             accentColor = Color.FromArgb(255, 170, 0);
                             teamTag = "4G 유닛";
-                            stat1 = $"HP {3 + _game.PlayerUnitHpBonus}  |  공격력 {3 + _game.PlayerUnitAtkBonus}  |  이속 2칸!";
-                            stat2 = _game.PlayerHasStealthCloak ? "⚡ [광학 스텔스 활성화] 첫 공격 시까지 은폐" : "사거리 1칸 근접  |  보병 1타 제압 특화";
-                            desc1 = "고속 이동으로 적 보병 기습 암살 및 적 발전소 타격";
-                            desc2 = _game.PlayerHasStealthCloak ? "특수: 적 바로 앞까지 도달해 공격할 때까지 원거리 공격 불가!" : "드레드노트 취약점 공략에 매우 효과적";
+                            stat1 = $"HP {3 + _game.PlayerUnitHpBonus}  |  공격력 {2 + _game.PlayerUnitAtkBonus}  |  이속 2칸!";
+                            stat2 = _game.PlayerHasStealthCloak ? "⚡ [광학 스텔스 활성화] 첫 공격 시까지 은폐" : "사거리 1칸 근접  |  고속 기동 암살";
+                            desc1 = "고속 이동으로 적 빈틈 침투 및 적 발전소 타격";
+                            desc2 = _game.PlayerHasStealthCloak ? "특수: 적 바로 앞까지 도달해 공격할 때까지 원거리 공격 불가!" : "보병 상대 시 선공 피해를 입히고 반격을 받음";
                             break;
                         case 2: // 타이탄
                             title = "■ 타이탄 (Titan)";
@@ -1305,6 +1503,7 @@ namespace GateHelper.DataFlip
                 }
                 else if (_currentCategory == BottomCategory.Buildings)
                 {
+                    int slotIndex = _hoverButtonId - 1;
                     switch (slotIndex)
                     {
                         case 0: // 발전소
@@ -1347,20 +1546,31 @@ namespace GateHelper.DataFlip
                             desc1 = "본진이 아닌 전선 바로 앞에서 병력 전진 배치";
                             desc2 = "아군 유닛 자유 통과 · 이동 턴 절약";
                             break;
-                        case 4: // 한도 증설
-                            title = "⚡ 전력망 한도 증설";
-                            int eCost = _game.GetGridExpandCost(Owner.Player);
-                            accentColor = _colorGold;
-                            teamTag = $"{eCost}G 연구";
-                            stat1 = $"비용 {eCost}G  |  현재 한도 {_game.PlayerPlantLimit}기";
-                            stat2 = "발전소 보유 최대 한도를 즉시 +1기 확장";
-                            desc1 = "발전소 3기 초과 건설을 위한 전력망 인프라 투자";
-                            desc2 = "증설할 때마다 다음 비용이 +4G 점진 증가";
+                        case 4: // 수리 격납고
+                            title = "🏥 수리 격납고 (Repair Depot)";
+                            int rdCost = _game.GetBuildingCost(BuildingType.RepairDepot, Owner.Player);
+                            accentColor = Color.FromArgb(0, 229, 255);
+                            teamTag = $"{rdCost}G 건물";
+                            stat1 = $"HP 6  |  비용 {rdCost}G  |  턴당 아군 1기 +1 수리";
+                            stat2 = "매 턴 부상당한 아군 유닛 1기 체력 회복";
+                            desc1 = "나노 수리 드론을 파견하여 전선 유닛을 지속 정비합니다.";
+                            desc2 = "아군 유닛 자유 통과 가능 (2턴당 +1HP 자체수리)";
+                            break;
+                        case 5: // 가속 관문
+                            title = "⏩ 가속 관문 (Phase Gate)";
+                            int pgCost = _game.GetBuildingCost(BuildingType.PhaseGate, Owner.Player);
+                            accentColor = Color.FromArgb(206, 147, 216);
+                            teamTag = $"{pgCost}G 건물";
+                            stat1 = $"HP 6  |  비용 {pgCost}G  |  통과 아군 이동력 +1";
+                            stat2 = "통과하거나 관문에서 출발하는 아군 유닛 이동력 +1";
+                            desc1 = "공간 도약 필드를 전개하여 아군 유닛의 기동을 가속합니다.";
+                            desc2 = "중장갑 병기나 보병의 전선 합류 속도를 대폭 향상!";
                             break;
                     }
                 }
                 else // BottomCategory.Skills
                 {
+                    int slotIndex = _hoverButtonId - 1;
                     switch (slotIndex)
                     {
                         case 0: // 궤도 폭격
@@ -1399,6 +1609,24 @@ namespace GateHelper.DataFlip
                             desc1 = "클로킹 중인 적 침투병의 광학 스텔스를 강제로 영구 해제합니다.";
                             desc2 = "기본 포탑과 원거리 유닛들이 즉시 은폐 유닛을 요격 가능해집니다.";
                             break;
+                        case 4: // 치료 광선
+                            title = "💚 전술 치료 광선 (Healing Beam)";
+                            accentColor = Color.FromArgb(0, 230, 118);
+                            teamTag = "4G 스킬";
+                            stat1 = "비용 4G  |  선택 행(Row) 광역 치유 레이저";
+                            stat2 = "해당 행 모든 아군 유닛 체력 +4 회복";
+                            desc1 = "고출력 나노 회복 빔을 발사하여 1개 행의 아군을 대폭 수리합니다.";
+                            desc2 = "최대 체력 초과 불가 · 위기 라인을 일거에 구원!";
+                            break;
+                        case 5: // 구축 광선
+                            title = "🛡️ 전술 구축 광선 (Fortify Beam)";
+                            accentColor = Color.FromArgb(0, 229, 255);
+                            teamTag = "5G 스킬";
+                            stat1 = "비용 5G  |  선택 행(Row) 광역 강화 레이저";
+                            stat2 = "해당 행 아군 유닛 최대 체력 +2 & 현재 체력 +2";
+                            desc1 = "영구 방호 장갑 필드를 전개하여 1개 행 아군 내구도를 높입니다.";
+                            desc2 = "최대 체력과 현재 체력이 동시에 +2 증가!";
+                            break;
                     }
                 }
             }
@@ -1415,7 +1643,45 @@ namespace GateHelper.DataFlip
                 // 아무것도 없는 일반 빈 타일인 경우 표시하지 않음 (시야 보존)
                 if (unit == null && bldg == null && tile == TileType.Plain) return;
 
-                if (unit != null)
+                // [핵심 개선] 유닛과 건물이 중첩된 경우: 둘 다 HUD에 명확히 동시 표기!
+                if (unit != null && bldg != null)
+                {
+                    cardW = 275;
+                    cardH = 138;
+                    accentColor = (_selectedSkill == UserSkillType.OrbitalStrike) ? _colorCrimson :
+                                  (unit.Owner == Owner.Player ? _colorCyan : _colorCrimson);
+
+                    string uName = unit.Type == UnitType.Vanguard ? "●보병" :
+                                   unit.Type == UnitType.Raider ? "▲침투병" :
+                                   unit.Type == UnitType.Titan ? "■타이탄" :
+                                   unit.Type == UnitType.Cheongung ? "🚀천궁" :
+                                   unit.Type == UnitType.Colossus ? "⬢콜로서스" : "✦드레드노트";
+
+                    string bName = bldg.Type == BuildingType.PowerPlant ? "⚡발전소" :
+                                   bldg.Type == BuildingType.Turret ? "🛡️포탑" :
+                                   bldg.Type == BuildingType.Factory ? "🏭전진공장" :
+                                   bldg.Type == BuildingType.RepairDepot ? "🏥수리격납고" :
+                                   bldg.Type == BuildingType.PhaseGate ? "⏩가속관문" : "🧱격벽";
+
+                    string uTag = unit.Owner == Owner.Player ? "아군" : "적";
+                    string bTag = bldg.Owner == Owner.Player ? "아군" : "적";
+
+                    title = $"{uName} + {bName}";
+                    teamTag = $"{uTag}/{bTag}";
+
+                    stat1 = $"⚔️ [유닛] HP {unit.Hp}/{unit.MaxHp}  |  공 {unit.Atk}  |  이속 {unit.Speed}칸" + (unit.HasActed ? " [⏳대기]" : "");
+                    string bldgEffect = (bldg.Type == BuildingType.PowerPlant) ? (tile == TileType.Resource ? "+3G/턴 (3배!)" : "+1G/턴") :
+                                        (bldg.Type == BuildingType.Turret) ? "요격 2 (13칸)" :
+                                        (bldg.Type == BuildingType.Factory) ? "전진 스폰" :
+                                        (bldg.Type == BuildingType.RepairDepot) ? "턴당 1기수리" :
+                                        (bldg.Type == BuildingType.PhaseGate) ? "이동력+1" : "길목 차단";
+                    stat2 = $"🏗️ [건물] {bName} (HP {bldg.Hp}/{bldg.MaxHp})  |  {bldgEffect}";
+                    desc1 = (bldg.Owner == Owner.Player) ? "아군 유닛이 아군 인프라 위를 통과/점유 중입니다." : "적 유닛이 건물 타일 상에 위치해 있습니다.";
+                    desc2 = (_selectedSkill == UserSkillType.OrbitalStrike) ?
+                        "🎯 [궤도 폭격 타깃!] 클릭 시 하단 건물에 6 피해 적중 (원샷 철거)" :
+                        "💡 건물과 유닛이 중첩된 타일 (폭격 시 건물 우선 타격)";
+                }
+                else if (unit != null)
                 {
                     accentColor = (unit.Owner == Owner.Player) ? _colorCyan : _colorCrimson;
                     teamTag = (unit.Owner == Owner.Player) ? "아군" : "적 데몬";
@@ -1459,7 +1725,6 @@ namespace GateHelper.DataFlip
 
                     stat1 = $"HP {unit.Hp}/{unit.MaxHp}  |  공격력 {unit.Atk}";
                     stat2 = $"이속 {unit.Speed}칸  |  사거리 {unit.Range}칸" + (unit.HasActed ? "  [⏳ 준비중]" : "");
-                    if (bldg != null) desc2 += $" (아군 {bldg.Type} 위 통과 중)";
                 }
                 else if (bldg != null)
                 {
@@ -1503,6 +1768,22 @@ namespace GateHelper.DataFlip
                             stat2 = "전진 생산 기지  |  스폰 거점";
                             desc1 = "공장 바로 앞 1칸에서 유닛을 즉시 전진 소환";
                             desc2 = "특성: 아군 유닛이 자유롭게 통과 가능";
+                            break;
+                        case BuildingType.RepairDepot:
+                            title = "🏥 수리 격납고 (Repair Depot)";
+                            accentColor = Color.FromArgb(0, 229, 255);
+                            stat1 = $"HP {bldg.Hp}/{bldg.MaxHp}  |  비용 {_game.GetBuildingCost(BuildingType.RepairDepot)}G";
+                            stat2 = "턴당 아군 1기 +1 수리  |  지원 기지";
+                            desc1 = "매 턴 시작 시 부상당한 아군 유닛 1기를 나노 수리";
+                            desc2 = "특성: 아군 유닛이 자유롭게 통과 가능 (2턴당 +1HP 자체수리)";
+                            break;
+                        case BuildingType.PhaseGate:
+                            title = "⏩ 가속 관문 (Phase Gate)";
+                            accentColor = Color.FromArgb(206, 147, 216);
+                            stat1 = $"HP {bldg.Hp}/{bldg.MaxHp}  |  비용 {_game.GetBuildingCost(BuildingType.PhaseGate)}G";
+                            stat2 = "통과 아군 이동력 +1  |  기동 가속";
+                            desc1 = "관문을 통과하거나 관문에서 출발하는 아군 유닛 이동력 +1";
+                            desc2 = "특성: 아군 유닛이 자유롭게 통과 가능 (2턴당 +1HP 자체수리)";
                             break;
                     }
                 }
@@ -1557,11 +1838,11 @@ namespace GateHelper.DataFlip
             using (var titleFont = new Font("Segoe UI", 9f, FontStyle.Bold))
             using (var tagFont = new Font("Segoe UI", 7.5f, FontStyle.Bold))
             {
-                TextRenderer.DrawText(g, title, titleFont, new Rectangle(cardRect.X + 8, cardRect.Y + 6, cardRect.Width - 60, 18),
+                TextRenderer.DrawText(g, title, titleFont, new Rectangle(cardRect.X + 8, cardRect.Y + 6, cardRect.Width - 68, 18),
                     Color.White, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
 
                 // 소속 태그 뱃지
-                var tagRect = new Rectangle(cardRect.Right - 54, cardRect.Y + 6, 46, 16);
+                var tagRect = new Rectangle(cardRect.Right - 58, cardRect.Y + 6, 50, 16);
                 using (var tBg = new SolidBrush(Color.FromArgb(50, accentColor)))
                 using (var tPen = new Pen(accentColor, 1f))
                 {
@@ -1582,18 +1863,23 @@ namespace GateHelper.DataFlip
             using (var statFont = new Font("Segoe UI", 8f, FontStyle.Bold))
             using (var descFont = new Font("Segoe UI", 7.5f))
             {
-                TextRenderer.DrawText(g, stat1, statFont, new Rectangle(cardRect.X + 8, cardRect.Y + 29, cardRect.Width - 16, 15),
+                TextRenderer.DrawText(g, stat1, statFont, new Rectangle(cardRect.X + 8, cardRect.Y + 29, cardRect.Width - 16, 16),
                     _colorGold, TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
 
-                TextRenderer.DrawText(g, stat2, statFont, new Rectangle(cardRect.X + 8, cardRect.Y + 45, cardRect.Width - 16, 15),
+                TextRenderer.DrawText(g, stat2, statFont, new Rectangle(cardRect.X + 8, cardRect.Y + 47, cardRect.Width - 16, 16),
                     Color.FromArgb(200, 225, 250), TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
 
                 // 4. 설명 텍스트
-                TextRenderer.DrawText(g, desc1, descFont, new Rectangle(cardRect.X + 8, cardRect.Y + 63, cardRect.Width - 16, 14),
+                int d1Y = (cardH > 100) ? cardRect.Y + 68 : cardRect.Y + 63;
+                int d2Y = (cardH > 100) ? cardRect.Y + 88 : cardRect.Y + 77;
+                Color d2Color = (_selectedSkill == UserSkillType.OrbitalStrike) ?
+                    Color.FromArgb(255, 110, 110) : Color.FromArgb(115, 145, 170);
+
+                TextRenderer.DrawText(g, desc1, descFont, new Rectangle(cardRect.X + 8, d1Y, cardRect.Width - 16, 16),
                     Color.FromArgb(145, 170, 195), TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
 
-                TextRenderer.DrawText(g, desc2, descFont, new Rectangle(cardRect.X + 8, cardRect.Y + 77, cardRect.Width - 16, 14),
-                    Color.FromArgb(115, 145, 170), TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+                TextRenderer.DrawText(g, desc2, descFont, new Rectangle(cardRect.X + 8, d2Y, cardRect.Width - 16, (cardH > 100) ? 38 : 16),
+                    d2Color, TextFormatFlags.Left | TextFormatFlags.WordBreak);
             }
         }
         #endregion
@@ -1657,11 +1943,19 @@ namespace GateHelper.DataFlip
                 DrawActionCard(g, _slotRects[3], "🏭 전진공장", $"{factoryCost}G (전진스폰)", "[4]",
                     _selectedBuilding == BuildingType.Factory, _game.PlayerCredit >= factoryCost, 4, _colorPurple);
 
-                // 5번째 슬롯: 발전소 한도 증설 전용 버튼 (실수 클릭 방지 및 완벽 분리!)
+                int depotCost = _game.GetBuildingCost(BuildingType.RepairDepot);
+                DrawActionCard(g, _slotRects[4], "🏥 수리격납고", $"{depotCost}G (턴당수리)", "[5]",
+                    _selectedBuilding == BuildingType.RepairDepot, _game.PlayerCredit >= depotCost, 5, Color.FromArgb(0, 229, 255));
+
+                int gateCost = _game.GetBuildingCost(BuildingType.PhaseGate);
+                DrawActionCard(g, _slotRects[5], "⏩ 가속관문", $"{gateCost}G (이동+1)", "[6]",
+                    _selectedBuilding == BuildingType.PhaseGate, _game.PlayerCredit >= gateCost, 6, Color.FromArgb(206, 147, 216));
+
+                // 발전소 한도 증설 버튼: 발전소(슬롯 0) 바로 아래 세로 배치!
                 int expandCost = _game.GetGridExpandCost(Owner.Player);
                 bool canAffordExpand = _game.PlayerCredit >= expandCost;
-                DrawActionCard(g, _slotRects[4], "⚡ 한도증설", $"{expandCost}G (한도+1)", "[5]",
-                    false, canAffordExpand, 5, _colorGold);
+                DrawActionCard(g, _btnExpandGridRect, "⚡ 한도증설", $"{expandCost}G (한도+1)", "[+]",
+                    false, canAffordExpand, 95, _colorGold);
             }
             else if (_currentCategory == BottomCategory.Units)
             {
@@ -1706,6 +2000,14 @@ namespace GateHelper.DataFlip
                 int scCost = _game.GetSkillCost(UserSkillType.ReconScan);
                 DrawActionCard(g, _slotRects[3], "📡 정찰스캔", $"{scCost}G (은폐해제)", "[4]",
                     false, _game.PlayerCredit >= scCost, 4, _colorGold);
+
+                int hlCost = _game.GetSkillCost(UserSkillType.HealingBeam);
+                DrawActionCard(g, _slotRects[4], "💚 치료광선", $"{hlCost}G (행회복+4)", "[5]",
+                    _selectedSkill == UserSkillType.HealingBeam, _game.PlayerCredit >= hlCost, 5, Color.FromArgb(0, 230, 118));
+
+                int ftCost = _game.GetSkillCost(UserSkillType.FortifyBeam);
+                DrawActionCard(g, _slotRects[5], "🛡️ 구축광선", $"{ftCost}G (행내구+2)", "[6]",
+                    _selectedSkill == UserSkillType.FortifyBeam, _game.PlayerCredit >= ftCost, 6, Color.FromArgb(0, 229, 255));
             }
 
             // 턴 종료 버튼 (애니메이션 중에는 비활성화)

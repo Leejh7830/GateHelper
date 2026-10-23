@@ -51,7 +51,7 @@ namespace GateHelper.DataFlip
         private Rectangle _btnBuildTurretRect => _slotRects[1];
         private Rectangle _btnBuildWallRect => _slotRects[2];
         private Rectangle _btnBuildFactoryRect => _slotRects[3];
-        private Rectangle _btnExpandGridRect => _slotRects[4];
+        private Rectangle _btnExpandGridRect;
 
         private Rectangle _btnSpawnVanguardRect => _slotRects[0];
         private Rectangle _btnSpawnRaiderRect => _slotRects[1];
@@ -193,6 +193,8 @@ namespace GateHelper.DataFlip
             {
                 _slotRects[i] = new Rectangle(_boardRect.X + i * (slotW + slotGap), slotY, slotW, slotH);
             }
+            // 발전소 한도 증설 버튼: 발전소(슬롯 0) 바로 아래에 세로로 배치
+            _btnExpandGridRect = new Rectangle(_slotRects[0].X, _slotRects[0].Bottom + 4, slotW, 42);
 
             // 오른쪽 액션 버튼 (턴 종료 및 유틸리티)
             int slotsEndX = _boardRect.X + 6 * (slotW + slotGap) - slotGap;
@@ -203,9 +205,9 @@ namespace GateHelper.DataFlip
             _btnRestartRect = new Rectangle(rightX, _btnEndTurnRect.Bottom + 6, (actW - 6) / 2, 26);
             _btnGuideRect = new Rectangle(_btnRestartRect.Right + 6, _btnEndTurnRect.Bottom + 6, (actW - 6) / 2, 26);
 
-            // 로그라이크 카드 3개 영역
-            int cardW = 168;
-            int cardH = 250;
+            // 로그라이크 카드 3개 영역 (카드 폭 및 높이 확장으로 가독성 극대화)
+            int cardW = 204;
+            int cardH = 280;
             int totalCardW = cardW * 3 + 24 * 2;
             int cardStartX = (w - totalCardW) / 2;
             int cardY = (h - cardH) / 2 - 10;
@@ -571,7 +573,9 @@ namespace GateHelper.DataFlip
             else if (_tabBuildingsRect.Contains(e.Location)) _hoverButtonId = 101;
             else if (_tabUnitsRect.Contains(e.Location)) _hoverButtonId = 102;
             else if (_tabSkillsRect.Contains(e.Location)) _hoverButtonId = 103;
-            // 하단 6개 액션 슬롯 (1~6)
+            // 발전소 한도 증설 전용 버튼 (95)
+            else if (_currentCategory == BottomCategory.Buildings && _btnExpandGridRect.Contains(e.Location)) _hoverButtonId = 95;
+            // 하단 액션 슬롯 (1~6)
             else if (_slotRects[0].Contains(e.Location)) _hoverButtonId = 1;
             else if (_slotRects[1].Contains(e.Location)) _hoverButtonId = 2;
             else if (_slotRects[2].Contains(e.Location)) _hoverButtonId = 3;
@@ -820,17 +824,17 @@ namespace GateHelper.DataFlip
             }
             if (_btnMapSmallRect.Contains(e.Location))
             {
-                SelectMapSizeAndStart(MapSizeType.Small);
+                RequestMapSizeChange(MapSizeType.Small);
                 return;
             }
             if (_btnMapStdRect.Contains(e.Location))
             {
-                SelectMapSizeAndStart(MapSizeType.Standard);
+                RequestMapSizeChange(MapSizeType.Standard);
                 return;
             }
             if (_btnMapLargeRect.Contains(e.Location))
             {
-                SelectMapSizeAndStart(MapSizeType.Large);
+                RequestMapSizeChange(MapSizeType.Large);
                 return;
             }
 
@@ -863,7 +867,15 @@ namespace GateHelper.DataFlip
                 return;
             }
 
-            // 6. 하단 6대 액션 슬롯 클릭
+            // 인프라 탭: 발전소(슬롯 0) 바로 아래의 한도증설 세로 버튼 클릭
+            if (_currentCategory == BottomCategory.Buildings && _btnExpandGridRect.Contains(e.Location))
+            {
+                ExecuteExpandGrid();
+                Invalidate();
+                return;
+            }
+
+            // 6. 하단 액션 슬롯 클릭
             for (int i = 0; i < 6; i++)
             {
                 if (_slotRects[i].Contains(e.Location))
@@ -911,11 +923,18 @@ namespace GateHelper.DataFlip
                     // 유저 스킬 시전 처리
                     if (_selectedSkill != UserSkillType.None)
                     {
-                        if (_game.CastSkill(_selectedSkill, c, r))
+                        if (_game.CastSkill(_selectedSkill, c, r, Owner.Player, out var sEvents, out var sBeam))
                         {
-                            AddShockwave(screenX, screenY, _colorCrimson, 50f);
-                            string skillName = (_selectedSkill == UserSkillType.OrbitalStrike) ? "궤도 폭격 명중! 💥" : "EMP 전자기 방전! ⚡";
-                            AddFloatingText(skillName, screenX - 40, screenY - 20, _colorGold);
+                            if (sBeam != null) _laserBeams.Add(sBeam);
+                            foreach (var ev in sEvents)
+                            {
+                                int evX = _boardRect.X + ev.Col * _tileW + _tileW / 2;
+                                int evY = _boardRect.Y + ev.Row * _tileH + _tileH / 2;
+                                AddFloatingText(ev.Text, evX - 35, evY - 20, ev.TextColor);
+                            }
+                            Color waveCol = (_selectedSkill == UserSkillType.HealingBeam) ? Color.FromArgb(0, 230, 118) :
+                                            (_selectedSkill == UserSkillType.FortifyBeam) ? Color.FromArgb(0, 229, 255) : _colorCrimson;
+                            AddShockwave(screenX, screenY, waveCol, 50f);
                             _selectedSkill = UserSkillType.None;
                         }
                         else
@@ -1003,21 +1022,13 @@ namespace GateHelper.DataFlip
                         _selectedBuilding = (_selectedBuilding == BuildingType.Factory) ? BuildingType.None : BuildingType.Factory;
                         _selectedUnit = UnitType.None;
                         break;
-                    case 4: // [5] 전력망 한도 증설 전용 버튼 (골드 투자로 한도+1)
-                        int cost = _game.GetGridExpandCost(Owner.Player);
-                        if (_game.UpgradePowerGrid(Owner.Player))
-                        {
-                            int cx = _slotRects[4].X + _slotRects[4].Width / 2;
-                            int cy = _slotRects[4].Y + _slotRects[4].Height / 2;
-                            AddShockwave(cx, cy, _colorGold, 45f);
-                            AddFloatingText($"전력망 확장! (한도 {_game.PlayerPlantLimit}기)", cx - 40, cy - 20, _colorGold);
-                        }
-                        else
-                        {
-                            int cx = _slotRects[4].X + _slotRects[4].Width / 2;
-                            int cy = _slotRects[4].Y + _slotRects[4].Height / 2;
-                            AddFloatingText($"크레딧 부족 ({cost}G 필요)", cx - 40, cy - 20, _colorCrimson);
-                        }
+                    case 4: // [5] 수리 격납고 (6G, 턴당 부상 아군 1기 +1 수리)
+                        _selectedBuilding = (_selectedBuilding == BuildingType.RepairDepot) ? BuildingType.None : BuildingType.RepairDepot;
+                        _selectedUnit = UnitType.None;
+                        break;
+                    case 5: // [6] 가속 관문 (5G, 통과 아군 이동력 +1)
+                        _selectedBuilding = (_selectedBuilding == BuildingType.PhaseGate) ? BuildingType.None : BuildingType.PhaseGate;
+                        _selectedUnit = UnitType.None;
                         break;
                 }
             }
@@ -1120,7 +1131,53 @@ namespace GateHelper.DataFlip
                         }
                         _selectedSkill = UserSkillType.None;
                         break;
+                    case 4: // [5] 전술 치료 광선 (4G, 지정 행 치유)
+                        int hlCost = _game.GetSkillCost(UserSkillType.HealingBeam);
+                        if (_game.PlayerCredit < hlCost)
+                        {
+                            int cx = _slotRects[4].X + _slotRects[4].Width / 2;
+                            int cy = _slotRects[4].Y + _slotRects[4].Height / 2;
+                            AddFloatingText($"크레딧 부족 ({hlCost}G 필요)", cx - 40, cy - 20, _colorCrimson);
+                            _selectedSkill = UserSkillType.None;
+                        }
+                        else
+                        {
+                            _selectedSkill = (_selectedSkill == UserSkillType.HealingBeam) ? UserSkillType.None : UserSkillType.HealingBeam;
+                        }
+                        break;
+                    case 5: // [6] 전술 구축 광선 (5G, 지정 행 내구도+2)
+                        int ftCost = _game.GetSkillCost(UserSkillType.FortifyBeam);
+                        if (_game.PlayerCredit < ftCost)
+                        {
+                            int cx = _slotRects[5].X + _slotRects[5].Width / 2;
+                            int cy = _slotRects[5].Y + _slotRects[5].Height / 2;
+                            AddFloatingText($"크레딧 부족 ({ftCost}G 필요)", cx - 40, cy - 20, _colorCrimson);
+                            _selectedSkill = UserSkillType.None;
+                        }
+                        else
+                        {
+                            _selectedSkill = (_selectedSkill == UserSkillType.FortifyBeam) ? UserSkillType.None : UserSkillType.FortifyBeam;
+                        }
+                        break;
                 }
+            }
+        }
+
+        private void ExecuteExpandGrid()
+        {
+            int cost = _game.GetGridExpandCost(Owner.Player);
+            if (_game.UpgradePowerGrid(Owner.Player))
+            {
+                int cx = _btnExpandGridRect.X + _btnExpandGridRect.Width / 2;
+                int cy = _btnExpandGridRect.Y + _btnExpandGridRect.Height / 2;
+                AddShockwave(cx, cy, _colorGold, 45f);
+                AddFloatingText($"전력망 확장! (한도 {_game.PlayerPlantLimit}기)", cx - 40, cy - 20, _colorGold);
+            }
+            else
+            {
+                int cx = _btnExpandGridRect.X + _btnExpandGridRect.Width / 2;
+                int cy = _btnExpandGridRect.Y + _btnExpandGridRect.Height / 2;
+                AddFloatingText($"크레딧 부족 ({cost}G 필요)", cx - 40, cy - 20, _colorCrimson);
             }
         }
 
@@ -1146,6 +1203,9 @@ namespace GateHelper.DataFlip
                 case Keys.Space:
                 case Keys.Enter:
                 case Keys.Escape:
+                case Keys.E:
+                case Keys.Oemplus:
+                case Keys.Add:
                     return true;
             }
             return base.IsInputKey(keyData);
@@ -1245,6 +1305,14 @@ namespace GateHelper.DataFlip
                 ExecuteSlotAction(5);
                 Invalidate();
             }
+            else if (e.KeyCode == Keys.E || e.KeyCode == Keys.Oemplus || e.KeyCode == Keys.Add)
+            {
+                if (_currentCategory == BottomCategory.Buildings)
+                {
+                    ExecuteExpandGrid();
+                    Invalidate();
+                }
+            }
             else if (e.KeyCode == Keys.Space || e.KeyCode == Keys.Enter)
             {
                 _selectedBuilding = BuildingType.None;
@@ -1338,6 +1406,22 @@ namespace GateHelper.DataFlip
                 if (newTop + parent.Height > wa.Bottom) newTop = wa.Bottom - parent.Height;
                 parent.Location = new Point(newLeft, newTop);
             }
+        }
+
+        private void RequestMapSizeChange(MapSizeType size)
+        {
+            if (_game == null || _game.CurrentMapSize == size) return;
+            bool isGameInProgress = !_game.IsGameOver && (_game.TurnNumber > 1 || !_game.IsInitialBasePlacementActive || _game.PlayerCredit != 6 || _game.Units.Count > 0);
+            if (isGameInProgress)
+            {
+                var dr = MessageBox.Show(
+                    "전장 규모를 변경하면 진행 중인 게임이 초기화되고 새로운 작전이 시작됩니다.\n\n계속 진행하시겠습니까?",
+                    "전장 규모 변경 확인",
+                    MessageBoxButtons.YesNo,
+                    MessageBoxIcon.Question);
+                if (dr != DialogResult.Yes) return;
+            }
+            SelectMapSizeAndStart(size);
         }
 
         public void SelectMapSizeAndStart(MapSizeType size)

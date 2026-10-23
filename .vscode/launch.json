@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "GateHelper (Release 실행)",
+            "type": "clr",
+            "request": "launch",
+            "preLaunchTask": "build-release",
+            "program": "${workspaceFolder}/bin/Release/GateHelper.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/bin/Release",
+            "stopAtEntry": false,
+            "console": "internalConsole"
+        }
+    ]
+}

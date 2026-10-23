@@ -35,17 +35,19 @@ namespace GateHelper.DataFlip
     public enum BuildingType
     {
         None = 0,
-        PowerPlant = 1, // 4G, HP 4, 턴당 +2G (자원 타일 위: +4G)
-        Turret = 2,     // 5G, HP 6, 사거리 2칸 매 턴 전방 2 데미지 요격
-        Wall = 3,       // 2G, HP 8, 이동 불가 바리케이드
-        Factory = 4     // 6G, HP 10, 전진 스폰 포인트 제공
+        PowerPlant = 1, // 8G~, HP 4, 턴당 +1G (자원 타일 위: +3G)
+        Turret = 2,     // 6G~, HP 6, 13칸 전방위 요격
+        Wall = 3,       // 3G, HP 8, 이동 불가 바리케이드
+        Factory = 4,    // 9G, HP 10, 전진 스폰 포인트 제공
+        RepairDepot = 5,// 6G, HP 6, 턴마다 전장의 부상당한 아군 유닛 1기 체력 회복 +1
+        PhaseGate = 6   // 5G, HP 6, 통과하는 아군 유닛 이동력 +1
     }
 
     public enum UnitType
     {
         None = 0,
         Vanguard = 1, // 2G, HP 3, 공 1, 이속 1칸 (기본 보병)
-        Raider = 2,   // 4G, HP 3, 공 3, 이속 2칸 (고속 기동/기습 암살)
+        Raider = 2,   // 4G, HP 3, 공 2, 이속 2칸 (고속 기동/기습)
         Titan = 3,    // 10G, HP 10, 공 3, 이속 1칸, 사거리 2칸 (중장갑 만능 공성 거신)
         Colossus = 4, // 14G, HP 8, 공 4, 이속 1칸, 사거리 2~3칸 (초장거리 공성 포격, 인접 1칸 근접 공격 불가)
         Dreadnought = 5, // 18G, HP 12, 공 3, 이속 1칸, 사거리 2칸 (십자 스플래시 방전, 보병/침투병 공격에 취약 +2뎀)
@@ -58,7 +60,9 @@ namespace GateHelper.DataFlip
         OrbitalStrike = 1, // 8G: 지정 적 건물/서버랙 6뎀 일격 타격
         EmpJammer = 2,     // 5G: 지정 적 건물 및 3x3 범위 2턴간 기능 정지 (포탑 사격 정지, 발전소 수입 0)
         NanoRepair = 3,    // 4G: 아군 모든 건물 체력 +3 즉시 수리
-        ReconScan = 4      // 3G: 전장의 모든 은폐 침투병 은폐 해제 및 위치 노출
+        ReconScan = 4,     // 3G: 전장의 모든 은폐 침투병 은폐 해제 및 위치 노출
+        HealingBeam = 5,   // 4G: 지정 행(Row) 아군 유닛 체력 +4 회복 (최대체력 초과 불가)
+        FortifyBeam = 6    // 5G: 지정 행(Row) 아군 유닛 최대 체력 +2 (내구도 증가)
     }
 
     public class Unit
@@ -77,6 +81,7 @@ namespace GateHelper.DataFlip
         public bool HasActed { get; set; }
         public bool HasShield { get; set; } = false; // 보병 전술 방패 (1회 피해 무효화 실드)
         public bool IsCloaked { get; set; } = false; // 침투병 광학 스텔스 (근접 공격 전까지 원거리/포탑 타깃팅 면역)
+        public bool HasBomb { get; set; } = false;   // 최후의 자폭 코어 (사망 시 상하좌우 1칸 적 2 데미지)
 
         // 부드러운 슬로우 이동 보간 및 피격 애니메이션용
         public float VisualCol { get; set; } = -1;
@@ -100,6 +105,7 @@ namespace GateHelper.DataFlip
                 MinRange = this.MinRange,
                 HasShield = this.HasShield,
                 IsCloaked = this.IsCloaked,
+                HasBomb = this.HasBomb,
                 Col = this.Col,
                 Row = this.Row,
                 HasActed = this.HasActed,
@@ -192,6 +198,7 @@ namespace GateHelper.DataFlip
         public int MaxHp { get; set; }
         public bool HasShield { get; set; }
         public bool IsCloaked { get; set; }
+        public bool HasBomb { get; set; }
     }
 
     public class ReplayBuildingData
@@ -391,7 +398,8 @@ namespace GateHelper.DataFlip
                     Hp = u.Hp,
                     MaxHp = u.MaxHp,
                     HasShield = u.HasShield,
-                    IsCloaked = u.IsCloaked
+                    IsCloaked = u.IsCloaked,
+                    HasBomb = u.HasBomb
                 });
             }
 
@@ -676,6 +684,29 @@ namespace GateHelper.DataFlip
                                 TextColor = (b.Owner == Owner.Player) ? Color.FromArgb(76, 175, 80) : Color.FromArgb(239, 83, 80)
                             });
                         }
+
+                        // 수리 격납고 (RepairDepot): 턴마다 전장에 있는 부상당한 아군 유닛 1기 체력 회복 +1
+                        if (b.Type == BuildingType.RepairDepot && b.EmpTurns <= 0)
+                        {
+                            var woundedUnits = Units.FindAll(u => u.Owner == b.Owner && u.Hp > 0 && u.Hp < u.MaxHp);
+                            if (woundedUnits.Count > 0)
+                            {
+                                var targetUnit = woundedUnits[0];
+                                foreach (var wu in woundedUnits)
+                                {
+                                    if (wu.Hp < targetUnit.Hp) targetUnit = wu;
+                                }
+                                targetUnit.Hp = Math.Min(targetUnit.MaxHp, targetUnit.Hp + 1);
+                                targetUnit.HitFlashAlpha = 0.8f;
+                                events.Add(new CombatEvent
+                                {
+                                    Col = targetUnit.Col,
+                                    Row = targetUnit.Row,
+                                    Text = "+1 격납고 수리 🏥",
+                                    TextColor = (targetUnit.Owner == Owner.Player) ? Color.FromArgb(76, 175, 80) : Color.FromArgb(239, 83, 80)
+                                });
+                            }
+                        }
                     }
                 }
             }
@@ -708,6 +739,8 @@ namespace GateHelper.DataFlip
                     break;
                 case BuildingType.Wall: baseCost = 3; break;
                 case BuildingType.Factory: baseCost = 9; break;
+                case BuildingType.RepairDepot: baseCost = 6; break; // 6G, HP 6, 턴당 부상 아군 1기 +1 수리
+                case BuildingType.PhaseGate: baseCost = 5; break;   // 5G, HP 6, 통과하는 유닛 이동력 +1
                 default: baseCost = 0; break;
             }
             int discount = (owner == Owner.Player) ? PlayerCostDiscount : 0;
@@ -752,6 +785,8 @@ namespace GateHelper.DataFlip
                 case UserSkillType.EmpJammer: return 5;     // 5G: 건물 및 3x3 범위 2턴간 기능 정지
                 case UserSkillType.NanoRepair: return 4;    // 4G: 아군 모든 건물 체력 +3 HP 즉시 수리
                 case UserSkillType.ReconScan: return 3;     // 3G: 전장의 모든 은폐 침투병 강제 해제
+                case UserSkillType.HealingBeam: return 4;   // 4G: 지정 행(Row) 아군 유닛 체력 +4 회복 (최대체력 초과 불가)
+                case UserSkillType.FortifyBeam: return 5;   // 5G: 지정 행(Row) 아군 유닛 최대 체력 +2 (내구도 증가)
                 default: return 0;
             }
         }
@@ -856,7 +891,9 @@ namespace GateHelper.DataFlip
                                 StatsTotalCreditEarned += 2;
                             }
                             else AiCredit += 2;
-                            outEvents.Add(new CombatEvent { Col = targetCol, Row = targetRow, Text = "랙 완파! +2G ⚡", TextColor = Color.FromArgb(255, 215, 0), IsCritical = true });
+                            string rewardText = (caster == Owner.Player) ? "아군 랙 완파! +2G 국고 ⚡" : "적 랙 완파! (적 +2G) ⚡";
+                            Color rewardCol = (caster == Owner.Player) ? Color.FromArgb(255, 215, 0) : Color.FromArgb(255, 110, 64);
+                            outEvents.Add(new CombatEvent { Col = targetCol, Row = targetRow, Text = rewardText, TextColor = rewardCol, IsCritical = true });
                         }
                     }
                     return true;
@@ -885,6 +922,76 @@ namespace GateHelper.DataFlip
                     if (empCount == 0)
                     {
                         outEvents.Add(new CombatEvent { Col = targetCol, Row = targetRow, Text = "⚡EMP 방전 (적 건물 없음)", TextColor = Color.FromArgb(0, 229, 255) });
+                    }
+                    return true;
+
+                case UserSkillType.HealingBeam:
+                    if (targetRow < 0 || targetRow >= Rows) return false;
+
+                    if (caster == Owner.Player) PlayerCredit -= cost;
+                    else AiCredit -= cost;
+
+                    outBeam = new CombatLaserBeam
+                    {
+                        StartCol = 0,
+                        StartRow = targetRow,
+                        EndCol = Cols - 1,
+                        EndRow = targetRow,
+                        BeamColor = Color.FromArgb(0, 230, 118),
+                        Alpha = 1.0f
+                    };
+
+                    int healedCount = 0;
+                    foreach (var u in Units)
+                    {
+                        if (u.Owner == caster && u.Row == targetRow && u.Hp > 0)
+                        {
+                            if (u.Hp < u.MaxHp)
+                            {
+                                u.Hp = Math.Min(u.MaxHp, u.Hp + 4);
+                                u.HitFlashAlpha = 0.8f;
+                                outEvents.Add(new CombatEvent { Col = u.Col, Row = u.Row, Text = "+4 치료 💚", TextColor = Color.FromArgb(0, 230, 118) });
+                                healedCount++;
+                            }
+                        }
+                    }
+                    if (healedCount == 0)
+                    {
+                        outEvents.Add(new CombatEvent { Col = Cols / 2, Row = targetRow, Text = "치료 광선 조사 완료 💚", TextColor = Color.FromArgb(0, 230, 118) });
+                    }
+                    return true;
+
+                case UserSkillType.FortifyBeam:
+                    if (targetRow < 0 || targetRow >= Rows) return false;
+
+                    if (caster == Owner.Player) PlayerCredit -= cost;
+                    else AiCredit -= cost;
+
+                    outBeam = new CombatLaserBeam
+                    {
+                        StartCol = 0,
+                        StartRow = targetRow,
+                        EndCol = Cols - 1,
+                        EndRow = targetRow,
+                        BeamColor = Color.FromArgb(0, 229, 255),
+                        Alpha = 1.0f
+                    };
+
+                    int fortifyCount = 0;
+                    foreach (var u in Units)
+                    {
+                        if (u.Owner == caster && u.Row == targetRow && u.Hp > 0)
+                        {
+                            u.MaxHp += 2;
+                            u.Hp += 2;
+                            u.HitFlashAlpha = 0.8f;
+                            outEvents.Add(new CombatEvent { Col = u.Col, Row = u.Row, Text = "+2 구축 🛡️", TextColor = Color.FromArgb(0, 229, 255) });
+                            fortifyCount++;
+                        }
+                    }
+                    if (fortifyCount == 0)
+                    {
+                        outEvents.Add(new CombatEvent { Col = Cols / 2, Row = targetRow, Text = "구축 광선 조사 완료 🛡️", TextColor = Color.FromArgb(0, 229, 255) });
                     }
                     return true;
             }
@@ -1000,6 +1107,8 @@ namespace GateHelper.DataFlip
                 case BuildingType.Turret: hp = 6; break;
                 case BuildingType.Wall: hp = 8; break;
                 case BuildingType.Factory: hp = 10; break;
+                case BuildingType.RepairDepot: hp = 6; break;
+                case BuildingType.PhaseGate: hp = 6; break;
                 default: hp = 5; break;
             }
 
@@ -1043,7 +1152,7 @@ namespace GateHelper.DataFlip
                     break;
                 case UnitType.Raider:
                     hp = 3 + ((owner == Owner.Player) ? PlayerUnitHpBonus : AiUnitHpBonus);
-                    atk = 3 + ((owner == Owner.Player) ? PlayerUnitAtkBonus : AiUnitAtkBonus);
+                    atk = 2 + ((owner == Owner.Player) ? PlayerUnitAtkBonus : AiUnitAtkBonus);
                     spd = 2; // 2칸 질주
                     rng = 1;
                     minRng = 1;
@@ -1134,7 +1243,7 @@ namespace GateHelper.DataFlip
                     break;
                 case UnitType.Raider:
                     hp = 3 + ((owner == Owner.Player) ? PlayerUnitHpBonus : AiUnitHpBonus);
-                    atk = 3 + ((owner == Owner.Player) ? PlayerUnitAtkBonus : AiUnitAtkBonus);
+                    atk = 2 + ((owner == Owner.Player) ? PlayerUnitAtkBonus : AiUnitAtkBonus);
                     spd = 2;
                     rng = 1;
                     minRng = 1;
@@ -1404,10 +1513,12 @@ namespace GateHelper.DataFlip
                 }
             }
 
-            foreach (var dead in Units.FindAll(u => u.Hp <= 0))
+            var deadUnits = Units.FindAll(u => u.Hp <= 0);
+            foreach (var dead in deadUnits)
             {
                 if (dead.Owner == Owner.Ai) StatsPlayerUnitsKilled++;
                 else StatsPlayerUnitsLost++;
+                TriggerMartyrdomBombExplosion(dead, outEvents);
             }
             Units.RemoveAll(u => u.Hp <= 0);
             return beams;
@@ -1437,7 +1548,17 @@ namespace GateHelper.DataFlip
 
                 int targetCol = unit.Col;
 
-                for (int step = 0; step < unit.Speed; step++)
+                // 가속 관문 (PhaseGate): 통과하거나 관문에서 출발하는 아군 유닛 이동력 +1
+                int maxSteps = unit.Speed;
+                bool gateBoosted = false;
+                var currentBldg = Buildings[unit.Row, unit.Col];
+                if (currentBldg != null && currentBldg.Owner == actingOwner && currentBldg.Type == BuildingType.PhaseGate && currentBldg.Hp > 0 && currentBldg.EmpTurns <= 0)
+                {
+                    gateBoosted = true;
+                    maxSteps++;
+                }
+
+                for (int step = 0; step < maxSteps; step++)
                 {
                     // [시즈 포격 규칙]: 
                     // 콜로서스는 '시즈 앵커(Siege Anchor)' 카드가 해금되었을 때만 제자리 포격(Hold & Fire) 발동!
@@ -1508,6 +1629,17 @@ namespace GateHelper.DataFlip
                         break;
 
                     targetCol = nextCol;
+
+                    // 이동 중 가속 관문 통과 시 추가 이동력 +1 (턴당 최대 1회 부스트)
+                    if (!gateBoosted)
+                    {
+                        var steppedBldg = Buildings[unit.Row, nextCol];
+                        if (steppedBldg != null && steppedBldg.Owner == actingOwner && steppedBldg.Type == BuildingType.PhaseGate && steppedBldg.Hp > 0 && steppedBldg.EmpTurns <= 0)
+                        {
+                            gateBoosted = true;
+                            maxSteps++;
+                        }
+                    }
                 }
 
                 unit.TargetCol = targetCol;
@@ -1638,6 +1770,9 @@ namespace GateHelper.DataFlip
                                     StatsObstaclesDestroyed++;
                                     if (actingOwner == Owner.Player) { PlayerCredit += 2; StatsTotalCreditEarned += 2; }
                                     else AiCredit += 2;
+                                    string rewardText = (actingOwner == Owner.Player) ? "아군 랙 돌파! +2G ⚡" : "적 랙 돌파! (적 +2G) ⚡";
+                                    Color rewardCol = (actingOwner == Owner.Player) ? Color.FromArgb(255, 215, 0) : Color.FromArgb(255, 110, 64);
+                                    events.Add(new CombatEvent { Col = behindCol, Row = unit.Row, Text = rewardText, TextColor = rewardCol, IsCritical = true });
                                 }
                             }
                             else if (Buildings[unit.Row, behindCol] != null && Buildings[unit.Row, behindCol].Hp > 0)
@@ -1710,6 +1845,7 @@ namespace GateHelper.DataFlip
                         {
                             if (enemyUnit.Owner == Owner.Ai) StatsPlayerUnitsKilled++;
                             else StatsPlayerUnitsLost++;
+                            TriggerMartyrdomBombExplosion(enemyUnit, events);
                             Units.Remove(enemyUnit);
                         }
                         break;
@@ -1787,12 +1923,14 @@ namespace GateHelper.DataFlip
                             }
                             else AiCredit += 2;
 
+                            string rewardText = (actingOwner == Owner.Player) ? "아군 랙 돌파! +2G ⚡" : "적 랙 돌파! (적 +2G) ⚡";
+                            Color rewardCol = (actingOwner == Owner.Player) ? Color.FromArgb(255, 215, 0) : Color.FromArgb(255, 110, 64);
                             events.Add(new CombatEvent
                             {
                                 Col = targetCol,
                                 Row = unit.Row,
-                                Text = "랙 돌파! +2G ⚡",
-                                TextColor = Color.FromArgb(255, 215, 0),
+                                Text = rewardText,
+                                TextColor = rewardCol,
                                 IsCritical = true
                             });
                         }
@@ -1801,10 +1939,12 @@ namespace GateHelper.DataFlip
                 }
             }
 
-            foreach (var dead in Units.FindAll(u => u.Hp <= 0))
+            var combatDeadUnits = Units.FindAll(u => u.Hp <= 0);
+            foreach (var dead in combatDeadUnits)
             {
                 if (dead.Owner == Owner.Ai) StatsPlayerUnitsKilled++;
                 else StatsPlayerUnitsLost++;
+                TriggerMartyrdomBombExplosion(dead, events);
             }
             Units.RemoveAll(u => u.Hp <= 0);
 
@@ -1825,6 +1965,107 @@ namespace GateHelper.DataFlip
             }
 
             return events;
+        }
+
+        /// <summary>
+        /// 최후의 자폭 코어 기폭: 사망 시 상하좌우 4방향 적 기물/코어에 2 데미지 (아군 피해 없음)
+        /// </summary>
+        private void TriggerMartyrdomBombExplosion(Unit dead, List<CombatEvent> events)
+        {
+            if (!dead.HasBomb) return;
+            dead.HasBomb = false; // 1회 기폭 보장
+
+            Owner opponent = (dead.Owner == Owner.Player) ? Owner.Ai : Owner.Player;
+            events.Add(new CombatEvent
+            {
+                Col = dead.Col,
+                Row = dead.Row,
+                Text = "💣 자폭 코어 기폭!",
+                TextColor = Color.FromArgb(255, 23, 68),
+                IsCritical = true
+            });
+
+            int[] dR = { -1, 1, 0, 0 };
+            int[] dC = { 0, 0, -1, 1 };
+
+            for (int i = 0; i < 4; i++)
+            {
+                int nr = dead.Row + dR[i];
+                int nc = dead.Col + dC[i];
+
+                // 코어 도달 체크
+                if (dead.Owner == Owner.Player && nc >= Cols - 1 && nr >= 0 && nr < Rows)
+                {
+                    AiCoreHp = Math.Max(0, AiCoreHp - 2);
+                    StatsDamageDealtToAiCore += 2;
+                    events.Add(new CombatEvent { Col = Cols - 1, Row = nr, Text = "💣 적 코어 -2", TextColor = Color.FromArgb(255, 23, 68), IsCritical = true });
+                    continue;
+                }
+                else if (dead.Owner == Owner.Ai && nc <= 0 && nr >= 0 && nr < Rows)
+                {
+                    PlayerCoreHp = Math.Max(0, PlayerCoreHp - 2);
+                    events.Add(new CombatEvent { Col = 0, Row = nr, Text = "💣 아군 코어 -2", TextColor = Color.FromArgb(255, 23, 68), IsCritical = true });
+                    continue;
+                }
+
+                if (nr < 0 || nr >= Rows || nc <= 0 || nc >= Cols - 1) continue;
+
+                // 1. 적 유닛만 타격
+                var enemyUnit = Units.Find(u => u.Col == nc && u.Row == nr && u.Owner == opponent && u.Hp > 0);
+                if (enemyUnit != null)
+                {
+                    if (enemyUnit.HasShield)
+                    {
+                        enemyUnit.HasShield = false;
+                        events.Add(new CombatEvent { Col = nc, Row = nr, Text = "실드 방어! 🛡️", TextColor = Color.FromArgb(64, 196, 255) });
+                    }
+                    else
+                    {
+                        enemyUnit.Hp -= 2;
+                        enemyUnit.HitFlashAlpha = 1.0f;
+                        events.Add(new CombatEvent { Col = nc, Row = nr, Text = "-2 자폭! 💣", TextColor = Color.FromArgb(255, 23, 68) });
+                        if (enemyUnit.Hp <= 0 && enemyUnit.HasBomb)
+                        {
+                            TriggerMartyrdomBombExplosion(enemyUnit, events);
+                        }
+                    }
+                }
+
+                // 2. 적 건물만 타격
+                var enemyBldg = Buildings[nr, nc];
+                if (enemyBldg != null && enemyBldg.Owner == opponent && enemyBldg.Hp > 0)
+                {
+                    enemyBldg.Hp -= 2;
+                    enemyBldg.HitFlashAlpha = 1.0f;
+                    events.Add(new CombatEvent { Col = nc, Row = nr, Text = "-2 자폭! 💣", TextColor = Color.FromArgb(255, 23, 68) });
+                    if (enemyBldg.Hp <= 0)
+                    {
+                        if (enemyBldg.Owner == Owner.Ai) StatsPlayerBuildingsDestroyed++;
+                        Buildings[nr, nc] = null;
+                    }
+                }
+
+                // 3. 서버 랙 장애물 타격
+                if (MapTiles[nr, nc] == TileType.Obstacle && ObstacleHp[nr, nc] > 0)
+                {
+                    ObstacleHp[nr, nc] -= 2;
+                    events.Add(new CombatEvent { Col = nc, Row = nr, Text = "-2 랙 폭발! 💣", TextColor = Color.FromArgb(255, 110, 64) });
+                    if (ObstacleHp[nr, nc] <= 0)
+                    {
+                        MapTiles[nr, nc] = TileType.Plain;
+                        StatsObstaclesDestroyed++;
+                        if (dead.Owner == Owner.Player)
+                        {
+                            PlayerCredit += 2;
+                            StatsTotalCreditEarned += 2;
+                        }
+                        else AiCredit += 2;
+                        string rewardText = (dead.Owner == Owner.Player) ? "아군 랙 돌파! +2G ⚡" : "적 랙 돌파! (적 +2G) ⚡";
+                        Color rewardCol = (dead.Owner == Owner.Player) ? Color.FromArgb(255, 215, 0) : Color.FromArgb(255, 110, 64);
+                        events.Add(new CombatEvent { Col = nc, Row = nr, Text = rewardText, TextColor = rewardCol, IsCritical = true });
+                    }
+                }
+            }
         }
 
         /// <summary>
@@ -1875,12 +2116,14 @@ namespace GateHelper.DataFlip
                         if (actingOwner == Owner.Player) PlayerCredit += 2;
                         else AiCredit += 2;
 
+                        string rewardText = (actingOwner == Owner.Player) ? "아군 랙 돌파! +2G ⚡" : "적 랙 돌파! (적 +2G) ⚡";
+                        Color rewardCol = (actingOwner == Owner.Player) ? Color.FromArgb(255, 215, 0) : Color.FromArgb(255, 110, 64);
                         events.Add(new CombatEvent
                         {
                             Col = sc,
                             Row = sr,
-                            Text = "랙 돌파! +2G ⚡",
-                            TextColor = Color.FromArgb(255, 215, 0),
+                            Text = rewardText,
+                            TextColor = rewardCol,
                             IsCritical = true
                         });
                     }
@@ -1923,7 +2166,7 @@ namespace GateHelper.DataFlip
             // [카드 동적 스케일링 방안 A]: 턴 수에 따라 카드의 가치와 효과 스케일링 강화
             int ocCredit = (this.TurnNumber >= 12) ? 14 : 8;
             string ocTitle = (this.TurnNumber >= 12) ? "⚡ 초대형 오버클럭 펀딩" : "⚡ 오버클럭 펀딩";
-            string ocDesc = $"국방 예산 크레딧 +{ocCredit}G를 즉시 긴급 수급합니다.";
+            string ocDesc = $"국방 예산 크레딧 +{ocCredit}G를\n즉시 긴급 수급합니다.";
 
             int vCount = (this.TurnNumber >= 12) ? 4 : (this.TurnNumber >= 7 ? 3 : 2);
             int vAtk = (this.TurnNumber >= 12) ? 2 : 1;
@@ -1931,21 +2174,21 @@ namespace GateHelper.DataFlip
             string vTitle = (this.TurnNumber >= 12) ? "👥 정예 보병 코만도 강습" : (this.TurnNumber >= 7 ? "👥 보병 강화 증원" : "👥 보병 기동 증원");
             string vSub = (this.TurnNumber >= 12) ? $"정예 보병 4기 (공{vAtk}, 실드)" : (this.TurnNumber >= 7 ? "보병 3기 (실드 장착)" : "기본 보병 2기 지정 배치");
             string vDesc = (this.TurnNumber >= 12)
-                ? "본진 진영(Col 1~3)에 정예 코만도 4기(공격력 2, 1회 방패 장착)를 즉시 무료 공수 투하합니다. (투하되는 정예 유닛에만 공격력 2 적용)"
+                ? $"본진 진영(Col 1~3)에 정예 코만도 4기를\n즉시 무료 공수 투하합니다.\n• 공격력 2, 1회 실드 장착\n• 투하 정예 유닛에만 공격력 2 적용"
                 : (this.TurnNumber >= 7
-                    ? "본진 진영(Col 1~3)에 방패를 장착한 보병 3기를 즉시 무료 공수 배치합니다."
-                    : "본진 진영(Col 1~3) 원하는 타일에 기본 보병(Vanguard) 2기를 즉시 무료 공수 배치합니다. (선택 후 타일 클릭)");
+                    ? "본진 진영(Col 1~3)에 방패를 장착한\n보병 3기를 즉시 무료 공수합니다.\n• 소환 시 1회 방패 장착"
+                    : "본진 진영(Col 1~3) 원하는 타일에\n기본 보병 2기를 즉시 무료 공수합니다.\n• 카드 선택 후 원하는 타일 클릭");
 
             int crHeal = (this.TurnNumber >= 12) ? 10 : 6;
             string crTitle = (this.TurnNumber >= 12) ? "🔧 대규모 코어 오버홀" : "🔧 긴급 코어 리부트";
             string crSub = $"본진 코어 HP +{crHeal} 즉시 수리";
-            string crDesc = $"손상된 아군 메인프레임 코어를 대대적으로 복구하여 본진 체력을 즉시 +{crHeal} 회복합니다. (최대 체력 한도 내)";
+            string crDesc = $"손상된 아군 메인프레임 코어를 복구하여\n본진 체력을 즉시 +{crHeal} 회복합니다.\n(최대 체력 한도 내 안전 수리)";
 
             int adCount = (this.TurnNumber >= 12) ? 3 : 2;
             int adMaxCol = (this.TurnNumber >= 12) ? 9 : 8;
             string adTitle = (this.TurnNumber >= 12) ? "🚀 대규모 스텔스 침투 공수" : "🚀 스텔스 침투 공수";
             string adSub = (this.TurnNumber >= 12) ? "전장 중앙/후방 3기 기습 투하" : "전장 중앙 기습 투하 (지정 배치)";
-            string adDesc = $"전장 침투선(Col 4~{adMaxCol})에 고속 침투병(Raider) {adCount}기를 원하는 위치에 공수 투하합니다. (선택 후 타일 클릭)";
+            string adDesc = $"전장 침투선(Col 4~{adMaxCol})에 고속 침투병\n{adCount}기를 원하는 위치에 공수 투하합니다.\n• 카드 선택 후 원하는 타일 클릭";
 
             return new List<ProtocolCard>
             {
@@ -2022,7 +2265,7 @@ namespace GateHelper.DataFlip
                     Id = "FIELD_REPAIR",
                     Title = "🔧 긴급 나노 수리",
                     Subtitle = "전장 전원 체력 +3 회복",
-                    Description = "현재 전장에 배치된 모든 아군 유닛과 건물의 체력을 즉시 +3 회복/수리합니다.",
+                    Description = "현재 전장에 배치된 모든 아군 유닛과\n건물의 체력을 즉시 +3 수리합니다.",
                     AccentColor = Color.FromArgb(64, 196, 255),
                     Rarity = CardRarity.Common,
                     ApplyAction = (state, owner) =>
@@ -2049,8 +2292,8 @@ namespace GateHelper.DataFlip
                 {
                     Id = "GREEN_ENERGY",
                     Title = "🔋 초전도 국고 예산",
-                    Subtitle = "턴당 기본 수입 영구 +1G (누적)",
-                    Description = "매 턴 시작 시 국고로 지급되는 기본 크레딧이 영구적으로 +1G 증가합니다. (기존 및 향후 발전소 수와 무관하게 턴마다 영구 지급)",
+                    Subtitle = "턴당 기본 수입 영구 +1G",
+                    Description = "매 턴 국고로 지급되는 기본 크레딧이\n영구적으로 +1G 증가합니다.\n(발전소 수와 무관하게 턴마다 영구 지급)",
                     AccentColor = Color.FromArgb(76, 175, 80),
                     Rarity = CardRarity.Common,
                     ApplyAction = (state, owner) =>
@@ -2064,7 +2307,7 @@ namespace GateHelper.DataFlip
                     Id = "BARRICADE_AIRDROP",
                     Title = "🧱 긴급 격벽 투하",
                     Subtitle = "전진 방화벽 즉시 공수",
-                    Description = "전선 길목(Col 3 또는 Col 10)에 HP 8 방화벽 격벽을 즉시 1기 무료 공수합니다.",
+                    Description = "전선 길목(Col 3)에 HP 8 방화벽을\n즉시 1기 무료 공수 건설합니다.",
                     AccentColor = Color.FromArgb(160, 180, 205),
                     Rarity = CardRarity.Common,
                     ApplyAction = (state, owner) =>
@@ -2094,8 +2337,8 @@ namespace GateHelper.DataFlip
                 {
                     Id = "CHEONGUNG_TRAJECTORY",
                     Title = "🔭 탄도 궤적 정밀 연산",
-                    Subtitle = "천궁 사거리 4->5 & 최소사거리 2->3 (고유)",
-                    Description = "천궁의 정밀 고각 탄도 연산 컴퓨터를 동기화하여 최대 사거리가 +1(총 5칸) 증가하며, 안전 최소 사거리도 +1(총 3칸)으로 변경됩니다.",
+                    Subtitle = "사거리 4->5 & 사각 3칸 (고유)",
+                    Description = "천궁 정밀 탄도 연산 컴퓨터를 동기화합니다.\n• 최대 사거리 +1 (총 5칸 초장거리 포격)\n• 안전 최소 사거리 +1 (3칸 이내 근접 불가)",
                     AccentColor = Color.FromArgb(255, 87, 34),
                     Rarity = CardRarity.Rare,
                     MinTurn = 9,
@@ -2115,7 +2358,7 @@ namespace GateHelper.DataFlip
                     Id = "CORE_EXPANSION",
                     Title = "🛡️ 메인프레임 코어 증설",
                     Subtitle = "코어 최대 HP +5 & 즉시 수리",
-                    Description = "아군 메인프레임 코어의 최대 내구도를 영구히 +5 확장하고, 현재 코어 HP를 즉시 +5 수리합니다.",
+                    Description = "아군 메인프레임 코어 내구도를 증설합니다.\n• 최대 체력 영구 +5 확장\n• 현재 코어 HP +5 즉시 긴급 수리",
                     AccentColor = Color.FromArgb(0, 230, 118),
                     Rarity = CardRarity.Rare,
                     ApplyAction = (state, owner) =>
@@ -2137,7 +2380,7 @@ namespace GateHelper.DataFlip
                     Id = "NANO_ARMOR",
                     Title = "🛡️ 나노 합금 연구",
                     Subtitle = "생산 유닛 체력 영구 +2 (누적)",
-                    Description = "향후 새로 생산되는 모든 아군 유닛의 최대 체력이 영구적으로 +2 증가합니다.",
+                    Description = "향후 새로 생산되는 모든 아군 유닛의\n최대 체력이 영구적으로 +2 증가합니다.",
                     AccentColor = Color.FromArgb(0, 230, 118),
                     Rarity = CardRarity.Rare,
                     ApplyAction = (state, owner) =>
@@ -2150,8 +2393,8 @@ namespace GateHelper.DataFlip
                 {
                     Id = "CYBER_DDOS",
                     Title = "👾 DDoS 사이버 교란",
-                    Subtitle = "상대 수입 -1G & 자금 강탈",
-                    Description = "상대의 턴당 수입을 영구적으로 -1G 감소시키고, 크레딧 3G를 강탈합니다.",
+                    Subtitle = "상대 수입 -1G & 자금 3G 강탈",
+                    Description = "적 통신망을 마비시켜 수입을 억제합니다.\n• 상대 턴당 수입 영구 -1G 차감\n• 적 국고에서 3G 즉시 강탈",
                     AccentColor = Color.FromArgb(255, 61, 0),
                     Rarity = CardRarity.Rare,
                     ApplyAction = (state, owner) =>
@@ -2178,7 +2421,7 @@ namespace GateHelper.DataFlip
                     Id = "RAILGUN_BATTERY",
                     Title = "🎯 레일건 포탑 개조",
                     Subtitle = "포탑 사거리 +1칸 (최대 2회)",
-                    Description = "모든 포탑의 요격 사거리가 +1(최대 4칸) 증가합니다.",
+                    Description = "모든 포탑의 요격 사거리가\n+1칸(최대 4칸) 증가합니다.",
                     AccentColor = Color.FromArgb(0, 229, 255),
                     Rarity = CardRarity.Rare,
                     IsAvailable = (state, owner) => state.TurretRangeBonus < 2, // 최대 2회 도달 시 풀에서 제외
@@ -2192,7 +2435,7 @@ namespace GateHelper.DataFlip
                     Id = "TURRET_RADAR",
                     Title = "📡 양자 레이더 망",
                     Subtitle = "포탑 은폐 감지 센서 (고유)",
-                    Description = "모든 포탑에 양자 레이더를 장착하여, 은폐 상태인 적 침투병을 원거리에서도 감지하고 요격합니다.",
+                    Description = "모든 포탑에 양자 레이더를 장착하여\n은폐 침투병을 원거리에서 요격합니다.",
                     AccentColor = Color.FromArgb(0, 200, 255),
                     Rarity = CardRarity.Rare,
                     IsAvailable = (state, owner) => (owner == Owner.Player ? !state.PlayerHasTurretRadar : !state.AiHasTurretRadar),
@@ -2207,7 +2450,7 @@ namespace GateHelper.DataFlip
                     Id = "PHALANX_SHIELD",
                     Title = "🛡️ 전술 방패 결진",
                     Subtitle = "보병 1회 피해 무효화 실드 (고유)",
-                    Description = "향후 새로 생산되거나 증원되는 모든 보병이 첫 1회 피해를 완전히 무효화하는 에너지 실드를 장착합니다.",
+                    Description = "향후 생산/증원되는 모든 보병이\n첫 1회 피해 무효화 실드를 장착합니다.",
                     AccentColor = Color.FromArgb(64, 196, 255),
                     Rarity = CardRarity.Rare,
                     IsAvailable = (state, owner) => (owner == Owner.Player ? !state.PlayerHasPhalanxShield : !state.AiHasPhalanxShield),
@@ -2222,7 +2465,7 @@ namespace GateHelper.DataFlip
                     Id = "STEALTH_CAMOUFLAGE",
                     Title = "⚡ 광학 스텔스 클로킹",
                     Subtitle = "침투병 첫 공격 시까지 은폐 (고유)",
-                    Description = "침투병이 적 바로 앞 칸까지 도달하여 첫 공격을 감행할 때까지 원거리 공격 및 기본 포탑의 타깃팅을 받지 않습니다.",
+                    Description = "침투병이 적 앞 칸에 도달할 때까지\n원거리 포격 및 포탑 타깃팅을 회피합니다.",
                     AccentColor = Color.FromArgb(38, 198, 218),
                     Rarity = CardRarity.Rare,
                     MinTurn = 6, // 2차 카드(턴 6)부터 풀에 합류!
@@ -2238,7 +2481,7 @@ namespace GateHelper.DataFlip
                     Id = "COLOSSUS_SIEGE",
                     Title = "🔭 시즈 앵커 프로토콜",
                     Subtitle = "콜로서스 제자리 포격 체제 (고유)",
-                    Description = "공성 콜로서스가 유효 사거리(2~3칸) 내에 타깃이 존재하면 전진을 멈추고 제자리에 닻을 내려 안전하게 포격합니다.",
+                    Description = "사거리(2~3칸) 내 타깃이 존재하면\n전진을 멈추고 제자리에서 포격합니다.",
                     AccentColor = Color.FromArgb(186, 104, 200),
                     Rarity = CardRarity.Rare,
                     MinTurn = 12, // 4차 카드(턴 12)부터 풀에 합류!
@@ -2254,7 +2497,7 @@ namespace GateHelper.DataFlip
                     Id = "COLOSSUS_MELEE",
                     Title = "⚔️ 근접 방어 발칸포",
                     Subtitle = "콜로서스 사각지대 해제 (고유)",
-                    Description = "공성 콜로서스에 근접 자동 발칸포를 탑재하여, 바로 앞 1칸(근접) 공격 및 반격이 가능해집니다. (최소 사거리 1칸으로 완화)",
+                    Description = "콜로서스에 근접 자동 발칸포를 탑재하여\n인접 1칸 근접 공격 및 반격이 가능해집니다.\n(최소 사거리 1칸으로 완화)",
                     AccentColor = Color.FromArgb(255, 179, 0),
                     Rarity = CardRarity.Rare,
                     MinTurn = 12, // 4차 카드(턴 12)부터 풀에 합류!
@@ -2273,7 +2516,7 @@ namespace GateHelper.DataFlip
                     Id = "GRID_EXPANSION",
                     Title = "⚡ 전력망 그리드 확장",
                     Subtitle = "발전소 한도 +2기 & 3G 환급",
-                    Description = "발전소 최대 보유 한도가 영구적으로 +2기 확장되며, 즉시 3G 보조금을 받습니다.",
+                    Description = "발전소 보유 한도가 영구 +2기 확장되며\n즉시 3G 보조금을 지급받습니다.",
                     AccentColor = Color.FromArgb(255, 215, 0),
                     Rarity = CardRarity.Epic,
                     ApplyAction = (state, owner) =>
@@ -2329,7 +2572,7 @@ namespace GateHelper.DataFlip
                     Id = "ORBITAL_EMP",
                     Title = "💥 궤도 EMP 폭격",
                     Subtitle = "적 전선 타격 & 코어 수리",
-                    Description = "모든 적 유닛에게 2 데미지를 가하고 아군 본진 코어를 +3 수리합니다.",
+                    Description = "모든 적 유닛에게 2 피해를 입히고\n아군 본진 코어를 +3 수리합니다.",
                     AccentColor = Color.FromArgb(255, 23, 68),
                     Rarity = CardRarity.Epic,
                     ApplyAction = (state, owner) =>
@@ -2356,7 +2599,7 @@ namespace GateHelper.DataFlip
                     Id = "TITAN_PROTOCOL",
                     Title = "⚙️ 타이탄 기동 명령",
                     Subtitle = "최종 결전 병기 무료 소환 (지정 배치)",
-                    Description = "최강 공성 병기 '타이탄(Titan)' 1기를 원하는 본진 타일에 즉시 무료 소환합니다. (선택 후 타일 클릭)",
+                    Description = "중장갑 결전 병기 '타이탄' 1기를\n원하는 본진 타일에 즉시 무료 소환합니다.\n(카드 선택 후 원하는 타일 클릭)",
                     AccentColor = Color.FromArgb(255, 110, 64),
                     Rarity = CardRarity.Epic,
                     MinTurn = 9, // 3차 카드(턴 9)부터 풀에 합류!
@@ -2388,8 +2631,8 @@ namespace GateHelper.DataFlip
                 {
                     Id = "INFANTRY_ASSAULT",
                     Title = "🌊 전면 보병 상륙작전",
-                    Subtitle = "코어 앞 전 행 보병 동시 상륙 (업그레이드 적용)",
-                    Description = "아군 코어 앞 제1열(Col 1)의 모든 빈 타일에 정예 보병을 일제히 동시 상륙 배치합니다! (보유 중인 보병 체력/공격력/실드 특성 온전 적용)",
+                    Subtitle = "코어 앞 전 행 보병 동시 상륙",
+                    Description = "본진 제1열(Col 1)의 모든 빈 타일에\n정예 보병을 일제히 동시 상륙 배치합니다!\n• 보유 중인 보병 특성(HP/공/실드) 온전 적용",
                     AccentColor = Color.FromArgb(0, 229, 255),
                     Rarity = CardRarity.Epic,
                     MinTurn = 6, // 턴 6부터 등장
@@ -2449,6 +2692,98 @@ namespace GateHelper.DataFlip
                     {
                         if (owner == Owner.Player) state.PlayerUnitAtkBonus += 1;
                         else state.AiUnitAtkBonus += 1;
+                    }
+                },
+                new ProtocolCard
+                {
+                    Id = "MARTYRDOM_CORE",
+                    Title = "💣 최후의 자폭 코어",
+                    Subtitle = "현재 배치된 아군 유닛 전원 자폭 장착",
+                    Description = "현재 전장에 배치된 모든 아군 유닛에게\n자폭 폭탄을 장착합니다.\n• 유닛 사망 시 상하좌우 4방향 적에게 2 데미지\n• 아군 피해 없음 (적 기물/코어만 타격)",
+                    AccentColor = Color.FromArgb(255, 23, 68),
+                    Rarity = CardRarity.Rare,
+                    ApplyAction = (state, owner) =>
+                    {
+                        state.Units.FindAll(u => u.Owner == owner && u.Hp > 0).ForEach(u => u.HasBomb = true);
+                    }
+                },
+                new ProtocolCard
+                {
+                    Id = "OVERCLOCK_REACTOR",
+                    Title = "⚡ 전력과부하 리액터",
+                    Subtitle = "발전소 1기 희생 ➔ 전 유닛 데미지 +1",
+                    Description = "과부하 에너지를 모든 기동 병기에 주입합니다.\n• 보유 발전소 1기 무작위 폭파\n• 현재/향후 모든 아군 유닛 공격력 +1 영구 증가",
+                    AccentColor = Color.FromArgb(255, 152, 0),
+                    Rarity = CardRarity.Epic,
+                    IsAvailable = (state, owner) => state.GetBuildingCount(BuildingType.PowerPlant, owner) >= 3,
+                    ApplyAction = (state, owner) =>
+                    {
+                        var plants = new List<Building>();
+                        for (int r = 0; r < state.Rows; r++)
+                        {
+                            for (int c = 0; c < state.Cols; c++)
+                            {
+                                var b = state.Buildings[r, c];
+                                if (b != null && b.Owner == owner && b.Type == BuildingType.PowerPlant)
+                                    plants.Add(b);
+                            }
+                        }
+                        if (plants.Count > 0)
+                        {
+                            var targetPlant = plants[state._rand.Next(plants.Count)];
+                            state.Buildings[targetPlant.Row, targetPlant.Col] = null;
+                        }
+                        if (owner == Owner.Player) state.PlayerUnitAtkBonus += 1;
+                        else state.AiUnitAtkBonus += 1;
+                        state.Units.FindAll(u => u.Owner == owner).ForEach(u => u.Atk += 1);
+                    }
+                },
+                new ProtocolCard
+                {
+                    Id = "HEALING_BEAM_PROTOCOL",
+                    Title = "💚 전술 치료 광선",
+                    Subtitle = "위기 행 아군 유닛 체력 +4 회복",
+                    Description = "고출력 나노 회복 빔을 투사하여\n가장 큰 피해를 입은 행의 모든 아군 유닛을 +4 수리합니다.\n(최대 체력 초과 불가)",
+                    AccentColor = Color.FromArgb(0, 230, 118),
+                    Rarity = CardRarity.Rare,
+                    ApplyAction = (state, owner) =>
+                    {
+                        int bestRow = 0;
+                        int maxWounded = -1;
+                        for (int r = 0; r < state.Rows; r++)
+                        {
+                            int count = state.Units.FindAll(u => u.Owner == owner && u.Row == r && u.Hp < u.MaxHp).Count;
+                            if (count > maxWounded)
+                            {
+                                maxWounded = count;
+                                bestRow = r;
+                            }
+                        }
+                        state.CastSkill(UserSkillType.HealingBeam, 0, bestRow, owner);
+                    }
+                },
+                new ProtocolCard
+                {
+                    Id = "FORTIFY_BEAM_PROTOCOL",
+                    Title = "🛡️ 전술 구축 광선",
+                    Subtitle = "주력 행 아군 유닛 최대 체력 +2 & 회복 +2",
+                    Description = "영구 방호 장갑 필드를 전개하여\n주력 행의 모든 아군 유닛 내구도를 증강합니다.\n• 최대 체력 +2 & 현재 체력 +2",
+                    AccentColor = Color.FromArgb(0, 229, 255),
+                    Rarity = CardRarity.Rare,
+                    ApplyAction = (state, owner) =>
+                    {
+                        int bestRow = 0;
+                        int maxUnits = -1;
+                        for (int r = 0; r < state.Rows; r++)
+                        {
+                            int count = state.Units.FindAll(u => u.Owner == owner && u.Row == r && u.Hp > 0).Count;
+                            if (count > maxUnits)
+                            {
+                                maxUnits = count;
+                                bestRow = r;
+                            }
+                        }
+                        state.CastSkill(UserSkillType.FortifyBeam, 0, bestRow, owner);
                     }
                 }
             };

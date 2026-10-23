@@ -306,11 +306,12 @@
     </Compile>
     <Compile Include="SandBox\6. DataFlip\DataFlipControl.Render.cs">
       <DependentUpon>DataFlipControl.cs</DependentUpon>
+      <SubType>UserControl</SubType>
     </Compile>
     <Compile Include="SandBox\6. DataFlip\DataFlipControl.Modals.cs">
       <DependentUpon>DataFlipControl.cs</DependentUpon>
+      <SubType>UserControl</SubType>
     </Compile>
-
     <Compile Include="SandBox\GameListControl.cs">
       <SubType>UserControl</SubType>
     </Compile>

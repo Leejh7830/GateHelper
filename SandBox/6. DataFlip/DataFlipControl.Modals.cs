@@ -72,19 +72,19 @@ namespace GateHelper.DataFlip
                 }
 
                 // 상단 헤더 배경 (등급 컬러 틴트)
-                var headerRect = new Rectangle(rect.X + 1, rect.Y + 1, rect.Width - 2, 50);
+                var headerRect = new Rectangle(rect.X + 1, rect.Y + 1, rect.Width - 2, 56);
                 using (var hBrush = new SolidBrush(Color.FromArgb(card.Rarity == CardRarity.Epic ? 45 : 30, rColor)))
                 {
                     g.FillRoundedRectangle(hBrush, headerRect, 8);
                 }
 
                 using (var fontBadge = new Font("Segoe UI", 7.5f, FontStyle.Bold))
-                using (var fontTitle = new Font("Segoe UI", 11f, FontStyle.Bold))
+                using (var fontTitle = new Font("Segoe UI", 10.5f, FontStyle.Bold))
                 using (var fontSub = new Font("Segoe UI", 8f, FontStyle.Bold))
-                using (var fontDesc = new Font("Segoe UI", 9f))
+                using (var fontDesc = new Font("Segoe UI", 8.5f))
                 {
                     // 1. 등급 뱃지
-                    var badgeRect = new Rectangle(rect.X + (rect.Width - 92) / 2, rect.Y + 7, 92, 16);
+                    var badgeRect = new Rectangle(rect.X + (rect.Width - 92) / 2, rect.Y + 6, 92, 16);
                     using (var bBrush = new SolidBrush(rBg))
                     using (var bPen = new Pen(rColor, 1f))
                     {
@@ -95,20 +95,20 @@ namespace GateHelper.DataFlip
                         TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
 
                     // 2. 카드 타이틀
-                    TextRenderer.DrawText(g, card.Title, fontTitle, new Rectangle(rect.X + 6, rect.Y + 27, rect.Width - 12, 22),
+                    TextRenderer.DrawText(g, card.Title, fontTitle, new Rectangle(rect.X + 4, rect.Y + 25, rect.Width - 8, 22),
                         card.AccentColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
 
-                    // 3. 서브타이틀
-                    TextRenderer.DrawText(g, card.Subtitle, fontSub, new Rectangle(rect.X + 6, rect.Y + 54, rect.Width - 12, 18),
-                        rColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                    // 3. 서브타이틀 (WordBreak 추가로 긴 문장도 깔끔하게 줄바꿈 및 잘림 원천 방지)
+                    TextRenderer.DrawText(g, card.Subtitle, fontSub, new Rectangle(rect.X + 6, rect.Y + 49, rect.Width - 12, 28),
+                        rColor, TextFormatFlags.HorizontalCenter | TextFormatFlags.WordBreak);
 
-                    // 4. 상세 설명
-                    var descRect = new Rectangle(rect.X + 12, rect.Y + 78, rect.Width - 24, 115);
+                    // 4. 상세 설명 (충분한 높이와 WordBreak 및 \n 완벽 지원)
+                    var descRect = new Rectangle(rect.X + 12, rect.Y + 84, rect.Width - 24, rect.Height - 84 - 46);
                     TextRenderer.DrawText(g, card.Description, fontDesc, descRect,
                         Color.FromArgb(230, 240, 250), TextFormatFlags.Left | TextFormatFlags.WordBreak);
 
                     // 5. 선택 버튼
-                    var pickRect = new Rectangle(rect.X + 16, rect.Bottom - 44, rect.Width - 32, 32);
+                    var pickRect = new Rectangle(rect.X + 14, rect.Bottom - 40, rect.Width - 28, 30);
                     Color pickBg = isHover ? card.AccentColor : Color.FromArgb(35, 45, 65);
                     Color pickText = isHover ? Color.Black : Color.White;
 
@@ -470,11 +470,11 @@ namespace GateHelper.DataFlip
                 // 2. 건물 & 유닛 & 전술 스킬
                 TextRenderer.DrawText(g, "2. 인프라 건물 · 작전 유닛 · 전술 스킬 (단축키: B: 건물, U: 유닛, S: 스킬, 1~6: 슬롯)", hFont, new Rectangle(cardX + 24, y, textW, 18), _colorEmerald, TextFormatFlags.Left);
                 y += 18;
-                TextRenderer.DrawText(g, "• 건물: ⚡ 발전소(8G~), 🛡️ 포탑(6G~, 1칸사각지대, 13칸원거리), 🧱 방화벽(3G), 🏭 공장(9G), ⚡ 한도증설(10G~)", bodyFont, new Rectangle(cardX + 24, y, textW, 15), Color.White, TextFormatFlags.Left);
+                TextRenderer.DrawText(g, "• 건물: ⚡ 발전소, 🛡️ 포탑(요격), 🧱 방화벽, 🏭 공장, 🏥 수리격납고(턴당수리), ⏩ 가속관문(이동+1), ⚡ 한도증설", bodyFont, new Rectangle(cardX + 24, y, textW, 15), Color.White, TextFormatFlags.Left);
                 y += 15;
                 TextRenderer.DrawText(g, "• 유닛: ● 보병(2G), ▲ 침투병(4G), ■ 타이탄(10G), ⬢ 콜로서스(14G), ✦ 드레드노트(18G), 🚀 천궁(12G, 건물/랙 6뎀)", bodyFont, new Rectangle(cardX + 24, y, textW, 15), Color.White, TextFormatFlags.Left);
                 y += 15;
-                TextRenderer.DrawText(g, "• 전술스킬 [S]: 🎯 궤도폭격(8G, 건물/랙 6뎀), ⚡ EMP교란(5G, 3x3마비), 🔧 나노복구(4G, 건물+3수리), 📡 정찰스캔(3G, 은폐해제)", bodyFont, new Rectangle(cardX + 24, y, textW, 15), Color.FromArgb(255, 140, 220), TextFormatFlags.Left);
+                TextRenderer.DrawText(g, "• 전술스킬 [S]: 🎯 궤도폭격(8G), ⚡ EMP교란(5G), 🔧 나노복구(4G), 📡 정찰스캔(3G), 💚 치료광선(4G), 🛡️ 구축광선(5G)", bodyFont, new Rectangle(cardX + 24, y, textW, 15), Color.FromArgb(255, 140, 220), TextFormatFlags.Left);
                 y += 21;
 
                 // 3. 전장 오브젝트 & 특수 전투 상성
