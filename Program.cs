@@ -16,6 +16,25 @@ namespace GateHelper
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
+            // [전역 예외 안전망] 예기치 않은 UI 스레드/도메인 예외 시 무언 종료 방지 및 복구
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
+            Application.ThreadException += (s, e) =>
+            {
+                try
+                {
+                    LogManager.LogException(e.Exception, LogManager.Level.Critical, "[UI Thread Exception]");
+                }
+                catch { }
+            };
+            AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+            {
+                try
+                {
+                    LogManager.LogMessage($"[Domain Unhandled Exception] {e.ExceptionObject}", LogManager.Level.Critical);
+                }
+                catch { }
+            };
+
             // 1. 3일 경과 오래된 임시 캐시 파일 자동 청소
             try
             {

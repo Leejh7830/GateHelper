@@ -74,18 +74,30 @@ namespace GateHelper.DataFlip
 
         // 리플레이 제어
         private bool _isReplaying = false;
+        private bool _isReplayPaused = false;
         private int _replayIndex = 0;
+        private int _replaySpeed = 1; // 1x, 2x, 4x
         private int _replayTickCounter = 0;
+        private Rectangle _repProgressBarRect;
+        private Rectangle _repBtnFirstRect;
+        private Rectangle _repBtnPrevRect;
+        private Rectangle _repBtnPlayPauseRect;
+        private Rectangle _repBtnNextRect;
+        private Rectangle _repBtnLastRect;
+        private Rectangle _repBtnSpeedRect;
+        private Rectangle _repBtnExitRect;
+        private int _hoverReplayBtnId = -1; // 1: First, 2: Prev, 3: PlayPause, 4: Next, 5: Last, 6: Speed, 7: Exit, 8: ProgressBar
 
-        // 맵 사이즈 선택 모달 및 토글 영역 (소형 12x6 / 표준 14x8 / 대형 18x8)
+        // 맵 사이즈 선택 모달 및 토글 영역 (소형 12x6 / 표준 14x8 / 대형 18x8 / 초대형 20x10)
         private bool _isMapSizeSelectActive = true;
         private int _hoverMapSelectIndex = -1;
         private Rectangle _mapSelectModalRect;
-        private readonly Rectangle[] _mapSelectCardRects = new Rectangle[3];
-        private readonly Rectangle[] _mapSelectBtnRects = new Rectangle[3];
+        private readonly Rectangle[] _mapSelectCardRects = new Rectangle[4];
+        private readonly Rectangle[] _mapSelectBtnRects = new Rectangle[4];
         private Rectangle _btnMapSmallRect;
         private Rectangle _btnMapStdRect;
         private Rectangle _btnMapLargeRect;
+        private Rectangle _btnMapHugeRect;
 
         // 이펙트 & 플로팅 텍스트
         private List<CombatFloatingText> _floatingTexts = new List<CombatFloatingText>();
@@ -156,13 +168,14 @@ namespace GateHelper.DataFlip
 
             _btnBackRect = new Rectangle(14, 12, 68, 24);
 
-            // 맵 사이즈 토글 3종 영역 (타이틀 우측)
+            // 맵 사이즈 토글 4종 영역 (타이틀 우측)
             int mapBtnY = 12;
             int mapBtnW = 44;
             int mapBtnH = 24;
             _btnMapSmallRect = new Rectangle(210, mapBtnY, mapBtnW, mapBtnH);
             _btnMapStdRect = new Rectangle(_btnMapSmallRect.Right + 4, mapBtnY, mapBtnW, mapBtnH);
             _btnMapLargeRect = new Rectangle(_btnMapStdRect.Right + 4, mapBtnY, mapBtnW, mapBtnH);
+            _btnMapHugeRect = new Rectangle(_btnMapLargeRect.Right + 4, mapBtnY, 52, mapBtnH);
 
             // 가변 보드 크기 계산 (맵 사이즈 및 창 크기에 맞춰 자동 최적화)
             int boardMaxW = Math.Max(660, w - 60);
@@ -223,133 +236,168 @@ namespace GateHelper.DataFlip
             _gameOverRestartBtnRect = new Rectangle(_btnReplayRect.Right + 10, goY, 105, 32);
             _gameOverBackBtnRect = new Rectangle(_gameOverRestartBtnRect.Right + 10, goY, 75, 32);
 
-            // 맵 사이즈 선택 모달 영역 (신규!)
-            int mModalW = Math.Min(700, w - 40);
+            // 맵 사이즈 선택 모달 영역 (4대 전장)
+            int mModalW = Math.Min(880, w - 40);
             int mModalH = 390;
             _mapSelectModalRect = new Rectangle((w - mModalW) / 2, (h - mModalH) / 2, mModalW, mModalH);
 
-            int mCardW = (mModalW - 48 - 24) / 3;
+            int mCardW = (mModalW - 48 - 36) / 4;
             int mCardH = 260;
             int mCardY = _mapSelectModalRect.Y + 85;
             int mCardStartX = _mapSelectModalRect.X + 24;
 
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 4; i++)
             {
                 _mapSelectCardRects[i] = new Rectangle(mCardStartX + i * (mCardW + 12), mCardY, mCardW, mCardH);
                 _mapSelectBtnRects[i] = new Rectangle(_mapSelectCardRects[i].X + 10, _mapSelectCardRects[i].Bottom - 42, _mapSelectCardRects[i].Width - 20, 30);
             }
+
+            // 리플레이 컨트롤러 HUD 영역 (타임라인 바 & 미디어 버튼 7종)
+            int repBarY = _boardRect.Bottom + 12;
+            int repBarH = 12;
+            _repProgressBarRect = new Rectangle(_boardRect.X, repBarY, _boardRect.Width, repBarH);
+
+            int repBtnY = repBarY + repBarH + 12;
+            int repBtnH = 34;
+            int repGap = 8;
+            int totalRepBtnsW = 60 * 4 + 84 + 64 + 94 + repGap * 6; // 570px
+            int repBtnStartX = (w - totalRepBtnsW) / 2;
+
+            _repBtnFirstRect = new Rectangle(repBtnStartX, repBtnY, 60, repBtnH);
+            _repBtnPrevRect = new Rectangle(_repBtnFirstRect.Right + repGap, repBtnY, 60, repBtnH);
+            _repBtnPlayPauseRect = new Rectangle(_repBtnPrevRect.Right + repGap, repBtnY, 84, repBtnH);
+            _repBtnNextRect = new Rectangle(_repBtnPlayPauseRect.Right + repGap, repBtnY, 60, repBtnH);
+            _repBtnLastRect = new Rectangle(_repBtnNextRect.Right + repGap, repBtnY, 60, repBtnH);
+            _repBtnSpeedRect = new Rectangle(_repBtnLastRect.Right + repGap, repBtnY, 64, repBtnH);
+            _repBtnExitRect = new Rectangle(_repBtnSpeedRect.Right + repGap, repBtnY, 94, repBtnH);
         }
 
         private void AnimTimer_Tick(object sender, EventArgs e)
         {
-            _pulseAngle += 0.08f;
-            if (_pulseAngle > (float)Math.PI * 2) _pulseAngle -= (float)Math.PI * 2;
-
-            // 리플레이 실행 중 턴 자동 고속 재생 (~0.36초 주기)
-            if (_isReplaying)
+            try
             {
-                _replayTickCounter++;
-                if (_replayTickCounter >= 12)
+                _pulseAngle += 0.08f;
+                if (_pulseAngle > (float)Math.PI * 2) _pulseAngle -= (float)Math.PI * 2;
+
+                // 리플레이 실행 중 턴 자동 재생 (재생/정지 & 배속 제어)
+                if (_isReplaying)
                 {
-                    _replayTickCounter = 0;
-                    if (_replayIndex < _game.ReplaySnapshots.Count - 1)
+                    if (!_isReplayPaused && _game.ReplaySnapshots.Count > 0)
                     {
-                        _replayIndex++;
-                        Invalidate();
+                        _replayTickCounter++;
+                        int ticksNeeded = Math.Max(4, 28 / _replaySpeed); // 1x = ~840ms, 2x = ~420ms, 4x = ~210ms
+                        if (_replayTickCounter >= ticksNeeded)
+                        {
+                            _replayTickCounter = 0;
+                            if (_replayIndex < _game.ReplaySnapshots.Count - 1)
+                            {
+                                _replayIndex++;
+                                Invalidate();
+                            }
+                            else
+                            {
+                                _isReplayPaused = true;
+                                Invalidate();
+                            }
+                        }
+                    }
+                    return;
+                }
+
+                bool needRedraw = false;
+
+                // 1. 유닛 슬로우 이동 보간 & 타격/피격 이펙트 감쇠
+                foreach (var u in _game.Units)
+                {
+                    if (u.VisualCol < 0) u.VisualCol = u.Col;
+
+                    // 목표 칸으로 스르륵 전진 (Lerp)
+                    if (Math.Abs(u.VisualCol - u.TargetCol) > 0.02f)
+                    {
+                        u.VisualCol += (u.TargetCol - u.VisualCol) * 0.25f;
+                        needRedraw = true;
+                    }
+                    else
+                    {
+                        u.VisualCol = u.TargetCol;
+                        u.Col = (int)Math.Round(u.TargetCol);
+                    }
+
+                    if (u.HitFlashAlpha > 0f)
+                    {
+                        u.HitFlashAlpha = Math.Max(0f, u.HitFlashAlpha - 0.08f);
+                        u.ShakeOffset *= -0.7f;
+                        needRedraw = true;
+                    }
+                    if (Math.Abs(u.BumpOffset) > 0.1f)
+                    {
+                        u.BumpOffset *= 0.65f;
+                        needRedraw = true;
                     }
                 }
-                return;
-            }
 
-            bool needRedraw = false;
-
-            // 1. 유닛 슬로우 이동 보간 & 타격/피격 이펙트 감쇠
-            foreach (var u in _game.Units)
-            {
-                if (u.VisualCol < 0) u.VisualCol = u.Col;
-
-                // 목표 칸으로 스르륵 전진 (Lerp)
-                if (Math.Abs(u.VisualCol - u.TargetCol) > 0.02f)
+                // 건물 피격 플래시 감쇠
+                for (int r = 0; r < _game.Rows; r++)
                 {
-                    u.VisualCol += (u.TargetCol - u.VisualCol) * 0.25f;
-                    needRedraw = true;
-                }
-                else
-                {
-                    u.VisualCol = u.TargetCol;
-                    u.Col = (int)Math.Round(u.TargetCol);
-                }
-
-                if (u.HitFlashAlpha > 0f)
-                {
-                    u.HitFlashAlpha = Math.Max(0f, u.HitFlashAlpha - 0.08f);
-                    u.ShakeOffset *= -0.7f;
-                    needRedraw = true;
-                }
-                if (Math.Abs(u.BumpOffset) > 0.1f)
-                {
-                    u.BumpOffset *= 0.65f;
-                    needRedraw = true;
-                }
-            }
-
-            // 건물 피격 플래시 감쇠
-            for (int r = 0; r < _game.Rows; r++)
-            {
-                for (int c = 0; c < _game.Cols; c++)
-                {
-                    var b = _game.Buildings[r, c];
-                    if (b != null)
+                    for (int c = 0; c < _game.Cols; c++)
                     {
-                        if (b.HitFlashAlpha > 0f)
+                        var b = _game.Buildings[r, c];
+                        if (b != null)
                         {
-                            b.HitFlashAlpha = Math.Max(0f, b.HitFlashAlpha - 0.08f);
-                            b.ShakeOffset *= -0.7f;
-                            needRedraw = true;
+                            if (b.HitFlashAlpha > 0f)
+                            {
+                                b.HitFlashAlpha = Math.Max(0f, b.HitFlashAlpha - 0.08f);
+                                b.ShakeOffset *= -0.7f;
+                                needRedraw = true;
+                            }
                         }
                     }
                 }
-            }
 
-            // 2. 포탑 레이저 빔 알파 감쇠
-            for (int i = _laserBeams.Count - 1; i >= 0; i--)
-            {
-                var beam = _laserBeams[i];
-                beam.Alpha -= 0.08f;
-                if (beam.Alpha <= 0f) _laserBeams.RemoveAt(i);
-                needRedraw = true;
-            }
+                // 2. 포탑 레이저 빔 알파 감쇠
+                for (int i = _laserBeams.Count - 1; i >= 0; i--)
+                {
+                    var beam = _laserBeams[i];
+                    beam.Alpha -= 0.08f;
+                    if (beam.Alpha <= 0f) _laserBeams.RemoveAt(i);
+                    needRedraw = true;
+                }
 
-            // 3. 플로팅 텍스트 & 충격파
-            for (int i = _floatingTexts.Count - 1; i >= 0; i--)
-            {
-                var ft = _floatingTexts[i];
-                ft.Y -= 0.9f;
-                ft.Alpha -= 0.04f;
-                if (ft.Alpha <= 0f) _floatingTexts.RemoveAt(i);
-                needRedraw = true;
-            }
+                // 3. 플로팅 텍스트 & 충격파
+                for (int i = _floatingTexts.Count - 1; i >= 0; i--)
+                {
+                    var ft = _floatingTexts[i];
+                    ft.Y -= 0.9f;
+                    ft.Alpha -= 0.04f;
+                    if (ft.Alpha <= 0f) _floatingTexts.RemoveAt(i);
+                    needRedraw = true;
+                }
 
-            for (int i = _shockwaves.Count - 1; i >= 0; i--)
-            {
-                var sw = _shockwaves[i];
-                sw.Radius += 3.5f;
-                sw.Alpha -= 0.05f;
-                if (sw.Alpha <= 0f) _shockwaves.RemoveAt(i);
-                needRedraw = true;
-            }
+                for (int i = _shockwaves.Count - 1; i >= 0; i--)
+                {
+                    var sw = _shockwaves[i];
+                    sw.Radius += 3.5f;
+                    sw.Alpha -= 0.05f;
+                    if (sw.Alpha <= 0f) _shockwaves.RemoveAt(i);
+                    needRedraw = true;
+                }
 
-            // 4. 턴 시네마틱 애니메이션 시퀀스 실행
-            if (_animPhase != TurnAnimPhase.Idle)
-            {
-                _phaseTimer += 30;
-                UpdateTurnSequence();
-                needRedraw = true;
-            }
+                // 4. 턴 시네마틱 애니메이션 시퀀스 실행
+                if (_animPhase != TurnAnimPhase.Idle)
+                {
+                    _phaseTimer += 30;
+                    UpdateTurnSequence();
+                    needRedraw = true;
+                }
 
-            if (needRedraw || _game.IsCardSelectionActive || _hoverTile.X >= 1 || _game.PendingDropRemainingCount > 0)
+                if (needRedraw || _game.IsCardSelectionActive || _hoverTile.X >= 1 || _game.PendingDropRemainingCount > 0)
+                {
+                    Invalidate();
+                }
+            }
+            catch (Exception ex)
             {
-                Invalidate();
+                LogManager.LogException(ex, LogManager.Level.Warning, "[CoreFront] AnimTimer_Tick exception");
             }
         }
 
@@ -357,6 +405,18 @@ namespace GateHelper.DataFlip
 
         private void StartTurnSequence()
         {
+            if (_game.IsInitialBasePlacementActive)
+            {
+                AddFloatingText("기지 설립을 먼저 완료해야 합니다!", _btnEndTurnRect.X - 50, _btnEndTurnRect.Y - 20, _colorCrimson);
+                return;
+            }
+            if (_game.PendingDropRemainingCount > 0 && _game.PendingDropUnitType != UnitType.None)
+            {
+                AddFloatingText("공수 배치를 먼저 완료해야 합니다!", _btnEndTurnRect.X - 50, _btnEndTurnRect.Y - 20, _colorCrimson);
+                return;
+            }
+
+            _game.RecordReplaySnapshot($"턴 {_game.TurnNumber} 출격 명령");
             _isTurnRunning = true;
             _animPhase = TurnAnimPhase.PlayerTurret;
             _phaseTimer = 0;
@@ -373,6 +433,14 @@ namespace GateHelper.DataFlip
 
         private void UpdateTurnSequence()
         {
+            // Watchdog: 만약 알 수 없는 이유로 애니메이션 시퀀스가 3.5초(3500ms) 이상 지연되면 강제 복구
+            if (_phaseTimer > 3500)
+            {
+                LogManager.LogMessage($"[CoreFront] Watchdog timeout triggered in phase {_animPhase} (timer={_phaseTimer}ms). Forcing EndTurnSequence.", LogManager.Level.Warning);
+                EndTurnSequence();
+                return;
+            }
+
             switch (_animPhase)
             {
                 case TurnAnimPhase.PlayerTurret:
@@ -490,6 +558,8 @@ namespace GateHelper.DataFlip
                 _game.StatusMessage = $"턴 {_game.TurnNumber} - 자원 수급 (+{_game.CalculateIncome(Owner.Player)}G). 전진 명령을 하달하세요.";
             }
 
+            _game.RecordReplaySnapshot($"턴 {_game.TurnNumber - 1} 교전 완료");
+
             AddFloatingText("TURN COMPLETED", this.Width / 2 - 50, _boardRect.Y + 140, _colorGold);
             Invalidate();
         }
@@ -512,7 +582,19 @@ namespace GateHelper.DataFlip
 
             if (_isReplaying)
             {
-                Cursor = Cursors.Hand;
+                int prevReplayHover = _hoverReplayBtnId;
+                _hoverReplayBtnId = -1;
+                if (_repBtnFirstRect.Contains(e.Location)) _hoverReplayBtnId = 1;
+                else if (_repBtnPrevRect.Contains(e.Location)) _hoverReplayBtnId = 2;
+                else if (_repBtnPlayPauseRect.Contains(e.Location)) _hoverReplayBtnId = 3;
+                else if (_repBtnNextRect.Contains(e.Location)) _hoverReplayBtnId = 4;
+                else if (_repBtnLastRect.Contains(e.Location)) _hoverReplayBtnId = 5;
+                else if (_repBtnSpeedRect.Contains(e.Location)) _hoverReplayBtnId = 6;
+                else if (_repBtnExitRect.Contains(e.Location)) _hoverReplayBtnId = 7;
+                else if (_repProgressBarRect.Contains(e.Location)) _hoverReplayBtnId = 8;
+
+                Cursor = (_hoverReplayBtnId > 0) ? Cursors.Hand : Cursors.Default;
+                if (prevReplayHover != _hoverReplayBtnId) Invalidate();
                 return;
             }
 
@@ -520,7 +602,7 @@ namespace GateHelper.DataFlip
             {
                 int prevMapIdx = _hoverMapSelectIndex;
                 _hoverMapSelectIndex = -1;
-                for (int i = 0; i < 3; i++)
+                for (int i = 0; i < 4; i++)
                 {
                     if (_mapSelectCardRects[i].Contains(e.Location))
                     {
@@ -569,6 +651,7 @@ namespace GateHelper.DataFlip
             else if (_btnMapSmallRect.Contains(e.Location)) _hoverButtonId = 91;
             else if (_btnMapStdRect.Contains(e.Location)) _hoverButtonId = 92;
             else if (_btnMapLargeRect.Contains(e.Location)) _hoverButtonId = 93;
+            else if (_btnMapHugeRect.Contains(e.Location)) _hoverButtonId = 94;
             // 카테고리 탭 (101, 102, 103)
             else if (_tabBuildingsRect.Contains(e.Location)) _hoverButtonId = 101;
             else if (_tabUnitsRect.Contains(e.Location)) _hoverButtonId = 102;
@@ -581,7 +664,7 @@ namespace GateHelper.DataFlip
             else if (_slotRects[2].Contains(e.Location)) _hoverButtonId = 3;
             else if (_slotRects[3].Contains(e.Location)) _hoverButtonId = 4;
             else if (_slotRects[4].Contains(e.Location)) _hoverButtonId = 5;
-            else if (_slotRects[5].Contains(e.Location)) _hoverButtonId = 6;
+            else if (_slotRects[5].Contains(e.Location) && _currentCategory != BottomCategory.Skills) _hoverButtonId = 6;
             // 우측 액션 버튼
             else if (_btnEndTurnRect.Contains(e.Location)) _hoverButtonId = 8;
             else if (_btnRestartRect.Contains(e.Location)) _hoverButtonId = 9;
@@ -643,11 +726,11 @@ namespace GateHelper.DataFlip
             // 0.0 맵 사이즈 선택 모달 클릭 (신규!)
             if (_isMapSizeSelectActive)
             {
-                for (int i = 0; i < 3; i++)
+                for (int i = 0; i < 4; i++)
                 {
                     if (_mapSelectCardRects[i].Contains(e.Location))
                     {
-                        MapSizeType chosen = (i == 0 ? MapSizeType.Small : (i == 1 ? MapSizeType.Standard : MapSizeType.Large));
+                        MapSizeType chosen = (MapSizeType)i;
                         SelectMapSizeAndStart(chosen);
                         return;
                     }
@@ -655,11 +738,68 @@ namespace GateHelper.DataFlip
                 return;
             }
 
-            // 0. 리플레이 뷰어 모드 클릭 시 리플레이 즉시 종료 복귀
+            // 0. 리플레이 뷰어 모드 클릭 조작
             if (_isReplaying)
             {
-                _isReplaying = false;
-                Invalidate();
+                if (_repBtnFirstRect.Contains(e.Location))
+                {
+                    _replayIndex = 0;
+                    _isReplayPaused = true;
+                    Invalidate();
+                    return;
+                }
+                if (_repBtnPrevRect.Contains(e.Location))
+                {
+                    _replayIndex = Math.Max(0, _replayIndex - 1);
+                    _isReplayPaused = true;
+                    Invalidate();
+                    return;
+                }
+                if (_repBtnPlayPauseRect.Contains(e.Location))
+                {
+                    if (_isReplayPaused && _replayIndex >= _game.ReplaySnapshots.Count - 1)
+                    {
+                        _replayIndex = 0;
+                    }
+                    _isReplayPaused = !_isReplayPaused;
+                    Invalidate();
+                    return;
+                }
+                if (_repBtnNextRect.Contains(e.Location))
+                {
+                    _replayIndex = Math.Min(_game.ReplaySnapshots.Count - 1, _replayIndex + 1);
+                    _isReplayPaused = true;
+                    Invalidate();
+                    return;
+                }
+                if (_repBtnLastRect.Contains(e.Location))
+                {
+                    _replayIndex = _game.ReplaySnapshots.Count - 1;
+                    _isReplayPaused = true;
+                    Invalidate();
+                    return;
+                }
+                if (_repBtnSpeedRect.Contains(e.Location))
+                {
+                    _replaySpeed = (_replaySpeed == 1) ? 2 : (_replaySpeed == 2 ? 4 : 1);
+                    Invalidate();
+                    return;
+                }
+                if (_repBtnExitRect.Contains(e.Location))
+                {
+                    _isReplaying = false;
+                    Invalidate();
+                    return;
+                }
+                if (_repProgressBarRect.Contains(e.Location) && _game.ReplaySnapshots.Count > 1)
+                {
+                    float ratio = (float)(e.X - _repProgressBarRect.X) / _repProgressBarRect.Width;
+                    ratio = Math.Max(0f, Math.Min(1f, ratio));
+                    _replayIndex = (int)Math.Round(ratio * (_game.ReplaySnapshots.Count - 1));
+                    _isReplayPaused = true;
+                    Invalidate();
+                    return;
+                }
                 return;
             }
 
@@ -714,11 +854,6 @@ namespace GateHelper.DataFlip
                                 AddShockwave(ex, ey, Color.FromArgb(255, 60, 60), 40f);
                                 AddFloatingText("-2 EMP! 💥", ex - 25, ey - 22, Color.FromArgb(255, 60, 60));
                             }
-                            // 아군 본진 코어 위치에 수리 피드백
-                            int coreX = _boardRect.X + _tileW / 2;
-                            int coreY = _boardRect.Y + _boardRect.Height / 2;
-                            AddShockwave(coreX, coreY, Color.FromArgb(0, 229, 255), 45f);
-                            AddFloatingText("+3 코어 수리! 🔧", coreX + 10, coreY - 20, Color.FromArgb(0, 229, 255));
                         }
 
                         Invalidate();
@@ -745,7 +880,10 @@ namespace GateHelper.DataFlip
                             int screenX = _boardRect.X + c * _tileW + _tileW / 2;
                             int screenY = _boardRect.Y + r * _tileH + _tileH / 2;
                             AddShockwave(screenX, screenY, _colorGold, 45f);
-                            AddFloatingText("본진 발전소 설립! ⚡", screenX - 45, screenY - 20, _colorGold);
+                            string plantMsg = (_game.InitialBaseTotalCount > 1)
+                                ? $"발전소 ({_game.InitialBaseTotalCount - _game.InitialBaseRemainingCount}/{_game.InitialBaseTotalCount}) 설립! ⚡"
+                                : "본진 발전소 설립! ⚡";
+                            AddFloatingText(plantMsg, screenX - 45, screenY - 20, _colorGold);
                             Invalidate();
                             return;
                         }
@@ -788,6 +926,9 @@ namespace GateHelper.DataFlip
                             if (_game.PendingDropRemainingCount <= 0)
                             {
                                 _game.PendingDropUnitType = UnitType.None;
+                                _game.PendingDropCustomHp = 0;
+                                _game.PendingDropCustomAtk = 0;
+                                _game.PendingDropForceShield = false;
                                 _game.StatusMessage = "전술 유닛 배치가 완료되었습니다.";
                             }
                             else
@@ -837,6 +978,11 @@ namespace GateHelper.DataFlip
                 RequestMapSizeChange(MapSizeType.Large);
                 return;
             }
+            if (_btnMapHugeRect.Contains(e.Location))
+            {
+                RequestMapSizeChange(MapSizeType.Huge);
+                return;
+            }
 
             // 5. 카테고리 탭 클릭 전환
             if (_tabBuildingsRect.Contains(e.Location))
@@ -880,6 +1026,7 @@ namespace GateHelper.DataFlip
             {
                 if (_slotRects[i].Contains(e.Location))
                 {
+                    if (_currentCategory == BottomCategory.Skills && i == 5) return;
                     ExecuteSlotAction(i);
                     Invalidate();
                     return;
@@ -1097,46 +1244,12 @@ namespace GateHelper.DataFlip
                             _selectedSkill = (_selectedSkill == UserSkillType.EmpJammer) ? UserSkillType.None : UserSkillType.EmpJammer;
                         }
                         break;
-                    case 2: // [3] 긴급 나노 복구 (즉발 전체 시전)
-                        int repCost = _game.GetSkillCost(UserSkillType.NanoRepair);
-                        if (_game.CastSkill(UserSkillType.NanoRepair, 0, 0))
-                        {
-                            int cx = _slotRects[2].X + _slotRects[2].Width / 2;
-                            int cy = _slotRects[2].Y + _slotRects[2].Height / 2;
-                            AddShockwave(cx, cy, _colorEmerald, 45f);
-                            AddFloatingText("아군 건물 체력 +3 나노 복구 완료! 🔧", this.Width / 2 - 110, _boardRect.Y + 120, _colorEmerald);
-                        }
-                        else
-                        {
-                            int cx = _slotRects[2].X + _slotRects[2].Width / 2;
-                            int cy = _slotRects[2].Y + _slotRects[2].Height / 2;
-                            AddFloatingText($"크레딧 부족 ({repCost}G 필요)", cx - 40, cy - 20, _colorCrimson);
-                        }
-                        _selectedSkill = UserSkillType.None;
-                        break;
-                    case 3: // [4] 전장 정찰 스캔 (즉발 시야 시전)
-                        int scCost = _game.GetSkillCost(UserSkillType.ReconScan);
-                        if (_game.CastSkill(UserSkillType.ReconScan, 0, 0))
-                        {
-                            int cx = _slotRects[3].X + _slotRects[3].Width / 2;
-                            int cy = _slotRects[3].Y + _slotRects[3].Height / 2;
-                            AddShockwave(this.Width / 2, _boardRect.Y + 140, _colorGold, 100f);
-                            AddFloatingText("전장 정찰 스캔 완료! 모든 은폐 해제 📡", this.Width / 2 - 110, _boardRect.Y + 120, _colorGold);
-                        }
-                        else
-                        {
-                            int cx = _slotRects[3].X + _slotRects[3].Width / 2;
-                            int cy = _slotRects[3].Y + _slotRects[3].Height / 2;
-                            AddFloatingText($"크레딧 부족 ({scCost}G 필요)", cx - 40, cy - 20, _colorCrimson);
-                        }
-                        _selectedSkill = UserSkillType.None;
-                        break;
-                    case 4: // [5] 전술 치료 광선 (4G, 지정 행 치유)
+                    case 2: // [3] 전술 치료 광선 (4G, 지정 행 유닛+건물 +6HP 수복)
                         int hlCost = _game.GetSkillCost(UserSkillType.HealingBeam);
                         if (_game.PlayerCredit < hlCost)
                         {
-                            int cx = _slotRects[4].X + _slotRects[4].Width / 2;
-                            int cy = _slotRects[4].Y + _slotRects[4].Height / 2;
+                            int cx = _slotRects[2].X + _slotRects[2].Width / 2;
+                            int cy = _slotRects[2].Y + _slotRects[2].Height / 2;
                             AddFloatingText($"크레딧 부족 ({hlCost}G 필요)", cx - 40, cy - 20, _colorCrimson);
                             _selectedSkill = UserSkillType.None;
                         }
@@ -1145,12 +1258,12 @@ namespace GateHelper.DataFlip
                             _selectedSkill = (_selectedSkill == UserSkillType.HealingBeam) ? UserSkillType.None : UserSkillType.HealingBeam;
                         }
                         break;
-                    case 5: // [6] 전술 구축 광선 (5G, 지정 행 내구도+2)
+                    case 3: // [4] 전술 구축 광선 (5G, 지정 행 유닛 내구도+2)
                         int ftCost = _game.GetSkillCost(UserSkillType.FortifyBeam);
                         if (_game.PlayerCredit < ftCost)
                         {
-                            int cx = _slotRects[5].X + _slotRects[5].Width / 2;
-                            int cy = _slotRects[5].Y + _slotRects[5].Height / 2;
+                            int cx = _slotRects[3].X + _slotRects[3].Width / 2;
+                            int cy = _slotRects[3].Y + _slotRects[3].Height / 2;
                             AddFloatingText($"크레딧 부족 ({ftCost}G 필요)", cx - 40, cy - 20, _colorCrimson);
                             _selectedSkill = UserSkillType.None;
                         }
@@ -1158,6 +1271,25 @@ namespace GateHelper.DataFlip
                         {
                             _selectedSkill = (_selectedSkill == UserSkillType.FortifyBeam) ? UserSkillType.None : UserSkillType.FortifyBeam;
                         }
+                        break;
+                    case 4: // [5] 전장 정찰 스캔 (3G, 즉발 은폐 침투병 해제)
+                        int scCost = _game.GetSkillCost(UserSkillType.ReconScan);
+                        if (_game.CastSkill(UserSkillType.ReconScan, 0, 0))
+                        {
+                            int cx = _slotRects[4].X + _slotRects[4].Width / 2;
+                            int cy = _slotRects[4].Y + _slotRects[4].Height / 2;
+                            AddShockwave(this.Width / 2, _boardRect.Y + 140, _colorGold, 100f);
+                            AddFloatingText("전장 정찰 스캔 완료! 모든 은폐 해제 📡", this.Width / 2 - 110, _boardRect.Y + 120, _colorGold);
+                        }
+                        else
+                        {
+                            int cx = _slotRects[4].X + _slotRects[4].Width / 2;
+                            int cy = _slotRects[4].Y + _slotRects[4].Height / 2;
+                            AddFloatingText($"크레딧 부족 ({scCost}G 필요)", cx - 40, cy - 20, _colorCrimson);
+                        }
+                        _selectedSkill = UserSkillType.None;
+                        break;
+                    case 5: // [6] 미사용
                         break;
                 }
             }
@@ -1217,6 +1349,65 @@ namespace GateHelper.DataFlip
 
             if (_isTurnRunning) return;
 
+            // [리플레이 모드 키보드 단축키]
+            if (_isReplaying)
+            {
+                if (e.KeyCode == Keys.Escape || e.KeyCode == Keys.Back)
+                {
+                    _isReplaying = false;
+                    Invalidate();
+                }
+                else if (e.KeyCode == Keys.Space)
+                {
+                    if (_isReplayPaused && _replayIndex >= _game.ReplaySnapshots.Count - 1)
+                    {
+                        _replayIndex = 0;
+                    }
+                    _isReplayPaused = !_isReplayPaused;
+                    Invalidate();
+                }
+                else if (e.KeyCode == Keys.Left || e.KeyCode == Keys.A)
+                {
+                    _isReplayPaused = true;
+                    _replayIndex = Math.Max(0, _replayIndex - 1);
+                    Invalidate();
+                }
+                else if (e.KeyCode == Keys.Right || e.KeyCode == Keys.D)
+                {
+                    _isReplayPaused = true;
+                    _replayIndex = Math.Min(_game.ReplaySnapshots.Count - 1, _replayIndex + 1);
+                    Invalidate();
+                }
+                else if (e.KeyCode == Keys.Home)
+                {
+                    _isReplayPaused = true;
+                    _replayIndex = 0;
+                    Invalidate();
+                }
+                else if (e.KeyCode == Keys.End)
+                {
+                    _isReplayPaused = true;
+                    _replayIndex = Math.Max(0, _game.ReplaySnapshots.Count - 1);
+                    Invalidate();
+                }
+                else if (e.KeyCode == Keys.D1 || e.KeyCode == Keys.NumPad1)
+                {
+                    _replaySpeed = 1;
+                    Invalidate();
+                }
+                else if (e.KeyCode == Keys.D2 || e.KeyCode == Keys.NumPad2)
+                {
+                    _replaySpeed = 2;
+                    Invalidate();
+                }
+                else if (e.KeyCode == Keys.D4 || e.KeyCode == Keys.NumPad4)
+                {
+                    _replaySpeed = 4;
+                    Invalidate();
+                }
+                return;
+            }
+
             // [맵 사이즈 선택 모달 키보드 단축키]
             if (_isMapSizeSelectActive)
             {
@@ -1232,6 +1423,10 @@ namespace GateHelper.DataFlip
                 {
                     SelectMapSizeAndStart(MapSizeType.Large);
                 }
+                else if (e.KeyCode == Keys.D4 || e.KeyCode == Keys.NumPad4)
+                {
+                    SelectMapSizeAndStart(MapSizeType.Huge);
+                }
                 return;
             }
 
@@ -1245,8 +1440,8 @@ namespace GateHelper.DataFlip
                 return;
             }
 
-            // [전술 공수 투하 대기 상태]: 배치 완료 전까지 키보드 단축키 조작 잠금
-            if (_game.PendingDropRemainingCount > 0 && _game.PendingDropUnitType != UnitType.None)
+            // [최초 기지 설립 및 전술 공수 대기 상태]: 배치 완료 전까지 키보드 단축키 조작 잠금
+            if (_game.IsInitialBasePlacementActive || (_game.PendingDropRemainingCount > 0 && _game.PendingDropUnitType != UnitType.None))
             {
                 return;
             }
@@ -1355,8 +1550,11 @@ namespace GateHelper.DataFlip
         {
             if (_game.ReplaySnapshots.Count == 0) return;
             _isReplaying = true;
+            _isReplayPaused = false;
             _replayIndex = 0;
+            _replaySpeed = 1;
             _replayTickCounter = 0;
+            _hoverReplayBtnId = -1;
             Invalidate();
         }
 
@@ -1391,6 +1589,10 @@ namespace GateHelper.DataFlip
                     targetW = 1000;
                     targetH = 720;
                     break;
+                case MapSizeType.Huge:
+                    targetW = 1060;
+                    targetH = 800;
+                    break;
             }
 
             if (parent.ClientSize.Width != targetW || parent.ClientSize.Height != targetH)
@@ -1411,7 +1613,7 @@ namespace GateHelper.DataFlip
         private void RequestMapSizeChange(MapSizeType size)
         {
             if (_game == null || _game.CurrentMapSize == size) return;
-            bool isGameInProgress = !_game.IsGameOver && (_game.TurnNumber > 1 || !_game.IsInitialBasePlacementActive || _game.PlayerCredit != 6 || _game.Units.Count > 0);
+            bool isGameInProgress = !_game.IsGameOver && (_game.TurnNumber > 1 || !_game.IsInitialBasePlacementActive || _game.InitialBaseRemainingCount < _game.InitialBaseTotalCount || _game.PlayerCredit != 6 || _game.Units.Count > 0);
             if (isGameInProgress)
             {
                 var dr = MessageBox.Show(
@@ -1446,7 +1648,11 @@ namespace GateHelper.DataFlip
             _isTurnRunning = false;
             _animPhase = TurnAnimPhase.Idle;
             UpdateLayoutBounds();
-            AddFloatingText($"작전 개시! ({mapSize} 전장)", this.Width / 2 - 80, _boardRect.Y + 140, _colorCyan);
+            string themeAnnounce = (_game.CurrentMapSize == MapSizeType.Huge)
+                ? $"작전 개시! [{_game.GetThemeIcon()} {_game.GetThemeName()}]"
+                : $"작전 개시! ({mapSize} 전장)";
+            Color themeCol = (_game.CurrentMapSize == MapSizeType.Huge) ? _game.GetThemeColor() : _colorCyan;
+            AddFloatingText(themeAnnounce, this.Width / 2 - 110, _boardRect.Y + 140, themeCol);
             Invalidate();
         }
 
