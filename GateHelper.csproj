@@ -240,6 +240,7 @@
     <Compile Include="SandBox\1. BitFlip\BitFlipControl.Designer.cs">
       <DependentUpon>BitFlipControl.cs</DependentUpon>
     </Compile>
+    <Compile Include="SandBox\1. BitFlip\BitFlipModel.cs" />
     <Compile Include="ChromeDriverManager.cs" />
     <Compile Include="Config.cs" />
     <Compile Include="ConfigManager.cs" />

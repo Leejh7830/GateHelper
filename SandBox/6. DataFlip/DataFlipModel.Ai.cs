@@ -70,6 +70,67 @@ namespace GateHelper.DataFlip
 
             bool hasPlayerHeavy = playerUnits.Exists(u => u.Type == UnitType.Titan || u.Type == UnitType.Dreadnought || u.Type == UnitType.Colossus);
 
+            // [2.5 라인 집중 웨이브(Line Push Wave) 턴 진행 및 신규 웨이브 결정]
+            if (AiPushWaveTurnsRemaining > 0)
+            {
+                AiPushWaveTurnsRemaining--;
+                if (AiPushWaveTurnsRemaining <= 0)
+                {
+                    AiPushWaveRow = -1;
+                    AiPushWaveCooldown = 3; // 웨이브 완료 후 3턴간 쿨다운 (연속 무한 웨이브 방지 및 전선 호흡)
+                }
+            }
+            else if (AiPushWaveCooldown > 0)
+            {
+                AiPushWaveCooldown--;
+            }
+
+            // 신규 집중 웨이브 결정 (쿨다운 완료, 3턴 이후, 자금 6G 이상, 위기 상태가 아닐 때 55% 확률 선언)
+            if (AiPushWaveTurnsRemaining <= 0 && AiPushWaveCooldown <= 0 && TurnNumber >= 3 && AiCredit >= 6 && !isCrisis && _rand.Next(100) < 55)
+            {
+                int waveCandidateRow = -1;
+                // 1순위: 가속관문이 있는 라인
+                for (int r = 0; r < Rows; r++)
+                {
+                    for (int c = Cols - 3; c >= Cols - 4; c--)
+                    {
+                        var b = Buildings[r, c];
+                        if (b != null && b.Owner == Owner.Ai && b.Type == BuildingType.PhaseGate)
+                        {
+                            waveCandidateRow = r;
+                            break;
+                        }
+                    }
+                    if (waveCandidateRow >= 0) break;
+                }
+
+                // 2순위: 가속 하이웨이 타일이 있는 라인
+                if (waveCandidateRow < 0 && CurrentMapSize == MapSizeType.Huge)
+                {
+                    int[] highwayRows = { 2, 5, 8 };
+                    waveCandidateRow = highwayRows[_rand.Next(highwayRows.Length)];
+                }
+
+                // 3순위: 빈 라인 (적 유닛이 없는 침투 라인)
+                if (waveCandidateRow < 0 && emptyRows.Count > 0)
+                {
+                    waveCandidateRow = emptyRows[_rand.Next(emptyRows.Count)];
+                }
+
+                // 4순위: 무작위 라인
+                if (waveCandidateRow < 0)
+                {
+                    waveCandidateRow = _rand.Next(Rows);
+                }
+
+                AiPushWaveRow = waveCandidateRow;
+                AiPushWaveTurnsRemaining = 2; // 2턴간 해당 라인에 병력 집중 투입
+                AddCombatLog($"⚡ [AI 전술] {AiPushWaveRow + 1}행에 화력 집중 돌파 웨이브 선언! (2턴 전력 집중)");
+            }
+
+            // [2.8 AI 액티브 전술 스킬 발동 (정찰스캔, EMP교란, 궤도폭격, 치료광선, 구축광선)]
+            ExecuteAiSkills(playerUnits, aiUnits, dangerRow, isCrisis);
+
             int aiPlantCount = GetBuildingCount(BuildingType.PowerPlant, Owner.Ai);
             int aiPlantLimit = GetPlantLimit(Owner.Ai);
             int plantCost = GetBuildingCost(BuildingType.PowerPlant, Owner.Ai);
@@ -387,6 +448,11 @@ namespace GateHelper.DataFlip
                 {
                     preferredRows.AddRange(coreThreatRows);
                 }
+                // 1.5순위: ⚡ 라인 집중 웨이브 (돌파 행에 전력 집중)
+                else if (AiPushWaveTurnsRemaining > 0 && AiPushWaveRow >= 0)
+                {
+                    preferredRows.Add(AiPushWaveRow);
+                }
                 // 2순위: 위기 라인 (적 주력 진격로 정면 저지)
                 else if (isCrisis && dangerRow >= 0)
                 {
@@ -426,21 +492,37 @@ namespace GateHelper.DataFlip
                 }
 
                 bool spawned = false;
+                int spawnedRow = -1;
                 foreach (int r in preferredRows)
                 {
                     if (IsValidUnitSpawnPlacement(Cols - 2, r, Owner.Ai))
                     {
                         spawned = SpawnUnit(Cols - 2, r, spawnType, Owner.Ai);
-                        if (spawned) break;
+                        if (spawned) { spawnedRow = r; break; }
                     }
                     else if (IsValidUnitSpawnPlacement(Cols - 3, r, Owner.Ai))
                     {
                         spawned = SpawnUnit(Cols - 3, r, spawnType, Owner.Ai);
-                        if (spawned) break;
+                        if (spawned) { spawnedRow = r; break; }
                     }
                 }
 
                 if (!spawned) break;
+
+                string uName = (spawnType == UnitType.Vanguard) ? "보병" :
+                               (spawnType == UnitType.Raider) ? "침투병" :
+                               (spawnType == UnitType.Titan) ? "타이탄" :
+                               (spawnType == UnitType.Cheongung) ? "천궁" :
+                               (spawnType == UnitType.Colossus) ? "콜로서스" : "드레드노트";
+
+                if (AiPushWaveTurnsRemaining > 0 && spawnedRow == AiPushWaveRow)
+                {
+                    AddCombatLog($"🚀 [AI 웨이브] {spawnedRow + 1}행 돌파군으로 {uName} 급파!");
+                }
+                else if (spawnType != UnitType.Vanguard)
+                {
+                    AddCombatLog($"🚀 [AI 전술] {spawnedRow + 1}행에 {uName} 출격");
+                }
 
                 mustSpawnPatrol = false;
 
@@ -448,6 +530,151 @@ namespace GateHelper.DataFlip
                 if (!isCrisis && !isPlayerGreedyEco && !isPlayerCoreVulnerable && _rand.Next(100) < 40)
                 {
                     break;
+                }
+            }
+        }
+
+        private void ExecuteAiSkills(List<Unit> playerUnits, List<Unit> aiUnits, int dangerRow, bool isCrisis)
+        {
+            // 1. [정찰 스캔 (ReconScan, 3G)]: 적 은폐 유닛(침투병) 발견 시 즉시 탐지 해제
+            if (AiCredit >= 3)
+            {
+                var cloakedUnit = playerUnits.Find(u => u.IsCloaked && u.Hp > 0);
+                if (cloakedUnit != null && (cloakedUnit.Col >= Cols / 2 || _rand.Next(100) < 70))
+                {
+                    if (CastSkill(UserSkillType.ReconScan, cloakedUnit.Col, cloakedUnit.Row, Owner.Ai, out var sEvents, out var sBeam))
+                    {
+                        if (sBeam != null) PendingAiLaserBeams.Add(sBeam);
+                        PendingAiCombatEvents.AddRange(sEvents);
+                    }
+                }
+            }
+
+            // 2. [EMP 교란 (EmpJammer, 5G)]: 플레이어 전진 포탑 마비
+            if (AiCredit >= 5)
+            {
+                for (int r = 0; r < Rows; r++)
+                {
+                    for (int c = 1; c < Cols - 1; c++)
+                    {
+                        var b = Buildings[r, c];
+                        if (b != null && b.Owner == Owner.Player && b.Type == BuildingType.Turret && b.EmpTurns == 0)
+                        {
+                            if (aiUnits.Exists(u => Math.Abs(u.Row - r) <= 1 && u.Col >= c - 2) || isCrisis)
+                            {
+                                if (CastSkill(UserSkillType.EmpJammer, c, r, Owner.Ai, out var sEvents, out var sBeam))
+                                {
+                                    if (sBeam != null) PendingAiLaserBeams.Add(sBeam);
+                                    PendingAiCombatEvents.AddRange(sEvents);
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 3. [궤도 폭격 (OrbitalStrike, 8G)]: 플레이어 핵심 포탑/건물 또는 장애물 정밀 타격
+            if (AiCredit >= 8 && (CurrentAiPersona != AiStrategyPersona.Rush || isCrisis))
+            {
+                for (int r = 0; r < Rows; r++)
+                {
+                    for (int c = 1; c < Cols - 1; c++)
+                    {
+                        var b = Buildings[r, c];
+                        if (b != null && b.Owner == Owner.Player && b.Type == BuildingType.Turret)
+                        {
+                            if (CastSkill(UserSkillType.OrbitalStrike, c, r, Owner.Ai, out var sEvents, out var sBeam))
+                            {
+                                if (sBeam != null) PendingAiLaserBeams.Add(sBeam);
+                                PendingAiCombatEvents.AddRange(sEvents);
+                                return;
+                            }
+                        }
+                    }
+                }
+
+                // 돌파 웨이브 라인의 장애물 서버 랙 파괴
+                if (AiPushWaveRow >= 0 && AiPushWaveTurnsRemaining > 0)
+                {
+                    for (int c = Cols / 2 - 2; c <= Cols / 2 + 2; c++)
+                    {
+                        if (c >= 1 && c < Cols - 1 && MapTiles[AiPushWaveRow, c] == TileType.Obstacle)
+                        {
+                            if (CastSkill(UserSkillType.OrbitalStrike, c, AiPushWaveRow, Owner.Ai, out var sEvents, out var sBeam))
+                            {
+                                if (sBeam != null) PendingAiLaserBeams.Add(sBeam);
+                                PendingAiCombatEvents.AddRange(sEvents);
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // 4. [치료 광선 (HealingBeam, 4G)]: 부상당한 고가치 유닛(타이탄/드레드노트) 또는 아군 밀집 라인 수복
+            if (AiCredit >= 4)
+            {
+                int bestHealRow = -1;
+                int maxHealValue = 0;
+
+                for (int r = 0; r < Rows; r++)
+                {
+                    int healVal = 0;
+                    foreach (var u in aiUnits)
+                    {
+                        if (u.Row == r && u.Hp < u.MaxHp)
+                        {
+                            healVal += (u.Type == UnitType.Dreadnought || u.Type == UnitType.Titan) ? 4 : 2;
+                        }
+                    }
+                    for (int c = 1; c < Cols - 1; c++)
+                    {
+                        var b = Buildings[r, c];
+                        if (b != null && b.Owner == Owner.Ai && b.Hp < b.MaxHp)
+                        {
+                            healVal += (b.Type == BuildingType.Turret) ? 3 : 1;
+                        }
+                    }
+                    if (healVal > maxHealValue)
+                    {
+                        maxHealValue = healVal;
+                        bestHealRow = r;
+                    }
+                }
+
+                if (bestHealRow >= 0 && maxHealValue >= 3)
+                {
+                    if (CastSkill(UserSkillType.HealingBeam, Cols - 2, bestHealRow, Owner.Ai, out var sEvents, out var sBeam))
+                    {
+                        if (sBeam != null) PendingAiLaserBeams.Add(sBeam);
+                        PendingAiCombatEvents.AddRange(sEvents);
+                        return;
+                    }
+                }
+            }
+
+            // 5. [구축 광선 (FortifyBeam, 5G)]: 방어선 강화 (Siege 페르소나 또는 방어 라인)
+            if (AiCredit >= 7 && CurrentAiPersona == AiStrategyPersona.Siege && TurnNumber >= 4)
+            {
+                int bestFortRow = -1;
+                for (int r = 0; r < Rows; r++)
+                {
+                    int rowUnits = aiUnits.FindAll(u => u.Row == r).Count;
+                    if (rowUnits >= 2)
+                    {
+                        bestFortRow = r;
+                        break;
+                    }
+                }
+                if (bestFortRow >= 0)
+                {
+                    if (CastSkill(UserSkillType.FortifyBeam, Cols - 2, bestFortRow, Owner.Ai, out var sEvents, out var sBeam))
+                    {
+                        if (sBeam != null) PendingAiLaserBeams.Add(sBeam);
+                        PendingAiCombatEvents.AddRange(sEvents);
+                        return;
+                    }
                 }
             }
         }

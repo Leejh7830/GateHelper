@@ -1,606 +1,1164 @@
-using MaterialSkin.Controls;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Linq;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace GateHelper
 {
+    /// <summary>
+    /// 시그널 링크 (SignalLink) - 네온 사이버 회로 보드 퍼즐 컨트롤
+    /// 제로 리소스(Zero-Resource) 원칙: 100% GDI+ 정적 캐싱, 0% 유휴 CPU, 스내피 궤적 보간
+    /// </summary>
     public partial class SignalLinkControl : UserControl
     {
-        private SignalManager _manager = new SignalManager();
+        // 핵심 게임 엔진
+        private SignalManager _model;
+        private Timer _renderTimer;
+        private Timer _gameClockTimer;
+        private int _playTimeSeconds = 0;
 
-        private List<Point> _currentPath = new List<Point>();
-        private Dictionary<int, List<Point>> _completedPaths = new Dictionary<int, List<Point>>();
-
+        // 드래그 상태
         private bool _isDragging = false;
         private int _activeColor = 0;
-        private Panel pnlDifficulty;
+        private List<Point> _currentPath = new List<Point>();
+        private Point? _hoveredGridPos = null;
 
-        // 그리드
-        private int _gridSize = 5;      // 현재 그리드 크기 (5x5 등)
-        private int _cellSize = 60;     // 한 칸의 크기 (픽셀)
-        private int _offsetX = 50;      // 그리드가 그려질 시작 X 좌표
-        private int _offsetY = 50;      // 그리드가 그려질 시작 Y 좌표
- 
-        // 타이머
-        private Timer _gameTimer; // 타이머
-        private int _playTimeSeconds;
-        private string _currentDifficulty;
-        private bool _isGameActive = false;
+        // 힌트 상태
+        private bool _isHintActive = false;
+        private int _hintColorId = 0;
+        private List<Point> _hintPath = null;
+        private float _hintRemainingSeconds = 0f;
 
-        // HINT
-        private bool _showHint = false; // 힌트 표시 여부
-        private int _hintColorID = -1; // 현재 힌트로 보여줄 색상의 ID (-1은 없음)
-        private System.Threading.CancellationTokenSource _hintCts; // 힌트 취소용 토큰
+        // 맵 규모 선택 화면 상태
+        private bool _isInMapSelect = true;
 
-        // 이펙트
-        private Queue<string> _logs = new Queue<string>(); // 화면표시 로그
-        private const int MAX_LOGS = 2; // 최대 로그 수
-        private int _errorFlashFrame = 0; // 오류 애니메이션 프레임 카운트
+        // 승리 모달 1초 지연 표시 상태
+        private bool _showVictoryModal = false;
+        private bool _isVictoryDelayPending = false;
+        private float _victoryDelayTimer = 0f;
 
-        // 난이도 조절용
-        public struct DifficultyConfig
+        // 이펙트 및 파티클
+        private readonly List<ShockwaveEffect> _shockwaves = new List<ShockwaveEffect>();
+        private readonly List<SparkParticle> _particles = new List<SparkParticle>();
+        private readonly List<FloatingNotification> _floatingTexts = new List<FloatingNotification>();
+
+        // 레이아웃 경계
+        private Rectangle _boardBounds;
+        private float _cellSize;
+        private Point _mousePos;
+        private string _hoverTooltipText = null;
+        private float _globalPulse = 0f;
+
+        // 헤더 버튼
+        private Rectangle _btnBackRect;
+        private Rectangle _btnModeRect;
+        private Rectangle _btnUndoRect;
+        private Rectangle _btnHintRect;
+        private Rectangle _btnResetRect;
+
+        // 맵 규모 선택 카드 (2x2 그리드)
+        private Rectangle _mapCardEasy;
+        private Rectangle _mapCardNormal;
+        private Rectangle _mapCardHard;
+        private Rectangle _mapCardExpert;
+        private Rectangle _mapBtnEasy;
+        private Rectangle _mapBtnNormal;
+        private Rectangle _mapBtnHard;
+        private Rectangle _mapBtnExpert;
+        private Rectangle _btnMapSelectBack;
+
+        // 승리 모달 버튼
+        private Rectangle _modalNextRect;
+        private Rectangle _modalRetryRect;
+        private Rectangle _modalModeRect;
+        private Rectangle _modalListRect;
+
+        // ==========================================
+        // 제로 리소스 GDI+ 정적 캐시 (GC 압박 0화)
+        // ==========================================
+        private static readonly Font _fontHeaderTitle = new Font("Segoe UI", 13f, FontStyle.Bold);
+        private static readonly Font _fontHeaderSub = new Font("Segoe UI", 8.5f, FontStyle.Regular);
+        private static readonly Font _fontBtn = new Font("Segoe UI", 9.5f, FontStyle.Bold);
+        private static readonly Font _fontHudKey = new Font("Segoe UI", 8f, FontStyle.Regular);
+        private static readonly Font _fontHudVal = new Font("Consolas", 11.5f, FontStyle.Bold);
+        private static readonly Font _fontCardTitle = new Font("Segoe UI", 12.5f, FontStyle.Bold);
+        private static readonly Font _fontCardBadge = new Font("Segoe UI", 8f, FontStyle.Bold);
+        private static readonly Font _fontCardDesc = new Font("Segoe UI", 8.5f, FontStyle.Regular);
+        private static readonly Font _fontCardBullet = new Font("Segoe UI", 8.5f, FontStyle.Regular);
+        private static readonly Font _fontModalTitle = new Font("Segoe UI", 17f, FontStyle.Bold);
+        private static readonly Font _fontModalSub = new Font("Segoe UI", 10f, FontStyle.Regular);
+        private static readonly Font _fontModalStar = new Font("Segoe UI", 26f, FontStyle.Bold);
+        private static readonly Font _fontModalStatKey = new Font("Segoe UI", 9.5f, FontStyle.Regular);
+        private static readonly Font _fontModalStatVal = new Font("Consolas", 10.5f, FontStyle.Bold);
+        private static readonly Font _fontFloating = new Font("Segoe UI", 10.5f, FontStyle.Bold);
+        private static readonly Font _fontBottomLegend = new Font("Segoe UI", 8.5f, FontStyle.Regular);
+        private static readonly Font _fontTerminalGlyph = new Font("Consolas", 9f, FontStyle.Bold);
+
+        private static readonly StringFormat _sfCenter = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+        private static readonly StringFormat _sfHorizCenter = new StringFormat { Alignment = StringAlignment.Center };
+        private static readonly StringFormat _sfFar = new StringFormat { Alignment = StringAlignment.Far, LineAlignment = StringAlignment.Center };
+        private static readonly StringFormat _sfNear = new StringFormat { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center };
+
+        // 12종 고대비 네온 신호 색상 팔레트
+        private static readonly Color[] _signalColors = new Color[]
         {
-            public int GridSize;
-            public int PairCount;
-
-            public DifficultyConfig(int size, int pairs)
-            {
-                GridSize = size;
-                PairCount = pairs;
-            }
-        }
-
-        private Dictionary<string, DifficultyConfig> _configs = new Dictionary<string, DifficultyConfig>
-        {
-            { "Easy", new DifficultyConfig(5, 3) },
-            { "Normal", new DifficultyConfig(6, 4) },
-            { "Hard", new DifficultyConfig(8, 6) },
-            { "Insane", new DifficultyConfig(12, 9) },
-            { "Extreme", new DifficultyConfig(10, 8) },
-            { "Extreme2", new DifficultyConfig(12, 10) }
+            Color.FromArgb(120, 130, 145), // 0: None / Default
+            Color.FromArgb(255, 75, 95),   // 1: Neon Crimson
+            Color.FromArgb(0, 215, 255),   // 2: Electric Cyan
+            Color.FromArgb(0, 255, 170),   // 3: Matrix Emerald
+            Color.FromArgb(255, 215, 0),   // 4: Radiant Gold
+            Color.FromArgb(195, 80, 255),  // 5: Quantum Purple
+            Color.FromArgb(255, 135, 40),  // 6: Plasma Orange
+            Color.FromArgb(255, 90, 200),  // 7: Cyber Pink
+            Color.FromArgb(80, 255, 230),  // 8: Arctic Mint
+            Color.FromArgb(170, 255, 50),  // 9: Acid Lime
+            Color.FromArgb(240, 245, 255), // 10: Ghost White
+            Color.FromArgb(255, 185, 90),  // 11: Amber Glow
+            Color.FromArgb(140, 190, 255)  // 12: Deep Sky
         };
-
-
 
         public SignalLinkControl()
         {
             InitializeComponent();
 
-            // 1. 기본 스타일 설정
             this.DoubleBuffered = true;
-            this.BackColor = Color.FromArgb(30, 30, 30);
+            this.SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer | ControlStyles.ResizeRedraw, true);
+            this.BackColor = Color.FromArgb(11, 15, 25);
 
-            // 2. 가리기용 패널 설정 (이게 버튼들을 가리고 있을 수 있음)
-            pnlDifficulty = new Panel
+            _model = new SignalManager();
+
+            // 60 FPS 렌더링 타이머
+            _renderTimer = new Timer();
+            _renderTimer.Interval = 16;
+            _renderTimer.Tick += OnRenderTick;
+            _renderTimer.Start();
+
+            // 게임 시계 타이머
+            _gameClockTimer = new Timer();
+            _gameClockTimer.Interval = 1000;
+            _gameClockTimer.Tick += (s, e) =>
             {
-                Dock = DockStyle.Fill,
-                BackColor = Color.FromArgb(35, 35, 35),
-                Name = "pnlDifficulty"
-            };
-            this.Controls.Add(pnlDifficulty);
-
-            // 3. [핵심] 난이도 버튼들을 패널의 자식으로 즉시 편입
-            // 부모가 바뀌면 Location은 패널 기준으로 자동 계산됩니다.
-            btnEasy.Parent = pnlDifficulty;
-            btnNormal.Parent = pnlDifficulty;
-            btnHard.Parent = pnlDifficulty;
-            btnInsane.Parent = pnlDifficulty;
-            btnExtreme.Parent = pnlDifficulty;
-            btnExtreme2.Parent = pnlDifficulty;
-
-            // 4. [Z-Order 정리] 누가 누구 위에 보일지 명확히 정하기
-            pnlDifficulty.BringToFront(); // 일단 패널을 가장 앞으로
-
-            // 패널 "내부"에서 버튼들을 앞으로 가져오기
-            btnEasy.BringToFront();
-            btnNormal.BringToFront();
-            btnHard.BringToFront();
-            btnInsane.BringToFront();
-            btnExtreme.BringToFront();
-            btnExtreme2.BringToFront();
-
-            // 패널 "외부"에서 리셋/백 버튼을 가장 앞으로 (패널을 뚫고 보여야 하니까요)
-            btnReset.BringToFront();
-            btnBack.BringToFront();
-
-            // 5. 타이머 및 기타 로직
-            _gameTimer = new Timer { Interval = 1000 };
-            _gameTimer.Tick += (s, e) =>
-            {
-                if (_isGameActive)
+                if (!_isInMapSelect && _model.IsGameActive && !_model.IsVictory)
                 {
                     _playTimeSeconds++;
-                    this.Invalidate(); // 갱신
+                    this.Invalidate();
                 }
             };
+            _gameClockTimer.Start();
+
+            // 백그라운드 유휴 절전
+            this.VisibleChanged += (s, e) =>
+            {
+                if (this.Visible)
+                {
+                    _renderTimer.Start();
+                    _gameClockTimer.Start();
+                }
+                else
+                {
+                    _renderTimer.Stop();
+                    _gameClockTimer.Stop();
+                }
+            };
+
+            this.Resize += (s, e) => RecalculateLayout();
+            RecalculateLayout();
         }
 
-
-
-        private void StartGame(string difficulty)
+        public void ShowMapSelection()
         {
-            _logs.Clear(); // 기존 로그 완전 삭제
-            AddLog($"INITIALIZING {difficulty.ToUpper()} ENCRYPTION...");
-
-            _currentDifficulty = difficulty;
-            
-
-            var config = _configs[difficulty];
-            _gridSize = config.GridSize;
-
-            _cellSize = Math.Min(this.Width, this.Height - 100) / _gridSize;
-            _offsetX = (this.Width - (_gridSize * _cellSize)) / 2;
-            _offsetY = 50;
-
-            _manager.InitializeGrid(_gridSize, config.PairCount);
-
-            _completedPaths.Clear();
-            _currentPath.Clear();
-
-            // 게임 상태 초기화 및 타이머 시작
-            _playTimeSeconds = 0;
-            _isGameActive = true;
-            _gameTimer.Start();
-            ResetHintState(); // 힌트 초기화
-
-            pnlDifficulty.Visible = false;
+            _isInMapSelect = true;
+            _showVictoryModal = false;
+            _isVictoryDelayPending = false;
             this.Invalidate();
-
         }
 
+        private void RecalculateLayout()
+        {
+            int w = Math.Max(400, this.ClientSize.Width);
+            int h = Math.Max(400, this.ClientSize.Height);
 
-        private void btnEasy_Click(object sender, EventArgs e) => StartGame("Easy");
-        private void btnNormal_Click(object sender, EventArgs e) => StartGame("Normal");
-        private void btnHard_Click(object sender, EventArgs e) => StartGame("Hard");
-        private void btnInsane_Click(object sender, EventArgs e) => StartGame("Insane");
-        private void btnExtreme_Click(object sender, EventArgs e) => StartGame("Extreme");
-        private void btnExtreme2_Click(object sender, EventArgs e) => StartGame("Extreme2");
+            // 1. 상단 컨트롤 버튼 (헤더)
+            _btnBackRect = new Rectangle(14, 12, 70, 32);
+            _btnModeRect = new Rectangle(_btnBackRect.Right + 8, 12, 74, 32);
 
+            int actionBtnW = 74;
+            int actionGap = 5;
+            _btnResetRect = new Rectangle(w - 12 - actionBtnW, 10, actionBtnW, 32);
+            _btnHintRect = new Rectangle(_btnResetRect.Left - actionGap - actionBtnW, 10, actionBtnW, 32);
+            _btnUndoRect = new Rectangle(_btnHintRect.Left - actionGap - actionBtnW, 10, actionBtnW, 32);
 
+            // 2. 중앙 보드 영역
+            int boardTop = 110;
+            int boardBottom = h - 45;
+            int availableH = boardBottom - boardTop;
+            int availableW = w - 40;
 
+            int boardSide = Math.Min(availableW, availableH);
+            boardSide = Math.Max(240, boardSide);
 
+            int boardX = (w - boardSide) / 2;
+            int boardY = boardTop + (availableH - boardSide) / 2;
 
+            _boardBounds = new Rectangle(boardX, boardY, boardSide, boardSide);
+            _cellSize = (float)boardSide / _model.GridSize;
 
+            // 3. 맵 규모 선택 화면 레이아웃 (2x2 그리드)
+            int mapMarginX = 20;
+            int cardGapX = 14;
+            int mapCardW = (w - mapMarginX * 2 - cardGapX) / 2;
+            int mapCardH = 185;
+
+            int row1Y = 82;
+            int row2Y = row1Y + mapCardH + 14;
+
+            _mapCardEasy = new Rectangle(mapMarginX, row1Y, mapCardW, mapCardH);
+            _mapCardNormal = new Rectangle(mapMarginX + mapCardW + cardGapX, row1Y, mapCardW, mapCardH);
+            _mapCardHard = new Rectangle(mapMarginX, row2Y, mapCardW, mapCardH);
+            _mapCardExpert = new Rectangle(mapMarginX + mapCardW + cardGapX, row2Y, mapCardW, mapCardH);
+
+            int btnH = 34;
+            int btnPad = 12;
+            _mapBtnEasy = new Rectangle(_mapCardEasy.Left + btnPad, _mapCardEasy.Bottom - btnH - btnPad, mapCardW - btnPad * 2, btnH);
+            _mapBtnNormal = new Rectangle(_mapCardNormal.Left + btnPad, _mapCardNormal.Bottom - btnH - btnPad, mapCardW - btnPad * 2, btnH);
+            _mapBtnHard = new Rectangle(_mapCardHard.Left + btnPad, _mapCardHard.Bottom - btnH - btnPad, mapCardW - btnPad * 2, btnH);
+            _mapBtnExpert = new Rectangle(_mapCardExpert.Left + btnPad, _mapCardExpert.Bottom - btnH - btnPad, mapCardW - btnPad * 2, btnH);
+
+            _btnMapSelectBack = new Rectangle(mapMarginX, row2Y + mapCardH + 18, w - mapMarginX * 2, 38);
+        }
+
+        // ==========================================
+        // 렌더링 프레임 갱신 (Smart Idle Sleep)
+        // ==========================================
+        private void OnRenderTick(object sender, EventArgs e)
+        {
+            if (_isInMapSelect) return;
+
+            bool isAnyAnimating = false;
+
+            // 1. 승리 모달 1초 딜레이 타이머
+            if (_isVictoryDelayPending && !_showVictoryModal)
+            {
+                _victoryDelayTimer += 0.016f;
+                if (_victoryDelayTimer >= 1.0f)
+                {
+                    _showVictoryModal = true;
+                    _isVictoryDelayPending = false;
+                    PlayTactileClickSound();
+                }
+                isAnyAnimating = true;
+            }
+
+            // 2. 힌트 카운트다운 타이머
+            if (_isHintActive)
+            {
+                _hintRemainingSeconds -= 0.016f;
+                if (_hintRemainingSeconds <= 0f)
+                {
+                    _isHintActive = false;
+                    _hintPath = null;
+                }
+                isAnyAnimating = true;
+            }
+
+            // 3. 노드 연결 펄스 감쇄
+            for (int r = 0; r < _model.GridSize; r++)
+            {
+                for (int c = 0; c < _model.GridSize; c++)
+                {
+                    var node = _model.Grid[c, r];
+                    if (node.ConnectPulse > 0f)
+                    {
+                        node.ConnectPulse -= 0.06f;
+                        if (node.ConnectPulse < 0f) node.ConnectPulse = 0f;
+                        isAnyAnimating = true;
+                    }
+                }
+            }
+
+            // 4. 쇼크웨이브
+            for (int i = _shockwaves.Count - 1; i >= 0; i--)
+            {
+                var wave = _shockwaves[i];
+                wave.Radius += 8.5f;
+                wave.Alpha -= 0.065f;
+                if (wave.Alpha <= 0f || wave.Radius >= wave.MaxRadius)
+                {
+                    _shockwaves.RemoveAt(i);
+                }
+                else
+                {
+                    isAnyAnimating = true;
+                }
+            }
+
+            // 5. 파티클
+            for (int i = _particles.Count - 1; i >= 0; i--)
+            {
+                var p = _particles[i];
+                p.Position = new PointF(p.Position.X + p.Velocity.X, p.Position.Y + p.Velocity.Y);
+                p.Velocity = new PointF(p.Velocity.X * 0.90f, p.Velocity.Y * 0.90f + 0.22f);
+                p.Life -= 0.055f;
+                if (p.Life <= 0f)
+                {
+                    _particles.RemoveAt(i);
+                }
+                else
+                {
+                    isAnyAnimating = true;
+                }
+            }
+
+            // 6. 플로팅 알림 텍스트
+            for (int i = _floatingTexts.Count - 1; i >= 0; i--)
+            {
+                var ft = _floatingTexts[i];
+                ft.Position = new PointF(ft.Position.X, ft.Position.Y - 1.2f);
+                ft.Life -= 0.045f;
+                ft.Alpha = Math.Max(0f, ft.Life);
+                if (ft.Life <= 0f)
+                {
+                    _floatingTexts.RemoveAt(i);
+                }
+                else
+                {
+                    isAnyAnimating = true;
+                }
+            }
+
+            // 7. 글로벌 펄스 (전류 흐름 애니메이션)
+            _globalPulse += 0.08f;
+            if (_globalPulse > (float)Math.PI * 2) _globalPulse -= (float)Math.PI * 2;
+            isAnyAnimating = true;
+
+            if (_isDragging || isAnyAnimating)
+            {
+                this.Invalidate();
+            }
+        }
+
+        // ==========================================
+        // GDI+ 메인 렌더링 파이프라인
+        // ==========================================
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            try
+            {
+                var g = e.Graphics;
+                g.SmoothingMode = SmoothingMode.AntiAlias;
+                g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+
+                // 1. 미래지향적 사이버 배경
+                DrawCyberBackground(g);
+
+                // 맵 규모 선택 화면
+                if (_isInMapSelect)
+                {
+                    DrawMapSelectScreen(g);
+                    return;
+                }
+
+                // 2. 상단 네온 헤더 바
+                DrawTopHeaderBar(g);
+
+                // 3. 실시간 정보 HUD (시간, 동기화 쌍, 충진율)
+                DrawStatusHud(g);
+
+                // 4. 중앙 회로 격자판
+                DrawCircuitBoard(g);
+
+                // 5. 시각 효과 (쇼크웨이브, 파티클, 플로팅 텍스트)
+                DrawVisualEffects(g);
+
+                // 6. 하단 가이드 바
+                DrawBottomLegendBar(g);
+
+                // 7. 승리 완료 오버레이
+                if (_showVictoryModal)
+                {
+                    DrawVictoryOverlay(g);
+                }
+            }
+            catch
+            {
+                try { e.Graphics.Clear(Color.FromArgb(10, 14, 24)); } catch { }
+            }
+        }
+
+        private void DrawCyberBackground(Graphics g)
+        {
+            int w = Math.Max(10, this.ClientSize.Width);
+            int h = Math.Max(10, this.ClientSize.Height);
+
+            using (var bgBrush = new LinearGradientBrush(new Rectangle(0, 0, w, h),
+                Color.FromArgb(10, 14, 24), Color.FromArgb(16, 22, 38), 90f))
+            {
+                g.FillRectangle(bgBrush, 0, 0, w, h);
+            }
+
+            if (_boardBounds.Width > 0 && _boardBounds.Height > 0)
+            {
+                using (var path = new GraphicsPath())
+                {
+                    path.AddEllipse(_boardBounds.Left - 40, _boardBounds.Top - 40, _boardBounds.Width + 80, _boardBounds.Height + 80);
+                    using (var pgb = new PathGradientBrush(path))
+                    {
+                        pgb.CenterColor = Color.FromArgb(20, 0, 215, 255);
+                        pgb.SurroundColors = new[] { Color.FromArgb(0, 0, 0, 0) };
+                        g.FillPath(pgb, path);
+                    }
+                }
+            }
+        }
+
+        // ==========================================
+        // 맵 규모 선택 화면 (2x2 그리드 글래스모피즘)
+        // ==========================================
+        private void DrawMapSelectScreen(Graphics g)
+        {
+            int w = this.ClientSize.Width;
+
+            using (var titleBrush = new SolidBrush(Color.FromArgb(0, 245, 212)))
+            using (var subBrush = new SolidBrush(Color.FromArgb(160, 185, 210)))
+            {
+                g.DrawString("⚡ SIGNAL LINK : 전술 회로망 규모 선택", _fontHeaderTitle, titleBrush, w / 2f, 18, _sfHorizCenter);
+                g.DrawString("신호를 복호화하고 연결할 네트워크 격자 규모와 보안 프로토콜을 선택하십시오.", _fontHeaderSub, subBrush, w / 2f, 48, _sfHorizCenter);
+            }
+
+            DrawMapCard(g, _mapCardEasy, _mapBtnEasy, 0, "5×5 입문 회로망", "EASY", Color.FromArgb(0, 245, 212),
+                "기본 신호선 3쌍", "초급 보안 버스", "빠른 흐름 파악", "★☆☆ 입문");
+
+            DrawMapCard(g, _mapCardNormal, _mapBtnNormal, 1, "6×6 전술 버스", "NORMAL", Color.FromArgb(0, 210, 255),
+                "고밀도 신호선 4쌍", "다중 라우팅 필요", "표준 작전 규격", "★★☆ 추천");
+
+            DrawMapCard(g, _mapCardHard, _mapBtnHard, 2, "8×8 고밀도 코어", "HARD", Color.FromArgb(255, 175, 40),
+                "복합 신호선 6쌍", "정밀 공간 분할", "상급 보안 매트릭스", "★★★ 도전");
+
+            DrawMapCard(g, _mapCardExpert, _mapBtnExpert, 3, "10×10 스텔스 암기", "EXPERT", Color.FromArgb(255, 65, 120),
+                "대형 신호선 7쌍", "⚡ 스텔스 암기 모드", "호버 시만 색상 노출", "★★★ 마스터");
+
+            bool isBackHover = _btnMapSelectBack.Contains(_mousePos);
+            DrawCyberButton(g, _btnMapSelectBack, "◀ 샌드박스 메인으로 돌아가기", Color.FromArgb(140, 160, 190), isBackHover);
+        }
+
+        private void DrawMapCard(Graphics g, Rectangle cardRect, Rectangle btnRect, int index, string title, string badge, Color themeColor, string b1, string b2, string b3, string stars)
+        {
+            bool isHovered = cardRect.Contains(_mousePos);
+            Color bgCol = isHovered ? Color.FromArgb(220, 20, 32, 54) : Color.FromArgb(190, 15, 23, 38);
+            Color borderCol = isHovered ? themeColor : Color.FromArgb(40, 60, 95);
+
+            using (var brush = new SolidBrush(bgCol))
+            using (var pen = new Pen(borderCol, isHovered ? 2.0f : 1.0f))
+            {
+                FillRoundedRect(g, brush, cardRect, 10);
+                DrawRoundedRect(g, pen, cardRect, 10);
+            }
+
+            Rectangle badgeRect = new Rectangle(cardRect.Left + 14, cardRect.Top + 14, 66, 22);
+            using (var badgeBg = new SolidBrush(Color.FromArgb(40, themeColor)))
+            using (var badgeBorder = new Pen(themeColor, 1.0f))
+            using (var badgeText = new SolidBrush(themeColor))
+            {
+                FillRoundedRect(g, badgeBg, badgeRect, 4);
+                DrawRoundedRect(g, badgeBorder, badgeRect, 4);
+                g.DrawString(badge, _fontCardBadge, badgeText, badgeRect, _sfCenter);
+            }
+
+            using (var titleBrush = new SolidBrush(isHovered ? Color.White : Color.FromArgb(235, 245, 255)))
+            {
+                g.DrawString(title, _fontCardTitle, titleBrush, badgeRect.Right + 10, cardRect.Top + 13);
+            }
+
+            int lineY = cardRect.Top + 44;
+            using (var linePen = new Pen(Color.FromArgb(30, 45, 75), 1.0f))
+            {
+                g.DrawLine(linePen, cardRect.Left + 14, lineY, cardRect.Right - 14, lineY);
+            }
+
+            int bulletY = lineY + 8;
+            using (var bulletBrush = new SolidBrush(Color.FromArgb(160, 180, 205)))
+            using (var starBrush = new SolidBrush(Color.FromArgb(255, 215, 0)))
+            {
+                g.DrawString($"•  {b1}", _fontCardBullet, bulletBrush, cardRect.Left + 16, bulletY);
+                g.DrawString($"•  {b2}", _fontCardBullet, bulletBrush, cardRect.Left + 16, bulletY + 18);
+                g.DrawString($"•  {b3}", _fontCardBullet, bulletBrush, cardRect.Left + 16, bulletY + 36);
+                g.DrawString(stars, _fontCardBadge, starBrush, cardRect.Right - 80, bulletY);
+            }
+
+            bool isBtnHover = btnRect.Contains(_mousePos);
+            DrawCyberButton(g, btnRect, "작전 개시 ▶", themeColor, isBtnHover);
+        }
+
+        private void DrawTopHeaderBar(Graphics g)
+        {
+            DrawCyberButton(g, _btnBackRect, "◀ LIST", Color.FromArgb(120, 140, 170), _btnBackRect.Contains(_mousePos));
+            DrawCyberButton(g, _btnModeRect, "🌐 MAP", Color.FromArgb(0, 220, 255), _btnModeRect.Contains(_mousePos));
+
+            bool canUndo = _model.UndoStack.Count > 0 && !_model.IsVictory;
+            Color undoColor = canUndo ? Color.FromArgb(255, 170, 0) : Color.FromArgb(70, 75, 85);
+            string undoText = canUndo ? $"↶ UNDO ({_model.UndoStack.Count})" : "↶ UNDO";
+            DrawCyberButton(g, _btnUndoRect, undoText, undoColor, canUndo && _btnUndoRect.Contains(_mousePos), canUndo);
+
+            Color hintColor = Color.FromArgb(0, 245, 180);
+            DrawCyberButton(g, _btnHintRect, "💡 HINT", hintColor, _btnHintRect.Contains(_mousePos));
+            DrawCyberButton(g, _btnResetRect, "↺ RESET", Color.FromArgb(0, 200, 255), _btnResetRect.Contains(_mousePos));
+        }
+
+        private void DrawStatusHud(Graphics g)
+        {
+            int w = this.ClientSize.Width;
+            Rectangle hudRect = new Rectangle(14, 52, w - 28, 48);
+
+            using (var bgBrush = new SolidBrush(Color.FromArgb(180, 16, 23, 37)))
+            using (var borderPen = new Pen(Color.FromArgb(40, 60, 95), 1f))
+            {
+                FillRoundedRect(g, bgBrush, hudRect, 8);
+                DrawRoundedRect(g, borderPen, hudRect, 8);
+            }
+
+            int sectionW = hudRect.Width / 4;
+            string timeStr = string.Format("{0:D2}:{1:D2}", _playTimeSeconds / 60, _playTimeSeconds % 60);
+            DrawHudMetric(g, new Rectangle(hudRect.Left, hudRect.Top, sectionW, hudRect.Height), "⏱️ 경과 시간", timeStr, Color.FromArgb(0, 230, 255));
+
+            int connectedCount = _model.CompletedPaths.Count;
+            Color pairCol = connectedCount == _model.PairCount ? Color.FromArgb(0, 255, 170) : Color.FromArgb(0, 220, 255);
+            DrawHudMetric(g, new Rectangle(hudRect.Left + sectionW, hudRect.Top, sectionW, hudRect.Height), "⚡ 신호 동기화", $"{connectedCount} / {_model.PairCount} 쌍", pairCol);
+
+            int cov = _model.GetCoveragePercentage();
+            Color covCol = cov == 100 ? Color.FromArgb(0, 255, 170) : (cov >= 75 ? Color.FromArgb(255, 200, 50) : Color.FromArgb(170, 190, 215));
+            DrawHudMetric(g, new Rectangle(hudRect.Left + sectionW * 2, hudRect.Top, sectionW, hudRect.Height), "🔋 격자 충진율", $"{cov}%", covCol);
+
+            string modeTitle = _model.IsStealthMode ? "🔒 스텔스 암기" : "⚡ 표준 회로";
+            Color modeCol = _model.IsStealthMode ? Color.FromArgb(255, 65, 120) : Color.FromArgb(0, 245, 212);
+            DrawHudMetric(g, new Rectangle(hudRect.Left + sectionW * 3, hudRect.Top, sectionW, hudRect.Height), "🛡️ 작전 모드", modeTitle, modeCol);
+        }
+
+        private void DrawHudMetric(Graphics g, Rectangle r, string label, string val, Color valColor)
+        {
+            using (var lblBrush = new SolidBrush(Color.FromArgb(140, 155, 175)))
+            using (var valBrush = new SolidBrush(valColor))
+            {
+                g.DrawString(label, _fontHudKey, lblBrush, r.Left + r.Width / 2, r.Top + 7, _sfHorizCenter);
+                g.DrawString(val, _fontHudVal, valBrush, r.Left + r.Width / 2, r.Top + 23, _sfHorizCenter);
+            }
+        }
+
+        // ==========================================
+        // 중앙 회로 보드 및 신호 경로 렌더링
+        // ==========================================
+        private void DrawCircuitBoard(Graphics g)
+        {
+            using (var bgBrush = new SolidBrush(Color.FromArgb(200, 12, 17, 28)))
+            using (var framePen = new Pen(Color.FromArgb(30, 45, 75), 1.5f))
+            {
+                FillRoundedRect(g, bgBrush, _boardBounds, 12);
+                DrawRoundedRect(g, framePen, _boardBounds, 12);
+            }
+
+            // 1. 격자 슬롯 배경
+            using (var gridPen = new Pen(Color.FromArgb(24, 34, 54), 1f))
+            {
+                for (int i = 0; i <= _model.GridSize; i++)
+                {
+                    float y = _boardBounds.Top + i * _cellSize;
+                    g.DrawLine(gridPen, _boardBounds.Left, y, _boardBounds.Right, y);
+
+                    float x = _boardBounds.Left + i * _cellSize;
+                    g.DrawLine(gridPen, x, _boardBounds.Top, x, _boardBounds.Bottom);
+                }
+            }
+
+            // 2. AI 힌트 경로 비콘 발광 렌더링
+            if (_isHintActive && _hintPath != null && _hintPath.Count > 1)
+            {
+                Color hintCol = GetSignalBaseColor(_hintColorId);
+                float pulse = 0.5f + 0.5f * (float)Math.Sin(_globalPulse * 3f);
+                int alpha = Math.Max(0, Math.Min(255, (int)(90 + 110 * pulse)));
+                DrawSmoothPipe(g, _hintPath, Color.FromArgb(alpha, hintCol), _cellSize * 0.40f, isDotted: true);
+            }
+
+            // 3. 이미 완성된 신호선 렌더링
+            foreach (var kvp in _model.CompletedPaths)
+            {
+                int colorId = kvp.Key;
+                var path = kvp.Value;
+                if (path.Count < 2) continue;
+
+                bool isPeeking = !_model.IsStealthMode || _model.IsVictory || (_isDragging && _activeColor == colorId);
+                Color wireColor = isPeeking ? GetSignalBaseColor(colorId) : Color.FromArgb(120, 130, 145);
+
+                DrawSmoothPipe(g, path, wireColor, _cellSize * 0.36f);
+            }
+
+            // 4. 현재 실시간 드래깅 중인 선로 렌더링
+            if (_isDragging && _currentPath.Count > 1)
+            {
+                Color activeCol = GetSignalBaseColor(_activeColor);
+                DrawSmoothPipe(g, _currentPath, activeCol, _cellSize * 0.40f, isCurrent: true);
+            }
+
+            // 5. 각 칸의 터미널 노드 렌더링
+            for (int r = 0; r < _model.GridSize; r++)
+            {
+                for (int c = 0; c < _model.GridSize; c++)
+                {
+                    var node = _model.Grid[c, r];
+                    if (node.Type == NodeType.Terminal)
+                    {
+                        DrawTerminalNode(g, node);
+                    }
+                }
+            }
+        }
+
+        private void DrawSmoothPipe(Graphics g, List<Point> path, Color baseColor, float thickness, bool isDotted = false, bool isCurrent = false)
+        {
+            if (path == null || path.Count < 2) return;
+
+            PointF[] pts = new PointF[path.Count];
+            for (int i = 0; i < path.Count; i++)
+            {
+                pts[i] = GetNodeCenter(path[i].X, path[i].Y);
+            }
+
+            // 네온 외곽 글로우
+            using (var glowPen = new Pen(Color.FromArgb(45, baseColor), thickness + 6f))
+            {
+                glowPen.StartCap = LineCap.Round;
+                glowPen.EndCap = LineCap.Round;
+                glowPen.LineJoin = LineJoin.Round;
+                g.DrawLines(glowPen, pts);
+            }
+
+            // 코어 전류 파이프
+            using (var corePen = new Pen(baseColor, thickness))
+            {
+                corePen.StartCap = LineCap.Round;
+                corePen.EndCap = LineCap.Round;
+                corePen.LineJoin = LineJoin.Round;
+                if (isDotted) corePen.DashStyle = DashStyle.Dash;
+                g.DrawLines(corePen, pts);
+            }
+
+            // 전류 하이라이트 중심선
+            using (var centerPen = new Pen(Color.FromArgb(200, 255, 255, 255), Math.Max(2f, thickness * 0.28f)))
+            {
+                centerPen.StartCap = LineCap.Round;
+                centerPen.EndCap = LineCap.Round;
+                centerPen.LineJoin = LineJoin.Round;
+                g.DrawLines(centerPen, pts);
+            }
+        }
+
+        private void DrawTerminalNode(Graphics g, SignalNode node)
+        {
+            PointF center = GetNodeCenter(node.Pos.X, node.Pos.Y);
+            float radius = _cellSize * 0.35f;
+
+            // 스텔스 모드 피킹 검사
+            bool isHover = _hoveredGridPos.HasValue && _hoveredGridPos.Value == node.Pos;
+            bool isCompleted = _model.CompletedPaths.ContainsKey(node.ColorID);
+            bool isPeeking = !_model.IsStealthMode || _model.IsVictory || isHover || isCompleted || (_isDragging && _activeColor == node.ColorID);
+
+            Color nodeColor = isPeeking ? GetSignalBaseColor(node.ColorID) : Color.FromArgb(75, 85, 100);
+
+            // 연결 펄스 애니메이션 확대
+            float pulseScale = 1.0f + node.ConnectPulse * 0.35f;
+            radius *= pulseScale;
+
+            // 터미널 외곽 마이크로칩 링
+            using (var ringPen = new Pen(nodeColor, 2.5f))
+            {
+                g.DrawEllipse(ringPen, center.X - radius, center.Y - radius, radius * 2, radius * 2);
+            }
+
+            // 터미널 내부 발광 코어
+            using (var coreBrush = new SolidBrush(Color.FromArgb(isPeeking ? 180 : 90, nodeColor)))
+            {
+                g.FillEllipse(coreBrush, center.X - radius * 0.75f, center.Y - radius * 0.75f, radius * 1.5f, radius * 1.5f);
+            }
+
+            // 중앙 LED 칩
+            using (var ledBrush = new SolidBrush(isPeeking ? Color.White : Color.FromArgb(170, 185, 205)))
+            {
+                g.FillEllipse(ledBrush, center.X - radius * 0.32f, center.Y - radius * 0.32f, radius * 0.64f, radius * 0.64f);
+            }
+
+            // 스텔스 모드 암기 기호 표출
+            if (!isPeeking)
+            {
+                using (var glyphBrush = new SolidBrush(Color.FromArgb(180, 200, 220)))
+                {
+                    g.DrawString("?", _fontTerminalGlyph, glyphBrush, center.X, center.Y, _sfCenter);
+                }
+            }
+        }
+
+        private void DrawVisualEffects(Graphics g)
+        {
+            // 1. 쇼크웨이브
+            foreach (var wave in _shockwaves)
+            {
+                int alpha = Math.Max(0, Math.Min(255, (int)(wave.Alpha * 255)));
+                if (alpha <= 0 || wave.Radius <= 0f) continue;
+                using (var pen = new Pen(Color.FromArgb(alpha, wave.WaveColor), 2.2f))
+                {
+                    g.DrawEllipse(pen, wave.Center.X - wave.Radius, wave.Center.Y - wave.Radius, wave.Radius * 2, wave.Radius * 2);
+                }
+            }
+
+            // 2. 파티클
+            foreach (var p in _particles)
+            {
+                int alpha = Math.Max(0, Math.Min(255, (int)(p.Life * 255)));
+                if (alpha <= 0 || p.Size <= 0f) continue;
+                using (var brush = new SolidBrush(Color.FromArgb(alpha, p.ParticleColor)))
+                {
+                    g.FillEllipse(brush, p.Position.X - p.Size / 2, p.Position.Y - p.Size / 2, p.Size, p.Size);
+                }
+            }
+
+            // 3. 플로팅 텍스트
+            foreach (var ft in _floatingTexts)
+            {
+                int alpha = Math.Max(0, Math.Min(255, (int)(ft.Alpha * 255)));
+                if (alpha <= 0) continue;
+                using (var brush = new SolidBrush(Color.FromArgb(alpha, ft.TextColor)))
+                {
+                    g.DrawString(ft.Text, _fontFloating, brush, ft.Position.X, ft.Position.Y, _sfHorizCenter);
+                }
+            }
+        }
+
+        private void DrawBottomLegendBar(Graphics g)
+        {
+            int w = this.ClientSize.Width;
+            int h = this.ClientSize.Height;
+
+            string guide = _hoverTooltipText ?? (_model.IsStealthMode
+                ? "💡 스텔스 암기 모드: 노드에 호버하거나 드래그하여 신호 정체를 복호화하고 기억하십시오! (Z: 언도, H: 힌트)"
+                : "💡 팁: 동일한 색상의 단말을 드래그하여 연결하십시오. 전 구역을 100% 충진해야 합니다. (Z: 언도, H: 힌트)");
+
+            using (var brush = new SolidBrush(_hoverTooltipText != null ? Color.FromArgb(0, 255, 210) : Color.FromArgb(120, 140, 165)))
+            {
+                g.DrawString(guide, _fontBottomLegend, brush, new Rectangle(14, h - 38, w - 28, 28), _sfCenter);
+            }
+        }
+
+        private void DrawVictoryOverlay(Graphics g)
+        {
+            int w = this.ClientSize.Width;
+            int h = this.ClientSize.Height;
+
+            using (var dimBrush = new SolidBrush(Color.FromArgb(220, 8, 12, 22)))
+            {
+                g.FillRectangle(dimBrush, 0, 0, w, h);
+            }
+
+            int modalW = 420;
+            int modalH = 430;
+            Rectangle modalRect = new Rectangle((w - modalW) / 2, (h - modalH) / 2, modalW, modalH);
+
+            using (var boxBrush = new SolidBrush(Color.FromArgb(240, 16, 24, 40)))
+            using (var borderPen = new Pen(Color.FromArgb(0, 245, 212), 2.0f))
+            {
+                FillRoundedRect(g, boxBrush, modalRect, 14);
+                DrawRoundedRect(g, borderPen, modalRect, 14);
+            }
+
+            using (var titleBrush = new SolidBrush(Color.FromArgb(0, 245, 212)))
+            using (var subBrush = new SolidBrush(Color.FromArgb(170, 190, 215)))
+            {
+                g.DrawString("NETWORK SYNCHRONIZED", _fontModalTitle, titleBrush, modalRect.Left + modalW / 2, modalRect.Top + 24, _sfHorizCenter);
+                g.DrawString("모든 신호 회로망 완전 동기화 성공!", _fontModalSub, subBrush, modalRect.Left + modalW / 2, modalRect.Top + 58, _sfHorizCenter);
+            }
+
+            int stars = _model.GetStarRating();
+            string starGlyph = stars == 3 ? "★ ★ ★" : (stars == 2 ? "★ ★ ☆" : "★ ☆ ☆");
+            using (var starBrush = new SolidBrush(Color.FromArgb(255, 215, 0)))
+            {
+                g.DrawString(starGlyph, _fontModalStar, starBrush, modalRect.Left + modalW / 2, modalRect.Top + 90, _sfHorizCenter);
+            }
+
+            int statsY = modalRect.Top + 145;
+            DrawModalStatRow(g, modalRect.Left + 40, statsY, modalW - 80, "클리어 시간", string.Format("{0:D2}:{1:D2}", _playTimeSeconds / 60, _playTimeSeconds % 60));
+            DrawModalStatRow(g, modalRect.Left + 40, statsY + 32, modalW - 80, "회로 충진율", "100% 완전 동기화");
+            DrawModalStatRow(g, modalRect.Left + 40, statsY + 64, modalW - 80, "AI 힌트 사용", $"{_model.HintsUsed}회");
+            string rankTitle = stars == 3 ? "S+ QUANTUM MASTER" : (stars == 2 ? "A+ PROTOCOL EXPERT" : "B SIGNAL LINKER");
+            DrawModalStatRow(g, modalRect.Left + 40, statsY + 96, modalW - 80, "최종 랭크", rankTitle);
+
+            int btnW = 86;
+            int btnH = 38;
+            int btnGap = 8;
+            int btnY = modalRect.Bottom - 58;
+            int startX = modalRect.Left + (modalW - (btnW * 4 + btnGap * 3)) / 2;
+
+            _modalNextRect = new Rectangle(startX, btnY, btnW, btnH);
+            _modalRetryRect = new Rectangle(startX + (btnW + btnGap), btnY, btnW, btnH);
+            _modalModeRect = new Rectangle(startX + (btnW + btnGap) * 2, btnY, btnW, btnH);
+            _modalListRect = new Rectangle(startX + (btnW + btnGap) * 3, btnY, btnW, btnH);
+
+            DrawCyberButton(g, _modalNextRect, "다음 레벨 ▶", Color.FromArgb(0, 245, 212), _modalNextRect.Contains(_mousePos));
+            DrawCyberButton(g, _modalRetryRect, "다시하기 ↺", Color.FromArgb(0, 190, 255), _modalRetryRect.Contains(_mousePos));
+            DrawCyberButton(g, _modalModeRect, "규모 선택 🌐", Color.FromArgb(255, 180, 50), _modalModeRect.Contains(_mousePos));
+            DrawCyberButton(g, _modalListRect, "목록으로 ◀", Color.FromArgb(140, 160, 185), _modalListRect.Contains(_mousePos));
+        }
+
+        private void DrawModalStatRow(Graphics g, int x, int y, int w, string title, string val)
+        {
+            using (var titleBrush = new SolidBrush(Color.FromArgb(140, 155, 175)))
+            using (var valBrush = new SolidBrush(Color.White))
+            {
+                g.DrawString(title, _fontModalStatKey, titleBrush, x, y);
+                g.DrawString(val, _fontModalStatVal, valBrush, x + w, y, _sfFar);
+            }
+        }
+
+        private void DrawCyberButton(Graphics g, Rectangle r, string text, Color themeColor, bool isHover, bool isEnabled = true)
+        {
+            Color borderCol = isEnabled ? (isHover ? themeColor : Color.FromArgb(140, themeColor)) : Color.FromArgb(50, 60, 75);
+            Color bgCol = isEnabled ? (isHover ? Color.FromArgb(50, themeColor) : Color.FromArgb(20, themeColor)) : Color.FromArgb(15, 20, 30);
+
+            using (var brush = new SolidBrush(bgCol))
+            using (var pen = new Pen(borderCol, isHover ? 1.5f : 1.0f))
+            {
+                FillRoundedRect(g, brush, r, 6);
+                DrawRoundedRect(g, pen, r, 6);
+            }
+
+            using (var textBrush = new SolidBrush(isEnabled ? (isHover ? Color.White : Color.FromArgb(210, 225, 245)) : Color.FromArgb(90, 100, 115)))
+            {
+                g.DrawString(text, _fontBtn, textBrush, r, _sfCenter);
+            }
+        }
+
+        // ==========================================
+        // 마우스 상호작용 및 고속 궤적 보간(Bresenham)
+        // ==========================================
         protected override void OnMouseDown(MouseEventArgs e)
         {
-            if (!_isGameActive) return;
+            base.OnMouseDown(e);
 
-            int x = (e.X - _offsetX) / _cellSize;
-            int y = (e.Y - _offsetY) / _cellSize;
-
-            // 클릭한 위치가 그리드 범위 안인지 확인
-            if (x >= 0 && x < _gridSize && y >= 0 && y < _gridSize)
+            if (_showVictoryModal)
             {
-                var node = _manager.Grid[x, y];
+                if (_modalNextRect.Contains(e.Location)) { AdvanceToNextDifficulty(); return; }
+                if (_modalRetryRect.Contains(e.Location)) { StartNewGame(_model.Difficulty); return; }
+                if (_modalModeRect.Contains(e.Location)) { _isInMapSelect = true; _showVictoryModal = false; this.Invalidate(); return; }
+                if (_modalListRect.Contains(e.Location)) { GoBackToList(); return; }
+                return;
+            }
 
-                // 1. 시작점이나 끝점을 클릭했을 때
-                if (node.Type == NodeType.Node)
+            if (_isInMapSelect)
+            {
+                if (_mapBtnEasy.Contains(e.Location)) { StartNewGame("Easy"); return; }
+                if (_mapBtnNormal.Contains(e.Location)) { StartNewGame("Normal"); return; }
+                if (_mapBtnHard.Contains(e.Location)) { StartNewGame("Hard"); return; }
+                if (_mapBtnExpert.Contains(e.Location)) { StartNewGame("Expert"); return; }
+                if (_btnMapSelectBack.Contains(e.Location)) { GoBackToList(); return; }
+                return;
+            }
+
+            if (_btnBackRect.Contains(e.Location)) { GoBackToList(); return; }
+            if (_btnModeRect.Contains(e.Location)) { _isInMapSelect = true; this.Invalidate(); return; }
+            if (_btnResetRect.Contains(e.Location)) { StartNewGame(_model.Difficulty); return; }
+            if (_btnUndoRect.Contains(e.Location)) { TriggerUndo(); return; }
+            if (_btnHintRect.Contains(e.Location)) { TriggerAiHint(); return; }
+
+            // 회로 노드 클릭 시작
+            Point? pt = GetGridCoordsAt(e.Location);
+            if (pt.HasValue && _model.IsGameActive)
+            {
+                var clickedNode = _model.Grid[pt.Value.X, pt.Value.Y];
+
+                // 1. 단말 노드 클릭 시: 해당 색상 경로 드래그 개시
+                if (clickedNode.Type == NodeType.Terminal)
                 {
-                    // [추가된 로직] 이미 연결된 선이 있다면 초기화
-                    if (_completedPaths.ContainsKey(node.ColorID))
-                    {
-                        _completedPaths.Remove(node.ColorID);
-                    }
-
-                    // 2. 드래그 시작 준비
                     _isDragging = true;
-                    _activeColor = node.ColorID;
+                    _activeColor = clickedNode.ColorID;
+                    _model.RemovePath(_activeColor); // 기존 선로가 있었다면 초기화
                     _currentPath.Clear();
-                    _currentPath.Add(new Point(x, y));
+                    _currentPath.Add(pt.Value);
+                    PlayTactileClickSound();
+                    this.Invalidate();
+                    return;
+                }
 
-                    this.Invalidate(); // 화면 갱신
-                    AddLog($"TARGETING SIGNAL #{node.ColorID}...");
+                // 2. 이미 그려진 경로 중간 클릭 시: 해당 지점까지 즉시 잘라내기(Trimming) 및 계속 잇기
+                foreach (var kvp in _model.CompletedPaths)
+                {
+                    int colorId = kvp.Key;
+                    int idx = kvp.Value.IndexOf(pt.Value);
+                    if (idx >= 0)
+                    {
+                        _isDragging = true;
+                        _activeColor = colorId;
+                        _currentPath = kvp.Value.Take(idx + 1).ToList();
+                        _model.RemovePath(colorId);
+                        PlayTactileClickSound();
+                        this.Invalidate();
+                        return;
+                    }
                 }
             }
         }
 
         protected override void OnMouseMove(MouseEventArgs e)
         {
-            if (!_isDragging) return;
+            base.OnMouseMove(e);
+            _mousePos = e.Location;
 
-            Point gridPos = GetGridPosition(e.Location);
+            Point? pt = GetGridCoordsAt(e.Location);
+            _hoveredGridPos = pt;
 
-            if (IsValidPos(gridPos))
+            if (_isInMapSelect || !_model.IsGameActive)
             {
-                Point lastPos = _currentPath[_currentPath.Count - 1];
-                if (gridPos == lastPos) return;
+                this.Invalidate();
+                return;
+            }
 
-                // 1. [되돌리기] 이전 칸으로 돌아가면 마지막 칸 삭제
-                if (_currentPath.Count > 1 && gridPos == _currentPath[_currentPath.Count - 2])
+            if (_isDragging && pt.HasValue)
+            {
+                Point targetPt = pt.Value;
+                Point lastPt = _currentPath[_currentPath.Count - 1];
+
+                // 고속 드래그 시 대각선/다중 칸 건너뜀을 해결하는 고속 궤적 보간 (Bresenham)
+                if (targetPt != lastPt)
                 {
-                    _currentPath.RemoveAt(_currentPath.Count - 1);
-                    this.Invalidate();
-                    return;
-                }
-
-                // 2. [직각 이동 제한] Manhattan Distance가 1이어야 함
-                int diffX = Math.Abs(lastPos.X - gridPos.X);
-                int diffY = Math.Abs(lastPos.Y - gridPos.Y);
-
-                if (diffX + diffY == 1)
-                {
-                    // 3. [충돌 방지] 자기 자신 혹은 이미 완성된 다른 선과 겹치는지 확인
-                    if (IsPathBlocked(gridPos)) return;
-
-                    // 4. [점 통과 제한] 다른 색 점은 밟을 수 없음
-                    var targetNode = _manager.Grid[gridPos.X, gridPos.Y];
-                    if (targetNode.Type == NodeType.Node && targetNode.ColorID != _activeColor) return;
-
-                    _currentPath.Add(gridPos);
-
-                    // 끝점에 도달하면 즉시 연결 시도
-                    if (targetNode.Type == NodeType.Node && targetNode.ColorID == _activeColor)
-                    {
-                        CheckConnection();
-                        _isDragging = false;
-                    }
-
-                    this.Invalidate();
+                    ProcessPathStep(lastPt, targetPt);
                 }
             }
+
+            this.Invalidate();
         }
 
-        // 다른 선에 의해 막혀있는지 확인하는 헬퍼 메서드
-        private bool IsPathBlocked(Point pos)
+        private void ProcessPathStep(Point from, Point to)
         {
-            bool blocked = false;
-            if (_currentPath.Contains(pos)) blocked = true;
-            foreach (var entry in _completedPaths)
+            // 되돌리기: 이전 칸으로 복귀하면 마지막 칸 삭제
+            if (_currentPath.Count > 1 && to == _currentPath[_currentPath.Count - 2])
             {
-                if (entry.Key == _activeColor) continue;
-                if (entry.Value.Contains(pos)) { blocked = true; break; }
+                _currentPath.RemoveAt(_currentPath.Count - 1);
+                PlayTactileClickSound();
+                return;
             }
 
-            if (blocked)
+            // 거리 차이
+            int dx = to.X - from.X;
+            int dy = to.Y - from.Y;
+
+            // 단일 맨해튼 스텝 이동
+            if (Math.Abs(dx) + Math.Abs(dy) == 1)
             {
-                _errorFlashFrame = 5; // N 프레임 동안 붉은색 효과 유지
-                AddLog($"CRITICAL ERROR: SIGNAL COLLISION AT [{pos.X}, {pos.Y}]");
+                TryAddNodeToCurrentPath(to);
             }
-            return blocked;
+            else
+            {
+                // 고속 이동 시 중간 노드 연속 보간 (X축 먼저 시도 후 Y축 이동)
+                int stepX = Math.Sign(dx);
+                int stepY = Math.Sign(dy);
+
+                Point curr = from;
+                while (curr.X != to.X)
+                {
+                    Point next = new Point(curr.X + stepX, curr.Y);
+                    if (!TryAddNodeToCurrentPath(next)) return;
+                    curr = next;
+                }
+                while (curr.Y != to.Y)
+                {
+                    Point next = new Point(curr.X, curr.Y + stepY);
+                    if (!TryAddNodeToCurrentPath(next)) return;
+                    curr = next;
+                }
+            }
         }
 
+        private bool TryAddNodeToCurrentPath(Point pt)
+        {
+            if (pt.X < 0 || pt.X >= _model.GridSize || pt.Y < 0 || pt.Y >= _model.GridSize) return false;
 
+            // 1. 자기 자신 경로와의 충돌 (이미 현재 경로에 포함된 칸이면 루프 방지)
+            int existingIdx = _currentPath.IndexOf(pt);
+            if (existingIdx >= 0)
+            {
+                // 이전 지점으로 되감기 (Rollback)
+                _currentPath = _currentPath.Take(existingIdx + 1).ToList();
+                return true;
+            }
+
+            // 2. 다른 완성된 신호선과의 충돌
+            foreach (var kvp in _model.CompletedPaths)
+            {
+                if (kvp.Key == _activeColor) continue;
+                if (kvp.Value.Contains(pt)) return false; // 막힘
+            }
+
+            // 3. 다른 색상 터미널 덮어쓰기 금지
+            var node = _model.Grid[pt.X, pt.Y];
+            if (node.Type == NodeType.Terminal && node.ColorID != _activeColor) return false;
+
+            _currentPath.Add(pt);
+
+            // 4. 목표 단말에 도달 시 즉시 연결 확정
+            if (node.Type == NodeType.Terminal && node.ColorID == _activeColor && _currentPath.Count > 1)
+            {
+                FinishCurrentConnection();
+                return true;
+            }
+
+            return true;
+        }
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
-            _isDragging = false;
-            // 3. 마지막 지점이 같은 색상의 노드인지 확인하여 연결 확정
-            CheckConnection();
-        }
+            base.OnMouseUp(e);
 
-        // 1. 마우스 좌표를 그리드 좌표(0,0 ~ n,n)로 변환
-        private Point GetGridPosition(Point mouseLocation)
-        {
-            int x = (mouseLocation.X - _offsetX) / _cellSize;
-            int y = (mouseLocation.Y - _offsetY) / _cellSize;
-            return new Point(x, y);
-        }
-
-        // 2. 좌표가 그리드 범위 안에 있는지 확인
-        private bool IsValidPos(Point p)
-        {
-            return p.X >= 0 && p.X < _gridSize && p.Y >= 0 && p.Y < _gridSize;
-        }
-
-        // 3. 드래그 종료 시 연결 성공 여부 확인
-        private void CheckConnection()
-        {
-            if (_currentPath.Count < 2) return;
-
-            Point start = _currentPath[0];
-            Point end = _currentPath[_currentPath.Count - 1];
-
-            var startNode = _manager.Grid[start.X, start.Y];
-            var endNode = _manager.Grid[end.X, end.Y];
-
-            if (startNode.ColorID == endNode.ColorID && start != end)
+            if (_isDragging)
             {
-                _completedPaths[_activeColor] = new List<Point>(_currentPath);
-
-                // 연결 성공할 때마다 승리 여부 확인
-                CheckVictory();
+                FinishCurrentConnection();
             }
-
-            _currentPath.Clear();
-            this.Invalidate();
-            AddLog($"LINK ESTABLISHED: SIGNAL #{_activeColor}");
         }
 
-        protected override void OnPaint(PaintEventArgs e)
+        private void FinishCurrentConnection()
         {
-            if (_manager.Grid == null) return;
-
-            base.OnPaint(e);
-            Graphics g = e.Graphics;
-
-            // 해커 배경색 강제 적용 (검은색이어야 효과가 삼)
-            g.Clear(Color.Black);
-            g.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
-
-            // 1. 격자 그리기
-            DrawGridLines(g);
-
-            // 2. [HINT] 힌트 레이어
-            if (_showHint && _isGameActive && _hintColorID != -1)
+            if (_isDragging && _currentPath.Count >= 2)
             {
-                if (_manager.SolutionPaths.ContainsKey(_hintColorID))
+                if (_model.CommitPath(_activeColor, _currentPath))
                 {
-                    Color hintColor = Color.FromArgb(50, GetSignalColor(_hintColorID, true));
-                    DrawSignalPath(g, _manager.SolutionPaths[_hintColorID], hintColor, 10);
-                }
-            }
+                    Point endPt = _currentPath.Last();
+                    PointF center = GetNodeCenter(endPt.X, endPt.Y);
 
-            // 3. 이미 완성된 선들 그리기
-            foreach (var pathEntry in _completedPaths)
-            {
-                // [수정] 드래그 중이거나, 게임에서 승리했을 때(!_isGameActive) 진짜 색상을 보여줌
-                bool showRealColor = (_isDragging && _activeColor == pathEntry.Key) || (!_isGameActive);
-
-                // GetSignalColor에 showRealColor를 전달하여 회색이 아닌 실제 색상을 가져옴
-                DrawSignalPath(g, pathEntry.Value, GetSignalColor(pathEntry.Key, showRealColor), 14);
-            }
-
-            // 4. 현재 드래그 중인 선 그리기
-            if (_isDragging && _currentPath.Count > 1)
-            {
-                DrawSignalPath(g, _currentPath, GetSignalColor(_activeColor, true), 14);
-            }
-
-            // [신규] 4.5 터미널 로그 그리기 (노드 밑에 깔리는 것이 좋음)
-            DrawTerminalLog(g);
-
-            // 5. 배치된 노드(점) 그리기
-            foreach (var node in _manager.Grid)
-            {
-                if (node.Type == NodeType.Node)
-                {
-                    // [수정] 드래그 중이거나, 게임에서 승리했을 때(!_isGameActive) 진짜 색상을 보여줌
-                    bool isPeeking = (_isDragging && _activeColor == node.ColorID) || (!_isGameActive);
-
-                    Color nodeColor = GetSignalColor(node.ColorID, isPeeking);
-
-                    using (Brush b = new SolidBrush(nodeColor))
+                    // 연결 성공 쇼크웨이브 방출
+                    _shockwaves.Add(new ShockwaveEffect
                     {
-                        int margin = _cellSize / 4;
-                        g.FillEllipse(b, _offsetX + node.Pos.X * _cellSize + margin,
-                                         _offsetY + node.Pos.Y * _cellSize + margin, _cellSize / 2, _cellSize / 2);
+                        Center = center,
+                        Radius = 10f,
+                        MaxRadius = _cellSize * 1.6f,
+                        WaveColor = GetSignalBaseColor(_activeColor)
+                    });
+
+                    // 스파크 파티클
+                    SpawnSparks(center, GetSignalBaseColor(_activeColor), 14);
+
+                    // 플로팅 알림
+                    _floatingTexts.Add(new FloatingNotification
+                    {
+                        Position = new PointF(center.X, center.Y - 15),
+                        Text = $"⚡ SIGNAL #{_activeColor} LINKED!",
+                        TextColor = GetSignalBaseColor(_activeColor)
+                    });
+
+                    PlayTactileClickSound();
+
+                    // 승리 체크
+                    if (_model.IsVictory && !_showVictoryModal && !_isVictoryDelayPending)
+                    {
+                        _isVictoryDelayPending = true;
+                        _victoryDelayTimer = 0f;
+
+                        PointF boardCenter = new PointF(_boardBounds.Left + _boardBounds.Width / 2f, _boardBounds.Top + _boardBounds.Height / 2f);
+                        _shockwaves.Add(new ShockwaveEffect
+                        {
+                            Center = boardCenter,
+                            Radius = 20f,
+                            MaxRadius = _boardBounds.Width * 0.95f,
+                            WaveColor = Color.FromArgb(0, 245, 212)
+                        });
                     }
                 }
             }
 
-            // 6. 상태 표시
-            DrawGameStatus(g);
+            _isDragging = false;
+            _currentPath.Clear();
+            this.Invalidate();
+        }
 
-            if (_errorFlashFrame > 0)
+        private void TriggerUndo()
+        {
+            if (_model.Undo())
             {
-                // 화면 전체를 반투명한 빨간색으로 덮고, 선 두께를 흔들리게 표현
-                using (Brush errorBrush = new SolidBrush(Color.FromArgb(80, 205, 0, 0)))
+                _floatingTexts.Add(new FloatingNotification
                 {
-                    g.FillRectangle(errorBrush, 0, 0, this.Width, this.Height);
-                }
-                _errorFlashFrame--; // 프레임 차감
-            }
-
-            // [신규] 7. CRT 스캔라인 효과 (가장 마지막에 모든 레이어를 덮음)
-            DrawScanlines(g);
-        }
-
-        private void DrawGridLines(Graphics g)
-        {
-            using (Pen gridPen = new Pen(Color.FromArgb(60, 60, 60), 1))
-            {
-                for (int i = 0; i <= _gridSize; i++)
-                {
-                    // 가로줄
-                    g.DrawLine(gridPen, _offsetX, _offsetY + i * _cellSize,
-                               _offsetX + _gridSize * _cellSize, _offsetY + i * _cellSize);
-                    // 세로줄
-                    g.DrawLine(gridPen, _offsetX + i * _cellSize, _offsetY,
-                               _offsetX + i * _cellSize, _offsetY + _gridSize * _cellSize);
-                }
-            }
-        }
-
-        // 상태 메시지 출력을 위한 추가 헬퍼 메서드
-        private void DrawGameStatus(Graphics g)
-        {
-            // 1. 남은 칸 계산
-            int filled = 0;
-            foreach (var p in _completedPaths.Values) filled += p.Count;
-            int remaining = (_gridSize * _gridSize) - filled;
-
-            // 2. 실시간 시간 포맷팅 (MM:SS)
-            string timeStr = string.Format("{0:D2}:{1:D2}", _playTimeSeconds / 60, _playTimeSeconds % 60);
-
-            // 3. 상태 메시지 조합
-            string status = remaining == 0 ? ">>> READY TO FINISH <<<" : $"[{timeStr}] EMPTY NODES: {remaining}";
-
-            // 게임 클리어 시 메시지 변경
-            if (!_isGameActive && remaining == 0)
-                status = $"ACCESS GRANTED - FINAL TIME: {timeStr}";
-
-            // 4. 렌더링 (해커 느낌을 위해 밝은 회색이나 라임색 사용)
-            using (Font f = new Font("Consolas", 10, FontStyle.Bold))
-            {
-                g.DrawString(status, f, Brushes.White, _offsetX, _offsetY + (_gridSize * _cellSize) + 10);
-            }
-        }
-
-        // 그리기 로직 공통화 (코드 중복 방지)
-        private void DrawSignalPath(Graphics g, List<Point> path, Color color, int thickness = 12)
-        {
-            using (Pen pathPen = new Pen(color, 12)) // 선 굵기
-            {
-                pathPen.StartCap = System.Drawing.Drawing2D.LineCap.Round;
-                pathPen.EndCap = System.Drawing.Drawing2D.LineCap.Round;
-                pathPen.LineJoin = System.Drawing.Drawing2D.LineJoin.Round;
-
-                for (int i = 0; i < path.Count - 1; i++)
-                {
-                    Point p1 = new Point(_offsetX + path[i].X * _cellSize + _cellSize / 2, _offsetY + path[i].Y * _cellSize + _cellSize / 2);
-                    Point p2 = new Point(_offsetX + path[i + 1].X * _cellSize + _cellSize / 2, _offsetY + path[i + 1].Y * _cellSize + _cellSize / 2);
-                    g.DrawLine(pathPen, p1, p2);
-                }
-            }
-        }
-
-        // ID별 색상 반환 유틸리티
-        private Color GetSignalColor(int id, bool isPeeking = false)
-        {
-            // [Extreme 모드 전용 로직] 
-            // 피킹 중(드래그, 힌트, 승리 연출)이 아닐 때 모든 노드와 선을 회색으로 만듭니다.
-            // if (_currentDifficulty == "Extreme" && !isPeeking)
-            if ((!isPeeking) && ((_currentDifficulty == "Extreme")||(_currentDifficulty == "Extreme2")))
-            {
-                return Color.FromArgb(120, 120, 120); // 어두운 회색 (정체 은폐)
-            }
-
-            // 다른 난이도이거나 피킹 중일 때 보여줄 '진짜 정체' 색상들
-            switch (id)
-            {
-                case 1: return Color.FromArgb(255, 80, 80);   // Red
-                case 2: return Color.FromArgb(80, 150, 255);  // Blue
-                case 3: return Color.FromArgb(80, 255, 150);  // Green
-                case 4: return Color.FromArgb(255, 255, 80);  // Yellow
-                case 5: return Color.FromArgb(255, 150, 50);  // Orange
-                case 6: return Color.FromArgb(180, 100, 255); // Purple
-                case 7: return Color.FromArgb(255, 100, 200); // Pink
-                case 8: return Color.FromArgb(100, 255, 255); // Cyan
-                case 9: return Color.FromArgb(170, 255, 0);   // Neon Lime
-                case 10: return Color.FromArgb(255, 255, 255); // Pure White
-                case 11: return Color.FromArgb(255, 190, 0);   // Amber Gold
-                default: return Color.Gray;
-            }
-        }
-
-
-
-        private void CheckVictory()
-        {
-            int filledCount = 0;
-            foreach (var path in _completedPaths.Values) filledCount += path.Count;
-
-            if (filledCount == _gridSize * _gridSize)
-            {
-                _isGameActive = false;
-                _gameTimer.Stop(); // 승리 시 타이머 정지
-
-                try
-                {
-                    GateHelper.Dashboard.DashboardManager.RecordSignalLinkWin();
-                }
-                catch { }
-
-                // 현재까지의 시간을 MM:SS 형식으로 변환
-                string finalTime = string.Format("{0:D2}:{1:D2}", _playTimeSeconds / 60, _playTimeSeconds % 60);
-
-                AddLog(">>> SYSTEM OVERRIDE SUCCESSFUL <<<");
-                AddLog("DECRYPTING ALL SIGNAL NODES...");
-                AddLog("ACCESS GRANTED. WELCOME, ADMIN.");
-
+                    Position = new PointF(this.ClientSize.Width / 2f, _boardBounds.Top - 20),
+                    Text = "↶ 신호 연결 취소 완료",
+                    TextColor = Color.FromArgb(255, 180, 50)
+                });
+                PlayTactileClickSound();
                 this.Invalidate();
+            }
+        }
 
-                Task.Delay(1500).ContinueWith(_ => {
-                    this.Invoke(new Action(() => ShowVictoryOverlay(finalTime, _currentDifficulty)));
+        private void TriggerAiHint()
+        {
+            int? hintColor = _model.RequestAiHint(out var hintPath);
+            if (hintColor.HasValue && hintPath != null)
+            {
+                _isHintActive = true;
+                _hintColorId = hintColor.Value;
+                _hintPath = hintPath;
+                _hintRemainingSeconds = 3.5f;
+
+                PointF center = GetNodeCenter(hintPath[0].X, hintPath[0].Y);
+                _shockwaves.Add(new ShockwaveEffect
+                {
+                    Center = center,
+                    Radius = 15f,
+                    MaxRadius = _cellSize * 1.8f,
+                    WaveColor = GetSignalBaseColor(_hintColorId)
+                });
+
+                _floatingTexts.Add(new FloatingNotification
+                {
+                    Position = new PointF(this.ClientSize.Width / 2f, _boardBounds.Top - 20),
+                    Text = $"💡 AI 회로 스캔: 신호 #{_hintColorId} 최적 경로 감지!",
+                    TextColor = GetSignalBaseColor(_hintColorId)
+                });
+
+                PlayTactileClickSound();
+                this.Invalidate();
+            }
+            else
+            {
+                _floatingTexts.Add(new FloatingNotification
+                {
+                    Position = new PointF(this.ClientSize.Width / 2f, _boardBounds.Top - 20),
+                    Text = "💡 모든 신호가 이미 연결되어 있습니다.",
+                    TextColor = Color.FromArgb(170, 185, 205)
                 });
             }
         }
 
-        private void ShowVictoryOverlay(string time, string difficulty)
+        public void StartNewGame(string diff)
         {
-            // 1. Dim 레이어 생성
-            Panel dimLayer = new Panel
-            {
-                Dock = DockStyle.Fill,
-                BackColor = Color.FromArgb(180, 0, 0, 0),
-                Location = new Point(0, 0),
-                Name = "DimLayer"
-            };
-
-            // 2. 결과 카드 생성
-            var resultCard = new MaterialSkin.Controls.MaterialCard
-            {
-                Size = new Size(380, 400),
-                Padding = new Padding(24),
-                BackColor = Color.FromArgb(40, 40, 40)
-            };
-
-            var lblTitle = new MaterialSkin.Controls.MaterialLabel
-            {
-                Text = "SIGNAL ESTABLISHED",
-                FontType = MaterialSkin.MaterialSkinManager.fontType.H4,
-                HighEmphasis = true,
-                UseAccent = true,
-                Location = new Point(24, 24),
-                AutoSize = true
-            };
-
-            var lblStats = new MaterialSkin.Controls.MaterialLabel
-            {
-                Text = $"TIME: {time}\nLEVEL: {difficulty.ToUpper()}\nSTATUS: ALL SIGNALS SYNCED",
-                FontType = MaterialSkin.MaterialSkinManager.fontType.Subtitle1,
-                Location = new Point(24, 85),
-                AutoSize = true
-            };
-
-            // 3. 확인 버튼 (클릭 시 리셋)
-            var btnClose = new MaterialSkin.Controls.MaterialButton
-            {
-                Text = "TERMINATE CONNECTION",
-                Type = MaterialSkin.Controls.MaterialButton.MaterialButtonType.Contained,
-                UseAccentColor = true,
-                Size = new Size(330, 40),
-                Location = new Point(24, 320)
-            };
-
-            btnClose.Click += (s, e) => {
-                this.Controls.Remove(dimLayer);
-                dimLayer.Dispose();
-                btnReset_Click(null, null); // 초기 화면으로 돌아가기
-            };
-
-            resultCard.Controls.Add(lblTitle);
-            resultCard.Controls.Add(lblStats);
-            resultCard.Controls.Add(btnClose);
-
-            resultCard.Location = new Point((this.Width - resultCard.Width) / 2, (this.Height - resultCard.Height) / 2);
-            dimLayer.Controls.Add(resultCard);
-            this.Controls.Add(dimLayer);
-            dimLayer.BringToFront();
-        }
-
-
-        private void btnReset_Click(object sender, EventArgs e)
-        {
-            _isGameActive = false;
-            _gameTimer.Stop(); // 타이머 정지
-            _playTimeSeconds = 0; // 시간 초기화
-
-            _logs.Clear(); // 로그 초기화
-            AddLog("SYSTEM RESET... ALL LOGS PURGED.");
-
-            // 1. 현재 진행 중인 데이터들 초기화
+            _isInMapSelect = false;
+            _isDragging = false;
             _currentPath.Clear();
-            _completedPaths.Clear();
-            ResetHintState(); // 리셋 시 힌트 끄기
-
-            // 2. 난이도 선택 패널 다시 표시
-            pnlDifficulty.Visible = true;
-            pnlDifficulty.BringToFront();
-
-            // 3. 뒤로가기/리셋 버튼은 항상 패널보다 위에 있어야 하므로 다시 정렬 (필요시)
-            btnBack.BringToFront();
-            btnReset.BringToFront();
-
-            // 4. 배경 화면 갱신
+            _isHintActive = false;
+            _hintPath = null;
+            _model.InitializeGrid(diff);
+            _playTimeSeconds = 0;
+            _showVictoryModal = false;
+            _isVictoryDelayPending = false;
+            _shockwaves.Clear();
+            _particles.Clear();
+            _floatingTexts.Clear();
+            RecalculateLayout();
             this.Invalidate();
         }
 
-        private void btnBack_Click(object sender, EventArgs e)
+        private void AdvanceToNextDifficulty()
+        {
+            switch (_model.Difficulty)
+            {
+                case "Easy": StartNewGame("Normal"); break;
+                case "Normal": StartNewGame("Hard"); break;
+                case "Hard": StartNewGame("Expert"); break;
+                default: StartNewGame("Expert"); break;
+            }
+        }
+
+        private void GoBackToList()
         {
             if (this.ParentForm is SandBox sb)
             {
@@ -608,124 +1166,135 @@ namespace GateHelper
             }
         }
 
-        private async void btnHint_Click(object sender, EventArgs e)
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            if (!_isGameActive) return;
-
-            // 1. 이미 진행 중인 힌트 타이머가 있다면 즉시 취소
-            _hintCts?.Cancel();
-            _hintCts = new System.Threading.CancellationTokenSource();
-            var token = _hintCts.Token;
-
-            // 2. 새로운 랜덤 색상 선택 (현재 표시 중인 색상과 겹치지 않게)
-            var availableColors = _manager.SolutionPaths.Keys.ToList();
-            if (availableColors.Count > 0)
+            if (keyData == (Keys.Control | Keys.Z) || keyData == Keys.Z)
             {
-                Random rand = new Random();
-                int nextColorID;
-
-                // 색상이 2개 이상이면 현재 보여주는 색상과 다른 색상이 나올 때까지 무작위 선택
-                if (availableColors.Count > 1)
+                if (!_isInMapSelect) TriggerUndo();
+                return true;
+            }
+            if (keyData == Keys.H)
+            {
+                if (!_isInMapSelect) TriggerAiHint();
+                return true;
+            }
+            if (keyData == Keys.R)
+            {
+                if (!_isInMapSelect) StartNewGame(_model.Difficulty);
+                return true;
+            }
+            if (keyData == Keys.Escape)
+            {
+                if (!_isInMapSelect)
                 {
-                    do
-                    {
-                        nextColorID = availableColors[rand.Next(availableColors.Count)];
-                    } while (nextColorID == _hintColorID);
+                    _isInMapSelect = true;
+                    this.Invalidate();
+                    return true;
                 }
                 else
                 {
-                    nextColorID = availableColors[0];
-                }
-
-                _hintColorID = nextColorID;
-                _showHint = true;
-                this.Invalidate(); // 새 힌트 표시
-
-                try
-                {
-                    await Task.Delay(3000, token); // 3. 3초(3000ms) 대기 (취소 토큰 전달)
-                    ResetHintState(); // 4. 3초가 무사히 지나면 힌트 자동 종료
-                    this.Invalidate();
-                }
-                catch (TaskCanceledException)
-                {
-                    // 3초가 지나기 전에 버튼을 다시 누르면 이 위치로 오게 됨
-                    // 새로운 클릭이 이미 _hintColorID를 갱신했으므로 여기서는 아무것도 하지 않음
+                    GoBackToList();
+                    return true;
                 }
             }
+
+            return base.ProcessCmdKey(ref msg, keyData);
         }
 
-        private void ResetHintState()
+        // ==========================================
+        // 헬퍼 유틸리티
+        // ==========================================
+        private PointF GetNodeCenter(int c, int r)
         {
-            _showHint = false;
-            _hintColorID = -1;
-            _hintCts?.Cancel();
-            // 버튼 스타일 등을 초기화하는 코드가 있다면 여기에 추가
+            return new PointF(
+                _boardBounds.Left + c * _cellSize + _cellSize / 2f,
+                _boardBounds.Top + r * _cellSize + _cellSize / 2f
+            );
         }
 
-        private void AddLog(string message)
+        private Point? GetGridCoordsAt(Point p)
         {
-            // 해커 느낌을 위해 앞에 '>' 기호와 시간을 붙입니다.
-            string logEntry = $"> [{DateTime.Now:HH:mm:ss}] {message}";
-            _logs.Enqueue(logEntry);
+            if (!_boardBounds.Contains(p) || _cellSize <= 0) return null;
+            int col = (int)((p.X - _boardBounds.Left) / _cellSize);
+            int row = (int)((p.Y - _boardBounds.Top) / _cellSize);
 
-            // 로그가 너무 많아지면 가장 오래된 것부터 삭제
-            while (_logs.Count > MAX_LOGS)
-            {
-                _logs.Dequeue();
-            }
-            this.Invalidate(); // 로그가 추가될 때마다 화면 갱신
+            if (col >= 0 && col < _model.GridSize && row >= 0 && row < _model.GridSize)
+                return new Point(col, row);
+
+            return null;
         }
 
-        private void DrawTerminalLog(Graphics g)
+        private Color GetSignalBaseColor(int colorId)
         {
-            // 1. 위치 설정
-            int logX = _offsetX + (_gridSize * _cellSize) + 20;
-            int logY = _offsetY;
+            if (colorId >= 1 && colorId < _signalColors.Length)
+                return _signalColors[colorId];
+            return _signalColors[0];
+        }
 
-            if (logX + 200 > this.Width)
+        private void SpawnSparks(PointF center, Color color, int count)
+        {
+            var rand = new Random();
+            for (int i = 0; i < count; i++)
             {
-                logX = _offsetX;
-                logY = _offsetY + (_gridSize * _cellSize) + 25;
-            }
-
-            // 폰트를 조금 더 선명하게 보이기 위해 Bold 추천 (취향에 따라 Regular 유지 가능)
-            using (Font logFont = new Font("Consolas", 9, FontStyle.Bold))
-            {
-                int i = 0;
-                int count = _logs.Count;
-
-                foreach (string log in _logs)
+                double angle = rand.NextDouble() * Math.PI * 2;
+                float speed = 1.5f + (float)rand.NextDouble() * 3.5f;
+                _particles.Add(new SparkParticle
                 {
-                    // [수정] 최소 밝기를 180으로 고정하고 나머지를 비율로 계산
-                    // 로그가 2줄일 때: 첫 줄(alpha 217), 둘째 줄(alpha 255)
-                    // 이렇게 하면 '어두운 연두색'이 아니라 '약간 투명한 밝은 연두색'이 됩니다.
-                    int alpha = 180 + (int)(75 * ((double)(i + 1) / count));
-
-                    // 색상이 여전히 어둡다면 Lime 대신 SpringGreen을 써보세요. 훨씬 눈에 띕니다.
-                    using (Brush b = new SolidBrush(Color.FromArgb(alpha, Color.Lime)))
-                    {
-                        g.DrawString(log, logFont, b, logX, logY + (i * 12));
-                    }
-                    i++;
-                }
+                    Position = center,
+                    Velocity = new PointF((float)Math.Cos(angle) * speed, (float)Math.Sin(angle) * speed),
+                    ParticleColor = color,
+                    Life = 1.0f,
+                    Size = 2.5f + (float)rand.NextDouble() * 2.5f
+                });
             }
         }
 
-        private void DrawScanlines(Graphics g)
+        private void PlayTactileClickSound()
         {
-            // 아주 투명한 검은색 선을 3픽셀 간격으로 덧씌움
-            using (Pen scanlinePen = new Pen(Color.FromArgb(20, 0, 0, 0), 1))
+            try
             {
-                for (int y = 0; y < this.Height; y += 3)
-                {
-                    g.DrawLine(scanlinePen, 0, y, this.Width, y);
-                }
+                System.Media.SystemSounds.Asterisk.Play();
+            }
+            catch { }
+        }
+
+        private static void DrawRoundedRect(Graphics g, Pen pen, Rectangle bounds, int radius)
+        {
+            using (var path = CreateRoundedRectanglePath(bounds, radius))
+            {
+                g.DrawPath(pen, path);
             }
         }
 
+        private static void FillRoundedRect(Graphics g, Brush brush, Rectangle bounds, int radius)
+        {
+            using (var path = CreateRoundedRectanglePath(bounds, radius))
+            {
+                g.FillPath(brush, path);
+            }
+        }
 
+        private static GraphicsPath CreateRoundedRectanglePath(Rectangle bounds, int radius)
+        {
+            GraphicsPath path = new GraphicsPath();
+            int diameter = Math.Max(2, radius * 2);
+            Rectangle arc = new Rectangle(bounds.Location, new Size(diameter, diameter));
 
-        ////////////////////////////////////////////////////////////////////////   CLASS END  /////////////////////////////////////////////////////////////////////////////////////
+            if (bounds.Width <= 0 || bounds.Height <= 0)
+            {
+                path.AddRectangle(bounds);
+                return path;
+            }
+
+            path.AddArc(arc, 180, 90);
+            arc.X = bounds.Right - diameter;
+            path.AddArc(arc, 270, 90);
+            arc.Y = bounds.Bottom - diameter;
+            path.AddArc(arc, 0, 90);
+            arc.X = bounds.Left;
+            path.AddArc(arc, 90, 90);
+            path.CloseFigure();
+            return path;
+        }
     }
 }

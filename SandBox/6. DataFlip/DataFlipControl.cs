@@ -99,6 +99,10 @@ namespace GateHelper.DataFlip
         private Rectangle _btnMapLargeRect;
         private Rectangle _btnMapHugeRect;
 
+        // 한줄 전투 로그 배너 영역 및 호버 상태
+        private Rectangle _combatLogRect;
+        private bool _hoverOnCombatLog = false;
+
         // 이펙트 & 플로팅 텍스트
         private List<CombatFloatingText> _floatingTexts = new List<CombatFloatingText>();
         private List<ShockwaveRing> _shockwaves = new List<ShockwaveRing>();
@@ -186,8 +190,11 @@ namespace GateHelper.DataFlip
             int boardW = _tileW * _game.Cols;
             int boardH = _tileH * _game.Rows;
             int boardX = Math.Max(10, (w - boardW) / 2);
-            int boardY = 74;
+            int boardY = 96;
             _boardRect = new Rectangle(boardX, boardY, boardW, boardH);
+
+            // 한줄 전투 로그 배너 영역 (상단 HUD와 전장 보드 사이)
+            _combatLogRect = new Rectangle(boardX, 72, boardW, 20);
 
             // 하단 조작 영역 (스타크래프트식 탭 & 슬롯 구조)
             int tabY = _boardRect.Bottom + 10;
@@ -511,13 +518,31 @@ namespace GateHelper.DataFlip
                         _animPhase = TurnAnimPhase.AiDecision;
                         _phaseTimer = 0;
 
-                        // 5. AI 지능형 건설 & 생산
+                        // 5. AI 지능형 건설 & 생산 & 전술 스킬
                         _game.ExecuteAiDecisions();
+
+                        // AI 전술 스킬 및 이벤트 플러시 (시각적 피드백 연동)
+                        if (_game.PendingAiLaserBeams.Count > 0)
+                        {
+                            _laserBeams.AddRange(_game.PendingAiLaserBeams);
+                            _game.PendingAiLaserBeams.Clear();
+                        }
+                        if (_game.PendingAiCombatEvents.Count > 0)
+                        {
+                            foreach (var ev in _game.PendingAiCombatEvents)
+                            {
+                                int evX = _boardRect.X + ev.Col * _tileW + _tileW / 2;
+                                int evY = _boardRect.Y + ev.Row * _tileH + _tileH / 2;
+                                AddFloatingText(ev.Text, evX - 35, evY - 20, ev.TextColor);
+                                AddShockwave(evX, evY, ev.TextColor, 40f);
+                            }
+                            _game.PendingAiCombatEvents.Clear();
+                        }
                     }
                     break;
 
                 case TurnAnimPhase.AiDecision:
-                    if (_phaseTimer >= 180)
+                    if (_phaseTimer >= 220)
                     {
                         EndTurnSequence();
                     }
@@ -681,9 +706,13 @@ namespace GateHelper.DataFlip
                 }
             }
 
-            Cursor = (_hoverButtonId >= 0 || _hoverTile.X >= 0) ? Cursors.Hand : Cursors.Default;
+            // 전투 로그 배너 호버 여부
+            bool prevCombatLogHover = _hoverOnCombatLog;
+            _hoverOnCombatLog = _combatLogRect.Contains(e.Location);
 
-            if (prevBtn != _hoverButtonId || prevTile != _hoverTile)
+            Cursor = (_hoverButtonId >= 0 || _hoverTile.X >= 0 || _hoverOnCombatLog) ? Cursors.Hand : Cursors.Default;
+
+            if (prevBtn != _hoverButtonId || prevTile != _hoverTile || prevCombatLogHover != _hoverOnCombatLog)
             {
                 Invalidate();
             }
@@ -694,6 +723,7 @@ namespace GateHelper.DataFlip
             base.OnMouseLeave(e);
             _hoverButtonId = -1;
             _hoverTile = new Point(-1, -1);
+            _hoverOnCombatLog = false;
             Invalidate();
         }
 

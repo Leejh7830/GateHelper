@@ -136,10 +136,12 @@ namespace GateHelper
         {
             if (gameName == "BitFlip")
             {
+                _bitFlipGame?.ShowMapSelection();
                 SB_tabControl1.SelectedTab = tpBitFlip;
             }
             else if (gameName == "SignalLink")
             {
+                _signalLinkGame?.ShowMapSelection();
                 SB_tabControl1.SelectedTab = tpSignalLink; 
             }
             else if (gameName == "MysteryTime")

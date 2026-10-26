@@ -108,6 +108,30 @@ namespace GateHelper.DataFlip
         // AI 전술 페르소나 (판마다 다른 전략 구사)
         public AiStrategyPersona CurrentAiPersona { get; set; } = AiStrategyPersona.Tech;
 
+        // 한줄 전투 로그 시스템
+        public string LatestCombatLog { get; set; } = "작전 개시. 전술 명령을 대기 중입니다.";
+        public List<string> CombatLogHistory { get; } = new List<string>();
+
+        // AI 액티브 스킬 및 전술 연출 큐
+        public List<CombatEvent> PendingAiCombatEvents { get; } = new List<CombatEvent>();
+        public List<CombatLaserBeam> PendingAiLaserBeams { get; } = new List<CombatLaserBeam>();
+
+        // AI 라인 집중 웨이브(한타 콤보) 상태
+        public int AiPushWaveRow { get; set; } = -1;
+        public int AiPushWaveTurnsRemaining { get; set; } = 0;
+        public int AiPushWaveCooldown { get; set; } = 0;
+
+        public void AddCombatLog(string log)
+        {
+            if (string.IsNullOrWhiteSpace(log)) return;
+            LatestCombatLog = log;
+            CombatLogHistory.Insert(0, $"[턴 {TurnNumber}] {log}");
+            if (CombatLogHistory.Count > 30)
+            {
+                CombatLogHistory.RemoveAt(CombatLogHistory.Count - 1);
+            }
+        }
+
         // 발전소 보유 한도 (기본 3기 -> 카드로 대폭 확장 또는 골드 투자로 점진 증설 가능)
         public int PlayerPlantLimit { get; set; } = 3;
         public int AiPlantLimit { get; set; } = 3;
@@ -191,11 +215,13 @@ namespace GateHelper.DataFlip
             {
                 PlayerCredit -= cost;
                 PlayerPlantLimit++;
+                AddCombatLog($"⚡ [플레이어] 전력망 증설 완료 (발전소 최대 한도 {PlayerPlantLimit}기 확장)");
             }
             else
             {
                 AiCredit -= cost;
                 AiPlantLimit++;
+                AddCombatLog($"⚡ [AI 인프라] 전력망 증설 완료 (발전소 최대 한도 {AiPlantLimit}기 확장)");
             }
             return true;
         }
@@ -348,6 +374,13 @@ namespace GateHelper.DataFlip
             StatsTotalCreditEarned = 6;
             StatsDamageDealtToAiCore = 0;
             ReplaySnapshots.Clear();
+            CombatLogHistory.Clear();
+            PendingAiCombatEvents.Clear();
+            PendingAiLaserBeams.Clear();
+            AiPushWaveRow = -1;
+            AiPushWaveTurnsRemaining = 0;
+            AiPushWaveCooldown = 0;
+            LatestCombatLog = "작전 개시. 전술 명령을 대기 중입니다.";
 
             // 판마다 AI 전술 성향 무작위 배정 (Rush 33%, Siege 33%, Tech 34%)
             int personaRoll = _rand.Next(3);
@@ -819,6 +852,7 @@ namespace GateHelper.DataFlip
                             }
                         }
                     }
+                    AddCombatLog($"🔧 [{(caster == Owner.Player ? "플레이어" : "AI 전술")}] 전역 나노 복구 네트워크 가동 (+3 수리)");
                     return true;
 
                 case UserSkillType.ReconScan:
@@ -841,6 +875,7 @@ namespace GateHelper.DataFlip
                     {
                         outEvents.Add(new CombatEvent { Col = Cols / 2, Row = Rows / 2, Text = "스캔 완료 (은폐 없음) 📡", TextColor = Color.FromArgb(0, 229, 255) });
                     }
+                    AddCombatLog($"📡 [{(caster == Owner.Player ? "플레이어" : "AI 전술")}] 정찰스캔 가동! {(revealed > 0 ? $"적 은폐 {revealed}기 해제" : "은폐 없음")}");
                     return true;
                 case UserSkillType.OrbitalStrike:
                     if (targetCol <= 0 || targetCol >= Cols - 1 || targetRow < 0 || targetRow >= Rows) return false;
@@ -896,6 +931,8 @@ namespace GateHelper.DataFlip
                             outEvents.Add(new CombatEvent { Col = targetCol, Row = targetRow, Text = rewardText, TextColor = rewardCol, IsCritical = true });
                         }
                     }
+                    string tBldgName = targetBldg != null ? targetBldg.Type.ToString() : "서버 랙";
+                    AddCombatLog($"💥 [{(caster == Owner.Player ? "플레이어" : "AI 전술")}] ({targetRow + 1}행 {targetCol + 1}열) {tBldgName}에 궤도폭격 직격! (-6 피해)");
                     return true;
 
                 case UserSkillType.EmpJammer:
@@ -926,6 +963,7 @@ namespace GateHelper.DataFlip
                     {
                         outEvents.Add(new CombatEvent { Col = targetCol, Row = targetRow, Text = "⚡EMP 방전 (적 건물 없음)", TextColor = Color.FromArgb(0, 229, 255) });
                     }
+                    AddCombatLog($"⚡ [{(caster == Owner.Player ? "플레이어" : "AI 전술")}] ({targetRow + 1}행 {targetCol + 1}열) 방어선에 EMP 교란 투하! (2턴 기능정지)");
                     return true;
 
                 case UserSkillType.HealingBeam:
@@ -978,6 +1016,7 @@ namespace GateHelper.DataFlip
                     {
                         outEvents.Add(new CombatEvent { Col = Cols / 2, Row = targetRow, Text = "치료 광선 조사 완료 💚", TextColor = Color.FromArgb(0, 230, 118) });
                     }
+                    AddCombatLog($"💚 [{(caster == Owner.Player ? "플레이어" : "AI 전술")}] {targetRow + 1}행에 치료광선 조사! (+6 HP 수복)");
                     return true;
 
                 case UserSkillType.FortifyBeam:
@@ -1015,6 +1054,7 @@ namespace GateHelper.DataFlip
                     {
                         outEvents.Add(new CombatEvent { Col = Cols / 2, Row = targetRow, Text = "구축 광선 조사 완료 🛡️", TextColor = Color.FromArgb(0, 229, 255) });
                     }
+                    AddCombatLog($"🛡️ [{(caster == Owner.Player ? "플레이어" : "AI 전술")}] {targetRow + 1}행 방어선에 구축광선 강화! (+2 내구도)");
                     return true;
             }
             return false;
@@ -1143,6 +1183,14 @@ namespace GateHelper.DataFlip
                 Col = col,
                 Row = row
             };
+
+            string bName = (type == BuildingType.PowerPlant) ? "발전소" :
+                           (type == BuildingType.Turret) ? "포탑" :
+                           (type == BuildingType.Wall) ? "방화벽" :
+                           (type == BuildingType.Factory) ? "전진공장" :
+                           (type == BuildingType.RepairDepot) ? "수리격납고" :
+                           (type == BuildingType.PhaseGate) ? "가속관문" : "건물";
+            AddCombatLog($"🏗️ [{(owner == Owner.Player ? "플레이어" : "AI 전술")}] ({row + 1}행 {col + 1}열) {bName} 건설 완료");
 
             return true;
         }

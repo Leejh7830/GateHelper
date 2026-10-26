@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
@@ -32,6 +32,9 @@ namespace GateHelper.DataFlip
                 // 1. 헤더 & HUD (본진 HP, 자원 수입, 패시브 뱃지)
                 DrawHeader(g);
 
+                // 1.5 한줄 전투 로그 배너 (컴퓨터/플레이어 동작 실시간 보고)
+                DrawCombatLogBanner(g);
+
                 // 2. 12x8 전장 맵 타일 & 일체화된 메인프레임 코어 기지
                 DrawMap(g);
 
@@ -56,6 +59,12 @@ namespace GateHelper.DataFlip
 
                 // 7.5 마우스 호버 기물 & 타일 인스펙터 정보 카드 (신규!)
                 DrawInspectorCard(g);
+
+                // 7.8 전투 로그 상세 히스토리 팝업 (배너 마우스 호버 시 최상단 오버레이)
+                if (_hoverOnCombatLog)
+                {
+                    DrawCombatLogHistoryPopup(g);
+                }
 
                 // 8. 로그라이크 카드 선택 팝업 (3턴 주기)
                 if (_game.IsCardSelectionActive)
@@ -246,6 +255,122 @@ namespace GateHelper.DataFlip
             {
                 TextRenderer.DrawText(g, text, font, rect, textCol,
                     TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            }
+        }
+
+        private void DrawCombatLogBanner(Graphics g)
+        {
+            if (_combatLogRect.Width <= 0 || _combatLogRect.Height <= 0) return;
+
+            bool isHover = _hoverOnCombatLog;
+            Color borderCol = isHover ? _colorCyan : Color.FromArgb(45, 55, 75);
+            Color bgCol = isHover ? Color.FromArgb(28, 36, 50) : Color.FromArgb(18, 22, 32);
+
+            using (var brush = new SolidBrush(bgCol))
+            using (var pen = new Pen(borderCol, 1f))
+            {
+                g.FillRoundedRectangle(brush, _combatLogRect, 3);
+                g.DrawRoundedRectangle(pen, _combatLogRect, 3);
+            }
+
+            // 좌측 네온 뱃지: [⚡ 전투로그]
+            int badgeW = 70;
+            var badgeRect = new Rectangle(_combatLogRect.X + 3, _combatLogRect.Y + 2, badgeW, _combatLogRect.Height - 4);
+            using (var bBrush = new SolidBrush(isHover ? Color.FromArgb(40, 55, 75) : Color.FromArgb(28, 38, 52)))
+            using (var bPen = new Pen(_colorCyan, 1f))
+            {
+                g.FillRoundedRectangle(bBrush, badgeRect, 2);
+                g.DrawRoundedRectangle(bPen, badgeRect, 2);
+            }
+            using (var bFont = new Font("Segoe UI", 7.8f, FontStyle.Bold))
+            {
+                TextRenderer.DrawText(g, "⚡ 전투로그", bFont, badgeRect, _colorCyan,
+                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            }
+
+            // 우측 안내 힌트: [기록 ▼]
+            int hintW = 54;
+            var hintRect = new Rectangle(_combatLogRect.Right - hintW - 4, _combatLogRect.Y + 2, hintW, _combatLogRect.Height - 4);
+            using (var hFont = new Font("Segoe UI", 7.5f, FontStyle.Regular))
+            {
+                TextRenderer.DrawText(g, isHover ? "기록 ▲" : "기록 ▼", hFont, hintRect,
+                    isHover ? _colorCyan : Color.FromArgb(120, 140, 165),
+                    TextFormatFlags.Right | TextFormatFlags.VerticalCenter);
+            }
+
+            // 중앙 최신 전투 로그 한 줄 텍스트
+            string logText = string.IsNullOrEmpty(_game.LatestCombatLog)
+                ? "[전황 보고] 전황 분석 및 첫 턴 작전 대기 중입니다."
+                : _game.LatestCombatLog;
+
+            int textX = badgeRect.Right + 8;
+            int textW = Math.Max(50, hintRect.Left - textX - 4);
+            var textRect = new Rectangle(textX, _combatLogRect.Y, textW, _combatLogRect.Height);
+
+            Color textCol = logText.Contains("AI") ? Color.FromArgb(255, 185, 185) :
+                            logText.Contains("플레이어") ? Color.FromArgb(180, 240, 255) :
+                            Color.FromArgb(215, 225, 235);
+
+            using (var font = new Font("Segoe UI", 8.2f, FontStyle.Regular))
+            {
+                TextRenderer.DrawText(g, logText, font, textRect, textCol,
+                    TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+            }
+        }
+
+        private void DrawCombatLogHistoryPopup(Graphics g)
+        {
+            var history = _game.CombatLogHistory;
+            if (history == null || history.Count == 0) return;
+
+            int popupW = Math.Min(620, _combatLogRect.Width);
+            int itemH = 20;
+            int count = Math.Min(6, history.Count);
+            int popupH = 26 + count * itemH + 6;
+            int popupX = _combatLogRect.X + 6;
+            int popupY = _combatLogRect.Bottom + 2;
+
+            var popupRect = new Rectangle(popupX, popupY, popupW, popupH);
+
+            // 반투명 다크 글래스 배경 & 네온 테두리
+            using (var brush = new SolidBrush(Color.FromArgb(242, 16, 20, 28)))
+            using (var pen = new Pen(_colorCyan, 1.2f))
+            {
+                g.FillRoundedRectangle(brush, popupRect, 4);
+                g.DrawRoundedRectangle(pen, popupRect, 4);
+            }
+
+            // 팝업 헤더 타이틀
+            using (var tFont = new Font("Segoe UI", 8.2f, FontStyle.Bold))
+            {
+                var hRect = new Rectangle(popupX + 10, popupY + 4, popupW - 20, 18);
+                TextRenderer.DrawText(g, $"◈ 전투 로그 히스토리 (최근 {count}건)", tFont, hRect, _colorCyan,
+                    TextFormatFlags.Left | TextFormatFlags.VerticalCenter);
+            }
+
+            // 구분선
+            using (var sepPen = new Pen(Color.FromArgb(45, 55, 75), 1f))
+            {
+                g.DrawLine(sepPen, popupX + 6, popupY + 23, popupX + popupW - 6, popupY + 23);
+            }
+
+            // 최근 로그 텍스트 목록 렌더링
+            using (var font = new Font("Segoe UI", 8f, FontStyle.Regular))
+            {
+                for (int i = 0; i < count; i++)
+                {
+                    string entry = history[i];
+                    var lineRect = new Rectangle(popupX + 12, popupY + 26 + i * itemH, popupW - 24, itemH);
+
+                    Color cCol = (i == 0) ? Color.FromArgb(255, 255, 255) :
+                                 entry.Contains("AI") ? Color.FromArgb(240, 175, 175) :
+                                 entry.Contains("플레이어") ? Color.FromArgb(170, 230, 255) :
+                                 Color.FromArgb(175, 185, 200);
+
+                    string bullet = (i == 0) ? "▶ " : "• ";
+                    TextRenderer.DrawText(g, bullet + entry, font, lineRect, cCol,
+                        TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis);
+                }
             }
         }
 
