@@ -69,32 +69,44 @@ namespace GateHelper
 
             int size;
             int pairs;
+            int minLen;
+            int minDist;
 
             switch (difficulty)
             {
                 case "Easy":
                     size = 5;
                     pairs = 3;
+                    minLen = 4;
+                    minDist = 2;
                     IsStealthMode = false;
                     break;
                 case "Normal":
                     size = 6;
                     pairs = 4;
+                    minLen = 4;
+                    minDist = 3;
                     IsStealthMode = false;
                     break;
                 case "Hard":
                     size = 8;
                     pairs = 6;
+                    minLen = 5;
+                    minDist = 3;
                     IsStealthMode = false;
                     break;
                 case "Expert":
                     size = 10;
                     pairs = 7;
+                    minLen = 6;
+                    minDist = 4;
                     IsStealthMode = true; // 사용자가 즐기는 스텔스 암기 모드 전격 활성화
                     break;
                 default:
                     size = 6;
                     pairs = 4;
+                    minLen = 4;
+                    minDist = 3;
                     IsStealthMode = false;
                     break;
             }
@@ -102,18 +114,34 @@ namespace GateHelper
             GridSize = size;
             PairCount = pairs;
 
-            // 1. 고속 맵 생성 시도 (최대 25회 재시도)
+            // 1. 고품질 맵 절차적 생성 시도
+            // Pass 1: 엄격한 최고 난이도 제약 (긴 경로, 넓은 단말 간 거리 보장)
             bool generated = false;
             for (int attempt = 0; attempt < 25; attempt++)
             {
-                if (TryGenerateValidPerfectMap(size, pairs))
+                if (TryGenerateValidPerfectMap(size, pairs, minLen, minDist))
                 {
                     generated = true;
                     break;
                 }
             }
 
-            // 2. 만약 시간 내 100% 충진 맵이 나오지 않았을 경우, UI 프리징 방지를 위한 검증된 고속 폴백 템플릿 로드
+            // Pass 2: 여유 난이도 제약 (약간 완화된 기준, 절대 쉬운 1~2칸 퍼즐 불가)
+            if (!generated)
+            {
+                int relaxedLen = Math.Max(3, minLen - 1);
+                int relaxedDist = Math.Max(2, minDist - 1);
+                for (int attempt = 0; attempt < 25; attempt++)
+                {
+                    if (TryGenerateValidPerfectMap(size, pairs, relaxedLen, relaxedDist))
+                    {
+                        generated = true;
+                        break;
+                    }
+                }
+            }
+
+            // 2. 만약 시간 내 생성되지 않았을 경우, 검증된 예술적 미로 템플릿 로드 (D4 대칭변환 + 색상 셔플)
             if (!generated)
             {
                 LoadVerifiedFallbackPuzzle(size, pairs);
@@ -139,9 +167,9 @@ namespace GateHelper
         }
 
         /// <summary>
-        /// 스네이크 확장 + 빈칸 우회 흡수 100% 충진 알고리즘
+        /// 지능형 뱀형 확장(Warnsdorff) + 2중 빈칸 흡수 100% 충진 알고리즘
         /// </summary>
-        private bool TryGenerateValidPerfectMap(int size, int pairCount)
+        private bool TryGenerateValidPerfectMap(int size, int pairCount, int minLen, int minDist)
         {
             Grid = new SignalNode[size, size];
             for (int y = 0; y < size; y++)
@@ -151,22 +179,39 @@ namespace GateHelper
             HashSet<Point> occupied = new HashSet<Point>();
             List<List<Point>> allPaths = new List<List<Point>>();
 
-            // 1. 초기 씨앗 배치
+            // 1. 초기 씨앗 분산 배치 (시작 씨앗들이 서로 맞닿지 않도록 거리 보장)
             for (int i = 0; i < pairCount; i++)
             {
-                Point start;
-                int safety = 0;
-                do
+                Point start = new Point(0, 0);
+                bool placed = false;
+                for (int trySeed = 0; trySeed < 50; trySeed++)
                 {
-                    start = new Point(_rand.Next(size), _rand.Next(size));
-                    if (++safety > 100) return false;
-                } while (occupied.Contains(start));
+                    Point candidate = new Point(_rand.Next(size), _rand.Next(size));
+                    if (occupied.Contains(candidate)) continue;
+
+                    bool tooClose = false;
+                    foreach (var p in occupied)
+                    {
+                        if (Math.Abs(p.X - candidate.X) + Math.Abs(p.Y - candidate.Y) < 2)
+                        {
+                            tooClose = true;
+                            break;
+                        }
+                    }
+                    if (!tooClose || trySeed > 25)
+                    {
+                        start = candidate;
+                        placed = true;
+                        break;
+                    }
+                }
+                if (!placed) return false;
 
                 allPaths.Add(new List<Point> { start });
                 occupied.Add(start);
             }
 
-            // 2. 물리적 뱀형 확장 (Snake Growth)
+            // 2. 물리적 뱀형 확장 (Snake Growth + Warnsdorff 지능형 이웃 선택)
             bool moved = true;
             while (moved)
             {
@@ -182,11 +227,17 @@ namespace GateHelper
                         var neighbors = GetEmptyNeighbors(end, occupied, size);
                         if (neighbors.Count > 0)
                         {
-                            Point next = neighbors[_rand.Next(neighbors.Count)];
-                            if (end == path.First()) path.Insert(0, next);
-                            else path.Add(next);
+                            // Warnsdorff: 빈 이웃이 가장 적은 고립 위험 칸을 우선 점유
+                            var best = neighbors
+                                .Select(n => new { pt = n, freeCount = GetEmptyNeighbors(n, occupied, size).Count })
+                                .OrderBy(x => x.freeCount)
+                                .ThenBy(_ => _rand.Next())
+                                .First().pt;
 
-                            occupied.Add(next);
+                            if (end == path.First()) path.Insert(0, best);
+                            else path.Add(best);
+
+                            occupied.Add(best);
                             moved = true;
                             break;
                         }
@@ -194,19 +245,25 @@ namespace GateHelper
                 }
             }
 
-            // 3. 스마트 빈칸 흡수 우회
+            // 3. 스마트 빈칸 흡수 우회 (끝점 확장 및 마디 삽입 2중 처리)
             if (occupied.Count < size * size)
             {
                 if (!SmartRerouteHoles(allPaths, occupied, size)) return false;
             }
 
-            // 4. 경로 확정 및 터미널 배치
+            // 4. 고난이도 품질 검증 (너무 짧은 경로 및 단말 간 맨해튼 거리 검사)
+            foreach (var p in allPaths)
+            {
+                if (p.Count < minLen) return false;
+                int dist = Math.Abs(p.First().X - p.Last().X) + Math.Abs(p.First().Y - p.Last().Y);
+                if (dist < minDist) return false;
+            }
+
+            // 5. 경로 확정 및 터미널 배치
             SolutionPaths.Clear();
             for (int i = 0; i < pairCount; i++)
             {
                 var p = allPaths[i];
-                if (p.Count < 2) return false;
-
                 int colorId = i + 1;
                 SolutionPaths[colorId] = new List<Point>(p);
 
@@ -224,7 +281,7 @@ namespace GateHelper
         {
             bool changed = true;
             int passes = 0;
-            while (changed && passes++ < 15)
+            while (changed && passes++ < 25)
             {
                 changed = false;
                 for (int y = 0; y < size; y++)
@@ -235,6 +292,27 @@ namespace GateHelper
                         if (occupied.Contains(hole)) continue;
 
                         var neighbors = GetAllNeighbors(hole, size);
+
+                        // 1. 단말(끝점)에 인접한 경우 바로 이어붙이기
+                        foreach (var path in allPaths)
+                        {
+                            if (neighbors.Contains(path.First()))
+                            {
+                                path.Insert(0, hole);
+                                occupied.Add(hole);
+                                changed = true;
+                                goto NextHole;
+                            }
+                            if (neighbors.Contains(path.Last()))
+                            {
+                                path.Add(hole);
+                                occupied.Add(hole);
+                                changed = true;
+                                goto NextHole;
+                            }
+                        }
+
+                        // 2. 연속된 두 노드 사이에 끼워넣기
                         foreach (var path in allPaths)
                         {
                             for (int i = 0; i < path.Count - 1; i++)
@@ -248,15 +326,15 @@ namespace GateHelper
                                 }
                             }
                         }
+                    NextHole:;
                     }
-                NextHole:;
                 }
             }
             return occupied.Count == size * size;
         }
 
         /// <summary>
-        /// 대형 맵 등에서 고속 생성이 지연될 때 0ms 즉시 보장되는 검증된 대칭 변환 템플릿 로더
+        /// 대형 맵 등에서 절차 생성이 지연될 때 D4 대칭 변환(회전 4방향 x 좌우 반전) 및 색상 셔플을 적용하는 고난이도 미로 템플릿 로더
         /// </summary>
         private void LoadVerifiedFallbackPuzzle(int size, int pairs)
         {
@@ -267,40 +345,90 @@ namespace GateHelper
 
             SolutionPaths.Clear();
 
-            // 지그재그 분할 템플릿 생성
-            int rowsPerPair = Math.Max(1, size / pairs);
+            Point[][] rawTemplate = GetMasterpieceTemplate(size);
+            int rot = _rand.Next(4); // 0, 90, 180, 270도 회전
+            bool flip = _rand.Next(2) == 0; // 좌우 반전
 
-            for (int r = 0; r < size; r++)
+            var colorIds = Enumerable.Range(1, rawTemplate.Length).OrderBy(_ => _rand.Next()).ToList();
+
+            for (int i = 0; i < rawTemplate.Length; i++)
             {
-                int colorId = Math.Min(pairs, (r / rowsPerPair) + 1);
-                if (!SolutionPaths.ContainsKey(colorId))
-                    SolutionPaths[colorId] = new List<Point>();
+                int colorId = colorIds[i];
+                var rawPath = rawTemplate[i];
+                var transformed = new List<Point>();
 
-                if (r % 2 == 0)
+                foreach (var pt in rawPath)
                 {
-                    for (int c = 0; c < size; c++)
-                        SolutionPaths[colorId].Add(new Point(c, r));
+                    int x = pt.X;
+                    int y = pt.Y;
+
+                    if (flip) x = size - 1 - x;
+
+                    int tx = x, ty = y;
+                    if (rot == 1) { tx = size - 1 - y; ty = x; }
+                    else if (rot == 2) { tx = size - 1 - x; ty = size - 1 - y; }
+                    else if (rot == 3) { tx = y; ty = size - 1 - x; }
+
+                    transformed.Add(new Point(tx, ty));
                 }
-                else
+
+                if (_rand.Next(2) == 0) transformed.Reverse();
+
+                SolutionPaths[colorId] = transformed;
+
+                Grid[transformed[0].X, transformed[0].Y].Type = NodeType.Terminal;
+                Grid[transformed[0].X, transformed[0].Y].ColorID = colorId;
+
+                Grid[transformed.Last().X, transformed.Last().Y].Type = NodeType.Terminal;
+                Grid[transformed.Last().X, transformed.Last().Y].ColorID = colorId;
+            }
+        }
+
+        private Point[][] GetMasterpieceTemplate(int size)
+        {
+            if (size <= 5)
+            {
+                return new Point[][]
                 {
-                    for (int c = size - 1; c >= 0; c--)
-                        SolutionPaths[colorId].Add(new Point(c, r));
-                }
+                    new Point[] { new Point(3, 1), new Point(3, 2), new Point(2, 2), new Point(2, 1), new Point(1, 1), new Point(1, 2), new Point(0, 2), new Point(0, 3) },
+                    new Point[] { new Point(3, 3), new Point(4, 3), new Point(4, 4), new Point(3, 4), new Point(2, 4), new Point(2, 3), new Point(1, 3), new Point(1, 4), new Point(0, 4) },
+                    new Point[] { new Point(4, 2), new Point(4, 1), new Point(4, 0), new Point(3, 0), new Point(2, 0), new Point(1, 0), new Point(0, 0), new Point(0, 1) }
+                };
+            }
+            if (size <= 6)
+            {
+                return new Point[][]
+                {
+                    new Point[] { new Point(4, 3), new Point(4, 4), new Point(3, 4), new Point(3, 3), new Point(3, 2), new Point(3, 1), new Point(2, 1), new Point(2, 2) },
+                    new Point[] { new Point(5, 3), new Point(5, 4), new Point(5, 5), new Point(4, 5), new Point(3, 5), new Point(2, 5), new Point(1, 5), new Point(0, 5), new Point(0, 4), new Point(0, 3) },
+                    new Point[] { new Point(1, 4), new Point(2, 4), new Point(2, 3), new Point(1, 3), new Point(1, 2), new Point(0, 2), new Point(0, 1), new Point(0, 0), new Point(1, 0), new Point(1, 1) },
+                    new Point[] { new Point(2, 0), new Point(3, 0), new Point(4, 0), new Point(5, 0), new Point(5, 1), new Point(4, 1), new Point(4, 2), new Point(5, 2) }
+                };
+            }
+            if (size <= 8)
+            {
+                return new Point[][]
+                {
+                    new Point[] { new Point(4, 6), new Point(4, 5), new Point(5, 5), new Point(5, 4), new Point(4, 4), new Point(3, 4), new Point(3, 3), new Point(4, 3), new Point(5, 3) },
+                    new Point[] { new Point(7, 1), new Point(6, 1), new Point(5, 1), new Point(5, 2), new Point(4, 2), new Point(3, 2), new Point(2, 2), new Point(2, 1), new Point(1, 1), new Point(1, 2), new Point(0, 2) },
+                    new Point[] { new Point(1, 5), new Point(1, 6), new Point(2, 6), new Point(2, 5), new Point(3, 5), new Point(3, 6), new Point(3, 7), new Point(4, 7), new Point(5, 7), new Point(5, 6) },
+                    new Point[] { new Point(7, 0), new Point(6, 0), new Point(5, 0), new Point(4, 0), new Point(4, 1), new Point(3, 1), new Point(3, 0), new Point(2, 0), new Point(1, 0), new Point(0, 0), new Point(0, 1) },
+                    new Point[] { new Point(2, 7), new Point(1, 7), new Point(0, 7), new Point(0, 6), new Point(0, 5), new Point(0, 4), new Point(0, 3), new Point(1, 3), new Point(2, 3), new Point(2, 4), new Point(1, 4) },
+                    new Point[] { new Point(6, 2), new Point(7, 2), new Point(7, 3), new Point(6, 3), new Point(6, 4), new Point(7, 4), new Point(7, 5), new Point(6, 5), new Point(6, 6), new Point(7, 6), new Point(7, 7), new Point(6, 7) }
+                };
             }
 
-            // 노드 배치
-            foreach (var kvp in SolutionPaths)
+            // 10x10 Expert Masterpiece Labyrinth
+            return new Point[][]
             {
-                var path = kvp.Value;
-                if (path.Count >= 2)
-                {
-                    Grid[path[0].X, path[0].Y].Type = NodeType.Terminal;
-                    Grid[path[0].X, path[0].Y].ColorID = kvp.Key;
-
-                    Grid[path.Last().X, path.Last().Y].Type = NodeType.Terminal;
-                    Grid[path.Last().X, path.Last().Y].ColorID = kvp.Key;
-                }
-            }
+                new Point[] { new Point(8, 1), new Point(9, 1), new Point(9, 0), new Point(8, 0), new Point(7, 0), new Point(7, 1), new Point(7, 2), new Point(7, 3), new Point(7, 4), new Point(7, 5) },
+                new Point[] { new Point(4, 7), new Point(4, 6), new Point(4, 5), new Point(4, 4), new Point(5, 4), new Point(5, 5), new Point(6, 5), new Point(6, 4), new Point(6, 3), new Point(6, 2), new Point(6, 1), new Point(6, 0), new Point(5, 0), new Point(5, 1), new Point(5, 2), new Point(5, 3), new Point(4, 3), new Point(4, 2), new Point(4, 1), new Point(4, 0), new Point(3, 0), new Point(3, 1), new Point(2, 1), new Point(2, 0), new Point(1, 0), new Point(1, 1), new Point(0, 1), new Point(0, 0) },
+                new Point[] { new Point(3, 7), new Point(3, 6), new Point(3, 5), new Point(3, 4), new Point(3, 3), new Point(3, 2), new Point(2, 2), new Point(1, 2), new Point(0, 2), new Point(0, 3), new Point(1, 3), new Point(1, 4), new Point(2, 4), new Point(2, 3) },
+                new Point[] { new Point(5, 9), new Point(5, 8), new Point(5, 7), new Point(5, 6), new Point(6, 6), new Point(6, 7), new Point(6, 8), new Point(6, 9), new Point(7, 9), new Point(7, 8), new Point(7, 7), new Point(7, 6) },
+                new Point[] { new Point(9, 8), new Point(9, 9), new Point(8, 9), new Point(8, 8), new Point(8, 7), new Point(9, 7), new Point(9, 6), new Point(8, 6), new Point(8, 5), new Point(9, 5), new Point(9, 4), new Point(8, 4), new Point(8, 3), new Point(9, 3), new Point(9, 2), new Point(8, 2) },
+                new Point[] { new Point(1, 7), new Point(2, 7), new Point(2, 6), new Point(2, 5), new Point(1, 5), new Point(0, 5), new Point(0, 4) },
+                new Point[] { new Point(4, 9), new Point(4, 8), new Point(3, 8), new Point(3, 9), new Point(2, 9), new Point(2, 8), new Point(1, 8), new Point(1, 9), new Point(0, 9), new Point(0, 8), new Point(0, 7), new Point(0, 6), new Point(1, 6) }
+            };
         }
 
         private List<Point> GetEmptyNeighbors(Point p, HashSet<Point> occupied, int size)

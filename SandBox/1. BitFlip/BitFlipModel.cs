@@ -202,7 +202,18 @@ namespace GateHelper
                 }
             }
 
-            // 무작위 셔플 실행 (최소 2개 이상의 노드가 꺼지도록 보장)
+            int minOffCount;
+            int minPar;
+            switch (Difficulty)
+            {
+                case "Easy": minOffCount = 3; minPar = 2; break;
+                case "Normal": minOffCount = 5; minPar = 3; break;
+                case "Hard": minOffCount = 8; minPar = 5; break;
+                case "Expert": minOffCount = 12; minPar = 7; break;
+                default: minOffCount = 5; minPar = 3; break;
+            }
+
+            // 무작위 셔플 실행 (최소 난이도 조건 만족 보장)
             for (int attempt = 0; attempt < 50; attempt++)
             {
                 // 초기화
@@ -227,19 +238,25 @@ namespace GateHelper
                     for (int c = 0; c < GridSize; c++)
                         if (!Grid[c, r].State) offCount++;
 
-                if (offCount >= Math.Min(3, GridSize))
-                    break;
+                if (offCount >= minOffCount)
+                {
+                    var solution = SolveGF2();
+                    if (solution != null && solution.Count >= minPar)
+                    {
+                        ParMoves = solution.Count;
+                        break;
+                    }
+                }
             }
 
-            // 4. Par (목표 최소 수) 산출
-            var solution = SolveGF2();
-            if (solution != null && solution.Count > 0)
+            // 4. Par (목표 최소 수) 산출 및 보정
+            if (ParMoves == 0)
             {
-                ParMoves = solution.Count;
-            }
-            else
-            {
-                ParMoves = Math.Max(2, shuffleClicks - 1);
+                var finalSol = SolveGF2();
+                if (finalSol != null && finalSol.Count > 0)
+                    ParMoves = finalSol.Count;
+                else
+                    ParMoves = Math.Max(minPar, shuffleClicks - 1);
             }
 
             IsGameActive = true;
@@ -251,8 +268,8 @@ namespace GateHelper
             {
                 case "Easy": return 3;
                 case "Normal": return 5;
-                case "Hard": return 7;
-                case "Expert": return 9;
+                case "Hard": return 8;
+                case "Expert": return 13;
                 default: return 5;
             }
         }

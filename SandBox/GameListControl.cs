@@ -57,5 +57,13 @@ namespace GateHelper
                 sb.SwitchToGame("DataFlip");
             }
         }
+
+        private void GL_btnSelectPocketFarm_Click(object sender, EventArgs e)
+        {
+            if (this.ParentForm is SandBox sb)
+            {
+                sb.SwitchToGame("PocketFarm");
+            }
+        }
     }
 }

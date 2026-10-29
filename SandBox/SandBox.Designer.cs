@@ -36,6 +36,7 @@ namespace GateHelper
             this.tpAiTrend = new System.Windows.Forms.TabPage();
             this.tpServerTycoon = new System.Windows.Forms.TabPage();
             this.tpDataFlip = new System.Windows.Forms.TabPage();
+            this.tpPocketFarm = new System.Windows.Forms.TabPage();
             this.SB_tabControl1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -48,6 +49,7 @@ namespace GateHelper
             this.SB_tabControl1.Controls.Add(this.tpAiTrend);
             this.SB_tabControl1.Controls.Add(this.tpServerTycoon);
             this.SB_tabControl1.Controls.Add(this.tpDataFlip);
+            this.SB_tabControl1.Controls.Add(this.tpPocketFarm);
             this.SB_tabControl1.Depth = 0;
             this.SB_tabControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.SB_tabControl1.ItemSize = new System.Drawing.Size(40, 20);
@@ -130,6 +132,16 @@ namespace GateHelper
             this.tpDataFlip.Text = "DataFlip";
             this.tpDataFlip.UseVisualStyleBackColor = true;
             // 
+            // tpPocketFarm
+            // 
+            this.tpPocketFarm.Location = new System.Drawing.Point(4, 24);
+            this.tpPocketFarm.Name = "tpPocketFarm";
+            this.tpPocketFarm.Padding = new System.Windows.Forms.Padding(3);
+            this.tpPocketFarm.Size = new System.Drawing.Size(636, 605);
+            this.tpPocketFarm.TabIndex = 7;
+            this.tpPocketFarm.Text = "PocketFarm";
+            this.tpPocketFarm.UseVisualStyleBackColor = true;
+            // 
             // SandBox
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -151,6 +163,7 @@ namespace GateHelper
         private System.Windows.Forms.TabPage tpAiTrend;
         private System.Windows.Forms.TabPage tpServerTycoon;
         private System.Windows.Forms.TabPage tpDataFlip;
+        private System.Windows.Forms.TabPage tpPocketFarm;
         private System.Windows.Forms.TabPage tpList;
     }
 }

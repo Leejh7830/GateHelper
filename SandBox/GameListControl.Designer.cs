@@ -41,6 +41,8 @@ namespace GateHelper
             this.materialLabelServerTycoon = new MaterialSkin.Controls.MaterialLabel();
             this.GL_btnSelectDataFlip = new MaterialSkin.Controls.MaterialCard();
             this.materialLabelDataFlip = new MaterialSkin.Controls.MaterialLabel();
+            this.GL_btnSelectPocketFarm = new MaterialSkin.Controls.MaterialCard();
+            this.materialLabelPocketFarm = new MaterialSkin.Controls.MaterialLabel();
             this.GL_FlowPanel1.SuspendLayout();
             this.GL_btnSelectBitFlip.SuspendLayout();
             this.GL_btnSelectSignalLink.SuspendLayout();
@@ -48,6 +50,7 @@ namespace GateHelper
             this.GL_btnSelectAiTrend.SuspendLayout();
             this.GL_btnSelectServerTycoon.SuspendLayout();
             this.GL_btnSelectDataFlip.SuspendLayout();
+            this.GL_btnSelectPocketFarm.SuspendLayout();
             this.SuspendLayout();
             // 
             // GL_FlowPanel1
@@ -58,6 +61,7 @@ namespace GateHelper
             this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectAiTrend);
             this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectServerTycoon);
             this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectDataFlip);
+            this.GL_FlowPanel1.Controls.Add(this.GL_btnSelectPocketFarm);
             this.GL_FlowPanel1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.GL_FlowPanel1.Location = new System.Drawing.Point(0, 0);
             this.GL_FlowPanel1.Name = "GL_FlowPanel1";
@@ -228,6 +232,34 @@ namespace GateHelper
             this.materialLabelDataFlip.Text = "Core Front";
             this.materialLabelDataFlip.Click += new System.EventHandler(this.GL_btnSelectDataFlip_Click);
             // 
+            // GL_btnSelectPocketFarm
+            // 
+            this.GL_btnSelectPocketFarm.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.GL_btnSelectPocketFarm.Controls.Add(this.materialLabelPocketFarm);
+            this.GL_btnSelectPocketFarm.Depth = 0;
+            this.GL_btnSelectPocketFarm.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(222)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))), ((int)(((byte)(0)))));
+            this.GL_btnSelectPocketFarm.Location = new System.Drawing.Point(14, 308);
+            this.GL_btnSelectPocketFarm.Margin = new System.Windows.Forms.Padding(14);
+            this.GL_btnSelectPocketFarm.MouseState = MaterialSkin.MouseState.HOVER;
+            this.GL_btnSelectPocketFarm.Name = "GL_btnSelectPocketFarm";
+            this.GL_btnSelectPocketFarm.Padding = new System.Windows.Forms.Padding(14);
+            this.GL_btnSelectPocketFarm.Size = new System.Drawing.Size(150, 70);
+            this.GL_btnSelectPocketFarm.TabIndex = 6;
+            this.GL_btnSelectPocketFarm.Click += new System.EventHandler(this.GL_btnSelectPocketFarm_Click);
+            // 
+            // materialLabelPocketFarm
+            // 
+            this.materialLabelPocketFarm.AutoSize = true;
+            this.materialLabelPocketFarm.Depth = 0;
+            this.materialLabelPocketFarm.Font = new System.Drawing.Font("Roboto", 14F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Pixel);
+            this.materialLabelPocketFarm.Location = new System.Drawing.Point(30, 26);
+            this.materialLabelPocketFarm.MouseState = MaterialSkin.MouseState.HOVER;
+            this.materialLabelPocketFarm.Name = "materialLabelPocketFarm";
+            this.materialLabelPocketFarm.Size = new System.Drawing.Size(90, 19);
+            this.materialLabelPocketFarm.TabIndex = 8;
+            this.materialLabelPocketFarm.Text = "Pocket Farm";
+            this.materialLabelPocketFarm.Click += new System.EventHandler(this.GL_btnSelectPocketFarm_Click);
+            // 
             // GameListControl
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
@@ -248,6 +280,8 @@ namespace GateHelper
             this.GL_btnSelectServerTycoon.PerformLayout();
             this.GL_btnSelectDataFlip.ResumeLayout(false);
             this.GL_btnSelectDataFlip.PerformLayout();
+            this.GL_btnSelectPocketFarm.ResumeLayout(false);
+            this.GL_btnSelectPocketFarm.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -261,11 +295,13 @@ namespace GateHelper
         private MaterialSkin.Controls.MaterialCard GL_btnSelectAiTrend;
         private MaterialSkin.Controls.MaterialCard GL_btnSelectServerTycoon;
         private MaterialSkin.Controls.MaterialCard GL_btnSelectDataFlip;
+        private MaterialSkin.Controls.MaterialCard GL_btnSelectPocketFarm;
         private MaterialSkin.Controls.MaterialLabel materialLabel1;
         private MaterialSkin.Controls.MaterialLabel materialLabel2;
         private MaterialSkin.Controls.MaterialLabel materialLabel3;
         private MaterialSkin.Controls.MaterialLabel materialLabelAiTrend;
         private MaterialSkin.Controls.MaterialLabel materialLabelServerTycoon;
         private MaterialSkin.Controls.MaterialLabel materialLabelDataFlip;
+        private MaterialSkin.Controls.MaterialLabel materialLabelPocketFarm;
     }
 }

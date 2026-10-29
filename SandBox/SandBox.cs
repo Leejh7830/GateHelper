@@ -6,6 +6,7 @@ using GateHelper.MysteryTime;
 using GateHelper.AiTrend;
 using GateHelper.ServerTycoon;
 using GateHelper.DataFlip;
+using GateHelper.PocketFarm;
 
 namespace GateHelper
 {
@@ -18,6 +19,7 @@ namespace GateHelper
         private AiTrendControl _aiTrendControl;
         private ServerTycoonControl _serverTycoonControl;
         private DataFlipControl _dataFlipControl;
+        private PocketFarmControl _pocketFarmControl;
 
         public SandBox() : this(null)
         {
@@ -96,6 +98,14 @@ namespace GateHelper
                 tpDataFlip.Controls.Add(_dataFlipControl);
             }
 
+            // 8. Pocket Farm 컨트롤 추가
+            _pocketFarmControl = new PocketFarmControl();
+            _pocketFarmControl.Dock = DockStyle.Fill;
+            if (SB_tabControl1.TabPages.Contains(tpPocketFarm))
+            {
+                tpPocketFarm.Controls.Add(_pocketFarmControl);
+            }
+
             // 탭 전환 이벤트: 활성 탭에 따른 스마트 렌더링/절전 제어
             SB_tabControl1.SelectedIndexChanged += SB_tabControl1_SelectedIndexChanged;
 
@@ -107,6 +117,9 @@ namespace GateHelper
         {
             bool isTycoon = SB_tabControl1.SelectedTab == tpServerTycoon;
             _serverTycoonControl?.OnTabVisibilityChanged(isTycoon);
+
+            bool isPocketFarm = SB_tabControl1.SelectedTab == tpPocketFarm;
+            _pocketFarmControl?.OnTabVisibilityChanged(isPocketFarm);
         }
 
         public void BackToList()
@@ -172,6 +185,14 @@ namespace GateHelper
                 {
                     SB_tabControl1.SelectedTab = tpDataFlip;
                     _dataFlipControl?.PromptMapSelection();
+                }
+            }
+            else if (gameName == "PocketFarm")
+            {
+                if (SB_tabControl1.TabPages.Contains(tpPocketFarm))
+                {
+                    SB_tabControl1.SelectedTab = tpPocketFarm;
+                    _pocketFarmControl?.OnTabVisibilityChanged(true);
                 }
             }
         }

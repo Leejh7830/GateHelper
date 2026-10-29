@@ -198,20 +198,20 @@ namespace GateHelper.ServerTycoon
                         : $"냉각 효율 +{currentLevel * 10}% ➔ +{(currentLevel + 1) * 10}% 증가";
                 case "skill_backbone":
                     return currentLevel >= MaxLevel 
-                        ? "글로벌 RPS +60% 증가 (MAX)" 
-                        : $"글로벌 RPS +{currentLevel * 12}% ➔ +{(currentLevel + 1) * 12}% 증가";
+                        ? "전체 서버 수입 +60% 증가 (MAX)" 
+                        : $"전체 서버 수입 +{currentLevel * 12}% ➔ +{(currentLevel + 1) * 12}% 증가";
                 case "skill_battery_max":
                     return currentLevel >= MaxLevel 
                         ? "오프라인 상한 +3h 20m (MAX)" 
                         : $"오프라인 상한 +{currentLevel * 40}분 ➔ +{(currentLevel + 1) * 40}분";
                 case "skill_crit_packet":
                     return currentLevel >= MaxLevel 
-                        ? "크릿 25% · 잭팟 8배 (MAX)" 
-                        : $"크릿 {5 + currentLevel * 4}% (x{3 + currentLevel}) ➔ {5 + (currentLevel + 1) * 4}% (x{4 + currentLevel})";
+                        ? "보너스 25% · 잭팟 8배 (MAX)" 
+                        : $"보너스 {5 + currentLevel * 4}% (x{3 + currentLevel}) ➔ {5 + (currentLevel + 1) * 4}% (x{4 + currentLevel})";
                 case "skill_ai_devops":
                     return currentLevel >= MaxLevel 
-                        ? "장애 보상 2.5배 & 자동 진압 (MAX)" 
-                        : (currentLevel >= 2 ? $"장애 보상 +{(currentLevel + 1) * 30}% & 자동 진압" : $"장애 보상 +{(currentLevel + 1) * 30}% (Lv.3시 드론 자동진압)");
+                        ? "고장 보상 2.5배 & 자동 수리 (MAX)" 
+                        : (currentLevel >= 2 ? $"고장 보상 +{(currentLevel + 1) * 30}% & 자동 수리" : $"고장 보상 +{(currentLevel + 1) * 30}% (Lv.3시 AI 봇 자동수리)");
                 default:
                     return Description;
             }
@@ -248,8 +248,8 @@ namespace GateHelper.ServerTycoon
                     {
                         Type = IncidentType.DdosAttack,
                         TargetServerIndex = target,
-                        Title = "⚡ DDoS 공격 감지!",
-                        Message = "대량 트래픽 유입! 긴급 패킷 방어 클릭!",
+                        Title = "⚡ 대량 접속 트래픽 폭주!",
+                        Message = "방문자가 폭주합니다! 긴급 분산 처리 클릭!",
                         RewardCash = Math.Round(baseReward * 1.5, 0),
                         RemainingSeconds = 12f
                     };
@@ -258,8 +258,8 @@ namespace GateHelper.ServerTycoon
                     {
                         Type = IncidentType.Overheat,
                         TargetServerIndex = target,
-                        Title = "▲ 랙 발열 경보!",
-                        Message = "서버 랙 온도 85°C 초과! 쿨러 가동 클릭!",
+                        Title = "▲ 서버 과열 경보!",
+                        Message = "서버 온도가 너무 높습니다! 냉각 쿨러 클릭!",
                         RewardCash = Math.Round(baseReward * 1.2, 0),
                         RemainingSeconds = 10f
                     };
@@ -268,8 +268,8 @@ namespace GateHelper.ServerTycoon
                     {
                         Type = IncidentType.MemoryLeak,
                         TargetServerIndex = target,
-                        Title = "◈ 메모리 누수 발생!",
-                        Message = "좀비 프로세스 누적! 긴급 GC 회수 클릭!",
+                        Title = "◈ 시스템 메모리 부족!",
+                        Message = "메모리가 꽉 찼습니다! 메모리 정리 클릭!",
                         RewardCash = Math.Round(baseReward * 1.0, 0),
                         RemainingSeconds = 14f
                     };
@@ -371,7 +371,7 @@ namespace GateHelper.ServerTycoon
                 {
                     Id = 0,
                     Name = "인디 모바일 게임",
-                    SubTitle = "대중적 접근성, 빠른 제작 및 초기 폭발적 판매",
+                    SubTitle = "누구나 즐기는 모바일 게임, 빠른 제작과 초기 흥행",
                     Icon = "sw_game",
                     UnlockCost = 2500.0,
                     RequiredPoints = 4000.0,
@@ -382,8 +382,8 @@ namespace GateHelper.ServerTycoon
                 new SoftwareCategoryDef
                 {
                     Id = 1,
-                    Name = "B2B 전사 ERP",
-                    SubTitle = "기업 맞춤형 회계·물류 시스템, 높은 정기 라이선스",
+                    Name = "회사 업무 관리 프로그램",
+                    SubTitle = "기업에 판매하는 회계 및 재고 관리 시스템",
                     Icon = "sw_erp",
                     UnlockCost = 35000.0,
                     RequiredPoints = 35000.0,
@@ -394,8 +394,8 @@ namespace GateHelper.ServerTycoon
                 new SoftwareCategoryDef
                 {
                     Id = 2,
-                    Name = "생성형 AI 모델",
-                    SubTitle = "멀티모달 딥러닝 인공지능, 전 세계 구독 모델",
+                    Name = "대화형 인공지능(AI)",
+                    SubTitle = "전 세계 사용자가 구독하는 똑똑한 AI 비서",
                     Icon = "sw_ai",
                     UnlockCost = 350000.0,
                     RequiredPoints = 250000.0,
@@ -406,8 +406,8 @@ namespace GateHelper.ServerTycoon
                 new SoftwareCategoryDef
                 {
                     Id = 3,
-                    Name = "제로트러스트 백신",
-                    SubTitle = "침입 탐지 및 랜섬웨어 방어, 서버 돌발 장애 발생 억제",
+                    Name = "통합 보안 프로그램",
+                    SubTitle = "바이러스와 해킹을 원천 차단하는 백신",
                     Icon = "sw_sec",
                     UnlockCost = 2800000.0,
                     RequiredPoints = 1800000.0,
@@ -418,8 +418,8 @@ namespace GateHelper.ServerTycoon
                 new SoftwareCategoryDef
                 {
                     Id = 4,
-                    Name = "분산 클라우드 OS",
-                    SubTitle = "글로벌 데이터센터 통합 커널, 엔드게임급 글로벌 플랫폼",
+                    Name = "글로벌 클라우드 플랫폼",
+                    SubTitle = "전 세계 서버망을 하나로 묶는 대형 플랫폼",
                     Icon = "sw_os",
                     UnlockCost = 35000000.0,
                     RequiredPoints = 18000000.0,
@@ -458,10 +458,10 @@ namespace GateHelper.ServerTycoon
 
         public static B2BContract GenerateRandom(string repTier, Random rand, double currentRps)
         {
-            string[] clients = { "스타트업 핀포인트", "네오페이 결제망", "빅글로벌 엔터테인먼트", "하이퍼스케일 AI 연구단", "국방 우주 클라우드" };
-            string[] titles = { "실시간 마이크로서비스 백엔드 분산 호스팅", "초당 3만건 결제 트래픽 릴레이", "e스포츠 결승전 8K 스트리밍 인프라", "LLM 파운데이션 모델 텐서 분산 연산 노드", "양자 암호화 군집 위성 관제 통신망" };
+            string[] clients = { "모바일 스타트업", "온라인 쇼핑 결제원", "인기 게임 방송국", "글로벌 AI 연구소", "국가 우주 관제 센터" };
+            string[] titles = { "스타트업 모바일 앱 서버 운영", "온라인 쇼핑몰 대규모 결제망 지원", "인기 게임 생방송 실시간 스트리밍", "초거대 인공지능 연구 연산 지원", "우주 관제 위성 통신망 호스팅" };
             SlaRequirementType[] slaTypes = { SlaRequirementType.PowerUptime, SlaRequirementType.ThermalStrict, SlaRequirementType.HighBandwidth };
-            string[] slaDescs = { "무정전 100% 전력 공급 필수 (정전 누적 시 위반)", "저지연 45°C 이하 쿨링 엄수 (과열 누적 시 위반)", "100% 최대 가동률 납기 (스로틀링 불가)" };
+            string[] slaDescs = { "정전 금지: 100% 전력 공급 유지 (정전 시 위반)", "과열 금지: 서버실 45°C 이하 냉각 유지 (과열 시 위반)", "성능 유지: 서버 랙 풀가동 납기 (서버 다운 시 위반)" };
             string[] colors = { "#00E5FF", "#76FF03", "#FFD54F", "#FF4081", "#E040FB" };
 
             int tierIdx = 0;
@@ -542,8 +542,37 @@ namespace GateHelper.ServerTycoon
         public int MiningHashPercent { get; set; } = 0; // 0, 25, 50, 75, 100
         public double MinedCoins { get; set; } = 0.0;
         public double TotalMinedCoins { get; set; } = 0.0;
+        public double TotalInvestedUsd { get; set; } = 0.0; // 코인 매수에 투입된 총 투자 원금 ($)
+        public double TotalRealizedProfit { get; set; } = 0.0; // 매도를 통해 확정된 누적 실현 손익 ($)
         public string MarketNews { get; set; } = "글로벌 핀테크, 차세대 분산 원장 노드 인프라 구축 추진 발표.";
         public int NewsCooldownSecs { get; set; } = 18;
+
+        // 매수 평균 단가 (1개당 평균 얼마에 샀는지)
+        [JsonIgnore]
+        public double AverageBuyPrice => MinedCoins > 0.000001 ? Math.Max(0, TotalInvestedUsd / MinedCoins) : 0.0;
+
+        // 현재 총 평가 금액 (보유 코인 * 현재 시세)
+        [JsonIgnore]
+        public double TotalValuation => MinedCoins * CurrentPrice;
+
+        // 현재 평가 손익 (총 평가 금액 - 투자 원금)
+        [JsonIgnore]
+        public double UnrealizedProfit => TotalValuation - TotalInvestedUsd;
+
+        // 투자 수익률 (%)
+        [JsonIgnore]
+        public double ProfitRatePercent
+        {
+            get
+            {
+                if (TotalInvestedUsd > 0.001)
+                {
+                    return ((TotalValuation - TotalInvestedUsd) / TotalInvestedUsd) * 100.0;
+                }
+                // 원금 없이 채굴로만 획득한 경우 코인이 있으면 100% 순수익
+                return MinedCoins > 0.000001 ? 100.0 : 0.0;
+            }
+        }
 
         public void InitHistory()
         {
@@ -619,8 +648,8 @@ namespace GateHelper.ServerTycoon
                 new ServerItem
                 {
                     Id = "rpi",
-                    Name = "라즈베리 파이 4B",
-                    SubTitle = "초경량 가성비 쿼드코어 노드",
+                    Name = "초소형 미니 PC",
+                    SubTitle = "작고 알뜰한 입문용 컴퓨터",
                     Icon = "🍓",
                     Level = 1,
                     BaseCost = 15.0,
@@ -632,8 +661,8 @@ namespace GateHelper.ServerTycoon
                 new ServerItem
                 {
                     Id = "tower",
-                    Name = "오피스 타워 PC",
-                    SubTitle = "창고 구형 데스크탑의 부활",
+                    Name = "사무용 컴퓨터",
+                    SubTitle = "흔히 볼 수 있는 기본 데스크탑",
                     Icon = "🖥️",
                     Level = 0,
                     BaseCost = 320.0,
@@ -645,8 +674,8 @@ namespace GateHelper.ServerTycoon
                 new ServerItem
                 {
                     Id = "blade1u",
-                    Name = "1U 블레이드 랙",
-                    SubTitle = "엔터프라이즈 IDC 입문 섀시",
+                    Name = "표준 랙 서버",
+                    SubTitle = "데이터센터에 납품되는 슬림형 서버",
                     Icon = "🗄️",
                     Level = 0,
                     BaseCost = 6800.0,
@@ -658,8 +687,8 @@ namespace GateHelper.ServerTycoon
                 new ServerItem
                 {
                     Id = "xeon4u",
-                    Name = "4U 제온 워크스테이션",
-                    SubTitle = "64코어 대역폭 연산 몬스터",
+                    Name = "고성능 워크스테이션",
+                    SubTitle = "전문가용 강력한 대형 컴퓨터",
                     Icon = "⚡",
                     Level = 0,
                     BaseCost = 125000.0,
@@ -671,8 +700,8 @@ namespace GateHelper.ServerTycoon
                 new ServerItem
                 {
                     Id = "gpu_h100",
-                    Name = "NVIDIA H100 GPU 랙",
-                    SubTitle = "초거대 LLM AI 모델 분산 가속",
+                    Name = "AI 슈퍼컴퓨터",
+                    SubTitle = "인공지능을 초고속으로 돌리는 최신 장비",
                     Icon = "🔮",
                     Level = 0,
                     BaseCost = 3500000.0,
@@ -684,8 +713,8 @@ namespace GateHelper.ServerTycoon
                 new ServerItem
                 {
                     Id = "quantum",
-                    Name = "양자 초전도 큐비트 코어",
-                    SubTitle = "시공간 초월 극저온 양자 연산기",
+                    Name = "미래형 양자컴퓨터",
+                    SubTitle = "압도적인 처리 속도를 지닌 꿈의 컴퓨터",
                     Icon = "⚛️",
                     Level = 0,
                     BaseCost = 150000000.0,
@@ -704,8 +733,8 @@ namespace GateHelper.ServerTycoon
                 new PowerItem
                 {
                     Id = "outlet",
-                    Name = "가정용 벽면 단상 콘센트",
-                    SubTitle = "220V 16A 기본 차단기 전력",
+                    Name = "기본 벽면 콘센트",
+                    SubTitle = "방에서 흔히 쓰는 일반 220V 전원",
                     Icon = "🔌",
                     Level = 1, // 기본 3kW 제공
                     BaseCost = 0,
@@ -716,8 +745,8 @@ namespace GateHelper.ServerTycoon
                 new PowerItem
                 {
                     Id = "multitab",
-                    Name = "과부하 방지 서지 멀티탭",
-                    SubTitle = "접지 보호 6구 고용량 멀티탭",
+                    Name = "안전 멀티탭",
+                    SubTitle = "여러 기기를 꽂아 쓰는 확장 전원",
                     Icon = "🔋",
                     Level = 0,
                     BaseCost = 150.0,
@@ -728,8 +757,8 @@ namespace GateHelper.ServerTycoon
                 new PowerItem
                 {
                     Id = "ups_mini",
-                    Name = "UPS 백업 배터리 랙",
-                    SubTitle = "정전 방지 및 오프라인 배터리 공급",
+                    Name = "비상 예비 배터리(UPS)",
+                    SubTitle = "갑작스러운 정전을 막아주는 배터리",
                     Icon = "⚡",
                     Level = 0,
                     BaseCost = 3500.0,
@@ -740,8 +769,8 @@ namespace GateHelper.ServerTycoon
                 new PowerItem
                 {
                     Id = "high_voltage",
-                    Name = "산업용 3상 380V 고압 인입",
-                    SubTitle = "한전 고압 수전실 분전반 증설",
+                    Name = "산업용 고압 전력",
+                    SubTitle = "대형 빌딩 수준의 강력한 전기 공급",
                     Icon = "🏭",
                     Level = 0,
                     BaseCost = 75000.0,
@@ -752,8 +781,8 @@ namespace GateHelper.ServerTycoon
                 new PowerItem
                 {
                     Id = "solar_array",
-                    Name = "루프탑 하이브리드 태양광",
-                    SubTitle = "옥상 고효율 단결정 태양광 패널",
+                    Name = "옥상 태양광 발전기",
+                    SubTitle = "햇빛으로 자체 전기를 만드는 친환경 패널",
                     Icon = "☀️",
                     Level = 0,
                     BaseCost = 2000000.0,
@@ -764,8 +793,8 @@ namespace GateHelper.ServerTycoon
                 new PowerItem
                 {
                     Id = "smr_reactor",
-                    Name = "마이크로 SMR 소형 원자로",
-                    SubTitle = "차세대 무한 자가발전 원자력 팩",
+                    Name = "소형 원자력 발전기",
+                    SubTitle = "사실상 무한한 전기를 공급하는 꿈의 발전기",
                     Icon = "☢️",
                     Level = 0,
                     BaseCost = 80000000.0,
@@ -783,8 +812,8 @@ namespace GateHelper.ServerTycoon
                 new CoolingItem
                 {
                     Id = "passive",
-                    Name = "자연 대류 섀시 통풍",
-                    SubTitle = "기본 알루미늄 방열판 통풍구",
+                    Name = "자연 바람 통풍",
+                    SubTitle = "열린 창문과 환풍구로 서서히 열 식히기",
                     Icon = "🍃",
                     Level = 1,
                     BaseCost = 0,
@@ -794,8 +823,8 @@ namespace GateHelper.ServerTycoon
                 new CoolingItem
                 {
                     Id = "desk_fan",
-                    Name = "탁상용 회전 선풍기",
-                    SubTitle = "발열 랙 집중 송풍 쿨러",
+                    Name = "탁상용 선풍기",
+                    SubTitle = "뜨거워진 기기에 시원한 바람 쐬어주기",
                     Icon = "💨",
                     Level = 0,
                     BaseCost = 120.0,
@@ -805,8 +834,8 @@ namespace GateHelper.ServerTycoon
                 new CoolingItem
                 {
                     Id = "crac_unit",
-                    Name = "항온항습기(CRAC) 시스템",
-                    SubTitle = "정밀 18°C 항온 공조 제어",
+                    Name = "대형 서버실 에어컨",
+                    SubTitle = "서버실 온도를 항상 일정하게 유지",
                     Icon = "❄️",
                     Level = 0,
                     BaseCost = 4200.0,
@@ -816,8 +845,8 @@ namespace GateHelper.ServerTycoon
                 new CoolingItem
                 {
                     Id = "water_loop",
-                    Name = "커스텀 수냉 펌프 루프",
-                    SubTitle = "구리 핀 라디에이터 냉각수 순환",
+                    Name = "수냉식 쿨러 시스템",
+                    SubTitle = "차가운 냉각수를 순환시켜 열을 흡수",
                     Icon = "💧",
                     Level = 0,
                     BaseCost = 90000.0,
@@ -827,8 +856,8 @@ namespace GateHelper.ServerTycoon
                 new CoolingItem
                 {
                     Id = "immersion",
-                    Name = "극저온 액침 냉각 챔버",
-                    SubTitle = "비전도성 불소계 냉매 전면 침수",
+                    Name = "특수 액체 냉각 탱크",
+                    SubTitle = "특수 액체에 기기를 담가 통째로 식힘",
                     Icon = "🧊",
                     Level = 0,
                     BaseCost = 2400000.0,
@@ -838,8 +867,8 @@ namespace GateHelper.ServerTycoon
                 new CoolingItem
                 {
                     Id = "quantum_cryo",
-                    Name = "0.015K 극저온 헬륨 희석 냉동기",
-                    SubTitle = "우주 절대영도 수준 극저온 냉각",
+                    Name = "우주급 초극저온 냉동기",
+                    SubTitle = "영하 273도 수준으로 얼려버리는 최첨단 냉각",
                     Icon = "🌌",
                     Level = 0,
                     BaseCost = 90000000.0,
@@ -856,7 +885,7 @@ namespace GateHelper.ServerTycoon
                 new SkillNode
                 {
                     Id = "skill_power_eff",
-                    Name = "고효율 전원 회로",
+                    Name = "절전 기술 연구",
                     Description = "서버 소비 전력 절감 (Lv당 -6%, 최대 -30%)",
                     Icon = "⚡",
                     MaxLevel = 5,
@@ -865,8 +894,8 @@ namespace GateHelper.ServerTycoon
                 new SkillNode
                 {
                     Id = "skill_cooling_boost",
-                    Name = "나노 히트파이프 코팅",
-                    Description = "냉각 장치 쿨링 용량 강화 (Lv당 +10%, 최대 +50%)",
+                    Name = "고효율 쿨링 연구",
+                    Description = "냉각 장치의 냉각 성능 대폭 강화 (Lv당 +10%, 최대 +50%)",
                     Icon = "❄",
                     MaxLevel = 5,
                     LevelCosts = new int[] { 1, 2, 4, 8, 15 }
@@ -874,8 +903,8 @@ namespace GateHelper.ServerTycoon
                 new SkillNode
                 {
                     Id = "skill_backbone",
-                    Name = "100G 광대역 백본",
-                    Description = "모든 서버 초당 수입(RPS) 증폭 (Lv당 +12%, 최대 +60%)",
+                    Name = "초고속 인터넷망",
+                    Description = "인터넷 속도를 올려 모든 서버 수입 증폭 (Lv당 +12%, 최대 +60%)",
                     Icon = "🌐",
                     MaxLevel = 5,
                     LevelCosts = new int[] { 2, 4, 8, 15, 25 }
@@ -883,8 +912,8 @@ namespace GateHelper.ServerTycoon
                 new SkillNode
                 {
                     Id = "skill_battery_max",
-                    Name = "리튬-황 대용량 배터리",
-                    Description = "오프라인 방치 상한 확장 (Lv당 +40분, 최대 +3.3시간)",
+                    Name = "대용량 예비 배터리",
+                    Description = "게임을 꺼두었을 때 모이는 방치 시간 증가 (Lv당 +40분, 최대 +3.3시간)",
                     Icon = "🔋",
                     MaxLevel = 5,
                     LevelCosts = new int[] { 2, 4, 8, 15, 25 }
@@ -892,8 +921,8 @@ namespace GateHelper.ServerTycoon
                 new SkillNode
                 {
                     Id = "skill_crit_packet",
-                    Name = "황금 패킷 라우팅",
-                    Description = "클릭 크리티컬 확률 및 잭팟 배율 강화 (최대 25% 확률 8배)",
+                    Name = "골든 트래픽 보너스",
+                    Description = "클릭 시 대박 보너스 확률 및 배율 강화 (최대 25% 확률 8배)",
                     Icon = "★",
                     MaxLevel = 5,
                     LevelCosts = new int[] { 3, 6, 12, 22, 35 }
@@ -901,8 +930,8 @@ namespace GateHelper.ServerTycoon
                 new SkillNode
                 {
                     Id = "skill_ai_devops",
-                    Name = "AI 자동 복구 드론",
-                    Description = "장애 보상 증폭(Lv당 +30%) 및 Lv.3 이상 자동 복구 드론",
+                    Name = "AI 자동 수리 봇",
+                    Description = "고장 보상 증폭(Lv당 +30%) 및 Lv.3 이상 시 자동으로 고장 수리",
                     Icon = "🤖",
                     MaxLevel = 5,
                     LevelCosts = new int[] { 3, 6, 12, 22, 35 }

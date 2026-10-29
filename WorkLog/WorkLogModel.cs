@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Runtime.Serialization;
 
@@ -15,6 +15,7 @@ namespace GateHelper
         [DataMember] public string Title { get; set; } = "";
         [DataMember] public string Content { get; set; } = "";
         [DataMember] public string Status { get; set; } = "OPEN";
+        [DataMember] public string Priority { get; set; } = "NORMAL"; // HIGH, NORMAL, LOW
         [DataMember] public string Tags { get; set; } = "";
         [DataMember] public string Memo { get; set; } = "";
         [DataMember] public DateTime LastUpdated { get; set; } = DateTime.Now;
@@ -29,6 +30,7 @@ namespace GateHelper
             Title = "";
             Content = "";
             Status = "OPEN";
+            Priority = "NORMAL";
             Tags = "";
             Memo = "";
             ImagePaths = new List<string>();
@@ -36,6 +38,35 @@ namespace GateHelper
 
         // 수정 시간 갱신 로직
         public void Touch() => LastUpdated = DateTime.Now;
+
+        // 상태 순환 변경 (OPEN -> ING.. -> DONE -> FIXED)
+        public string CycleNextStatus()
+        {
+            switch (Status)
+            {
+                case "OPEN": Status = "ING.."; break;
+                case "ING..": Status = "DONE"; break;
+                case "DONE": Status = "FIXED"; break;
+                case "FIXED": Status = "OPEN"; break;
+                default: Status = "OPEN"; break;
+            }
+            Touch();
+            return Status;
+        }
+
+        // 우선순위 순환 변경 (NORMAL -> HIGH -> LOW)
+        public string CycleNextPriority()
+        {
+            switch (Priority)
+            {
+                case "NORMAL": Priority = "HIGH"; break;
+                case "HIGH": Priority = "LOW"; break;
+                case "LOW": Priority = "NORMAL"; break;
+                default: Priority = "NORMAL"; break;
+            }
+            Touch();
+            return Priority;
+        }
     }
 
     /// <summary>
@@ -45,6 +76,9 @@ namespace GateHelper
     {
         public float FontSize { get; set; } = 10f;
         public bool HideDone { get; set; } = false; // 사용자의 필터 설정 유지용
+        public int SplitterDistance { get; set; } = 480; // 좌우 스플리터 위치 저장 (좌측 그리드 넉넉한 공간 확보)
+        public int DetailSplitterDistance { get; set; } = 130; // 우측 상하 스플리터 위치 저장 (스크린샷 세로 높이 극대화)
+        public string QuickFilter { get; set; } = "ALL"; // ALL, ING, TODAY, HIGH
         public List<WorkLogEntry> Items { get; set; } = new List<WorkLogEntry>();
     }
 }

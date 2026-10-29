@@ -324,6 +324,34 @@
       <DependentUpon>DataFlipControl.cs</DependentUpon>
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="SandBox\7. PocketFarm\PocketFarmEntities.cs" />
+    <Compile Include="SandBox\7. PocketFarm\PocketFarmWeather.cs">
+      <DependentUpon>PocketFarmModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SandBox\7. PocketFarm\PocketFarmAchievements.cs">
+      <DependentUpon>PocketFarmModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SandBox\7. PocketFarm\PocketFarmContracts.cs">
+      <DependentUpon>PocketFarmModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SandBox\7. PocketFarm\PocketFarmModel.cs" />
+    <Compile Include="SandBox\7. PocketFarm\PocketFarmModel.Actions.cs">
+      <DependentUpon>PocketFarmModel.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SandBox\7. PocketFarm\PocketFarmControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SandBox\7. PocketFarm\PocketFarmControl.Designer.cs">
+      <DependentUpon>PocketFarmControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SandBox\7. PocketFarm\PocketFarmControl.Render.cs">
+      <DependentUpon>PocketFarmControl.cs</DependentUpon>
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="SandBox\7. PocketFarm\PocketFarmControl.Modals.cs">
+      <DependentUpon>PocketFarmControl.cs</DependentUpon>
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="SandBox\GameListControl.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -381,6 +409,12 @@
     <Compile Include="WorkLog\WorkLogModel.cs" />
     <Compile Include="WorkLog\WorkLogRepository.cs" />
     <Compile Include="WorkLog\WorkLogService.cs" />
+    <Compile Include="WorkLog\WorkLogDeepZoomViewer.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="WorkLog\WorkLogImagePopupForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <EmbeddedResource Include="LogValidator\Forms\LogScenarioForm.resx">
       <DependentUpon>LogScenarioForm.cs</DependentUpon>
     </EmbeddedResource>

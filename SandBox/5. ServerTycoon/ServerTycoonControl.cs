@@ -57,8 +57,8 @@ namespace GateHelper.ServerTycoon
 
         // 코인 거래소 인터랙션 영역
         private Rectangle _cryptoHash0Rect, _cryptoHash25Rect, _cryptoHash50Rect, _cryptoHash100Rect;
-        private Rectangle _cryptoSell25BtnRect, _cryptoSellAllBtnRect;
-        private Rectangle _cryptoBuy5kBtnRect, _cryptoBuyMaxBtnRect;
+        private Rectangle _cryptoSell50BtnRect, _cryptoSellAllBtnRect;
+        private Rectangle _cryptoBuy1kBtnRect, _cryptoBuyMaxBtnRect;
 
         // 마우스 호버 인덱스
         private int _hoveredRackIndex = -1;
@@ -90,7 +90,7 @@ namespace GateHelper.ServerTycoon
                     ? $"{(int)span.TotalHours}시간 {span.Minutes}분" 
                     : $"{span.Minutes}분 {span.Seconds}초";
                 double capHours = _state.GetOfflineCapSeconds() / 3600.0;
-                _offlineBannerText = $"[오프라인 IDC 가동 보고] 방치 시간: {timeStr} (상한 {capHours:F1}h) -> +${offlineEarned:N1} 획득!";
+                _offlineBannerText = $"[부재 중 서버 운영 보고] 자리 비운 시간: {timeStr} (최대 {capHours:F1}시간 인정) -> +${offlineEarned:N1} 획득!";
                 _showOfflineBanner = true;
             }
 
@@ -492,8 +492,8 @@ namespace GateHelper.ServerTycoon
             using (Font titleFont = new Font("Segoe UI", 10f, FontStyle.Bold))
             using (SolidBrush titleBrush = new SolidBrush(Color.FromArgb(200, 215, 235)))
             {
-                string prestigeTag = _state.PrestigeCount > 0 ? $" [PRESTIGE +{_state.PrestigeCount}]" : "";
-                g.DrawString($"▣ GLOBAL IDC MONITORING CONSOLE{prestigeTag}", titleFont, titleBrush, 12, 10);
+                string prestigeTag = _state.PrestigeCount > 0 ? $" [환생 +{_state.PrestigeCount}회]" : "";
+                g.DrawString($"▣ 내 서버실 통합 현황판{prestigeTag}", titleFont, titleBrush, 12, 10);
             }
 
             // 상단 미니 실시간 텔레메트리 (전력 & 온도)
@@ -825,8 +825,8 @@ namespace GateHelper.ServerTycoon
                 Rectangle tRect = new Rectangle(_deployButtonRect.X, _deployButtonRect.Y + 10, _deployButtonRect.Width, 24);
                 Rectangle sRect = new Rectangle(_deployButtonRect.X, _deployButtonRect.Y + 36, _deployButtonRect.Width, 20);
 
-                g.DrawString("⚡ PING / DEPLOY", btnTitleFont, btnTextBrush, tRect, sf);
-                g.DrawString($"패킷 전송 (클릭당 +${clickPower:N1})", btnSubFont, btnTextBrush, sRect, sf);
+                g.DrawString("⚡ 데이터 전송 클릭!", btnTitleFont, btnTextBrush, tRect, sf);
+                g.DrawString($"트래픽 처리 수익 (클릭당 +${clickPower:N1})", btnSubFont, btnTextBrush, sRect, sf);
             }
 
             foreach (var sw in _shockwaves)
@@ -840,7 +840,7 @@ namespace GateHelper.ServerTycoon
 
         private void DrawSubTabBar(Graphics g, int w, int topY, int height)
         {
-            string[] tabNames = { "▣ 서버실", "⚡ 전력실", "❄ 냉각실", "◈ S/W개발", "★ B2B수주", "▲ 코인거래", "✦ 연구/환생" };
+            string[] tabNames = { "▣ 서버실", "⚡ 전력실", "❄ 냉각실", "◈ S/W 개발", "★ 외주 계약", "▲ 코인 거래", "✦ 연구/환생" };
             int tabCount = tabNames.Length;
             int tabGap = 3;
             int tabW = (w - 20 - (tabCount - 1) * tabGap) / tabCount;
@@ -915,7 +915,7 @@ namespace GateHelper.ServerTycoon
             using (Font titleFont = new Font("Segoe UI", 9f, FontStyle.Bold))
             using (SolidBrush titleBrush = new SolidBrush(Color.FromArgb(200, 220, 245)))
             {
-                g.DrawString("▣ 서버 유닛 증설 (지수적 성장 및 전력·발열 발생)", titleFont, titleBrush, 14, topY + 6);
+                g.DrawString("▣ 서버 컴퓨터 구매 및 업그레이드 (수익 증가 | 전기·발열 발생)", titleFont, titleBrush, 14, topY + 6);
             }
 
             int cardPad = 8;
@@ -1005,7 +1005,7 @@ namespace GateHelper.ServerTycoon
             using (Font titleFont = new Font("Segoe UI", 9f, FontStyle.Bold))
             using (SolidBrush titleBrush = new SolidBrush(Color.FromArgb(255, 167, 38)))
             {
-                g.DrawString($"⚡ 전력 인프라: 공급 {supply:N0}W / 소비 {demand:N0}W  |  [배터리 상한] {capHours:F1}시간", titleFont, titleBrush, 14, topY + 6);
+                g.DrawString($"⚡ 전력 공급: 현재 공급 {supply:N0}W / 필요 전력 {demand:N0}W  |  [부재 중 축전 시간] {capHours:F1}시간", titleFont, titleBrush, 14, topY + 6);
             }
 
             int cardPad = 8;
@@ -1105,12 +1105,12 @@ namespace GateHelper.ServerTycoon
             double cooling = _state.GetTotalCoolingCapacity();
             double heat = _state.GetTotalHeatGenerated();
             double temp = _state.GetCurrentTemperature();
-            string status = temp <= 35.0 ? "[쾌적 오버클럭 +20%]" : (temp > 60.0 ? "[과열 스로틀링 -35%]" : "[안정 가동]");
+            string status = temp <= 35.0 ? "[쾌적 보너스 +20%]" : (temp > 60.0 ? "[과열 성능 저하 -35%]" : "[안정 가동]");
 
             using (Font titleFont = new Font("Segoe UI", 9f, FontStyle.Bold))
             using (SolidBrush titleBrush = new SolidBrush(Color.FromArgb(0, 229, 255)))
             {
-                g.DrawString($"❄ 냉각 시스템: 쿨링 {cooling:N0} / 발열 {heat:N0}  |  온도: {temp:F1}°C {status}", titleFont, titleBrush, 14, topY + 6);
+                g.DrawString($"❄ 냉각 설비: 냉각 능력 {cooling:N0} / 발생 열기 {heat:N0}  |  온도: {temp:F1}°C {status}", titleFont, titleBrush, 14, topY + 6);
             }
 
             int cardPad = 8;
@@ -1361,7 +1361,7 @@ namespace GateHelper.ServerTycoon
             using (SolidBrush titleBrush = new SolidBrush(Color.FromArgb(200, 220, 245)))
             {
                 double royaltyRps = _state.GetSoftwareRoyaltyRps();
-                string title = $"◈ S/W & AI 솔루션 스튜디오 (실시간 로열티: +${royaltyRps:N1}/초 | 총 론칭: {studio.TotalSoftwareShipped}건)";
+                string title = $"◈ 소프트웨어 개발실 (초당 로열티: +${royaltyRps:N1}/초 | 총 출시: {studio.TotalSoftwareShipped}건)";
                 g.DrawString(title, titleFont, titleBrush, 14, topY + 6);
             }
 
@@ -1393,7 +1393,7 @@ namespace GateHelper.ServerTycoon
                 using (SolidBrush sBrush = new SolidBrush(Color.FromArgb(160, 180, 205)))
                 {
                     g.DrawString($"▶ 개발 진행 중: {prj.Title}", pFont, pBrush, 22, panelY + 12);
-                    g.DrawString($"카테고리: {def.Name} | 권장 배분: UX {def.OptimalUx}% / 기능 {def.OptimalAlgo}% / 보안 {def.OptimalSec}%", subFont, sBrush, 22, panelY + 34);
+                    g.DrawString($"분야: {def.Name} | 권장 배분: 디자인 {def.OptimalUx}% / 핵심 기능 {def.OptimalAlgo}% / 보안 {def.OptimalSec}%", subFont, sBrush, 22, panelY + 34);
                 }
 
                 int barX = 22;
@@ -1425,7 +1425,7 @@ namespace GateHelper.ServerTycoon
                 using (SolidBrush progText = new SolidBrush(Color.White))
                 {
                     StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                    string progStr = prj.IsCompleted ? "★ 컴파일 및 빌드 완료! (100.0%)" : $"{pct:F1}% ({prj.CurrentPoints:N0} / {prj.TargetPoints:N0} Pts)";
+                    string progStr = prj.IsCompleted ? "★ 프로그램 개발 완료! (100.0%)" : $"{pct:F1}% ({prj.CurrentPoints:N0} / {prj.TargetPoints:N0} 개발력)";
                     g.DrawString(progStr, progFont, progText, barBgRect, sf);
                 }
 
@@ -1435,8 +1435,8 @@ namespace GateHelper.ServerTycoon
                 using (SolidBrush spdBrush = new SolidBrush(Color.FromArgb(255, 215, 64)))
                 using (SolidBrush balBrush = new SolidBrush(Color.FromArgb(140, 160, 185)))
                 {
-                    g.DrawString($"⚡ 서버 연산 가속: +{speed:N0} Pts/초", infoFont, spdBrush, 22, panelY + 92);
-                    g.DrawString($"설정 배분: UX {prj.FocusUx}%  |  알고리즘 {prj.FocusAlgo}%  |  보안 {prj.FocusSec}%", infoFont, balBrush, 22, panelY + 110);
+                    g.DrawString($"⚡ 서버 개발 지원: +{speed:N0} 개발력/초", infoFont, spdBrush, 22, panelY + 92);
+                    g.DrawString($"투자 비율: 디자인 {prj.FocusUx}%  |  핵심 기능 {prj.FocusAlgo}%  |  보안 {prj.FocusSec}%", infoFont, balBrush, 22, panelY + 110);
                 }
 
                 if (!prj.IsCompleted)
@@ -1450,7 +1450,7 @@ namespace GateHelper.ServerTycoon
                         g.FillRectangle(cBg, _swCrunchBtnRect);
                         g.DrawRectangle(cPen, _swCrunchBtnRect);
                         StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                        g.DrawString("⚡ 긴급 크런치 코딩! (+250 Pts 즉시 추가)", cFont, cText, _swCrunchBtnRect, sf);
+                        g.DrawString("⚡ 열정 부스트 코딩! (+250 개발력 즉시 추가)", cFont, cText, _swCrunchBtnRect, sf);
                     }
                 }
                 else
@@ -1464,7 +1464,7 @@ namespace GateHelper.ServerTycoon
                         g.FillRectangle(lBg, _swLaunchBtnRect);
                         g.DrawRectangle(lPen, _swLaunchBtnRect);
                         StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                        g.DrawString("★ 글로벌 마켓 공식 론칭! (로열티 & 보너스 수령)", lFont, lText, _swLaunchBtnRect, sf);
+                        g.DrawString("★ 글로벌 마켓 공식 출시! (보너스 & 정기 수입 수령)", lFont, lText, _swLaunchBtnRect, sf);
                     }
                 }
             }
@@ -1515,13 +1515,13 @@ namespace GateHelper.ServerTycoon
                 using (SolidBrush dBrush = new SolidBrush(Color.FromArgb(150, 170, 195)))
                 {
                     g.DrawString($"[선택] {selDef.Name} ({selDef.SubTitle})", subTitleFont, wBrush, 16, panelY + 72);
-                    g.DrawString($"착수금: ${selDef.UnlockCost:N0}  |  필요 연산: {selDef.RequiredPoints:N0} Pts  |  기본 로열티: +${selDef.BaseRoyaltyPerSec:N0}/초", descFont, dBrush, 16, panelY + 90);
+                    g.DrawString($"개발비: ${selDef.UnlockCost:N0}  |  필요 개발력: {selDef.RequiredPoints:N0}  |  기본 수입: +${selDef.BaseRoyaltyPerSec:N0}/초", descFont, dBrush, 16, panelY + 90);
                 }
 
                 int sliderY = panelY + 114;
-                DrawFactorStepper(g, 16, sliderY, "UX/디자인", studio.SelectedCategoryIndex, 0, out _swUxMinusRect, out _swUxPlusRect);
-                DrawFactorStepper(g, 16, sliderY + 24, "알고리즘", studio.SelectedCategoryIndex, 1, out _swAlgoMinusRect, out _swAlgoPlusRect);
-                DrawFactorStepper(g, 16, sliderY + 48, "보안/안정", studio.SelectedCategoryIndex, 2, out _swSecMinusRect, out _swSecPlusRect);
+                DrawFactorStepper(g, 16, sliderY, "디자인", studio.SelectedCategoryIndex, 0, out _swUxMinusRect, out _swUxPlusRect);
+                DrawFactorStepper(g, 16, sliderY + 24, "핵심 기능", studio.SelectedCategoryIndex, 1, out _swAlgoMinusRect, out _swAlgoPlusRect);
+                DrawFactorStepper(g, 16, sliderY + 48, "보안 및 안정", studio.SelectedCategoryIndex, 2, out _swSecMinusRect, out _swSecPlusRect);
 
                 _swStartDevBtnRect = new Rectangle(leftW - 130, panelY + 130, 120, 36);
                 bool canAfford = _state.Money >= selDef.UnlockCost;
@@ -1536,7 +1536,7 @@ namespace GateHelper.ServerTycoon
                     g.FillRectangle(sb, _swStartDevBtnRect);
                     g.DrawRectangle(sp, _swStartDevBtnRect);
                     StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                    g.DrawString($"▶ 개발 착수\n(-${FormatCompactNumber(selDef.UnlockCost)})", sFont, st, _swStartDevBtnRect, sf);
+                    g.DrawString($"▶ 개발 시작\n(-${FormatCompactNumber(selDef.UnlockCost)})", sFont, st, _swStartDevBtnRect, sf);
                 }
             }
 
@@ -1552,7 +1552,7 @@ namespace GateHelper.ServerTycoon
             using (Font rTitleFont = new Font("Segoe UI", 8.5f, FontStyle.Bold))
             using (SolidBrush rTitleBrush = new SolidBrush(Color.FromArgb(200, 215, 235)))
             {
-                g.DrawString("◈ 글로벌 출시 S/W 포트폴리오 (실시간 로열티)", rTitleFont, rTitleBrush, rightX + 12, panelY + 10);
+                g.DrawString("◈ 출시된 프로그램 목록 (정기 수입)", rTitleFont, rTitleBrush, rightX + 12, panelY + 10);
             }
 
             if (studio.ReleasedProducts.Count == 0)
@@ -1561,7 +1561,7 @@ namespace GateHelper.ServerTycoon
                 using (SolidBrush emptyBrush = new SolidBrush(Color.FromArgb(110, 125, 145)))
                 {
                     StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                    g.DrawString("현재 마켓에 유통 중인 소프트웨어가 없습니다.\n좌측에서 새 프로젝트를 기획하고 론칭해 보세요!", emptyFont, emptyBrush, rightBox, sf);
+                    g.DrawString("현재 서비스 중인 프로그램이 없습니다.\n좌측에서 새 프로그램을 기획하고 출시해 보세요!", emptyFont, emptyBrush, rightBox, sf);
                 }
             }
             else
@@ -1629,7 +1629,7 @@ namespace GateHelper.ServerTycoon
                 if (!prj.IsCompleted && _swCrunchBtnRect.Contains(pt))
                 {
                     prj.CurrentPoints += 250.0;
-                    AddFloatingText("+250 Pts!", pt.X, pt.Y, Color.FromArgb(0, 229, 255), true);
+                    AddFloatingText("+250 개발력!", pt.X, pt.Y, Color.FromArgb(0, 229, 255), true);
                     Invalidate();
                     return;
                 }
@@ -1725,8 +1725,8 @@ namespace GateHelper.ServerTycoon
             using (SolidBrush tierBrush = new SolidBrush(Color.FromArgb(255, 215, 64)))
             {
                 string tierDesc = $"[{b2b.ReputationTier} RANK (신용도 {b2b.ReputationScore}점)]";
-                g.DrawString($"★ B2B 엔터프라이즈 수주 계약실  |  기업 신용 등급: ", titleFont, titleBrush, 14, topY + 6);
-                int offset = (int)g.MeasureString("★ B2B 엔터프라이즈 수주 계약실  |  기업 신용 등급: ", titleFont).Width + 14;
+                g.DrawString($"★ 기업 외주 수주 계약실  |  내 서버실 신용 등급: ", titleFont, titleBrush, 14, topY + 6);
+                int offset = (int)g.MeasureString("★ 기업 외주 수주 계약실  |  내 서버실 신용 등급: ", titleFont).Width + 14;
                 g.DrawString(tierDesc, tierFont, tierBrush, offset, topY + 5);
             }
 
@@ -1739,7 +1739,7 @@ namespace GateHelper.ServerTycoon
                 g.FillRectangle(refBg, _b2bRefreshBtnRect);
                 g.DrawRectangle(refPen, _b2bRefreshBtnRect);
                 StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                g.DrawString("● 신규 입찰", refF, refT, _b2bRefreshBtnRect, sf);
+                g.DrawString("● 새 의뢰 찾기", refF, refT, _b2bRefreshBtnRect, sf);
             }
 
             int panelY = topY + 28;
@@ -1766,7 +1766,7 @@ namespace GateHelper.ServerTycoon
                 using (SolidBrush subBrush = new SolidBrush(Color.FromArgb(170, 190, 215)))
                 {
                     g.DrawString($"▶ 계약 진행 중: {c.ClientName} - {c.Title}", clientFont, cBrush, 28, panelY + 16);
-                    g.DrawString($"요구 대역폭: {c.RequiredRps:N0} RPS  |  SLA 준수 조건: {c.SlaRuleDescription}", subFont, subBrush, 28, panelY + 42);
+                    g.DrawString($"요구 서버 성능: {c.RequiredRps:N0}  |  계약 준수 조건: {c.SlaRuleDescription}", subFont, subBrush, 28, panelY + 42);
                 }
 
                 int barX = 28;
@@ -1805,8 +1805,8 @@ namespace GateHelper.ServerTycoon
                 using (SolidBrush sBrush = new SolidBrush(c.ViolationsCount == 0 ? Color.FromArgb(0, 230, 118) : Color.FromArgb(255, 82, 82)))
                 {
                     string slaText = c.ViolationsCount == 0 
-                        ? "● SLA 상태: 100% 무결점 준수 중 (정상)" 
-                        : $"▲ SLA 경고: 위반 누적 {c.ViolationsCount}회! (4회 이상 시 계약 파기 및 위약금 발생)";
+                        ? "● 계약 준수 상태: 무결점 진행 중 (정상)" 
+                        : $"▲ 계약 위반 경고: 누적 {c.ViolationsCount}회! (4회 이상 시 계약 파기 및 위약금 발생)";
                     g.DrawString(slaText, slaFont, sBrush, 28, panelY + 110);
                 }
 
@@ -1874,9 +1874,9 @@ namespace GateHelper.ServerTycoon
                     using (SolidBrush wColorBrush = new SolidBrush(Color.FromArgb(255, 200, 100)))
                     {
                         g.DrawString(offer.Title, tFont, tBrush, new Rectangle(oRect.X + 8, oRect.Y + 30, oRect.Width - 16, 32));
-                        g.DrawString($"⚡ 필요 연산: {offer.RequiredRps:N0} RPS", dFont, rpsBrush, oRect.X + 8, oRect.Y + 66);
+                        g.DrawString($"⚡ 필요 서버 성능: {offer.RequiredRps:N0}", dFont, rpsBrush, oRect.X + 8, oRect.Y + 66);
                         g.DrawString($"● 기간: {offer.DurationSecs}초  |  보수: +${FormatCompactNumber(offer.RewardCash)}", dFont, dBrush, oRect.X + 8, oRect.Y + 84);
-                        g.DrawString($"● SLA: {offer.SlaRuleDescription}", dFont, wColorBrush, new Rectangle(oRect.X + 8, oRect.Y + 102, oRect.Width - 16, 28));
+                        g.DrawString($"● 계약 조건: {offer.SlaRuleDescription}", dFont, wColorBrush, new Rectangle(oRect.X + 8, oRect.Y + 102, oRect.Width - 16, 28));
                     }
 
                     int btnH = 34;
@@ -1894,7 +1894,7 @@ namespace GateHelper.ServerTycoon
                         g.FillRectangle(bb, acceptRect);
                         g.DrawRectangle(bp, acceptRect);
                         StringFormat sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                        string bText = canAccept ? $"수주 계약 체결 (+${FormatCompactNumber(offer.RewardCash)})" : "대역폭(RPS) 부족";
+                        string bText = canAccept ? $"외주 계약 수락 (+${FormatCompactNumber(offer.RewardCash)})" : "서버 성능 부족";
                         g.DrawString(bText, btnFont, bt, acceptRect, sf);
                     }
                 }
@@ -1907,7 +1907,7 @@ namespace GateHelper.ServerTycoon
             if (_b2bRefreshBtnRect.Contains(pt))
             {
                 b2b.RefreshOffers(_rand, _state.CalculateTotalRps());
-                AddFloatingText("새 수주 오퍼 도착!", pt.X, pt.Y, Color.FromArgb(0, 229, 255), false);
+                AddFloatingText("새로운 의뢰 도착!", pt.X, pt.Y, Color.FromArgb(0, 229, 255), false);
                 Invalidate();
                 return;
             }
@@ -1937,7 +1937,7 @@ namespace GateHelper.ServerTycoon
                         }
                         else
                         {
-                            AddFloatingText("대역폭(RPS) 부족으로 수주 불가!", pt.X, pt.Y, Color.FromArgb(255, 82, 82), false);
+                            AddFloatingText("서버 성능 부족으로 수락 불가!", pt.X, pt.Y, Color.FromArgb(255, 82, 82), false);
                         }
                         Invalidate();
                         return;
@@ -1954,23 +1954,23 @@ namespace GateHelper.ServerTycoon
             crypto.InitHistory();
 
             using (Font titleFont = new Font("Segoe UI", 9f, FontStyle.Bold))
-            using (Font tickerFont = new Font("Segoe UI", 10f, FontStyle.Bold))
+            using (Font tickerFont = new Font("Segoe UI", 10.5f, FontStyle.Bold))
             using (SolidBrush titleBrush = new SolidBrush(Color.FromArgb(200, 220, 245)))
             {
                 bool isUp = crypto.PriceChangePercent >= 0;
                 Color tickCol = isUp ? Color.FromArgb(0, 230, 118) : Color.FromArgb(255, 82, 82);
-                string sign = isUp ? "+" : "";
+                string sign = isUp ? "▲ +" : "▼ ";
 
-                g.DrawString("▲ ByteCoin(BYT) 가상자산 거래소  |  현재 시세: ", titleFont, titleBrush, 14, topY + 6);
-                int off = (int)g.MeasureString("▲ ByteCoin(BYT) 가상자산 거래소  |  현재 시세: ", titleFont).Width + 14;
+                g.DrawString("▲ 바이트코인(BYT) 거래소  |  현재 시세: ", titleFont, titleBrush, 14, topY + 6);
+                int off = (int)g.MeasureString("▲ 바이트코인(BYT) 거래소  |  현재 시세: ", titleFont).Width + 14;
                 using (SolidBrush tb = new SolidBrush(tickCol))
                 {
-                    g.DrawString($"${crypto.CurrentPrice:N2} ({sign}{crypto.PriceChangePercent:F2}%)", tickerFont, tb, off, topY + 5);
+                    g.DrawString($"${crypto.CurrentPrice:N2} ({sign}{crypto.PriceChangePercent:F2}%)", tickerFont, tb, off, topY + 4);
                 }
             }
 
             int panelY = topY + 28;
-            int chartW = (int)(w * 0.58);
+            int chartW = (int)(w * 0.55);
             int rightX = chartW + 18;
             int rightW = w - rightX - 10;
 
@@ -2050,6 +2050,7 @@ namespace GateHelper.ServerTycoon
                 g.DrawString($"[NEWS] {crypto.MarketNews}", nFont, nBrush, new Rectangle(newsBox.X + 8, newsBox.Y, newsBox.Width - 16, newsBox.Height), sf);
             }
 
+            // 우측 메인 패널: 내 투자 현황판 & 매매 콘솔
             Rectangle rightBox = new Rectangle(rightX, panelY, rightW, 200);
             using (SolidBrush rBg = new SolidBrush(Color.FromArgb(20, 24, 32)))
             using (Pen rPen = new Pen(Color.FromArgb(38, 48, 62), 1))
@@ -2058,58 +2059,118 @@ namespace GateHelper.ServerTycoon
                 g.DrawRectangle(rPen, rightBox);
             }
 
-            using (Font secFont = new Font("Segoe UI", 8f, FontStyle.Bold))
-            using (SolidBrush secBrush = new SolidBrush(Color.FromArgb(200, 220, 245)))
+            // 1. [★ 내 투자 현황판] 요약 카드
+            Rectangle cardRect = new Rectangle(rightX + 8, panelY + 6, rightW - 16, 78);
+            using (SolidBrush cardBg = new SolidBrush(Color.FromArgb(26, 32, 44)))
+            using (Pen cardPen = new Pen(Color.FromArgb(48, 60, 80), 1))
             {
-                g.DrawString("⚡ 서버 채굴 전환 비중 (해시 배분):", secFont, secBrush, rightX + 12, panelY + 10);
+                g.FillRectangle(cardBg, cardRect);
+                g.DrawRectangle(cardPen, cardRect);
+            }
+
+            // 뱃지 아이콘 (우측 상단 장식)
+            DrawCryptoCoinBadge(g, new Rectangle(cardRect.Right - 36, cardRect.Y + 6, 28, 28));
+
+            double valDollars = crypto.TotalValuation;
+            double profitDollars = crypto.UnrealizedProfit;
+            double profitRate = crypto.ProfitRatePercent;
+            bool hasCoins = crypto.MinedCoins > 0.000001;
+
+            using (Font valFont = new Font("Segoe UI", 12f, FontStyle.Bold))
+            using (Font profitFont = new Font("Segoe UI", 9.5f, FontStyle.Bold))
+            using (Font infoFont = new Font("Segoe UI", 7.6f))
+            using (Font labelFont = new Font("Segoe UI", 7f))
+            using (SolidBrush goldBrush = new SolidBrush(Color.FromArgb(255, 215, 64)))
+            using (SolidBrush labelBrush = new SolidBrush(Color.FromArgb(140, 155, 175)))
+            using (SolidBrush textBrush = new SolidBrush(Color.FromArgb(220, 230, 245)))
+            {
+                // 총 평가금액
+                g.DrawString("내 코인 평가 금액", labelFont, labelBrush, cardRect.X + 8, cardRect.Y + 5);
+                g.DrawString($"${FormatCompactNumber(valDollars)}", valFont, goldBrush, cardRect.X + 8, cardRect.Y + 16);
+
+                // 평가 손익 및 수익률 (수익: 초록, 손실: 빨강, 무보유: 회색)
+                if (hasCoins)
+                {
+                    bool isProfit = profitDollars >= 0;
+                    Color pColor = isProfit ? Color.FromArgb(0, 230, 118) : Color.FromArgb(255, 82, 82);
+                    string pSign = isProfit ? "+$" : "-$";
+                    string rSign = isProfit ? "+" : "";
+                    using (SolidBrush pb = new SolidBrush(pColor))
+                    {
+                        string profitStr = $"{pSign}{Math.Abs(profitDollars):N1} ({rSign}{profitRate:F1}%)";
+                        g.DrawString(profitStr, profitFont, pb, cardRect.X + 115, cardRect.Y + 18);
+                    }
+                }
+                else
+                {
+                    using (SolidBrush pb = new SolidBrush(Color.FromArgb(120, 135, 150)))
+                    {
+                        g.DrawString("보유 코인 없음", profitFont, pb, cardRect.X + 115, cardRect.Y + 18);
+                    }
+                }
+
+                // 구분선
+                using (Pen sepPen = new Pen(Color.FromArgb(42, 52, 68), 1))
+                {
+                    g.DrawLine(sepPen, cardRect.X + 8, cardRect.Y + 39, cardRect.Right - 8, cardRect.Y + 39);
+                }
+
+                // 2열 상세 정보: [매수 평단가 / 투자 원금] & [보유 수량 / 채굴 속도]
+                int col1X = cardRect.X + 8;
+                int col2X = cardRect.X + (cardRect.Width / 2) + 2;
+
+                string avgBuyStr = hasCoins 
+                    ? (crypto.TotalInvestedUsd > 0.001 ? $"${crypto.AverageBuyPrice:N1}" : "$0.0 (무료 채굴)")
+                    : "-";
+                string investedStr = crypto.TotalInvestedUsd > 0.001 ? $"${FormatCompactNumber(crypto.TotalInvestedUsd)}" : "$0";
+
+                g.DrawString($"매수 평단가: {avgBuyStr}", infoFont, textBrush, col1X, cardRect.Y + 43);
+                g.DrawString($"투자 원금: {investedStr}", infoFont, textBrush, col2X, cardRect.Y + 43);
+
+                double rps = _state.CalculateTotalRps();
+                double mineRate = (crypto.MiningHashPercent > 0 && rps > 0)
+                    ? (rps * (crypto.MiningHashPercent / 100.0)) / Math.Max(20.0, crypto.CurrentPrice * 2.2)
+                    : 0.0;
+
+                g.DrawString($"보유 수량: {crypto.MinedCoins:F4} BYT", infoFont, textBrush, col1X, cardRect.Y + 59);
+                g.DrawString($"채굴 속도: +{mineRate:F4}/초", infoFont, textBrush, col2X, cardRect.Y + 59);
+            }
+
+            // 2. 서버 채굴 전환 비율 버튼 (Y: panelY + 89)
+            using (Font secFont = new Font("Segoe UI", 7.5f, FontStyle.Bold))
+            using (SolidBrush secBrush = new SolidBrush(Color.FromArgb(180, 200, 225)))
+            {
+                g.DrawString("⚡ 서버 자원 채굴 전환 비율:", secFont, secBrush, rightX + 12, panelY + 89);
             }
 
             int btnW = (rightW - 36) / 4;
-            int btnY = panelY + 28;
-            _cryptoHash0Rect = new Rectangle(rightX + 12, btnY, btnW, 22);
-            _cryptoHash25Rect = new Rectangle(rightX + 12 + btnW + 4, btnY, btnW, 22);
-            _cryptoHash50Rect = new Rectangle(rightX + 12 + (btnW + 4) * 2, btnY, btnW, 22);
-            _cryptoHash100Rect = new Rectangle(rightX + 12 + (btnW + 4) * 3, btnY, btnW, 22);
+            int btnY = panelY + 106;
+            _cryptoHash0Rect = new Rectangle(rightX + 12, btnY, btnW, 20);
+            _cryptoHash25Rect = new Rectangle(rightX + 12 + btnW + 4, btnY, btnW, 20);
+            _cryptoHash50Rect = new Rectangle(rightX + 12 + (btnW + 4) * 2, btnY, btnW, 20);
+            _cryptoHash100Rect = new Rectangle(rightX + 12 + (btnW + 4) * 3, btnY, btnW, 20);
 
             DrawToggleButton(g, _cryptoHash0Rect, "0%", crypto.MiningHashPercent == 0);
             DrawToggleButton(g, _cryptoHash25Rect, "25%", crypto.MiningHashPercent == 25);
             DrawToggleButton(g, _cryptoHash50Rect, "50%", crypto.MiningHashPercent == 50);
             DrawToggleButton(g, _cryptoHash100Rect, "100%", crypto.MiningHashPercent == 100);
 
-            // 전자 지갑 우측 상단 ByteCoin 골드 메탈릭 뱃지
-            DrawCryptoCoinBadge(g, new Rectangle(rightX + rightW - 52, panelY + 58, 40, 40));
+            // 3. 간편 매수 & 매도 버튼 (2행 2열)
+            int tBtnW = (rightW - 28) / 2;
+            int row1Y = panelY + 132;
+            int row2Y = panelY + 164;
 
-            double valDollars = crypto.MinedCoins * crypto.CurrentPrice;
-            using (Font wFont = new Font("Segoe UI", 8.5f, FontStyle.Bold))
-            using (Font valFont = new Font("Segoe UI", 11f, FontStyle.Bold))
-            using (SolidBrush coinBrush = new SolidBrush(Color.FromArgb(0, 229, 255)))
-            using (SolidBrush valBrush = new SolidBrush(Color.FromArgb(255, 215, 64)))
-            using (SolidBrush subBrush = new SolidBrush(Color.FromArgb(145, 160, 185)))
-            {
-                g.DrawString($"보유 코인: {crypto.MinedCoins:F4} BYT", wFont, coinBrush, rightX + 12, panelY + 58);
-                g.DrawString($"평가 금액: ≈ ${valDollars:N1}", valFont, valBrush, rightX + 12, panelY + 76);
-                double rps = _state.CalculateTotalRps();
-                double mineRate = (crypto.MiningHashPercent > 0 && rps > 0)
-                    ? (rps * (crypto.MiningHashPercent / 100.0)) / Math.Max(20.0, crypto.CurrentPrice * 2.2)
-                    : 0.0;
-                g.DrawString($"채굴 속도: +{mineRate:F4} BYT/초 (총 채굴: {crypto.TotalMinedCoins:F1})", wFont, subBrush, rightX + 12, panelY + 100);
-            }
+            _cryptoBuy1kBtnRect = new Rectangle(rightX + 10, row1Y, tBtnW, 26);
+            _cryptoBuyMaxBtnRect = new Rectangle(rightX + 18 + tBtnW, row1Y, tBtnW, 26);
 
-            int tBtnW = (rightW - 30) / 2;
-            int row1Y = panelY + 122;
-            int row2Y = panelY + 158;
+            _cryptoSell50BtnRect = new Rectangle(rightX + 10, row2Y, tBtnW, 26);
+            _cryptoSellAllBtnRect = new Rectangle(rightX + 18 + tBtnW, row2Y, tBtnW, 26);
 
-            _cryptoSell25BtnRect = new Rectangle(rightX + 12, row1Y, tBtnW, 30);
-            _cryptoSellAllBtnRect = new Rectangle(rightX + 18 + tBtnW, row1Y, tBtnW, 30);
+            DrawTradingButton(g, _cryptoBuy1kBtnRect, "▲ $1,000 매수", Color.FromArgb(24, 110, 220));
+            DrawTradingButton(g, _cryptoBuyMaxBtnRect, "▲ 최대 풀매수 (MAX)", Color.FromArgb(30, 136, 229));
 
-            _cryptoBuy5kBtnRect = new Rectangle(rightX + 12, row2Y, tBtnW, 30);
-            _cryptoBuyMaxBtnRect = new Rectangle(rightX + 18 + tBtnW, row2Y, tBtnW, 30);
-
-            DrawTradingButton(g, _cryptoSell25BtnRect, "▼ 매도 25%", Color.FromArgb(0, 140, 80));
-            DrawTradingButton(g, _cryptoSellAllBtnRect, "▼ 전량 매도", Color.FromArgb(0, 180, 100));
-
-            DrawTradingButton(g, _cryptoBuy5kBtnRect, "▲ 매수 $5,000", Color.FromArgb(30, 90, 180));
-            DrawTradingButton(g, _cryptoBuyMaxBtnRect, "▲ 풀매수 (MAX)", Color.FromArgb(40, 120, 220));
+            DrawTradingButton(g, _cryptoSell50BtnRect, "▼ 50% 절반 매도", Color.FromArgb(0, 140, 90));
+            DrawTradingButton(g, _cryptoSellAllBtnRect, "▼ 전량 매도 (100%)", Color.FromArgb(0, 180, 100));
         }
 
         private void DrawTradingButton(Graphics g, Rectangle rect, string text, Color accent)
@@ -2158,11 +2219,11 @@ namespace GateHelper.ServerTycoon
             switch (id)
             {
                 case 0: return "인디 게임";
-                case 1: return "전사 ERP";
-                case 2: return "생성형 AI";
+                case 1: return "업무 관리";
+                case 2: return "인공지능";
                 case 3: return "보안 백신";
-                case 4: return "클라우드OS";
-                default: return "S/W";
+                case 4: return "클라우드";
+                default: return "프로그램";
             }
         }
 
@@ -2294,47 +2355,37 @@ namespace GateHelper.ServerTycoon
             if (_cryptoHash50Rect.Contains(pt)) { crypto.MiningHashPercent = 50; Invalidate(); return; }
             if (_cryptoHash100Rect.Contains(pt)) { crypto.MiningHashPercent = 100; Invalidate(); return; }
 
-            if (_cryptoSell25BtnRect.Contains(pt))
+            // 1. $1,000 매수 (자금 부족 시 남은 잔액 전액 매수)
+            if (_cryptoBuy1kBtnRect.Contains(pt))
             {
-                double amt = crypto.MinedCoins * 0.25;
-                if (amt > 0.0001)
-                {
-                    double cash = amt * crypto.CurrentPrice;
-                    crypto.MinedCoins -= amt;
-                    _state.Money += cash;
-                    _state.CurrentRunEarned += cash;
-                    _state.TotalEarned += cash;
-                    AddFloatingText($"ByteCoin 25% 매도: +${cash:N0}", pt.X, pt.Y, Color.FromArgb(0, 255, 128), true);
-                    Invalidate();
-                }
-                return;
-            }
-
-            if (_cryptoSellAllBtnRect.Contains(pt))
-            {
-                double amt = crypto.MinedCoins;
-                if (amt > 0.0001)
-                {
-                    double cash = amt * crypto.CurrentPrice;
-                    crypto.MinedCoins = 0;
-                    _state.Money += cash;
-                    _state.CurrentRunEarned += cash;
-                    _state.TotalEarned += cash;
-                    AddFloatingText($"ByteCoin 전량 매도: +${cash:N0}", pt.X, pt.Y, Color.FromArgb(0, 255, 128), true);
-                    Invalidate();
-                }
-                return;
-            }
-
-            if (_cryptoBuy5kBtnRect.Contains(pt))
-            {
-                double spend = Math.Min(5000.0, _state.Money);
-                if (spend >= 10.0)
+                double spend = Math.Min(1000.0, _state.Money);
+                if (spend >= 1.0)
                 {
                     double coins = spend / crypto.CurrentPrice;
                     _state.Money -= spend;
                     crypto.MinedCoins += coins;
-                    AddFloatingText($"ByteCoin 매수: +{coins:F2} BYT", pt.X, pt.Y, Color.FromArgb(0, 229, 255), true);
+                    crypto.TotalInvestedUsd += spend;
+                    AddFloatingText($"BYT 매수: +{coins:F2}개 (평단: ${crypto.AverageBuyPrice:N1})", pt.X, pt.Y, Color.FromArgb(0, 229, 255), true);
+                    Invalidate();
+                }
+                else
+                {
+                    AddFloatingText("매수 자금 부족! ($1 이상 필요)", pt.X, pt.Y, Color.FromArgb(255, 82, 82), false);
+                }
+                return;
+            }
+
+            // 2. 최대 풀매수
+            if (_cryptoBuyMaxBtnRect.Contains(pt))
+            {
+                double spend = _state.Money;
+                if (spend >= 1.0)
+                {
+                    double coins = spend / crypto.CurrentPrice;
+                    _state.Money = 0;
+                    crypto.MinedCoins += coins;
+                    crypto.TotalInvestedUsd += spend;
+                    AddFloatingText($"BYT 풀매수: +{coins:F2}개 (평단: ${crypto.AverageBuyPrice:N1})", pt.X, pt.Y, Color.FromArgb(0, 229, 255), true);
                     Invalidate();
                 }
                 else
@@ -2344,20 +2395,70 @@ namespace GateHelper.ServerTycoon
                 return;
             }
 
-            if (_cryptoBuyMaxBtnRect.Contains(pt))
+            // 3. 50% 절반 매도
+            if (_cryptoSell50BtnRect.Contains(pt))
             {
-                double spend = _state.Money;
-                if (spend >= 10.0)
+                double sellRatio = 0.50;
+                double coinsToSell = crypto.MinedCoins * sellRatio;
+                if (coinsToSell > 0.00001)
                 {
-                    double coins = spend / crypto.CurrentPrice;
-                    _state.Money = 0;
-                    crypto.MinedCoins += coins;
-                    AddFloatingText($"ByteCoin 풀매수: +{coins:F2} BYT", pt.X, pt.Y, Color.FromArgb(0, 229, 255), true);
+                    double proceeds = coinsToSell * crypto.CurrentPrice;
+                    double costBasis = crypto.TotalInvestedUsd * sellRatio;
+                    double profit = proceeds - costBasis;
+
+                    crypto.MinedCoins -= coinsToSell;
+                    crypto.TotalInvestedUsd = Math.Max(0, crypto.TotalInvestedUsd - costBasis);
+                    if (crypto.MinedCoins < 0.00001)
+                    {
+                        crypto.MinedCoins = 0;
+                        crypto.TotalInvestedUsd = 0;
+                    }
+                    crypto.TotalRealizedProfit += profit;
+                    _state.Money += proceeds;
+                    _state.CurrentRunEarned += proceeds;
+                    _state.TotalEarned += proceeds;
+
+                    string profitStr = (costBasis > 0.001) 
+                        ? (profit >= 0 ? $"+${profit:N0} 수익" : $"-${Math.Abs(profit):N0} 손실")
+                        : "+100% 순수익 (채굴분)";
+                    Color fCol = profit >= 0 ? Color.FromArgb(0, 230, 118) : Color.FromArgb(255, 82, 82);
+                    AddFloatingText($"50% 매도: +${proceeds:N0} ({profitStr})", pt.X, pt.Y, fCol, true);
                     Invalidate();
                 }
                 else
                 {
-                    AddFloatingText("매수 자금 부족!", pt.X, pt.Y, Color.FromArgb(255, 82, 82), false);
+                    AddFloatingText("매도할 코인이 없습니다!", pt.X, pt.Y, Color.FromArgb(255, 82, 82), false);
+                }
+                return;
+            }
+
+            // 4. 전량 매도
+            if (_cryptoSellAllBtnRect.Contains(pt))
+            {
+                double coinsToSell = crypto.MinedCoins;
+                if (coinsToSell > 0.00001)
+                {
+                    double proceeds = coinsToSell * crypto.CurrentPrice;
+                    double costBasis = crypto.TotalInvestedUsd;
+                    double profit = proceeds - costBasis;
+
+                    crypto.MinedCoins = 0;
+                    crypto.TotalInvestedUsd = 0;
+                    crypto.TotalRealizedProfit += profit;
+                    _state.Money += proceeds;
+                    _state.CurrentRunEarned += proceeds;
+                    _state.TotalEarned += proceeds;
+
+                    string profitStr = (costBasis > 0.001) 
+                        ? (profit >= 0 ? $"+${profit:N0} 수익" : $"-${Math.Abs(profit):N0} 손실")
+                        : "+100% 순수익 (채굴분)";
+                    Color fCol = profit >= 0 ? Color.FromArgb(0, 230, 118) : Color.FromArgb(255, 82, 82);
+                    AddFloatingText($"전량 매도: +${proceeds:N0} ({profitStr})", pt.X, pt.Y, fCol, true);
+                    Invalidate();
+                }
+                else
+                {
+                    AddFloatingText("매도할 코인이 없습니다!", pt.X, pt.Y, Color.FromArgb(255, 82, 82), false);
                 }
                 return;
             }
@@ -2770,12 +2871,12 @@ namespace GateHelper.ServerTycoon
         {
             switch (id)
             {
-                case "rpi": return "R-Pi 4B";
-                case "tower": return "Tower PC";
-                case "blade1u": return "1U Blade";
-                case "xeon4u": return "4U Xeon";
-                case "gpu_h100": return "H100 GPU";
-                case "quantum": return "Quantum";
+                case "rpi": return "미니 PC";
+                case "tower": return "사무용 PC";
+                case "blade1u": return "랙 서버";
+                case "xeon4u": return "워크스테이션";
+                case "gpu_h100": return "AI 슈퍼컴";
+                case "quantum": return "양자컴퓨터";
                 default: return id;
             }
         }
