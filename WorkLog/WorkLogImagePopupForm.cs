@@ -28,7 +28,13 @@ namespace GateHelper
             this.ShowIcon = false;
 
             BuildUI();
-            _viewer.SetImage(img, filePath, autoFit: true);
+            Image safeImg = null;
+            if (img != null)
+            {
+                try { safeImg = new Bitmap(img); } catch { }
+            }
+            _viewer.SetImage(safeImg, filePath, autoFit: true);
+            this.FormClosed += (s, e) => safeImg?.Dispose();
         }
 
         private void BuildUI()

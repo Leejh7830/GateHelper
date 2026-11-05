@@ -75,9 +75,10 @@ namespace GateHelper
     public class WorkLogData
     {
         public float FontSize { get; set; } = 10f;
+        public float DetailFontSize { get; set; } = 12f;
         public bool HideDone { get; set; } = false; // 사용자의 필터 설정 유지용
-        public int SplitterDistance { get; set; } = 480; // 좌우 스플리터 위치 저장 (좌측 그리드 넉넉한 공간 확보)
-        public int DetailSplitterDistance { get; set; } = 130; // 우측 상하 스플리터 위치 저장 (스크린샷 세로 높이 극대화)
+        public int SplitterDistance { get; set; } = 580; // 좌우 스플리터 위치 저장 (좌측 그리드 넉넉한 공간 확보)
+        public int DetailSplitterDistance { get; set; } = 140; // 우측 상하 스플리터 위치 저장 (스크린샷 세로 높이 극대화)
         public string QuickFilter { get; set; } = "ALL"; // ALL, ING, TODAY, HIGH
         public List<WorkLogEntry> Items { get; set; } = new List<WorkLogEntry>();
     }
