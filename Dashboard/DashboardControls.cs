@@ -254,7 +254,7 @@ namespace GateHelper.Dashboard
             using (var numFont = new Font("맑은 고딕", 9F, FontStyle.Bold))
             {
                 // 타이틀 (간결하고 직관적으로 정돈)
-                g.DrawString("📈 리소스 트렌드", titleFont, Brushes.White, new PointF(10, 8));
+                g.DrawString("▲ 리소스 트렌드", titleFont, Brushes.White, new PointF(10, 8));
 
                 // 지표 텍스트
                 string ramStr = $"RAM: {_currentRamMb:F0} MB";

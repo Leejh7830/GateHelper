@@ -384,6 +384,12 @@ namespace GateHelper.PocketFarm
             var plot = Plots[plotIndex];
             if (!plot.IsUnlocked) return;
 
+            if (plot.AssignedWorkerId != -1)
+            {
+                AddFloatingText("일꾼이 작업 중인 밭은 작물을 변경할 수 없습니다.", plot.Bounds.X + 20, plot.Bounds.Y + 20, Color.FromArgb(255, 180, 100));
+                return;
+            }
+
             var unlocked = GetUnlockedCropIds();
             if (unlocked.Count <= 1)
             {
@@ -855,6 +861,9 @@ namespace GateHelper.PocketFarm
             WeatherSystem.SetWeather(FarmWeatherType.Sunny);
             AchievementSystem = new FarmAchievementSystem();
             ContractSystem = new FarmContractSystem();
+            ActiveCustomers.Clear();
+            FloatingTexts.Clear();
+            RestaurantSpawnTimer = 0f;
 
             Save();
             AddFloatingText("[초기화] 게임 데이터가 초기화되었습니다!", 325, 200, Color.FromArgb(255, 120, 120));

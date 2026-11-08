@@ -49,6 +49,7 @@ namespace GateHelper
             this.colTags = ((BrightIdeasSoftware.OLVColumn)(new BrightIdeasSoftware.OLVColumn()));
             this.pnlLeftTop = new System.Windows.Forms.Panel();
             this.flowQuickFilter = new System.Windows.Forms.FlowLayoutPanel();
+            this.pnlListZoom = new System.Windows.Forms.Panel();
             this.btnFilterAll = new System.Windows.Forms.Button();
             this.btnFilterIng = new System.Windows.Forms.Button();
             this.btnFilterOpen = new System.Windows.Forms.Button();
@@ -77,13 +78,15 @@ namespace GateHelper
             this.btnActualSize = new System.Windows.Forms.Button();
             this.lblImageTitle = new System.Windows.Forms.Label();
             this.pnlTitleTag = new System.Windows.Forms.Panel();
+            this.pnlTitleWrapper = new System.Windows.Forms.Panel();
             this.txtTitle = new System.Windows.Forms.TextBox();
             this.lblTitleBadge = new System.Windows.Forms.Label();
             this.txtTags = new System.Windows.Forms.TextBox();
             this.pnlDetailHeader = new System.Windows.Forms.Panel();
-            this.pnlHeaderSep = new System.Windows.Forms.Panel();
+            this.pnlDetailActions = new System.Windows.Forms.Panel();
             this.btnSaveEntry = new System.Windows.Forms.Button();
             this.btnDeleteEntry = new System.Windows.Forms.Button();
+            this.lblLastUpdated = new System.Windows.Forms.Label();
             this.dtpDate = new System.Windows.Forms.DateTimePicker();
             this.btnPriorityToggle = new System.Windows.Forms.Button();
             this.btnStatusToggle = new System.Windows.Forms.Button();
@@ -95,6 +98,7 @@ namespace GateHelper
             this.splitMain.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.OlvWorkLog)).BeginInit();
             this.pnlLeftTop.SuspendLayout();
+            this.pnlListZoom.SuspendLayout();
             this.flowQuickFilter.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitDetail)).BeginInit();
             this.splitDetail.Panel1.SuspendLayout();
@@ -105,7 +109,9 @@ namespace GateHelper
             this.tabMemo.SuspendLayout();
             this.pnlImageBar.SuspendLayout();
             this.pnlTitleTag.SuspendLayout();
+            this.pnlTitleWrapper.SuspendLayout();
             this.pnlDetailHeader.SuspendLayout();
+            this.pnlDetailActions.SuspendLayout();
             this.SuspendLayout();
             // 
             // pnlTopHud
@@ -115,8 +121,6 @@ namespace GateHelper
             this.pnlTopHud.Controls.Add(this.btnDetailZoomOut);
             this.pnlTopHud.Controls.Add(this.btnDetailZoomIn);
             this.pnlTopHud.Controls.Add(this.btnAddNew);
-            this.pnlTopHud.Controls.Add(this.btnZoomOut);
-            this.pnlTopHud.Controls.Add(this.btnZoomIn);
             this.pnlTopHud.Controls.Add(this.pnlStatsSep);
             this.pnlTopHud.Controls.Add(this.lblStatsDone);
             this.pnlTopHud.Controls.Add(this.lblStatsIng);
@@ -183,7 +187,6 @@ namespace GateHelper
             // 
             // btnZoomIn
             // 
-            this.btnZoomIn.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
             this.btnZoomIn.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(30)))), ((int)(((byte)(38)))));
             this.btnZoomIn.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnZoomIn.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(56)))), ((int)(((byte)(68)))), ((int)(((byte)(85)))));
@@ -191,17 +194,16 @@ namespace GateHelper
             this.btnZoomIn.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnZoomIn.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Bold);
             this.btnZoomIn.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(229)))), ((int)(((byte)(255)))));
-            this.btnZoomIn.Location = new System.Drawing.Point(360, 8);
+            this.btnZoomIn.Location = new System.Drawing.Point(2, 6);
             this.btnZoomIn.Name = "btnZoomIn";
-            this.btnZoomIn.Size = new System.Drawing.Size(26, 30);
-            this.btnZoomIn.TabIndex = 6;
+            this.btnZoomIn.Size = new System.Drawing.Size(26, 26);
+            this.btnZoomIn.TabIndex = 0;
             this.btnZoomIn.Text = "+";
             this.btnZoomIn.UseVisualStyleBackColor = false;
             this.btnZoomIn.Click += new System.EventHandler(this.btnZoomIn_Click);
             // 
             // btnZoomOut
             // 
-            this.btnZoomOut.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left)));
             this.btnZoomOut.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(30)))), ((int)(((byte)(38)))));
             this.btnZoomOut.Cursor = System.Windows.Forms.Cursors.Hand;
             this.btnZoomOut.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(56)))), ((int)(((byte)(68)))), ((int)(((byte)(85)))));
@@ -209,10 +211,10 @@ namespace GateHelper
             this.btnZoomOut.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnZoomOut.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Bold);
             this.btnZoomOut.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(229)))), ((int)(((byte)(255)))));
-            this.btnZoomOut.Location = new System.Drawing.Point(390, 8);
+            this.btnZoomOut.Location = new System.Drawing.Point(32, 6);
             this.btnZoomOut.Name = "btnZoomOut";
-            this.btnZoomOut.Size = new System.Drawing.Size(26, 30);
-            this.btnZoomOut.TabIndex = 7;
+            this.btnZoomOut.Size = new System.Drawing.Size(26, 26);
+            this.btnZoomOut.TabIndex = 1;
             this.btnZoomOut.Text = "ㅡ";
             this.btnZoomOut.UseVisualStyleBackColor = false;
             this.btnZoomOut.Click += new System.EventHandler(this.btnZoomOut_Click);
@@ -227,7 +229,7 @@ namespace GateHelper
             this.btnAddNew.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnAddNew.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Bold);
             this.btnAddNew.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(230)))), ((int)(((byte)(118)))));
-            this.btnAddNew.Location = new System.Drawing.Point(422, 8);
+            this.btnAddNew.Location = new System.Drawing.Point(364, 8);
             this.btnAddNew.Name = "btnAddNew";
             this.btnAddNew.Size = new System.Drawing.Size(110, 30);
             this.btnAddNew.TabIndex = 5;
@@ -351,14 +353,14 @@ namespace GateHelper
             // 
             this.colNo.AspectName = "No";
             this.colNo.Text = "#";
-            this.colNo.Width = 36;
+            this.colNo.Width = 48;
             // 
             // colStatus
             // 
             this.colStatus.AspectName = "Status";
             this.colStatus.Text = "상태";
             this.colStatus.TextAlign = System.Windows.Forms.HorizontalAlignment.Center;
-            this.colStatus.Width = 66;
+            this.colStatus.Width = 70;
             // 
             // colPriority
             // 
@@ -400,6 +402,7 @@ namespace GateHelper
             // 
             this.pnlLeftTop.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(18)))), ((int)(((byte)(22)))), ((int)(((byte)(28)))));
             this.pnlLeftTop.Controls.Add(this.flowQuickFilter);
+            this.pnlLeftTop.Controls.Add(this.pnlListZoom);
             this.pnlLeftTop.Controls.Add(this.txtSearch);
             this.pnlLeftTop.Dock = System.Windows.Forms.DockStyle.Top;
             this.pnlLeftTop.Location = new System.Drawing.Point(0, 0);
@@ -407,6 +410,17 @@ namespace GateHelper
             this.pnlLeftTop.Padding = new System.Windows.Forms.Padding(6);
             this.pnlLeftTop.Size = new System.Drawing.Size(580, 78);
             this.pnlLeftTop.TabIndex = 0;
+            // 
+            // pnlListZoom
+            // 
+            this.pnlListZoom.BackColor = System.Drawing.Color.Transparent;
+            this.pnlListZoom.Controls.Add(this.btnZoomOut);
+            this.pnlListZoom.Controls.Add(this.btnZoomIn);
+            this.pnlListZoom.Dock = System.Windows.Forms.DockStyle.Right;
+            this.pnlListZoom.Location = new System.Drawing.Point(514, 30);
+            this.pnlListZoom.Name = "pnlListZoom";
+            this.pnlListZoom.Size = new System.Drawing.Size(60, 42);
+            this.pnlListZoom.TabIndex = 2;
             // 
             // txtSearch
             // 
@@ -589,7 +603,7 @@ namespace GateHelper
             this.txtContent.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(13)))), ((int)(((byte)(17)))), ((int)(((byte)(23)))));
             this.txtContent.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtContent.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtContent.Font = new System.Drawing.Font("맑은 고딕", 12F, System.Drawing.FontStyle.Regular);
+            this.txtContent.Font = new System.Drawing.Font("맑은 고딕", 14F, System.Drawing.FontStyle.Regular);
             this.txtContent.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(237)))), ((int)(((byte)(243)))));
             this.txtContent.Location = new System.Drawing.Point(6, 6);
             this.txtContent.Multiline = true;
@@ -615,7 +629,7 @@ namespace GateHelper
             this.txtMemo.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(13)))), ((int)(((byte)(17)))), ((int)(((byte)(23)))));
             this.txtMemo.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.txtMemo.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.txtMemo.Font = new System.Drawing.Font("맑은 고딕", 12F, System.Drawing.FontStyle.Regular);
+            this.txtMemo.Font = new System.Drawing.Font("맑은 고딕", 14F, System.Drawing.FontStyle.Regular);
             this.txtMemo.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(237)))), ((int)(((byte)(243)))));
             this.txtMemo.Location = new System.Drawing.Point(6, 6);
             this.txtMemo.Multiline = true;
@@ -709,7 +723,7 @@ namespace GateHelper
             this.btnFitScreen.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(210)))), ((int)(((byte)(225)))));
             this.btnFitScreen.Location = new System.Drawing.Point(258, 5);
             this.btnFitScreen.Name = "btnFitScreen";
-            this.btnFitScreen.Size = new System.Drawing.Size(58, 26);
+            this.btnFitScreen.Size = new System.Drawing.Size(68, 26);
             this.btnFitScreen.TabIndex = 2;
             this.btnFitScreen.Text = "화면 맞춤";
             this.btnFitScreen.UseVisualStyleBackColor = false;
@@ -723,7 +737,7 @@ namespace GateHelper
             this.btnPopout.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnPopout.Font = new System.Drawing.Font("맑은 고딕", 8.25F, System.Drawing.FontStyle.Bold);
             this.btnPopout.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(229)))), ((int)(((byte)(255)))));
-            this.btnPopout.Location = new System.Drawing.Point(320, 5);
+            this.btnPopout.Location = new System.Drawing.Point(330, 5);
             this.btnPopout.Name = "btnPopout";
             this.btnPopout.Size = new System.Drawing.Size(72, 26);
             this.btnPopout.TabIndex = 3;
@@ -739,7 +753,7 @@ namespace GateHelper
             this.btnCopyImage.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnCopyImage.Font = new System.Drawing.Font("맑은 고딕", 8.25F);
             this.btnCopyImage.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(210)))), ((int)(((byte)(225)))));
-            this.btnCopyImage.Location = new System.Drawing.Point(396, 5);
+            this.btnCopyImage.Location = new System.Drawing.Point(406, 5);
             this.btnCopyImage.Name = "btnCopyImage";
             this.btnCopyImage.Size = new System.Drawing.Size(54, 26);
             this.btnCopyImage.TabIndex = 4;
@@ -755,7 +769,7 @@ namespace GateHelper
             this.btnOpenExternal.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnOpenExternal.Font = new System.Drawing.Font("맑은 고딕", 8.25F);
             this.btnOpenExternal.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(210)))), ((int)(((byte)(225)))));
-            this.btnOpenExternal.Location = new System.Drawing.Point(454, 5);
+            this.btnOpenExternal.Location = new System.Drawing.Point(464, 5);
             this.btnOpenExternal.Name = "btnOpenExternal";
             this.btnOpenExternal.Size = new System.Drawing.Size(54, 26);
             this.btnOpenExternal.TabIndex = 6;
@@ -771,7 +785,7 @@ namespace GateHelper
             this.btnDeleteImage.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnDeleteImage.Font = new System.Drawing.Font("맑은 고딕", 8.25F);
             this.btnDeleteImage.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(100)))), ((int)(((byte)(100)))));
-            this.btnDeleteImage.Location = new System.Drawing.Point(512, 5);
+            this.btnDeleteImage.Location = new System.Drawing.Point(522, 5);
             this.btnDeleteImage.Name = "btnDeleteImage";
             this.btnDeleteImage.Size = new System.Drawing.Size(54, 26);
             this.btnDeleteImage.TabIndex = 5;
@@ -787,7 +801,7 @@ namespace GateHelper
             this.btnPasteImage.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnPasteImage.Font = new System.Drawing.Font("맑은 고딕", 8.25F, System.Drawing.FontStyle.Bold);
             this.btnPasteImage.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(229)))), ((int)(((byte)(255)))));
-            this.btnPasteImage.Location = new System.Drawing.Point(570, 5);
+            this.btnPasteImage.Location = new System.Drawing.Point(580, 5);
             this.btnPasteImage.Name = "btnPasteImage";
             this.btnPasteImage.Size = new System.Drawing.Size(90, 26);
             this.btnPasteImage.TabIndex = 7;
@@ -803,13 +817,13 @@ namespace GateHelper
             this.lblImageTitle.Name = "lblImageTitle";
             this.lblImageTitle.Size = new System.Drawing.Size(100, 22);
             this.lblImageTitle.TabIndex = 0;
-            this.lblImageTitle.Text = "🖼️ 캡처 (0장)";
+            this.lblImageTitle.Text = "📸 캡처 (0장)";
             this.lblImageTitle.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
             // 
             // pnlTitleTag
             // 
             this.pnlTitleTag.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(18)))), ((int)(((byte)(22)))), ((int)(((byte)(28)))));
-            this.pnlTitleTag.Controls.Add(this.txtTitle);
+            this.pnlTitleTag.Controls.Add(this.pnlTitleWrapper);
             this.pnlTitleTag.Controls.Add(this.lblTitleBadge);
             this.pnlTitleTag.Controls.Add(this.txtTags);
             this.pnlTitleTag.Dock = System.Windows.Forms.DockStyle.Top;
@@ -821,7 +835,7 @@ namespace GateHelper
             // 
             // lblTitleBadge
             // 
-            this.lblTitleBadge.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(20)))), ((int)(((byte)(32)))), ((int)(((byte)(44)))));
+            this.lblTitleBadge.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(20)))), ((int)(((byte)(28)))), ((int)(((byte)(40)))));
             this.lblTitleBadge.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.lblTitleBadge.Font = new System.Drawing.Font("맑은 고딕", 9.5F, System.Drawing.FontStyle.Bold);
             this.lblTitleBadge.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(229)))), ((int)(((byte)(255)))));
@@ -832,18 +846,30 @@ namespace GateHelper
             this.lblTitleBadge.Text = "📌 제목";
             this.lblTitleBadge.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
+            // pnlTitleWrapper
+            // 
+            this.pnlTitleWrapper.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+            this.pnlTitleWrapper.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(13)))), ((int)(((byte)(17)))), ((int)(((byte)(23)))));
+            this.pnlTitleWrapper.Controls.Add(this.txtTitle);
+            this.pnlTitleWrapper.Cursor = System.Windows.Forms.Cursors.IBeam;
+            this.pnlTitleWrapper.Location = new System.Drawing.Point(75, 4);
+            this.pnlTitleWrapper.Name = "pnlTitleWrapper";
+            this.pnlTitleWrapper.Padding = new System.Windows.Forms.Padding(8, 4, 8, 4);
+            this.pnlTitleWrapper.Size = new System.Drawing.Size(706, 30);
+            this.pnlTitleWrapper.TabIndex = 1;
+            // 
             // txtTitle
             // 
-            this.txtTitle.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
             this.txtTitle.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(13)))), ((int)(((byte)(17)))), ((int)(((byte)(23)))));
-            this.txtTitle.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.txtTitle.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.txtTitle.Dock = System.Windows.Forms.DockStyle.Fill;
             this.txtTitle.Font = new System.Drawing.Font("맑은 고딕", 12F, System.Drawing.FontStyle.Bold);
             this.txtTitle.ForeColor = System.Drawing.Color.White;
-            this.txtTitle.Location = new System.Drawing.Point(75, 5);
+            this.txtTitle.Location = new System.Drawing.Point(8, 4);
             this.txtTitle.Name = "txtTitle";
-            this.txtTitle.Size = new System.Drawing.Size(706, 29);
-            this.txtTitle.TabIndex = 1;
+            this.txtTitle.Size = new System.Drawing.Size(690, 22);
+            this.txtTitle.TabIndex = 0;
             this.txtTitle.TextChanged += new System.EventHandler(this.txtDetail_TextChanged);
             // 
             // txtTags
@@ -857,9 +883,8 @@ namespace GateHelper
             // pnlDetailHeader
             // 
             this.pnlDetailHeader.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(22)))), ((int)(((byte)(27)))), ((int)(((byte)(34)))));
-            this.pnlDetailHeader.Controls.Add(this.btnDeleteEntry);
-            this.pnlDetailHeader.Controls.Add(this.btnSaveEntry);
-            this.pnlDetailHeader.Controls.Add(this.pnlHeaderSep);
+            this.pnlDetailHeader.Controls.Add(this.pnlDetailActions);
+            this.pnlDetailHeader.Controls.Add(this.lblLastUpdated);
             this.pnlDetailHeader.Controls.Add(this.dtpDate);
             this.pnlDetailHeader.Controls.Add(this.btnPriorityToggle);
             this.pnlDetailHeader.Controls.Add(this.btnStatusToggle);
@@ -873,7 +898,7 @@ namespace GateHelper
             // 
             // lblDetailNo
             // 
-            this.lblDetailNo.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(20)))), ((int)(((byte)(32)))), ((int)(((byte)(44)))));
+            this.lblDetailNo.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(20)))), ((int)(((byte)(28)))), ((int)(((byte)(40)))));
             this.lblDetailNo.BorderStyle = System.Windows.Forms.BorderStyle.None;
             this.lblDetailNo.Font = new System.Drawing.Font("Consolas", 12F, System.Drawing.FontStyle.Bold);
             this.lblDetailNo.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(229)))), ((int)(((byte)(255)))));
@@ -914,7 +939,7 @@ namespace GateHelper
             this.btnPriorityToggle.Name = "btnPriorityToggle";
             this.btnPriorityToggle.Size = new System.Drawing.Size(84, 28);
             this.btnPriorityToggle.TabIndex = 2;
-            this.btnPriorityToggle.Text = "⚡ 보통 ▼";
+            this.btnPriorityToggle.Text = "보통 ▼";
             this.btnPriorityToggle.UseVisualStyleBackColor = false;
             this.btnPriorityToggle.Click += new System.EventHandler(this.btnPriorityToggle_Click);
             // 
@@ -925,17 +950,20 @@ namespace GateHelper
             this.dtpDate.Format = System.Windows.Forms.DateTimePickerFormat.Custom;
             this.dtpDate.Location = new System.Drawing.Point(257, 7);
             this.dtpDate.Name = "dtpDate";
-            this.dtpDate.Size = new System.Drawing.Size(136, 23);
+            this.dtpDate.Size = new System.Drawing.Size(156, 23);
             this.dtpDate.TabIndex = 3;
             this.dtpDate.ValueChanged += new System.EventHandler(this.dtpDate_ValueChanged);
             // 
-            // pnlHeaderSep
+            // pnlDetailActions
             // 
-            this.pnlHeaderSep.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(56)))), ((int)(((byte)(68)))), ((int)(((byte)(85)))));
-            this.pnlHeaderSep.Location = new System.Drawing.Point(399, 7);
-            this.pnlHeaderSep.Name = "pnlHeaderSep";
-            this.pnlHeaderSep.Size = new System.Drawing.Size(1, 24);
-            this.pnlHeaderSep.TabIndex = 6;
+            this.pnlDetailActions.BackColor = System.Drawing.Color.Transparent;
+            this.pnlDetailActions.Controls.Add(this.btnDeleteEntry);
+            this.pnlDetailActions.Controls.Add(this.btnSaveEntry);
+            this.pnlDetailActions.Dock = System.Windows.Forms.DockStyle.Right;
+            this.pnlDetailActions.Location = new System.Drawing.Point(641, 0);
+            this.pnlDetailActions.Name = "pnlDetailActions";
+            this.pnlDetailActions.Size = new System.Drawing.Size(148, 38);
+            this.pnlDetailActions.TabIndex = 4;
             // 
             // btnSaveEntry
             // 
@@ -946,10 +974,10 @@ namespace GateHelper
             this.btnSaveEntry.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSaveEntry.Font = new System.Drawing.Font("맑은 고딕", 8.5F, System.Drawing.FontStyle.Bold);
             this.btnSaveEntry.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(230)))), ((int)(((byte)(118)))));
-            this.btnSaveEntry.Location = new System.Drawing.Point(406, 5);
+            this.btnSaveEntry.Location = new System.Drawing.Point(4, 5);
             this.btnSaveEntry.Name = "btnSaveEntry";
-            this.btnSaveEntry.Size = new System.Drawing.Size(64, 28);
-            this.btnSaveEntry.TabIndex = 4;
+            this.btnSaveEntry.Size = new System.Drawing.Size(68, 28);
+            this.btnSaveEntry.TabIndex = 0;
             this.btnSaveEntry.Text = "💾 저장";
             this.btnSaveEntry.UseVisualStyleBackColor = false;
             this.btnSaveEntry.Click += new System.EventHandler(this.btnSaveEntry_Click);
@@ -963,13 +991,24 @@ namespace GateHelper
             this.btnDeleteEntry.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnDeleteEntry.Font = new System.Drawing.Font("맑은 고딕", 8.5F);
             this.btnDeleteEntry.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(248)))), ((int)(((byte)(81)))), ((int)(((byte)(73)))));
-            this.btnDeleteEntry.Location = new System.Drawing.Point(474, 5);
+            this.btnDeleteEntry.Location = new System.Drawing.Point(76, 5);
             this.btnDeleteEntry.Name = "btnDeleteEntry";
-            this.btnDeleteEntry.Size = new System.Drawing.Size(64, 28);
-            this.btnDeleteEntry.TabIndex = 5;
+            this.btnDeleteEntry.Size = new System.Drawing.Size(68, 28);
+            this.btnDeleteEntry.TabIndex = 1;
             this.btnDeleteEntry.Text = "🗑️ 삭제";
             this.btnDeleteEntry.UseVisualStyleBackColor = false;
             this.btnDeleteEntry.Click += new System.EventHandler(this.btnDeleteEntry_Click);
+            // 
+            // lblLastUpdated
+            // 
+            this.lblLastUpdated.AutoSize = true;
+            this.lblLastUpdated.Font = new System.Drawing.Font("맑은 고딕", 8.5F, System.Drawing.FontStyle.Regular);
+            this.lblLastUpdated.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(139)))), ((int)(((byte)(148)))), ((int)(((byte)(158)))));
+            this.lblLastUpdated.Location = new System.Drawing.Point(424, 11);
+            this.lblLastUpdated.Name = "lblLastUpdated";
+            this.lblLastUpdated.Size = new System.Drawing.Size(76, 15);
+            this.lblLastUpdated.TabIndex = 6;
+            this.lblLastUpdated.Text = "최근 수정: -";
             // 
             // WorkLogForm
             // 
@@ -992,6 +1031,7 @@ namespace GateHelper
             ((System.ComponentModel.ISupportInitialize)(this.OlvWorkLog)).EndInit();
             this.pnlLeftTop.ResumeLayout(false);
             this.pnlLeftTop.PerformLayout();
+            this.pnlListZoom.ResumeLayout(false);
             this.flowQuickFilter.ResumeLayout(false);
             this.flowQuickFilter.PerformLayout();
             this.splitDetail.Panel1.ResumeLayout(false);
@@ -1007,8 +1047,11 @@ namespace GateHelper
             this.pnlImageBar.PerformLayout();
             this.pnlTitleTag.ResumeLayout(false);
             this.pnlTitleTag.PerformLayout();
+            this.pnlTitleWrapper.ResumeLayout(false);
+            this.pnlTitleWrapper.PerformLayout();
             this.pnlDetailHeader.ResumeLayout(false);
             this.pnlDetailHeader.PerformLayout();
+            this.pnlDetailActions.ResumeLayout(false);
             this.ResumeLayout(false);
 
         }
@@ -1035,6 +1078,7 @@ namespace GateHelper
         private BrightIdeasSoftware.OLVColumn colDate;
         private BrightIdeasSoftware.OLVColumn colTags;
         private System.Windows.Forms.Panel pnlLeftTop;
+        private System.Windows.Forms.Panel pnlListZoom;
         private System.Windows.Forms.TextBox txtSearch;
         private System.Windows.Forms.FlowLayoutPanel flowQuickFilter;
         private System.Windows.Forms.Button btnFilterAll;
@@ -1044,14 +1088,16 @@ namespace GateHelper
         private System.Windows.Forms.Button btnFilterHigh;
         private System.Windows.Forms.CheckBox chkHideDone;
         private System.Windows.Forms.Panel pnlDetailHeader;
-        private System.Windows.Forms.Panel pnlHeaderSep;
+        private System.Windows.Forms.Panel pnlDetailActions;
         private System.Windows.Forms.Label lblDetailNo;
         private System.Windows.Forms.Button btnStatusToggle;
         private System.Windows.Forms.Button btnPriorityToggle;
         private System.Windows.Forms.DateTimePicker dtpDate;
         private System.Windows.Forms.Button btnDeleteEntry;
+        private System.Windows.Forms.Label lblLastUpdated;
         private System.Windows.Forms.Button btnSaveEntry;
         private System.Windows.Forms.Panel pnlTitleTag;
+        private System.Windows.Forms.Panel pnlTitleWrapper;
         private System.Windows.Forms.Label lblTitleBadge;
         private System.Windows.Forms.TextBox txtTitle;
         private System.Windows.Forms.TextBox txtTags;

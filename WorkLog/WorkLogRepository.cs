@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -30,7 +30,66 @@ namespace GateHelper
                 if (!File.Exists(_dataPath)) return new WorkLogData();
 
                 string json = File.ReadAllText(_dataPath);
-                return JsonConvert.DeserializeObject<WorkLogData>(json) ?? new WorkLogData();
+                if (string.IsNullOrWhiteSpace(json)) return new WorkLogData();
+
+                WorkLogData data = null;
+                string trimmed = json.TrimStart();
+                if (trimmed.StartsWith("["))
+                {
+                    // [하위 호환성] 과거 구버전(JSON 배열 형태) 데이터 마이그레이션 지원
+                    var items = JsonConvert.DeserializeObject<List<WorkLogEntry>>(json);
+                    data = new WorkLogData { Items = items ?? new List<WorkLogEntry>() };
+                }
+                else
+                {
+                    data = JsonConvert.DeserializeObject<WorkLogData>(json);
+                }
+
+                if (data == null) data = new WorkLogData();
+                if (data.Items == null) data.Items = new List<WorkLogEntry>();
+
+                // 과거 데이터 무결성 보정 및 표준화 (전 버전 하위 호환성 보장)
+                foreach (var entry in data.Items)
+                {
+                    if (entry == null) continue;
+
+                    // 1. Status 표준화 (대소문자 및 구버전 값 대응: Open -> OPEN, Done -> DONE, Blocked -> OPEN)
+                    if (string.IsNullOrWhiteSpace(entry.Status))
+                    {
+                        entry.Status = "OPEN";
+                    }
+                    else
+                    {
+                        string s = entry.Status.Trim();
+                        if (string.Equals(s, "ING..", StringComparison.OrdinalIgnoreCase)) entry.Status = "ING..";
+                        else if (string.Equals(s, "DONE", StringComparison.OrdinalIgnoreCase)) entry.Status = "DONE";
+                        else if (string.Equals(s, "FIXED", StringComparison.OrdinalIgnoreCase)) entry.Status = "FIXED";
+                        else if (string.Equals(s, "OPEN", StringComparison.OrdinalIgnoreCase)) entry.Status = "OPEN";
+                        else if (string.Equals(s, "BLOCKED", StringComparison.OrdinalIgnoreCase)) entry.Status = "OPEN";
+                        else entry.Status = s.ToUpperInvariant();
+                    }
+
+                    // 2. Priority 누락 시 기본값 설정
+                    if (string.IsNullOrWhiteSpace(entry.Priority))
+                    {
+                        entry.Priority = "NORMAL";
+                    }
+                    else
+                    {
+                        string p = entry.Priority.Trim().ToUpperInvariant();
+                        if (p == "HIGH" || p == "LOW" || p == "NORMAL") entry.Priority = p;
+                        else entry.Priority = "NORMAL";
+                    }
+
+                    // 3. 컬렉션 및 문자열 null 가드
+                    if (entry.ImagePaths == null) entry.ImagePaths = new List<string>();
+                    if (entry.Title == null) entry.Title = "";
+                    if (entry.Content == null) entry.Content = "";
+                    if (entry.Memo == null) entry.Memo = "";
+                    if (entry.Tags == null) entry.Tags = "";
+                }
+
+                return data;
             }
             catch (Exception ex)
             {
@@ -68,7 +127,12 @@ namespace GateHelper
         // --- 이미지 관리 ---
 
         public string GetFullImagePath(string fileName)
-            => Path.Combine(ImageDir, fileName);
+        {
+            if (string.IsNullOrWhiteSpace(fileName)) return string.Empty;
+            if (Path.IsPathRooted(fileName) && File.Exists(fileName))
+                return fileName;
+            return Path.Combine(ImageDir, Path.GetFileName(fileName));
+        }
 
         /// <summary>
         /// 안전한 Bitmap 복사본을 받아 백그라운드에서 JPEG로 저장합니다.

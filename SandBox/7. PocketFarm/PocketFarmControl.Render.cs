@@ -31,6 +31,8 @@ namespace GateHelper.PocketFarm
         private SolidBrush _brMeadow;
         private SolidBrush _brWater;
         private SolidBrush _brWood;
+        private SolidBrush _brFloatingText;
+        private SolidBrush _brFloatingShadow;
 
         // --- 펜 캐시 ---
         private Pen _penBorder;
@@ -60,6 +62,8 @@ namespace GateHelper.PocketFarm
             _brMeadow = new SolidBrush(Color.FromArgb(50, 110, 65));
             _brWater = new SolidBrush(Color.FromArgb(40, 95, 155));
             _brWood = new SolidBrush(Color.FromArgb(110, 75, 45));
+            _brFloatingText = new SolidBrush(Color.White);
+            _brFloatingShadow = new SolidBrush(Color.FromArgb(128, 0, 0, 0));
 
             _penBorder = new Pen(Color.FromArgb(55, 65, 80), 1f);
             _penActive = new Pen(Color.FromArgb(80, 200, 120), 2f);
@@ -89,6 +93,8 @@ namespace GateHelper.PocketFarm
             _brMeadow?.Dispose();
             _brWater?.Dispose();
             _brWood?.Dispose();
+            _brFloatingText?.Dispose();
+            _brFloatingShadow?.Dispose();
 
             _penBorder?.Dispose();
             _penActive?.Dispose();
@@ -192,8 +198,8 @@ namespace GateHelper.PocketFarm
 
             _rcBtnAchievements = new Rectangle(382, y, 78, tabH);
             _rcBtnContracts = new Rectangle(464, y, 78, tabH);
-            _rcBtnAdmin = new Rectangle(546, y + 2, 42, 30);
-            _rcBtnReset = new Rectangle(592, y + 2, 42, 30);
+            _rcBtnAdmin = new Rectangle(546, y + 2, 44, 30);
+            _rcBtnReset = new Rectangle(594, y + 2, 48, 30);
 
             string restTabTitle = "♨ 식당 (다이닝)";
             if (_model.ActiveCustomers.Count > 0) restTabTitle = $"♨ 식당({_model.ActiveCustomers.Count})";
@@ -214,17 +220,17 @@ namespace GateHelper.PocketFarm
             DrawTabButton(g, _rcTabLivestock, liveTabTitle, _currentTab == FarmTabType.Livestock);
             DrawTabButton(g, _rcTabRestaurant, restTabTitle, _currentTab == FarmTabType.Restaurant);
 
-            // [🏆 업적] 버튼
+            // [★ 업적] 버튼
             int claimable = _model.AchievementSystem != null ? _model.AchievementSystem.GetClaimableCount() : 0;
-            string achTitle = claimable > 0 ? $"🏆 업적 (+{claimable})" : "🏆 업적";
+            string achTitle = claimable > 0 ? $"★ 업적 (+{claimable})" : "★ 업적";
             bool hoverAch = _rcBtnAchievements.Contains(_hoverPoint);
             g.FillRectangle(claimable > 0 ? (hoverAch ? _brMeadow : _brSoil) : (hoverAch ? _brCardHover : _brCardBg), _rcBtnAchievements);
             g.DrawRectangle(claimable > 0 ? _penGold : _penBorder, _rcBtnAchievements);
             g.DrawString(achTitle, _fontSmall, claimable > 0 ? _brTextGold : _brTextWhite, _rcBtnAchievements, _sfCenter);
 
-            // [📜 의뢰] 버튼
+            // [◆ 의뢰] 버튼
             int completedContracts = _model.ContractSystem != null ? _model.ContractSystem.DailyContracts.FindAll(c => c.IsCompleted).Count : 0;
-            string contractTitle = $"📜 의뢰 ({completedContracts}/3)";
+            string contractTitle = $"◆ 의뢰 ({completedContracts}/3)";
             bool hoverContract = _rcBtnContracts.Contains(_hoverPoint);
             g.FillRectangle(hoverContract ? _brCardHover : _brCardBg, _rcBtnContracts);
             g.DrawRectangle(_model.ContractSystem != null && _model.ContractSystem.DailyBonusClaimed ? _penActive : _penBorder, _rcBtnContracts);
@@ -330,7 +336,7 @@ namespace GateHelper.PocketFarm
             g.DrawString("파견 시 밭 수확 및 물주기 가속(2배)", _fontSmall, _brTextMuted, rcBarn.X + 15, rcBarn.Y + 54);
 
             // 우측 안내 팁
-            g.DrawString("💡 TIP: 밭 클릭 시 개량된 작물(밀/황금밀/당근/감자/딸기)로 자유 전환!", _fontSmall, _brTextGold, rcBarn.X + 260, rcBarn.Y + 35);
+            g.DrawString("★ TIP: 밭 클릭 시 개량된 작물(밀/황금밀/당근/감자/딸기)로 자유 전환!", _fontSmall, _brTextGold, rcBarn.X + 260, rcBarn.Y + 35);
             g.DrawString("생산된 곡물과 채소는 식당 요리 재료 또는 [$ 안전출하]로 환전됩니다.", _fontSmall, _brTextMuted, rcBarn.X + 260, rcBarn.Y + 54);
         }
 
@@ -678,10 +684,13 @@ namespace GateHelper.PocketFarm
         {
             foreach (var ft in _model.FloatingTexts)
             {
-                using (SolidBrush br = new SolidBrush(Color.FromArgb((int)(ft.Alpha * 255), ft.Color)))
-                {
-                    g.DrawString(ft.Text, _fontBold, br, ft.X, ft.Y);
-                }
+                int a = Math.Max(0, Math.Min(255, (int)(ft.Alpha * 255)));
+                _brFloatingShadow.Color = Color.FromArgb(a / 2, 0, 0, 0);
+                _brFloatingText.Color = Color.FromArgb(a, ft.Color);
+
+                // 1px 그림자 및 중심 정렬로 모든 배경에서 100% 가독성 보장 (GC 0 Byte)
+                g.DrawString(ft.Text, _fontBold, _brFloatingShadow, ft.X + 1, ft.Y + 1, _sfCenter);
+                g.DrawString(ft.Text, _fontBold, _brFloatingText, ft.X, ft.Y, _sfCenter);
             }
         }
 

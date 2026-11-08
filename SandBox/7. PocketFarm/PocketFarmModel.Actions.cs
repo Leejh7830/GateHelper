@@ -980,7 +980,7 @@ namespace GateHelper.PocketFarm
                     AchievementSystem.LifetimeGoldEarned += 500;
                     AchievementSystem.CheckAllMilestones(this);
                 }
-                AddFloatingText("🎉 일일 의뢰 ALL CLEAR 보너스! (+500G, +50P)", 325, 230, Color.Gold);
+                AddFloatingText("★ 일일 의뢰 ALL CLEAR 보너스! (+500G, +50P)", 325, 230, Color.Gold);
             }
 
             CheckLevelUp();
@@ -1158,15 +1158,25 @@ namespace GateHelper.PocketFarm
 
             if (totalHarvested > 0 || totalAutoSoldGold > 0 || offlineMealsServed > 0)
             {
-                string msg = $"[오프라인 복귀] {totalHarvested}개 수확";
+                string msg;
+                if (totalHarvested == 0 && totalAutoSoldGold > 0)
+                {
+                    msg = $"[오프라인 복귀] 창고 가득 참 (+{totalAutoSoldGold:N0}G 자동판매)";
+                }
+                else
+                {
+                    msg = $"[오프라인 복귀] {totalHarvested}개 수확";
+                    if (totalAutoSoldGold > 0)
+                    {
+                        msg += $" (+{totalAutoSoldGold:N0}G 초과판매)";
+                    }
+                }
+
                 if (offlineMealsServed > 0)
                 {
                     msg += $" / 식당 {offlineMealsServed}명 서빙 (+{offlineDiningGold:N0}G, +{offlineDiningFame}P)";
                 }
-                else if (totalAutoSoldGold > 0)
-                {
-                    msg += $" (+{totalAutoSoldGold:N0}G 자동판매)";
-                }
+
                 AddFloatingText(msg, 325, 270, Color.FromArgb(120, 255, 200));
             }
         }

@@ -1126,23 +1126,34 @@ namespace GateHelper.DataFlip
             if (Units.Exists(u => u.Col == col && u.Row == row)) return false;
 
             // 스폰 가능 위치:
-            // 1. 본진 바로 앞 라인 (Player: Col 1, AI: Col (Cols - 2))
-            // 2. 또는 아군 공장(Factory)의 바로 앞 1칸
+            // 1. 본진 앞 베이스라인 (소형/표준: Col 1, 대형/초대형: Col 1~2)
             if (owner == Owner.Player)
             {
                 if (col == 1) return true;
+                if ((CurrentMapSize == MapSizeType.Large || CurrentMapSize == MapSizeType.Huge) && col == 2) return true;
             }
             else
             {
                 if (col == Cols - 2) return true;
+                if ((CurrentMapSize == MapSizeType.Large || CurrentMapSize == MapSizeType.Huge) && col == Cols - 3) return true;
             }
 
-            int factoryCheckCol = (owner == Owner.Player) ? col - 1 : col + 1;
-            if (factoryCheckCol >= 1 && factoryCheckCol < Cols - 1)
+            // 2. 아군 전진공장(Factory)의 전진 교두보 (공장 앞 1~2칸 및 상하 인접 타일에서 신속 스폰)
+            for (int r = Math.Max(0, row - 1); r <= Math.Min(Rows - 1, row + 1); r++)
             {
-                var b = Buildings[row, factoryCheckCol];
-                if (b != null && b.Owner == owner && b.Type == BuildingType.Factory)
-                    return true;
+                for (int c = 1; c < Cols - 1; c++)
+                {
+                    var b = Buildings[r, c];
+                    if (b != null && b.Owner == owner && b.Type == BuildingType.Factory && b.Hp > 0 && b.EmpTurns == 0)
+                    {
+                        // 플레이어 공장: 공장 동쪽 1~2칸 (상하 1칸 범위 내 교두보)
+                        if (owner == Owner.Player && col > c && col <= c + 2)
+                            return true;
+                        // AI 공장: 공장 서쪽 1~2칸 (상하 1칸 범위 내 교두보)
+                        if (owner == Owner.Ai && col < c && col >= c - 2)
+                            return true;
+                    }
+                }
             }
 
             return false;

@@ -6,9 +6,30 @@ namespace GateHelper.ServerTycoon
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
+            if (disposing)
             {
-                components.Dispose();
+                if (_renderTimer != null)
+                {
+                    _renderTimer.Stop();
+                    _renderTimer.Tick -= RenderTimer_Tick;
+                    _renderTimer.Dispose();
+                    _renderTimer = null;
+                }
+                if (_logicTimer != null)
+                {
+                    _logicTimer.Stop();
+                    _logicTimer.Tick -= LogicTimer_Tick;
+                    _logicTimer.Dispose();
+                    _logicTimer = null;
+                }
+                if (_state != null)
+                {
+                    _state.Save();
+                }
+                if (components != null)
+                {
+                    components.Dispose();
+                }
             }
             base.Dispose(disposing);
         }

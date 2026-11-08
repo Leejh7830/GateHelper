@@ -99,6 +99,10 @@ namespace GateHelper.DataFlip
         private Rectangle _btnMapLargeRect;
         private Rectangle _btnMapHugeRect;
 
+        // 인게임 턴 진행 배속 제어 (1x: 기본 1.5초, 2x: 고속 0.75초, 4x: 초고속 0.38초)
+        private int _turnPlaySpeed = 1; // 1, 2, 4
+        private Rectangle _btnTurnSpeedRect;
+
         // 한줄 전투 로그 배너 영역 및 호버 상태
         private Rectangle _combatLogRect;
         private bool _hoverOnCombatLog = false;
@@ -163,6 +167,26 @@ namespace GateHelper.DataFlip
             Invalidate();
         }
 
+        public void OnTabVisibilityChanged(bool isVisible)
+        {
+            if (isVisible)
+            {
+                if (_animTimer != null && !_animTimer.Enabled) _animTimer.Start();
+                this.Invalidate();
+            }
+            else
+            {
+                if (_animTimer != null && _animTimer.Enabled) _animTimer.Stop();
+            }
+        }
+
+        protected override void OnVisibleChanged(EventArgs e)
+        {
+            base.OnVisibleChanged(e);
+            bool isVis = this.Visible && (this.ParentForm == null || this.ParentForm.WindowState != FormWindowState.Minimized);
+            OnTabVisibilityChanged(isVis);
+        }
+
         private void UpdateLayoutBounds()
         {
             if (_game == null) return;
@@ -180,6 +204,7 @@ namespace GateHelper.DataFlip
             _btnMapStdRect = new Rectangle(_btnMapSmallRect.Right + 4, mapBtnY, mapBtnW, mapBtnH);
             _btnMapLargeRect = new Rectangle(_btnMapStdRect.Right + 4, mapBtnY, mapBtnW, mapBtnH);
             _btnMapHugeRect = new Rectangle(_btnMapLargeRect.Right + 4, mapBtnY, 52, mapBtnH);
+            _btnTurnSpeedRect = new Rectangle(_btnMapHugeRect.Right + 8, mapBtnY, 48, mapBtnH);
 
             // 가변 보드 크기 계산 (맵 사이즈 및 창 크기에 맞춰 자동 최적화)
             int boardMaxW = Math.Max(660, w - 60);
@@ -312,8 +337,10 @@ namespace GateHelper.DataFlip
                 }
 
                 bool needRedraw = false;
+                int spdMult = Math.Max(1, _turnPlaySpeed);
 
-                // 1. 유닛 슬로우 이동 보간 & 타격/피격 이펙트 감쇠
+                // 1. 유닛 슬로우 이동 보간 & 타격/피격 이펙트 감쇠 (배속 연동)
+                float lerpRate = Math.Min(1.0f, 0.25f * spdMult);
                 foreach (var u in _game.Units)
                 {
                     if (u.VisualCol < 0) u.VisualCol = u.Col;
@@ -321,7 +348,7 @@ namespace GateHelper.DataFlip
                     // 목표 칸으로 스르륵 전진 (Lerp)
                     if (Math.Abs(u.VisualCol - u.TargetCol) > 0.02f)
                     {
-                        u.VisualCol += (u.TargetCol - u.VisualCol) * 0.25f;
+                        u.VisualCol += (u.TargetCol - u.VisualCol) * lerpRate;
                         needRedraw = true;
                     }
                     else
@@ -332,7 +359,7 @@ namespace GateHelper.DataFlip
 
                     if (u.HitFlashAlpha > 0f)
                     {
-                        u.HitFlashAlpha = Math.Max(0f, u.HitFlashAlpha - 0.08f);
+                        u.HitFlashAlpha = Math.Max(0f, u.HitFlashAlpha - 0.08f * spdMult);
                         u.ShakeOffset *= -0.7f;
                         needRedraw = true;
                     }
@@ -353,7 +380,7 @@ namespace GateHelper.DataFlip
                         {
                             if (b.HitFlashAlpha > 0f)
                             {
-                                b.HitFlashAlpha = Math.Max(0f, b.HitFlashAlpha - 0.08f);
+                                b.HitFlashAlpha = Math.Max(0f, b.HitFlashAlpha - 0.08f * spdMult);
                                 b.ShakeOffset *= -0.7f;
                                 needRedraw = true;
                             }
@@ -365,7 +392,7 @@ namespace GateHelper.DataFlip
                 for (int i = _laserBeams.Count - 1; i >= 0; i--)
                 {
                     var beam = _laserBeams[i];
-                    beam.Alpha -= 0.08f;
+                    beam.Alpha -= 0.08f * spdMult;
                     if (beam.Alpha <= 0f) _laserBeams.RemoveAt(i);
                     needRedraw = true;
                 }
@@ -374,8 +401,8 @@ namespace GateHelper.DataFlip
                 for (int i = _floatingTexts.Count - 1; i >= 0; i--)
                 {
                     var ft = _floatingTexts[i];
-                    ft.Y -= 0.9f;
-                    ft.Alpha -= 0.04f;
+                    ft.Y -= 0.9f * spdMult;
+                    ft.Alpha -= 0.04f * spdMult;
                     if (ft.Alpha <= 0f) _floatingTexts.RemoveAt(i);
                     needRedraw = true;
                 }
@@ -383,16 +410,16 @@ namespace GateHelper.DataFlip
                 for (int i = _shockwaves.Count - 1; i >= 0; i--)
                 {
                     var sw = _shockwaves[i];
-                    sw.Radius += 3.5f;
-                    sw.Alpha -= 0.05f;
+                    sw.Radius += 3.5f * spdMult;
+                    sw.Alpha -= 0.05f * spdMult;
                     if (sw.Alpha <= 0f) _shockwaves.RemoveAt(i);
                     needRedraw = true;
                 }
 
-                // 4. 턴 시네마틱 애니메이션 시퀀스 실행
+                // 4. 턴 시네마틱 애니메이션 시퀀스 실행 (배속 반영)
                 if (_animPhase != TurnAnimPhase.Idle)
                 {
-                    _phaseTimer += 30;
+                    _phaseTimer += 30 * spdMult;
                     UpdateTurnSequence();
                     needRedraw = true;
                 }
@@ -589,6 +616,29 @@ namespace GateHelper.DataFlip
             Invalidate();
         }
 
+        public void SkipTurnSequence()
+        {
+            if (!_isTurnRunning) return;
+
+            // 남은 턴 시네마틱 페이즈들을 즉시 한 번에 완결 처리 (Fast-Forward / Skip)
+            int safetyLoop = 0;
+            while (_isTurnRunning && _animPhase != TurnAnimPhase.Idle && safetyLoop < 10)
+            {
+                safetyLoop++;
+                _phaseTimer = 5000; // 페이즈 타임아웃 강제 도달로 즉시 다음 페이즈 전진
+                UpdateTurnSequence();
+                if (_game.IsGameOver) break;
+            }
+
+            // 모든 유닛의 표시 좌표를 최종 계산 좌표로 즉시 정렬
+            foreach (var u in _game.Units)
+            {
+                u.VisualCol = u.Col;
+            }
+            _laserBeams.Clear();
+            Invalidate();
+        }
+
         #endregion
 
         #region Mouse Interaction
@@ -671,12 +721,13 @@ namespace GateHelper.DataFlip
                 return;
             }
 
-            // 헤더 뒤로가기 & 맵 사이즈 선택 토글
+            // 헤더 뒤로가기 & 맵 사이즈 선택 토글 & 진행 배속 토글
             if (_btnBackRect.Contains(e.Location)) _hoverButtonId = 0;
             else if (_btnMapSmallRect.Contains(e.Location)) _hoverButtonId = 91;
             else if (_btnMapStdRect.Contains(e.Location)) _hoverButtonId = 92;
             else if (_btnMapLargeRect.Contains(e.Location)) _hoverButtonId = 93;
             else if (_btnMapHugeRect.Contains(e.Location)) _hoverButtonId = 94;
+            else if (_btnTurnSpeedRect.Contains(e.Location)) _hoverButtonId = 96;
             // 카테고리 탭 (101, 102, 103)
             else if (_tabBuildingsRect.Contains(e.Location)) _hoverButtonId = 101;
             else if (_tabUnitsRect.Contains(e.Location)) _hoverButtonId = 102;
@@ -896,6 +947,40 @@ namespace GateHelper.DataFlip
             // 턴 애니메이션 진행 중에는 버튼 및 착수 클릭 차단
             if (_isTurnRunning) return;
 
+            // 4. 로비로 뒤로가기 & 맵 사이즈 선택 토글 & 진행 배속 토글
+            if (_btnBackRect.Contains(e.Location))
+            {
+                if (this.ParentForm is SandBox sb) sb.BackToList();
+                return;
+            }
+            if (_btnMapSmallRect.Contains(e.Location))
+            {
+                RequestMapSizeChange(MapSizeType.Small);
+                return;
+            }
+            if (_btnMapStdRect.Contains(e.Location))
+            {
+                RequestMapSizeChange(MapSizeType.Standard);
+                return;
+            }
+            if (_btnMapLargeRect.Contains(e.Location))
+            {
+                RequestMapSizeChange(MapSizeType.Large);
+                return;
+            }
+            if (_btnMapHugeRect.Contains(e.Location))
+            {
+                RequestMapSizeChange(MapSizeType.Huge);
+                return;
+            }
+            if (_btnTurnSpeedRect.Contains(e.Location))
+            {
+                _turnPlaySpeed = (_turnPlaySpeed == 1) ? 2 : (_turnPlaySpeed == 2) ? 4 : 1;
+                AddFloatingText($"진행 배속: {_turnPlaySpeed}x", _btnTurnSpeedRect.X - 10, _btnTurnSpeedRect.Bottom + 6, (_turnPlaySpeed == 4) ? Color.FromArgb(255, 60, 200) : _colorCyan);
+                Invalidate();
+                return;
+            }
+
             // [최초 1턴 본진 발전소 무료 배치 클릭 최우선 처리]
             if (_game.IsInitialBasePlacementActive)
             {
@@ -987,33 +1072,6 @@ namespace GateHelper.DataFlip
                 }
             }
 
-            // 4. 로비로 뒤로가기 & 맵 사이즈 선택 토글
-            if (_btnBackRect.Contains(e.Location))
-            {
-                if (this.ParentForm is SandBox sb) sb.BackToList();
-                return;
-            }
-            if (_btnMapSmallRect.Contains(e.Location))
-            {
-                RequestMapSizeChange(MapSizeType.Small);
-                return;
-            }
-            if (_btnMapStdRect.Contains(e.Location))
-            {
-                RequestMapSizeChange(MapSizeType.Standard);
-                return;
-            }
-            if (_btnMapLargeRect.Contains(e.Location))
-            {
-                RequestMapSizeChange(MapSizeType.Large);
-                return;
-            }
-            if (_btnMapHugeRect.Contains(e.Location))
-            {
-                RequestMapSizeChange(MapSizeType.Huge);
-                return;
-            }
-
             // 5. 카테고리 탭 클릭 전환
             if (_tabBuildingsRect.Contains(e.Location))
             {
@@ -1063,9 +1121,14 @@ namespace GateHelper.DataFlip
                 }
             }
 
-            // 7. 턴 종료 버튼! (슬로우 시네마틱 턴 시작)
+            // 7. 턴 종료 버튼! (슬로우 시네마틱 턴 시작 또는 진행 중 클릭 시 즉시 스킵)
             if (_btnEndTurnRect.Contains(e.Location))
             {
+                if (_isTurnRunning)
+                {
+                    SkipTurnSequence();
+                    return;
+                }
                 _selectedBuilding = BuildingType.None;
                 _selectedUnit = UnitType.None;
                 StartTurnSequence();
@@ -1540,10 +1603,21 @@ namespace GateHelper.DataFlip
             }
             else if (e.KeyCode == Keys.Space || e.KeyCode == Keys.Enter)
             {
+                if (_isTurnRunning)
+                {
+                    SkipTurnSequence();
+                    return;
+                }
                 _selectedBuilding = BuildingType.None;
                 _selectedUnit = UnitType.None;
                 _selectedSkill = UserSkillType.None;
                 StartTurnSequence();
+                Invalidate();
+            }
+            else if (e.KeyCode == Keys.F || e.KeyCode == Keys.Z)
+            {
+                _turnPlaySpeed = (_turnPlaySpeed == 1) ? 2 : (_turnPlaySpeed == 2) ? 4 : 1;
+                AddFloatingText($"진행 배속: {_turnPlaySpeed}x", _btnTurnSpeedRect.X - 10, _btnTurnSpeedRect.Bottom + 6, (_turnPlaySpeed == 4) ? Color.FromArgb(255, 60, 200) : _colorCyan);
                 Invalidate();
             }
             else if (e.KeyCode == Keys.Escape)

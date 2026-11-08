@@ -129,18 +129,27 @@ namespace GateHelper
             // 백그라운드 전환 시 타이머 정지 (CPU 점유율 0% 절전)
             this.VisibleChanged += (s, e) =>
             {
-                if (this.Visible)
-                {
-                    _renderTimer.Start();
-                }
-                else
-                {
-                    _renderTimer.Stop();
-                }
+                bool isVis = this.Visible && (this.ParentForm == null || this.ParentForm.WindowState != FormWindowState.Minimized);
+                OnTabVisibilityChanged(isVis);
             };
 
             this.Resize += (s, e) => RecalculateLayout();
             RecalculateLayout();
+        }
+
+        public void OnTabVisibilityChanged(bool isVisible)
+        {
+            if (isVisible)
+            {
+                if (_renderTimer != null && !_renderTimer.Enabled) _renderTimer.Start();
+                if (_gameClockTimer != null && !_gameClockTimer.Enabled) _gameClockTimer.Start();
+                this.Invalidate();
+            }
+            else
+            {
+                if (_renderTimer != null && _renderTimer.Enabled) _renderTimer.Stop();
+                if (_gameClockTimer != null && _gameClockTimer.Enabled) _gameClockTimer.Stop();
+            }
         }
 
         private void RecalculateLayout()
@@ -843,7 +852,7 @@ namespace GateHelper
             // 힌트 텍스트 뱃지
             using (var brush = new SolidBrush(Color.FromArgb(0, 255, 170)))
             {
-                g.DrawString("💡 AI 추천", _fontBtn, brush, center.X, center.Y - _cellSize * 0.55f - 14, _sfHorizCenter);
+                g.DrawString("★ AI 추천", _fontBtn, brush, center.X, center.Y - _cellSize * 0.55f - 14, _sfHorizCenter);
             }
         }
 

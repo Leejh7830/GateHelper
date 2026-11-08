@@ -151,20 +151,27 @@ namespace GateHelper
             // 백그라운드 유휴 절전
             this.VisibleChanged += (s, e) =>
             {
-                if (this.Visible)
-                {
-                    _renderTimer.Start();
-                    _gameClockTimer.Start();
-                }
-                else
-                {
-                    _renderTimer.Stop();
-                    _gameClockTimer.Stop();
-                }
+                bool isVis = this.Visible && (this.ParentForm == null || this.ParentForm.WindowState != FormWindowState.Minimized);
+                OnTabVisibilityChanged(isVis);
             };
 
             this.Resize += (s, e) => RecalculateLayout();
             RecalculateLayout();
+        }
+
+        public void OnTabVisibilityChanged(bool isVisible)
+        {
+            if (isVisible)
+            {
+                if (_renderTimer != null && !_renderTimer.Enabled) _renderTimer.Start();
+                if (_gameClockTimer != null && !_gameClockTimer.Enabled) _gameClockTimer.Start();
+                this.Invalidate();
+            }
+            else
+            {
+                if (_renderTimer != null && _renderTimer.Enabled) _renderTimer.Stop();
+                if (_gameClockTimer != null && _gameClockTimer.Enabled) _gameClockTimer.Stop();
+            }
         }
 
         public void ShowMapSelection()

@@ -42,7 +42,7 @@ namespace GateHelper
         // GDI+ 캐시 브러시 & 폰트 (제로 리소스 준수)
         private Font _regularFont;
         private Font _boldFont;
-        private float _detailFontSize = 12f;
+        private float _detailFontSize = 14f;
         private Font _detailFont;
         private static readonly Brush _brushSelected = new SolidBrush(Color.FromArgb(38, 48, 64));
         private static readonly Brush _brushBadgeOpen = new SolidBrush(Color.FromArgb(10, 80, 110));
@@ -50,17 +50,30 @@ namespace GateHelper
         private static readonly Brush _brushBadgeDone = new SolidBrush(Color.FromArgb(15, 80, 45));
         private static readonly Brush _brushBadgeFixed = new SolidBrush(Color.FromArgb(70, 35, 110));
 
-        // 행 배경 브러시 캐시 (ING: 연한 노란색 음영, DONE/FIXED: 연회색 음영)
+        // 행 배경 브러시 캐시 (ING: 부드러운 파스텔 웜 옐로우, DONE/FIXED: 차분한 파스텔 쿨 슬레이트 그레이, 지연: 소프트 파스텔 로즈레드)
         private static readonly Brush _brushRowDefault = new SolidBrush(Color.FromArgb(13, 17, 23));
-        private static readonly Brush _brushRowIng = new SolidBrush(Color.FromArgb(46, 38, 16));
-        private static readonly Brush _brushRowDone = new SolidBrush(Color.FromArgb(34, 38, 46));
+        private static readonly Brush _brushRowIng = new SolidBrush(Color.FromArgb(70, 58, 22));
+        private static readonly Brush _brushRowDone = new SolidBrush(Color.FromArgb(42, 50, 62));
+        private static readonly Brush _brushRowOverdue = new SolidBrush(Color.FromArgb(64, 26, 32));
         private static readonly Brush _brushSelectedDefault = new SolidBrush(Color.FromArgb(38, 48, 64));
-        private static readonly Brush _brushSelectedIng = new SolidBrush(Color.FromArgb(64, 54, 28));
-        private static readonly Brush _brushSelectedDone = new SolidBrush(Color.FromArgb(46, 52, 64));
+        private static readonly Brush _brushSelectedIng = new SolidBrush(Color.FromArgb(90, 75, 30));
+        private static readonly Brush _brushSelectedDone = new SolidBrush(Color.FromArgb(58, 68, 82));
+        private static readonly Brush _brushSelectedOverdue = new SolidBrush(Color.FromArgb(88, 36, 44));
 
-        // 고유번호/업무제목 뱃지 브러시 & 펜 캐시 (네온 테두리 + 연한 파스텔 배경)
-        private static readonly Brush _brushBadgePastelBg = new SolidBrush(Color.FromArgb(22, 44, 56));
-        private static readonly Pen _penBadgeNeonBorder = new Pen(Color.FromArgb(0, 229, 255), 1f);
+        // 고유번호/업무제목 뱃지 브러시 & 펜 캐시 (네온 테두리 + 트렌디한 다크 슬레이트 카드 배경)
+        private static readonly Brush _brushBadgePastelBg = new SolidBrush(Color.FromArgb(20, 28, 40));
+        private static readonly Pen _penBadgeNeonBorder = new Pen(Color.FromArgb(0, 180, 216), 1.2f);
+
+        // 업무제목 컨테이너 테두리 & 배경 캐시 (포커스 시 네온 시안 글로우 하이라이트)
+        private static readonly Brush _brushTitleBoxBg = new SolidBrush(Color.FromArgb(13, 17, 23));
+        private static readonly Pen _penTitleBoxNormal = new Pen(Color.FromArgb(56, 68, 85), 1.2f);
+        private static readonly Pen _penTitleBoxFocus = new Pen(Color.FromArgb(0, 229, 255), 1.5f);
+        private static readonly Pen _penTitleBoxHover = new Pen(Color.FromArgb(88, 166, 255), 1.2f);
+        private bool _titleBoxHovered = false;
+
+        // 재사용 GraphicsPath 캐시 (제로 GC 할당)
+        private static GraphicsPath _badgePath;
+        private GraphicsPath _titleWrapperPath;
 
         public WorkLogForm()
         {
@@ -88,8 +101,20 @@ namespace GateHelper
             lblDetailNo.Paint += BadgeLabel_Paint;
             lblTitleBadge.Paint += BadgeLabel_Paint;
 
-            // MaterialSkin 매니저의 폰트 덮어쓰기 방지: 본문 및 제목 폰트 적용
-            UpdateDetailFontSize(_data?.DetailFontSize > 0 ? _data.DetailFontSize : 12F);
+            pnlTitleWrapper.Paint += pnlTitleWrapper_Paint;
+            pnlTitleWrapper.SizeChanged += pnlTitleWrapper_SizeChanged;
+            pnlTitleWrapper.Click += (s, ev) => txtTitle.Focus();
+            pnlTitleWrapper.MouseEnter += (s, ev) => { _titleBoxHovered = true; pnlTitleWrapper.Invalidate(); };
+            pnlTitleWrapper.MouseLeave += (s, ev) => { _titleBoxHovered = false; pnlTitleWrapper.Invalidate(); };
+            txtTitle.Enter += (s, ev) => pnlTitleWrapper.Invalidate();
+            txtTitle.Leave += (s, ev) => pnlTitleWrapper.Invalidate();
+
+            // 초기 wrapper path 생성
+            pnlTitleWrapper_SizeChanged(this, EventArgs.Empty);
+
+            // MaterialSkin 매니저의 폰트 덮어쓰기 방지: 본문 및 제목 폰트 적용 (기본 14pt 가독성 강화)
+            float initialDetailSize = (_data != null && _data.DetailFontSize >= 14F) ? _data.DetailFontSize : 14F;
+            UpdateDetailFontSize(initialDetailSize);
             txtTitle.Font = new Font("맑은 고딕", 12F, FontStyle.Bold);
         }
 
@@ -150,8 +175,8 @@ namespace GateHelper
             var priorities = new[]
             {
                 new { Key = "HIGH", Text = "🔥  긴급 (HIGH)", Color = Color.FromArgb(255, 82, 82) },
-                new { Key = "NORMAL", Text = "⚡  보통 (NORMAL)", Color = Color.FromArgb(88, 166, 255) },
-                new { Key = "LOW", Text = "☕  낮음 (LOW)", Color = Color.FromArgb(140, 160, 180) }
+                new { Key = "NORMAL", Text = "보통 (NORMAL)", Color = Color.FromArgb(88, 166, 255) },
+                new { Key = "LOW", Text = "낮음 (LOW)", Color = Color.FromArgb(140, 160, 180) }
             };
 
             foreach (var pr in priorities)
@@ -185,8 +210,12 @@ namespace GateHelper
             _toolTip.SetToolTip(btnFilterToday, "오늘 등록되었거나 오늘 작업/수정된 업무만 필터링합니다.");
             _toolTip.SetToolTip(btnFilterHigh, "중요도가 '🔥 긴급(HIGH)'인 업무만 필터링합니다.");
             _toolTip.SetToolTip(chkHideDone, "완료(DONE/FIXED)된 업무를 목록에서 숨깁니다.");
+            _toolTip.SetToolTip(btnZoomIn, "목록 글자 크기 확대 (Ctrl + 휠 위)");
+            _toolTip.SetToolTip(btnZoomOut, "목록 글자 크기 축소 (Ctrl + 휠 아래)");
             _toolTip.SetToolTip(btnStatusToggle, "클릭하여 업무 상태(대기/진행/완료/수정)를 드롭다운에서 선택합니다.");
             _toolTip.SetToolTip(btnPriorityToggle, "클릭하여 업무 중요도(긴급/보통/낮음)를 드롭다운에서 선택합니다.");
+            _toolTip.SetToolTip(dtpDate, "업무 기준 일시 (사용자가 직접 클릭하여 변경 가능)");
+            _toolTip.SetToolTip(lblLastUpdated, "업무가 마지막으로 수정/저장된 시스템 일시");
             _toolTip.SetToolTip(lblDetailNo, "업무 고유 번호 (#No)");
             _toolTip.SetToolTip(lblTitleBadge, "업무 제목");
             _toolTip.SetToolTip(btnSaveEntry, "현재 업무 로그를 즉시 저장합니다. (평상시에는 자동 저장됩니다)");
@@ -206,8 +235,8 @@ namespace GateHelper
             OlvWorkLog.RowHeight = 32;
 
             colNo.AspectGetter = row => $"#{((WorkLogEntry)row).No}";
-            colNo.Width = 36;
-            colStatus.Width = 66;
+            colNo.Width = 48;
+            colStatus.Width = 70;
 
             colPriority.AspectGetter = row =>
             {
@@ -215,8 +244,8 @@ namespace GateHelper
                 switch (entry.Priority)
                 {
                     case "HIGH": return "🔥긴급";
-                    case "LOW": return "☕낮음";
-                    default: return "⚡보통";
+                    case "LOW": return "낮음";
+                    default: return "보통";
                 }
             };
             colPriority.Width = 70;
@@ -236,6 +265,47 @@ namespace GateHelper
             colDate.Width = 95;
             colDate.TextAlign = HorizontalAlignment.Center;
 
+            // 행 포맷터 (ObjectListView 네이티브 스타일링 및 하위호환 백컬러/포어컬러 동기화)
+            OlvWorkLog.FormatRow += (s, e) =>
+            {
+                if (!(e.Model is WorkLogEntry entry)) return;
+
+                bool isDone = entry.Status == "DONE" || entry.Status == "FIXED";
+                bool isHigh = !isDone && entry.Priority == "HIGH";
+                bool isOverdue = !isDone && (entry.Status == "OPEN" || entry.Status == "ING..") &&
+                                 (DateTime.Now.Date - entry.Date.Date).TotalDays >= 7;
+                bool isRedAlert = isHigh || isOverdue; // 긴급 또는 7일 이상 경과 지연
+
+                if (isDone)
+                {
+                    // 우선순위 1위: DONE/FIXED 완료 건은 긴급/지연 여부와 무관하게 항상 회색 음영
+                    e.Item.BackColor = Color.FromArgb(42, 50, 62);
+                    e.Item.ForeColor = Color.FromArgb(160, 172, 185);
+                    e.Item.Font = _regularFont;
+                }
+                else if (isRedAlert)
+                {
+                    // 우선순위 2위: 미완료 긴급(HIGH) 또는 7일 지연 건은 빨간색 음영 + 코럴 레드 볼드
+                    e.Item.BackColor = Color.FromArgb(64, 26, 32);
+                    e.Item.ForeColor = Color.FromArgb(255, 120, 120);
+                    e.Item.Font = _boldFont;
+                }
+                else if (entry.Status == "ING..")
+                {
+                    // 우선순위 3위: 진행 중 건은 부드러운 파스텔 웜 옐로우
+                    e.Item.BackColor = Color.FromArgb(70, 58, 22);
+                    e.Item.ForeColor = Color.FromArgb(255, 240, 190);
+                    e.Item.Font = _regularFont;
+                }
+                else
+                {
+                    // 대기(OPEN) 보통/낮음: 별도 음영 없이 기본 다크
+                    e.Item.BackColor = Color.FromArgb(13, 17, 23);
+                    e.Item.ForeColor = Color.FromArgb(240, 246, 252);
+                    e.Item.Font = _regularFont;
+                }
+            };
+
             // 커스텀 렌더링
             OlvWorkLog.DrawColumnHeader += (s, e) =>
             {
@@ -243,8 +313,11 @@ namespace GateHelper
                 using (var textBrush = new SolidBrush(Color.FromArgb(200, 210, 225)))
                 {
                     e.Graphics.FillRectangle(bgBrush, e.Bounds);
+                    var align = (e.ColumnIndex == 0 || e.ColumnIndex == 1 || e.ColumnIndex == 2 || e.ColumnIndex == 4 || e.ColumnIndex == 5)
+                        ? (TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter)
+                        : (TextFormatFlags.VerticalCenter | TextFormatFlags.Left);
                     TextRenderer.DrawText(e.Graphics, e.Header.Text, e.Font, e.Bounds,
-                        Color.FromArgb(200, 210, 225), TextFormatFlags.VerticalCenter | TextFormatFlags.Left);
+                        Color.FromArgb(200, 210, 225), align);
                 }
             };
 
@@ -261,23 +334,33 @@ namespace GateHelper
                 bool isSelected = e.Item.Selected;
                 var g = e.Graphics;
 
-                // 배경 칠하기 (ING: 연한 노란색 음영, DONE/FIXED: 연회색 음영)
+                bool isDone = entry.Status == "DONE" || entry.Status == "FIXED";
+                bool isHigh = !isDone && entry.Priority == "HIGH";
+                bool isOverdue = !isDone && (entry.Status == "OPEN" || entry.Status == "ING..") &&
+                                 (DateTime.Now.Date - entry.Date.Date).TotalDays >= 7;
+                bool isRedAlert = isHigh || isOverdue; // 우선순위 2위: 미완료 긴급(HIGH) 또는 7일 이상 경과 지연
+
+                // 배경 칠하기 (우선순위: DONE 완료 회색 > 긴급/지연 로즈레드 > ING 연노랑 > 기본 다크)
                 Brush bgBrush;
                 if (isSelected)
                 {
-                    if (entry.Status == "ING..")
-                        bgBrush = _brushSelectedIng;
-                    else if (entry.Status == "DONE" || entry.Status == "FIXED")
+                    if (isDone)
                         bgBrush = _brushSelectedDone;
+                    else if (isRedAlert)
+                        bgBrush = _brushSelectedOverdue;
+                    else if (entry.Status == "ING..")
+                        bgBrush = _brushSelectedIng;
                     else
                         bgBrush = _brushSelectedDefault;
                 }
                 else
                 {
-                    if (entry.Status == "ING..")
-                        bgBrush = _brushRowIng;
-                    else if (entry.Status == "DONE" || entry.Status == "FIXED")
+                    if (isDone)
                         bgBrush = _brushRowDone;
+                    else if (isRedAlert)
+                        bgBrush = _brushRowOverdue;
+                    else if (entry.Status == "ING..")
+                        bgBrush = _brushRowIng;
                     else
                         bgBrush = _brushRowDefault;
                 }
@@ -291,48 +374,82 @@ namespace GateHelper
                 }
                 else if (col == colPriority)
                 {
-                    // 우선순위 렌더링
-                    Color pColor = entry.Priority == "HIGH" ? Color.FromArgb(255, 82, 82) :
-                                   entry.Priority == "LOW" ? Color.FromArgb(120, 140, 160) :
-                                   Color.FromArgb(200, 215, 230);
-                    TextRenderer.DrawText(g, colPriority.GetStringValue(entry), e.SubItem.Font, e.Bounds,
+                    // 우선순위 렌더링 (DONE 완료는 차분한 그레이, 긴급/지연은 코럴 레드, 보통/낮음은 차분한 블루/그레이)
+                    Color pColor = isDone ? Color.FromArgb(140, 150, 160) :
+                                   isRedAlert ? Color.FromArgb(255, 120, 120) :
+                                   (entry.Priority == "LOW" ? Color.FromArgb(120, 140, 160) : Color.FromArgb(200, 215, 230));
+                    TextRenderer.DrawText(g, colPriority.GetStringValue(entry), isRedAlert ? _boldFont : _regularFont, e.Bounds,
                         pColor, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
                 }
                 else if (col == colNo)
                 {
-                    TextRenderer.DrawText(g, $"#{entry.No}", e.SubItem.Font, e.Bounds,
-                        Color.FromArgb(0, 229, 255), TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
+                    Color noColor = isDone ? Color.FromArgb(140, 150, 160) :
+                                    isRedAlert ? Color.FromArgb(255, 120, 120) :
+                                    Color.FromArgb(0, 229, 255);
+                    TextRenderer.DrawText(g, $"#{entry.No}", isRedAlert ? _boldFont : _regularFont, e.Bounds,
+                        noColor, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
                 }
                 else if (col == colTitle)
                 {
-                    Color titleColor = entry.Status == "DONE" || entry.Status == "FIXED"
-                        ? Color.FromArgb(140, 150, 160)
-                        : (entry.Status == "ING.." ? Color.FromArgb(255, 245, 220) : Color.FromArgb(240, 246, 252));
+                    Color titleColor;
+                    Font titleFont = isSelected ? _boldFont : _regularFont;
 
-                    TextRenderer.DrawText(g, entry.Title, isSelected ? _boldFont : _regularFont, e.Bounds,
+                    if (isDone)
+                    {
+                        titleColor = Color.FromArgb(160, 172, 185); // 소프트 파스텔 그레이 (완료 우선)
+                    }
+                    else if (isRedAlert)
+                    {
+                        titleColor = Color.FromArgb(255, 120, 120); // 긴급 또는 지연: 소프트 파스텔 코럴 레드
+                        titleFont = _boldFont;
+                    }
+                    else if (entry.Status == "ING..")
+                    {
+                        titleColor = Color.FromArgb(255, 240, 190); // 소프트 파스텔 크림 옐로우
+                    }
+                    else
+                    {
+                        titleColor = Color.FromArgb(240, 246, 252);
+                    }
+
+                    TextRenderer.DrawText(g, entry.Title, titleFont, e.Bounds,
                         titleColor, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
                 }
                 else if (col == colImages)
                 {
                     if (entry.HasImage)
                     {
-                        TextRenderer.DrawText(g, $"📸{entry.ImagePaths.Count}", e.SubItem.Font, e.Bounds,
+                        TextRenderer.DrawText(g, $"📸{entry.ImagePaths.Count}", _regularFont, e.Bounds,
                             Color.FromArgb(255, 215, 0), TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
                     }
                 }
                 else if (col == colDate)
                 {
-                    Color dateColor = entry.Status == "DONE" || entry.Status == "FIXED"
-                        ? Color.FromArgb(120, 130, 140)
-                        : Color.FromArgb(180, 195, 210);
+                    Color dateColor;
+                    Font dateFont = _regularFont;
+                    if (isDone)
+                    {
+                        dateColor = Color.FromArgb(140, 150, 162);
+                    }
+                    else if (isRedAlert)
+                    {
+                        dateColor = Color.FromArgb(255, 120, 120);
+                        dateFont = _boldFont;
+                    }
+                    else
+                    {
+                        dateColor = Color.FromArgb(180, 195, 210);
+                    }
+
                     string dtText = entry.Date.ToString("yyyy-MM-dd");
-                    TextRenderer.DrawText(g, dtText, e.SubItem.Font, e.Bounds,
+                    TextRenderer.DrawText(g, dtText, dateFont, e.Bounds,
                         dateColor, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
                 }
                 else
                 {
-                    Color foreColor = entry.Status == "DONE" ? Color.FromArgb(120, 130, 140) : Color.FromArgb(180, 190, 205);
-                    TextRenderer.DrawText(g, e.SubItem.Text, e.SubItem.Font, e.Bounds,
+                    Color foreColor = isDone ? Color.FromArgb(120, 130, 140) :
+                                      isRedAlert ? Color.FromArgb(255, 120, 120) : Color.FromArgb(180, 190, 205);
+                    TextRenderer.DrawText(g, e.SubItem.Text, isRedAlert ? _boldFont : _regularFont, e.Bounds,
                         foreColor, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
                 }
             };
@@ -374,22 +491,67 @@ namespace GateHelper
                 TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
         }
 
+        private static GraphicsPath CreateRoundedRectPath(Rectangle rect, int radius)
+        {
+            var path = new GraphicsPath();
+            int d = radius * 2;
+            path.AddArc(rect.X, rect.Y, d, d, 180, 90);
+            path.AddArc(rect.Right - d, rect.Y, d, d, 270, 90);
+            path.AddArc(rect.Right - d, rect.Bottom - d, d, d, 0, 90);
+            path.AddArc(rect.X, rect.Bottom - d, d, d, 90, 90);
+            path.CloseFigure();
+            return path;
+        }
+
         private void BadgeLabel_Paint(object sender, PaintEventArgs e)
         {
             if (!(sender is Label lbl)) return;
 
             var g = e.Graphics;
-            var rect = new Rectangle(0, 0, lbl.Width - 1, lbl.Height - 1);
+            g.SmoothingMode = SmoothingMode.AntiAlias;
 
-            // 1. 연한 파스텔 시안 배경색
-            g.FillRectangle(_brushBadgePastelBg, rect);
+            if (_badgePath == null)
+            {
+                _badgePath = CreateRoundedRectPath(new Rectangle(0, 0, lbl.Width - 1, lbl.Height - 1), 4);
+            }
 
-            // 2. 다른 네온 버튼들과 통일된 1px 네온 시안 테두리
-            g.DrawRectangle(_penBadgeNeonBorder, rect);
+            // 1. 트렌디한 다크 슬레이트 카드 배경
+            g.FillPath(_brushBadgePastelBg, _badgePath);
 
-            // 3. 텍스트 중앙 렌더링
-            TextRenderer.DrawText(g, lbl.Text, lbl.Font, rect, lbl.ForeColor,
+            // 2. 부드러운 안티에일리어싱 네온 시안 테두리 (1.2px)
+            g.DrawPath(_penBadgeNeonBorder, _badgePath);
+
+            // 3. 텍스트 중앙 렌더링 (MaterialSkin의 폰트색 덮어쓰기 방지: 네온 시안으로 선명하게 고정)
+            TextRenderer.DrawText(g, lbl.Text, lbl.Font, new Rectangle(0, 0, lbl.Width, lbl.Height), Color.FromArgb(0, 229, 255),
                 TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+        }
+
+        private void pnlTitleWrapper_Paint(object sender, PaintEventArgs e)
+        {
+            if (_titleWrapperPath == null) return;
+            var g = e.Graphics;
+            g.SmoothingMode = SmoothingMode.AntiAlias;
+
+            // 1. 다크 입력창 배경
+            g.FillPath(_brushTitleBoxBg, _titleWrapperPath);
+
+            // 2. 포커스 / 호버 시 네온 시안 글로우 테두리 전환
+            var pen = txtTitle.Focused ? _penTitleBoxFocus : (_titleBoxHovered ? _penTitleBoxHover : _penTitleBoxNormal);
+            g.DrawPath(pen, _titleWrapperPath);
+        }
+
+        private void pnlTitleWrapper_SizeChanged(object sender, EventArgs e)
+        {
+            _titleWrapperPath?.Dispose();
+            if (pnlTitleWrapper.Width > 8 && pnlTitleWrapper.Height > 8)
+            {
+                _titleWrapperPath = CreateRoundedRectPath(new Rectangle(0, 0, pnlTitleWrapper.Width - 1, pnlTitleWrapper.Height - 1), 4);
+            }
+            else
+            {
+                _titleWrapperPath = null;
+            }
+            pnlTitleWrapper.Invalidate();
         }
 
         private void WireEvents()
@@ -567,7 +729,7 @@ namespace GateHelper
                 chkHideDone.Checked = _data.HideDone;
 
                 UpdateFontSize(_data.FontSize);
-                UpdateDetailFontSize(_data.DetailFontSize > 0 ? _data.DetailFontSize : 12f);
+                UpdateDetailFontSize((_data != null && _data.DetailFontSize >= 14f) ? _data.DetailFontSize : 14f);
                 UpdateQuickFilterButtonsUI();
                 UpdateStatsHud();
                 ApplyFilter();
@@ -613,6 +775,13 @@ namespace GateHelper
             lblStatsIng.Text = $"🔥 진행: {stats.Ing}건";
             lblStatsOpen.Text = $"⏳ 대기: {stats.Open}건";
             lblStatsDone.Text = $"✅ 완료: {stats.Done + stats.Fixed}건 ({stats.DonePercent}%)";
+
+            // 동적 체이닝: 건수 증가 시 텍스트 겹침/잘림 원천 방지
+            lblStatsIng.Left = lblStatsTotal.Right + 12;
+            lblStatsOpen.Left = lblStatsIng.Right + 12;
+            lblStatsDone.Left = lblStatsOpen.Right + 12;
+            pnlStatsSep.Left = lblStatsDone.Right + 14;
+            btnAddNew.Left = pnlStatsSep.Right + 12;
         }
 
         // --- 필터링 & 검색 ---
@@ -708,6 +877,7 @@ namespace GateHelper
             {
                 bool active = (_quickFilter == tags[i]);
                 btns[i].BackColor = active ? activeBgs[i] : normalBgs[i];
+                btns[i].ForeColor = active ? Color.White : colors[i];
                 btns[i].FlatAppearance.BorderColor = active ? colors[i] : Color.FromArgb(colors[i].R / 2, colors[i].G / 2, colors[i].B / 2);
                 btns[i].FlatAppearance.BorderSize = 1;
                 btns[i].Font = new Font("맑은 고딕", 8.25F, active ? FontStyle.Bold : FontStyle.Regular);
@@ -747,6 +917,7 @@ namespace GateHelper
             txtContent.Text = entry.Content;
             txtMemo.Text = entry.Memo;
             dtpDate.Value = entry.Date;
+            UpdateLastUpdatedText(entry.LastUpdated);
 
             UpdateStatusButtonUI(entry.Status);
             UpdatePriorityButtonUI(entry.Priority);
@@ -763,6 +934,8 @@ namespace GateHelper
             _selectedEntry = null;
 
             lblDetailNo.Text = "#--";
+            lblLastUpdated.Text = "수정: -";
+            _toolTip.SetToolTip(lblLastUpdated, "마지막 수정 일시: 없음");
             txtTitle.Text = "";
             txtTags.Text = "";
             txtContent.Text = "";
@@ -772,7 +945,7 @@ namespace GateHelper
             btnStatusToggle.FlatAppearance.BorderColor = Color.FromArgb(60, 70, 80);
             btnStatusToggle.BackColor = Color.FromArgb(22, 27, 34);
 
-            btnPriorityToggle.Text = "⚡ - ▼";
+            btnPriorityToggle.Text = "- ▼";
             btnPriorityToggle.ForeColor = Color.FromArgb(120, 130, 140);
             btnPriorityToggle.FlatAppearance.BorderColor = Color.FromArgb(60, 70, 80);
             btnPriorityToggle.BackColor = Color.FromArgb(22, 27, 34);
@@ -782,7 +955,7 @@ namespace GateHelper
             zoomViewer.ClearImage();
             flowThumbnails.Controls.Clear();
             flowThumbnails.Visible = false;
-            lblImageTitle.Text = "🖼️ 캡처 (0장)";
+            lblImageTitle.Text = "📸 캡처 (0장)";
 
             SetDetailControlsEnabled(false);
             _isBinding = false;
@@ -847,14 +1020,14 @@ namespace GateHelper
                     btnPriorityToggle.BackColor = Color.FromArgb(51, 24, 28);
                     break;
                 case "LOW":
-                    btnPriorityToggle.Text = "☕ 낮음 ▼";
+                    btnPriorityToggle.Text = "낮음 ▼";
                     btnPriorityToggle.ForeColor = Color.FromArgb(140, 160, 180);
                     btnPriorityToggle.FlatAppearance.BorderColor = Color.FromArgb(80, 100, 120);
                     btnPriorityToggle.BackColor = Color.FromArgb(24, 30, 38);
                     break;
                 case "NORMAL":
                 default:
-                    btnPriorityToggle.Text = "⚡ 보통 ▼";
+                    btnPriorityToggle.Text = "보통 ▼";
                     btnPriorityToggle.ForeColor = Color.FromArgb(88, 166, 255);
                     btnPriorityToggle.FlatAppearance.BorderColor = Color.FromArgb(88, 166, 255);
                     btnPriorityToggle.BackColor = Color.FromArgb(24, 40, 56);
@@ -873,6 +1046,7 @@ namespace GateHelper
             _selectedEntry.Content = txtContent.Text;
             _selectedEntry.Memo = txtMemo.Text;
             _selectedEntry.Touch();
+            UpdateLastUpdatedText(_selectedEntry.LastUpdated);
 
             OlvWorkLog.RefreshObject(_selectedEntry);
             _saveDebounceTimer.Stop();
@@ -884,6 +1058,7 @@ namespace GateHelper
             if (_isBinding || _selectedEntry == null) return;
             _selectedEntry.Date = dtpDate.Value;
             _selectedEntry.Touch();
+            UpdateLastUpdatedText(_selectedEntry.LastUpdated);
             OlvWorkLog.RefreshObject(_selectedEntry);
             _saveDebounceTimer.Stop();
             _saveDebounceTimer.Start();
@@ -901,6 +1076,7 @@ namespace GateHelper
 
             _selectedEntry.Status = newStatus;
             _selectedEntry.Touch();
+            UpdateLastUpdatedText(_selectedEntry.LastUpdated);
             UpdateStatusButtonUI(newStatus);
 
             OlvWorkLog.RefreshObject(_selectedEntry);
@@ -921,11 +1097,18 @@ namespace GateHelper
 
             _selectedEntry.Priority = newPriority;
             _selectedEntry.Touch();
+            UpdateLastUpdatedText(_selectedEntry.LastUpdated);
             UpdatePriorityButtonUI(newPriority);
 
             OlvWorkLog.RefreshObject(_selectedEntry);
             _saveDebounceTimer.Stop();
             _saveDebounceTimer.Start();
+        }
+
+        private void UpdateLastUpdatedText(DateTime dt)
+        {
+            lblLastUpdated.Text = $"수정: {dt:MM-dd HH:mm}";
+            _toolTip.SetToolTip(lblLastUpdated, $"업무 마지막 수정 일시: {dt:yyyy-MM-dd HH:mm:ss}");
         }
 
         private void btnSaveEntry_Click(object sender, EventArgs e)
@@ -1018,7 +1201,7 @@ namespace GateHelper
 
             if (_selectedEntry == null || _selectedEntry.ImagePaths == null || _selectedEntry.ImagePaths.Count == 0)
             {
-                lblImageTitle.Text = "🖼️ 캡처 (0장)";
+                lblImageTitle.Text = "📸 캡처 (0장)";
                 _currentViewerImage?.Dispose();
                 _currentViewerImage = null;
                 zoomViewer.ClearImage();
@@ -1028,7 +1211,7 @@ namespace GateHelper
             }
 
             int count = _selectedEntry.ImagePaths.Count;
-            lblImageTitle.Text = $"🖼️ 캡처 ({count}장)";
+            lblImageTitle.Text = $"📸 캡처 ({count}장)";
             flowThumbnails.Visible = (count > 1); // 1장 이하일 때는 하단 바 숨겨서 세로 높이 극대화
 
 
@@ -1268,7 +1451,8 @@ namespace GateHelper
 
             OlvWorkLog.Font = _regularFont;
             OlvWorkLog.RowHeight = (int)(_data.FontSize * 3.0);
-            OlvWorkLog.Invalidate();
+            OlvWorkLog.BuildList(true);
+            OlvWorkLog.Refresh();
         }
 
         private void btnZoomIn_Click(object sender, EventArgs e)
@@ -1327,6 +1511,8 @@ namespace GateHelper
             _toolTip?.Dispose();
             _menuStatus?.Dispose();
             _menuPriority?.Dispose();
+            _titleWrapperPath?.Dispose();
+            _badgePath?.Dispose();
 
             // 썸네일 해제
             foreach (Control c in flowThumbnails.Controls)

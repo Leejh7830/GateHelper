@@ -58,7 +58,7 @@ namespace GateHelper.MysteryTime
                         using (var brush = new SolidBrush(Color.Gray))
                         using (var font = new Font("맑은 고딕", 9F, FontStyle.Regular))
                         {
-                            pe.Graphics.DrawString("📷 사건 현장\n(시각 단서)", font, brush, picMainScene.ClientRectangle, sf);
+                            pe.Graphics.DrawString("[현장 시각 단서]\n(사건 현장)", font, brush, picMainScene.ClientRectangle, sf);
                         }
                     }
                 };
@@ -74,7 +74,7 @@ namespace GateHelper.MysteryTime
                         using (var brush = new SolidBrush(Color.Gray))
                         using (var font = new Font("맑은 고딕", 9F, FontStyle.Regular))
                         {
-                            pe.Graphics.DrawString("🔍 중요 단서\n(힌트 보기 시 공개)", font, brush, picHintScene.ClientRectangle, sf);
+                            pe.Graphics.DrawString("[핵심 추리 단서]\n(힌트 보기 시 공개)", font, brush, picHintScene.ClientRectangle, sf);
                         }
                     }
                 };

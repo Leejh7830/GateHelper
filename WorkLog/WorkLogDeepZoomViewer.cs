@@ -238,12 +238,10 @@ namespace GateHelper
 
             if (_image == null)
             {
-                // 안내 가이드 표시
+                // 안내 가이드 표시 (TextRenderer로 유니코드 이모지/클립보드 기호 완벽 렌더링 - □ 깨짐 방지)
                 string guide = "첨부된 스크린샷이 없습니다.\r\n\r\n📋 이 영역이나 목록에서 [ Ctrl+V ] 를 누르면\r\n클립보드 스크린샷이 즉시 고화질로 저장됩니다.";
-                using (var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
-                {
-                    g.DrawString(guide, _guideFont, _textDimBrush, ClientRectangle, sf);
-                }
+                TextRenderer.DrawText(g, guide, _guideFont, ClientRectangle, Color.FromArgb(140, 150, 165),
+                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
                 return;
             }
 

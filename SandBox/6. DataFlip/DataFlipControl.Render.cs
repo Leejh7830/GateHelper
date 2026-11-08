@@ -122,6 +122,9 @@ namespace GateHelper.DataFlip
             DrawMapSizeToggle(g, _btnMapLargeRect, "대형", MapSizeType.Large, 93);
             DrawMapSizeToggle(g, _btnMapHugeRect, "초대형", MapSizeType.Huge, 94);
 
+            // [턴 진행 3단 배속 토글] (⚡1x / ⚡2x / ⚡4x)
+            DrawTurnSpeedToggle(g, _btnTurnSpeedRect);
+
             // 타이틀 줄 우측: 로그라이크 패시브 보너스 뱃지 렌더링 (HUD 바 내부가 아닌 상단 타이틀 줄 우측에 배치하여 겹침 원천 차단!)
             int badgeRight = this.Width - 14;
             if (_game.CurrentMapSize == MapSizeType.Huge)
@@ -254,6 +257,29 @@ namespace GateHelper.DataFlip
             using (var font = new Font("Segoe UI", 7.5f, FontStyle.Bold))
             {
                 TextRenderer.DrawText(g, text, font, rect, textCol,
+                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            }
+        }
+
+        private void DrawTurnSpeedToggle(Graphics g, Rectangle rect)
+        {
+            if (rect.Width <= 0 || rect.Height <= 0) return;
+
+            bool isHover = (_hoverButtonId == 96);
+            string spdText = (_turnPlaySpeed == 1) ? "⚡1x" : (_turnPlaySpeed == 2) ? "⚡2x" : "⚡4x";
+            Color speedCol = (_turnPlaySpeed == 4) ? Color.FromArgb(255, 60, 200) :
+                             (_turnPlaySpeed == 2) ? _colorGold : _colorCyan;
+
+            Color bg = isHover ? Color.FromArgb(40, 52, 70) : Color.FromArgb(22, 28, 38);
+            using (var brush = new SolidBrush(bg))
+            using (var pen = new Pen(isHover ? speedCol : _colorGridLine, isHover ? 1.5f : 1f))
+            {
+                g.FillRoundedRectangle(brush, rect, 3);
+                g.DrawRoundedRectangle(pen, rect, 3);
+            }
+            using (var font = new Font("Segoe UI", 8f, FontStyle.Bold))
+            {
+                TextRenderer.DrawText(g, spdText, font, rect, speedCol,
                     TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
             }
         }

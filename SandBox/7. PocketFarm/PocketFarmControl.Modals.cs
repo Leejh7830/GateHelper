@@ -39,13 +39,12 @@ namespace GateHelper.PocketFarm
             FormatFlags = 0
         };
 
+        private static readonly SolidBrush _brModalDim = new SolidBrush(Color.FromArgb(180, 10, 14, 20));
+
         private void DrawActiveModal(Graphics g)
         {
-            // 1. 반투명 딤(Dim) 배경
-            using (SolidBrush brDim = new SolidBrush(Color.FromArgb(180, 10, 14, 20)))
-            {
-                g.FillRectangle(brDim, this.ClientRectangle);
-            }
+            // 1. 반투명 딤(Dim) 배경 (정적 캐시 0 Byte GC)
+            g.FillRectangle(_brModalDim, this.ClientRectangle);
 
             // 2. 모달 컨테이너 박스 (기술트리, 업적, 의뢰는 와이드 뷰 적용)
             bool isWide = (_activeModal == ModalViewType.TechTree || _activeModal == ModalViewType.Achievements || _activeModal == ModalViewType.Contracts);
@@ -158,6 +157,8 @@ namespace GateHelper.PocketFarm
 
         private void DrawTechTreeModal(Graphics g, int mx, int my)
         {
+            if (_model == null || _model.TechTree.Count < 11) return;
+
             g.DrawString("★ 포켓 테크놀로지 (기술 연구 나무)", _fontTitle, _brTextGold, mx + 20, my + 12);
             g.DrawString("골드(G)와 식당 명성(P)을 연구비로 투자하여 5대 산업 분야 테크트리를 단계별로 해금합니다.", _fontSmall, _brTextMuted, mx + 20, my + 34);
 
@@ -395,7 +396,7 @@ namespace GateHelper.PocketFarm
             int claimableCount = _model.AchievementSystem.GetClaimableCount();
             int completedCount = list.FindAll(a => a.IsCompleted).Count;
 
-            g.DrawString($"[🏆 업적] 명예의 전당 (달성 {completedCount}/{count})", _fontTitle, _brTextGold, mx + 20, my + 14);
+            g.DrawString($"[★ 업적] 명예의 전당 (달성 {completedCount}/{count})", _fontTitle, _brTextGold, mx + 20, my + 14);
             g.DrawString("농장 경영과 레스토랑 운영의 마일스톤을 달성하고 특별 지원금을 수령하세요.", _fontSmall, _brTextMuted, mx + 20, my + 38);
 
             int startY = my + 64;
@@ -464,7 +465,7 @@ namespace GateHelper.PocketFarm
 
             int completedCount = list.FindAll(c => c.IsCompleted).Count;
 
-            g.DrawString($"[📜 일일 의뢰] 로컬 푸드 직거래 납품소 ({completedCount}/3 완수)", _fontTitle, _brTextGold, mx + 22, my + 14);
+            g.DrawString($"[✦ 일일 의뢰] 로컬 푸드 직거래 납품소 ({completedCount}/3 완수)", _fontTitle, _brTextGold, mx + 22, my + 14);
             g.DrawString("매일 긴급 조달되는 농·수·축산물 납품 계약을 완수하고 올클리어 보너스를 획득하세요.", _fontSmall, _brTextMuted, mx + 22, my + 38);
 
             int startY = my + 64;
@@ -518,7 +519,7 @@ namespace GateHelper.PocketFarm
             g.FillRectangle(_brHeaderBg, rcBonus);
             g.DrawRectangle(_penGold, rcBonus);
 
-            g.DrawString("🎉 일일 의뢰 ALL CLEAR 특별 지원금 (+500G, +50 식당 명성P)", _fontBold, _brTextGold, rcBonus.X + 16, rcBonus.Y + 14);
+            g.DrawString("★ 일일 의뢰 ALL CLEAR 특별 지원금 (+500G, +50 식당 명성P)", _fontBold, _brTextGold, rcBonus.X + 16, rcBonus.Y + 14);
             string bonusDesc = _model.ContractSystem.DailyBonusClaimed
                 ? "[보너스 수령 완료] 오늘 의뢰를 모두 달성하셨습니다! 매일 자정에 새로운 의뢰가 갱신됩니다."
                 : $"3개 분야 의뢰를 모두 납품 완료하면 특별 지원금이 즉시 자동 지급됩니다. (현재 {completedCount}/3 완료)";
@@ -572,13 +573,24 @@ namespace GateHelper.PocketFarm
                     if (_rcBtnRecipeList[i].Contains(pt))
                     {
                         var r = _model.Recipes[i];
-                        if (!r.IsUnlocked && _model.Gold >= r.UnlockCost)
+                        if (!r.IsUnlocked)
                         {
-                            _model.Gold -= r.UnlockCost;
-                            r.IsUnlocked = true;
-                            if (_model.AchievementSystem != null) _model.AchievementSystem.CheckAllMilestones(_model);
-                            _model.AddFloatingText($"[≡] [{r.Name}] 해금 완료!", 325, 280, Color.FromArgb(255, 215, 0));
-                            _model.Save();
+                            if (_model.Gold >= r.UnlockCost)
+                            {
+                                _model.Gold -= r.UnlockCost;
+                                r.IsUnlocked = true;
+                                if (_model.AchievementSystem != null) _model.AchievementSystem.CheckAllMilestones(_model);
+                                _model.AddFloatingText($"[≡] [{r.Name}] 해금 완료!", 325, 280, Color.FromArgb(255, 215, 0));
+                                _model.Save();
+                            }
+                            else
+                            {
+                                _model.AddFloatingText("해금 골드가 부족합니다!", 325, 280, Color.FromArgb(255, 120, 100));
+                            }
+                        }
+                        else
+                        {
+                            _model.AddFloatingText($"[{r.Name}]은 식당 영업 시 손님 주문에 맞춰 자동 조리됩니다.", 325, 280, Color.FromArgb(100, 220, 255));
                         }
                         break;
                     }

@@ -27,13 +27,20 @@ namespace GateHelper.ServerTycoon
         {
             if (buyCount <= 1)
             {
-                return Math.Floor(BaseCost * Math.Pow(1.18, Level));
+                double pow = Math.Pow(1.18, Level);
+                if (double.IsInfinity(pow) || pow > 1e300) return 1e300;
+                double cost = Math.Floor(BaseCost * pow);
+                return (double.IsInfinity(cost) || cost > 1e300) ? 1e300 : cost;
             }
 
             double total = 0;
             for (int i = 0; i < buyCount; i++)
             {
-                total += Math.Floor(BaseCost * Math.Pow(1.18, Level + i));
+                double pow = Math.Pow(1.18, Level + i);
+                if (double.IsInfinity(pow) || pow > 1e300) return 1e300;
+                double nextOne = Math.Floor(BaseCost * pow);
+                if (double.IsInfinity(nextOne) || total + nextOne > 1e300) return 1e300;
+                total += nextOne;
             }
             return total;
         }
@@ -44,12 +51,14 @@ namespace GateHelper.ServerTycoon
             double cost = 0;
             while (count < 1000)
             {
-                double nextOne = Math.Floor(BaseCost * Math.Pow(1.18, Level + count));
-                if (cost + nextOne > money) break;
+                double pow = Math.Pow(1.18, Level + count);
+                if (double.IsInfinity(pow) || pow > 1e300) break;
+                double nextOne = Math.Floor(BaseCost * pow);
+                if (cost + nextOne > money || double.IsInfinity(cost + nextOne)) break;
                 cost += nextOne;
                 count++;
             }
-            return Math.Max(1, count);
+            return count;
         }
 
         public double GetTotalRps(double multiplier = 1.0)
@@ -87,12 +96,19 @@ namespace GateHelper.ServerTycoon
         {
             if (buyCount <= 1)
             {
-                return Math.Floor(BaseCost * Math.Pow(1.22, Level));
+                double pow = Math.Pow(1.22, Level);
+                if (double.IsInfinity(pow) || pow > 1e300) return 1e300;
+                double cost = Math.Floor(BaseCost * pow);
+                return (double.IsInfinity(cost) || cost > 1e300) ? 1e300 : cost;
             }
             double total = 0;
             for (int i = 0; i < buyCount; i++)
             {
-                total += Math.Floor(BaseCost * Math.Pow(1.22, Level + i));
+                double pow = Math.Pow(1.22, Level + i);
+                if (double.IsInfinity(pow) || pow > 1e300) return 1e300;
+                double nextOne = Math.Floor(BaseCost * pow);
+                if (double.IsInfinity(nextOne) || total + nextOne > 1e300) return 1e300;
+                total += nextOne;
             }
             return total;
         }
@@ -103,12 +119,14 @@ namespace GateHelper.ServerTycoon
             double cost = 0;
             while (count < 1000)
             {
-                double nextOne = Math.Floor(BaseCost * Math.Pow(1.22, Level + count));
-                if (cost + nextOne > money) break;
+                double pow = Math.Pow(1.22, Level + count);
+                if (double.IsInfinity(pow) || pow > 1e300) break;
+                double nextOne = Math.Floor(BaseCost * pow);
+                if (cost + nextOne > money || double.IsInfinity(cost + nextOne)) break;
                 cost += nextOne;
                 count++;
             }
-            return Math.Max(1, count);
+            return count;
         }
 
         public double GetTotalSupply()
@@ -135,12 +153,19 @@ namespace GateHelper.ServerTycoon
         {
             if (buyCount <= 1)
             {
-                return Math.Floor(BaseCost * Math.Pow(1.22, Level));
+                double pow = Math.Pow(1.22, Level);
+                if (double.IsInfinity(pow) || pow > 1e300) return 1e300;
+                double cost = Math.Floor(BaseCost * pow);
+                return (double.IsInfinity(cost) || cost > 1e300) ? 1e300 : cost;
             }
             double total = 0;
             for (int i = 0; i < buyCount; i++)
             {
-                total += Math.Floor(BaseCost * Math.Pow(1.22, Level + i));
+                double pow = Math.Pow(1.22, Level + i);
+                if (double.IsInfinity(pow) || pow > 1e300) return 1e300;
+                double nextOne = Math.Floor(BaseCost * pow);
+                if (double.IsInfinity(nextOne) || total + nextOne > 1e300) return 1e300;
+                total += nextOne;
             }
             return total;
         }
@@ -151,12 +176,14 @@ namespace GateHelper.ServerTycoon
             double cost = 0;
             while (count < 1000)
             {
-                double nextOne = Math.Floor(BaseCost * Math.Pow(1.22, Level + count));
-                if (cost + nextOne > money) break;
+                double pow = Math.Pow(1.22, Level + count);
+                if (double.IsInfinity(pow) || pow > 1e300) break;
+                double nextOne = Math.Floor(BaseCost * pow);
+                if (cost + nextOne > money || double.IsInfinity(cost + nextOne)) break;
                 cost += nextOne;
                 count++;
             }
-            return Math.Max(1, count);
+            return count;
         }
 
         public double GetTotalCooling(double efficiencyMult = 1.0)
@@ -461,7 +488,7 @@ namespace GateHelper.ServerTycoon
             string[] clients = { "모바일 스타트업", "온라인 쇼핑 결제원", "인기 게임 방송국", "글로벌 AI 연구소", "국가 우주 관제 센터" };
             string[] titles = { "스타트업 모바일 앱 서버 운영", "온라인 쇼핑몰 대규모 결제망 지원", "인기 게임 생방송 실시간 스트리밍", "초거대 인공지능 연구 연산 지원", "우주 관제 위성 통신망 호스팅" };
             SlaRequirementType[] slaTypes = { SlaRequirementType.PowerUptime, SlaRequirementType.ThermalStrict, SlaRequirementType.HighBandwidth };
-            string[] slaDescs = { "정전 금지: 100% 전력 공급 유지 (정전 시 위반)", "과열 금지: 서버실 45°C 이하 냉각 유지 (과열 시 위반)", "성능 유지: 서버 랙 풀가동 납기 (서버 다운 시 위반)" };
+            string[] slaDescs = { "정전 금지: 전력 공급 100% 유지", "과열 금지: 45°C 이하 냉각 유지", "성능 유지: 서버 풀가동 납기 준수" };
             string[] colors = { "#00E5FF", "#76FF03", "#FFD54F", "#FF4081", "#E040FB" };
 
             int tierIdx = 0;
@@ -782,7 +809,7 @@ namespace GateHelper.ServerTycoon
                 {
                     Id = "solar_array",
                     Name = "옥상 태양광 발전기",
-                    SubTitle = "햇빛으로 자체 전기를 만드는 친환경 패널",
+                    SubTitle = "친환경 태양광 자체 발전",
                     Icon = "☀️",
                     Level = 0,
                     BaseCost = 2000000.0,
@@ -794,7 +821,7 @@ namespace GateHelper.ServerTycoon
                 {
                     Id = "smr_reactor",
                     Name = "소형 원자력 발전기",
-                    SubTitle = "사실상 무한한 전기를 공급하는 꿈의 발전기",
+                    SubTitle = "초대용량 무제한 원자력 발전",
                     Icon = "☢️",
                     Level = 0,
                     BaseCost = 80000000.0,
@@ -813,7 +840,7 @@ namespace GateHelper.ServerTycoon
                 {
                     Id = "passive",
                     Name = "자연 바람 통풍",
-                    SubTitle = "열린 창문과 환풍구로 서서히 열 식히기",
+                    SubTitle = "자연 통풍으로 열기 방출",
                     Icon = "🍃",
                     Level = 1,
                     BaseCost = 0,
@@ -824,7 +851,7 @@ namespace GateHelper.ServerTycoon
                 {
                     Id = "desk_fan",
                     Name = "탁상용 선풍기",
-                    SubTitle = "뜨거워진 기기에 시원한 바람 쐬어주기",
+                    SubTitle = "선풍기 바람으로 빠른 냉각",
                     Icon = "💨",
                     Level = 0,
                     BaseCost = 120.0,
@@ -868,7 +895,7 @@ namespace GateHelper.ServerTycoon
                 {
                     Id = "quantum_cryo",
                     Name = "우주급 초극저온 냉동기",
-                    SubTitle = "영하 273도 수준으로 얼려버리는 최첨단 냉각",
+                    SubTitle = "영하 273도 극저온 급속 냉각",
                     Icon = "🌌",
                     Level = 0,
                     BaseCost = 90000000.0,

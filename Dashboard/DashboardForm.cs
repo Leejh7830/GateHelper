@@ -88,6 +88,20 @@ namespace GateHelper.Dashboard
             timerRefresh.Stop();
         }
 
+        protected override void OnVisibleChanged(EventArgs e)
+        {
+            base.OnVisibleChanged(e);
+            bool isVis = this.Visible && this.WindowState != FormWindowState.Minimized;
+            if (isVis)
+            {
+                if (timerRefresh != null && !timerRefresh.Enabled) timerRefresh.Start();
+            }
+            else
+            {
+                if (timerRefresh != null && timerRefresh.Enabled) timerRefresh.Stop();
+            }
+        }
+
         private void TabControlMain_SelectedIndexChanged(object sender, EventArgs e)
         {
             // 상단 KPI 카드(가동 시간, 헬스 상태 등)는 항상 최신 상태 유지

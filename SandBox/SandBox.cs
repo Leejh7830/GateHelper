@@ -115,11 +115,48 @@ namespace GateHelper
 
         private void SB_tabControl1_SelectedIndexChanged(object sender, EventArgs e)
         {
+            bool isBitFlip = SB_tabControl1.SelectedTab == tpBitFlip;
+            _bitFlipGame?.OnTabVisibilityChanged(isBitFlip);
+
+            bool isSignalLink = SB_tabControl1.SelectedTab == tpSignalLink;
+            _signalLinkGame?.OnTabVisibilityChanged(isSignalLink);
+
             bool isTycoon = SB_tabControl1.SelectedTab == tpServerTycoon;
             _serverTycoonControl?.OnTabVisibilityChanged(isTycoon);
 
+            bool isDataFlip = SB_tabControl1.SelectedTab == tpDataFlip;
+            _dataFlipControl?.OnTabVisibilityChanged(isDataFlip);
+
             bool isPocketFarm = SB_tabControl1.SelectedTab == tpPocketFarm;
             _pocketFarmControl?.OnTabVisibilityChanged(isPocketFarm);
+        }
+
+        protected override void OnVisibleChanged(EventArgs e)
+        {
+            base.OnVisibleChanged(e);
+            bool isVis = this.Visible && this.WindowState != FormWindowState.Minimized;
+            if (!isVis)
+            {
+                _bitFlipGame?.OnTabVisibilityChanged(false);
+                _signalLinkGame?.OnTabVisibilityChanged(false);
+                _serverTycoonControl?.OnTabVisibilityChanged(false);
+                _dataFlipControl?.OnTabVisibilityChanged(false);
+                _pocketFarmControl?.OnTabVisibilityChanged(false);
+            }
+            else
+            {
+                SB_tabControl1_SelectedIndexChanged(this, EventArgs.Empty);
+            }
+        }
+
+        protected override void OnFormClosing(FormClosingEventArgs e)
+        {
+            base.OnFormClosing(e);
+            _bitFlipGame?.OnTabVisibilityChanged(false);
+            _signalLinkGame?.OnTabVisibilityChanged(false);
+            _serverTycoonControl?.OnTabVisibilityChanged(false);
+            _dataFlipControl?.OnTabVisibilityChanged(false);
+            _pocketFarmControl?.OnTabVisibilityChanged(false);
         }
 
         public void BackToList()
