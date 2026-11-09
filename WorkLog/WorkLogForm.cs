@@ -50,15 +50,18 @@ namespace GateHelper
         private static readonly Brush _brushBadgeDone = new SolidBrush(Color.FromArgb(15, 80, 45));
         private static readonly Brush _brushBadgeFixed = new SolidBrush(Color.FromArgb(70, 35, 110));
 
-        // 행 배경 브러시 캐시 (ING: 부드러운 파스텔 웜 옐로우, DONE/FIXED: 차분한 파스텔 쿨 슬레이트 그레이, 지연: 소프트 파스텔 로즈레드)
+        // 행 배경 브러시 캐시 (3대 핵심 룰: 1. 긴급(빨강), 2. 7일 경과(노랑), 3. DONE(다크 음영), 그 외 기본)
         private static readonly Brush _brushRowDefault = new SolidBrush(Color.FromArgb(13, 17, 23));
-        private static readonly Brush _brushRowIng = new SolidBrush(Color.FromArgb(70, 58, 22));
-        private static readonly Brush _brushRowDone = new SolidBrush(Color.FromArgb(42, 50, 62));
-        private static readonly Brush _brushRowOverdue = new SolidBrush(Color.FromArgb(64, 26, 32));
         private static readonly Brush _brushSelectedDefault = new SolidBrush(Color.FromArgb(38, 48, 64));
-        private static readonly Brush _brushSelectedIng = new SolidBrush(Color.FromArgb(90, 75, 30));
-        private static readonly Brush _brushSelectedDone = new SolidBrush(Color.FromArgb(58, 68, 82));
-        private static readonly Brush _brushSelectedOverdue = new SolidBrush(Color.FromArgb(88, 36, 44));
+
+        private static readonly Brush _brushRowHigh = new SolidBrush(Color.FromArgb(64, 26, 32));      // 1. 긴급(HIGH): 소프트 파스텔 로즈레드
+        private static readonly Brush _brushSelectedHigh = new SolidBrush(Color.FromArgb(88, 36, 44));
+
+        private static readonly Brush _brushRowOverdue = new SolidBrush(Color.FromArgb(70, 58, 22));   // 2. 7일 경과(지연): 소프트 파스텔 웜 옐로우
+        private static readonly Brush _brushSelectedOverdue = new SolidBrush(Color.FromArgb(90, 75, 30));
+
+        private static readonly Brush _brushRowDone = new SolidBrush(Color.FromArgb(28, 34, 42));      // 3. DONE(Close): 차분하고 가라앉은 다크 슬레이트 음영
+        private static readonly Brush _brushSelectedDone = new SolidBrush(Color.FromArgb(46, 54, 66));
 
         // 고유번호/업무제목 뱃지 브러시 & 펜 캐시 (네온 테두리 + 트렌디한 다크 슬레이트 카드 배경)
         private static readonly Brush _brushBadgePastelBg = new SolidBrush(Color.FromArgb(20, 28, 40));
@@ -265,41 +268,39 @@ namespace GateHelper
             colDate.Width = 95;
             colDate.TextAlign = HorizontalAlignment.Center;
 
-            // 행 포맷터 (ObjectListView 네이티브 스타일링 및 하위호환 백컬러/포어컬러 동기화)
+            // 행 포맷터 (3대 핵심 룰: 1. 긴급(빨강), 2. 7일 경과(노랑), 3. DONE(다크음영), fixed=색상조건 없음)
             OlvWorkLog.FormatRow += (s, e) =>
             {
                 if (!(e.Model is WorkLogEntry entry)) return;
 
-                bool isDone = entry.Status == "DONE" || entry.Status == "FIXED";
+                bool isDone = entry.Status == "DONE";
                 bool isHigh = !isDone && entry.Priority == "HIGH";
-                bool isOverdue = !isDone && (entry.Status == "OPEN" || entry.Status == "ING..") &&
-                                 (DateTime.Now.Date - entry.Date.Date).TotalDays >= 7;
-                bool isRedAlert = isHigh || isOverdue; // 긴급 또는 7일 이상 경과 지연
+                bool isOverdue = !isDone && !isHigh && (DateTime.Now.Date - entry.Date.Date).TotalDays >= 7;
 
                 if (isDone)
                 {
-                    // 우선순위 1위: DONE/FIXED 완료 건은 긴급/지연 여부와 무관하게 항상 회색 음영
-                    e.Item.BackColor = Color.FromArgb(42, 50, 62);
-                    e.Item.ForeColor = Color.FromArgb(160, 172, 185);
+                    // 1. DONE(Close): 차분하고 가라앉은 다크 슬레이트 음영 (우선순위 최상위)
+                    e.Item.BackColor = Color.FromArgb(28, 34, 42);
+                    e.Item.ForeColor = Color.FromArgb(135, 145, 155);
                     e.Item.Font = _regularFont;
                 }
-                else if (isRedAlert)
+                else if (isHigh)
                 {
-                    // 우선순위 2위: 미완료 긴급(HIGH) 또는 7일 지연 건은 빨간색 음영 + 코럴 레드 볼드
+                    // 2. 긴급(HIGH): 빨간색 음영 + 코럴 레드 볼드
                     e.Item.BackColor = Color.FromArgb(64, 26, 32);
                     e.Item.ForeColor = Color.FromArgb(255, 120, 120);
                     e.Item.Font = _boldFont;
                 }
-                else if (entry.Status == "ING..")
+                else if (isOverdue)
                 {
-                    // 우선순위 3위: 진행 중 건은 부드러운 파스텔 웜 옐로우
+                    // 3. 7일 이상 경과: 노란색 음영 + 웜 크림 옐로우 (fixed 등 모든 미완료 업무 포함)
                     e.Item.BackColor = Color.FromArgb(70, 58, 22);
-                    e.Item.ForeColor = Color.FromArgb(255, 240, 190);
+                    e.Item.ForeColor = Color.FromArgb(255, 235, 160);
                     e.Item.Font = _regularFont;
                 }
                 else
                 {
-                    // 대기(OPEN) 보통/낮음: 별도 음영 없이 기본 다크
+                    // 4. 그 외 (OPEN, ING.., FIXED 등 7일 이내 보통/낮음): 별도 음영 없이 기본 다크
                     e.Item.BackColor = Color.FromArgb(13, 17, 23);
                     e.Item.ForeColor = Color.FromArgb(240, 246, 252);
                     e.Item.Font = _regularFont;
@@ -334,22 +335,20 @@ namespace GateHelper
                 bool isSelected = e.Item.Selected;
                 var g = e.Graphics;
 
-                bool isDone = entry.Status == "DONE" || entry.Status == "FIXED";
+                bool isDone = entry.Status == "DONE";
                 bool isHigh = !isDone && entry.Priority == "HIGH";
-                bool isOverdue = !isDone && (entry.Status == "OPEN" || entry.Status == "ING..") &&
-                                 (DateTime.Now.Date - entry.Date.Date).TotalDays >= 7;
-                bool isRedAlert = isHigh || isOverdue; // 우선순위 2위: 미완료 긴급(HIGH) 또는 7일 이상 경과 지연
+                bool isOverdue = !isDone && !isHigh && (DateTime.Now.Date - entry.Date.Date).TotalDays >= 7;
 
-                // 배경 칠하기 (우선순위: DONE 완료 회색 > 긴급/지연 로즈레드 > ING 연노랑 > 기본 다크)
+                // 배경 칠하기 (3대 핵심 룰: DONE 다크 > 긴급 로즈레드 > 7일 경과 웜 옐로우 > 기본 다크)
                 Brush bgBrush;
                 if (isSelected)
                 {
                     if (isDone)
                         bgBrush = _brushSelectedDone;
-                    else if (isRedAlert)
+                    else if (isHigh)
+                        bgBrush = _brushSelectedHigh;
+                    else if (isOverdue)
                         bgBrush = _brushSelectedOverdue;
-                    else if (entry.Status == "ING..")
-                        bgBrush = _brushSelectedIng;
                     else
                         bgBrush = _brushSelectedDefault;
                 }
@@ -357,10 +356,10 @@ namespace GateHelper
                 {
                     if (isDone)
                         bgBrush = _brushRowDone;
-                    else if (isRedAlert)
+                    else if (isHigh)
+                        bgBrush = _brushRowHigh;
+                    else if (isOverdue)
                         bgBrush = _brushRowOverdue;
-                    else if (entry.Status == "ING..")
-                        bgBrush = _brushRowIng;
                     else
                         bgBrush = _brushRowDefault;
                 }
@@ -374,42 +373,41 @@ namespace GateHelper
                 }
                 else if (col == colPriority)
                 {
-                    // 우선순위 렌더링 (DONE 완료는 차분한 그레이, 긴급/지연은 코럴 레드, 보통/낮음은 차분한 블루/그레이)
-                    Color pColor = isDone ? Color.FromArgb(140, 150, 160) :
-                                   isRedAlert ? Color.FromArgb(255, 120, 120) :
+                    // 우선순위 렌더링 (DONE 완료는 딤드 그레이, 긴급은 코럴 레드 볼드, 보통/낮음은 차분한 블루/그레이)
+                    Color pColor = isDone ? Color.FromArgb(135, 145, 155) :
+                                   isHigh ? Color.FromArgb(255, 120, 120) :
                                    (entry.Priority == "LOW" ? Color.FromArgb(120, 140, 160) : Color.FromArgb(200, 215, 230));
-                    TextRenderer.DrawText(g, colPriority.GetStringValue(entry), isRedAlert ? _boldFont : _regularFont, e.Bounds,
+                    TextRenderer.DrawText(g, colPriority.GetStringValue(entry), isHigh ? _boldFont : _regularFont, e.Bounds,
                         pColor, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
                 }
                 else if (col == colNo)
                 {
-                    Color noColor = isDone ? Color.FromArgb(140, 150, 160) :
-                                    isRedAlert ? Color.FromArgb(255, 120, 120) :
+                    Color noColor = isDone ? Color.FromArgb(135, 145, 155) :
+                                    isHigh ? Color.FromArgb(255, 120, 120) :
                                     Color.FromArgb(0, 229, 255);
-                    TextRenderer.DrawText(g, $"#{entry.No}", isRedAlert ? _boldFont : _regularFont, e.Bounds,
+                    TextRenderer.DrawText(g, $"#{entry.No}", isHigh ? _boldFont : _regularFont, e.Bounds,
                         noColor, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
                 }
                 else if (col == colTitle)
                 {
                     Color titleColor;
-                    Font titleFont = isSelected ? _boldFont : _regularFont;
+                    Font titleFont = (isSelected || isHigh) ? _boldFont : _regularFont;
 
                     if (isDone)
                     {
-                        titleColor = Color.FromArgb(160, 172, 185); // 소프트 파스텔 그레이 (완료 우선)
+                        titleColor = Color.FromArgb(135, 145, 155); // DONE(Close): 다크 딤드 그레이
                     }
-                    else if (isRedAlert)
+                    else if (isHigh)
                     {
-                        titleColor = Color.FromArgb(255, 120, 120); // 긴급 또는 지연: 소프트 파스텔 코럴 레드
-                        titleFont = _boldFont;
+                        titleColor = Color.FromArgb(255, 120, 120); // 긴급: 코럴 레드 볼드
                     }
-                    else if (entry.Status == "ING..")
+                    else if (isOverdue)
                     {
-                        titleColor = Color.FromArgb(255, 240, 190); // 소프트 파스텔 크림 옐로우
+                        titleColor = Color.FromArgb(255, 235, 160); // 7일 경과: 소프트 웜 크림 옐로우
                     }
                     else
                     {
-                        titleColor = Color.FromArgb(240, 246, 252);
+                        titleColor = Color.FromArgb(240, 246, 252); // 기본
                     }
 
                     TextRenderer.DrawText(g, entry.Title, titleFont, e.Bounds,
@@ -419,22 +417,27 @@ namespace GateHelper
                 {
                     if (entry.HasImage)
                     {
+                        Color imgCol = isDone ? Color.FromArgb(135, 145, 155) : Color.FromArgb(255, 215, 0);
                         TextRenderer.DrawText(g, $"📸{entry.ImagePaths.Count}", _regularFont, e.Bounds,
-                            Color.FromArgb(255, 215, 0), TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
+                            imgCol, TextFormatFlags.VerticalCenter | TextFormatFlags.HorizontalCenter);
                     }
                 }
                 else if (col == colDate)
                 {
                     Color dateColor;
-                    Font dateFont = _regularFont;
+                    Font dateFont = (isHigh || isOverdue) ? _boldFont : _regularFont;
+
                     if (isDone)
                     {
-                        dateColor = Color.FromArgb(140, 150, 162);
+                        dateColor = Color.FromArgb(120, 130, 140);
                     }
-                    else if (isRedAlert)
+                    else if (isHigh)
                     {
-                        dateColor = Color.FromArgb(255, 120, 120);
-                        dateFont = _boldFont;
+                        dateColor = Color.FromArgb(255, 120, 120); // 긴급: 레드 볼드
+                    }
+                    else if (isOverdue)
+                    {
+                        dateColor = Color.FromArgb(255, 220, 130); // 7일 경과: 옐로우 볼드
                     }
                     else
                     {
@@ -448,8 +451,9 @@ namespace GateHelper
                 else
                 {
                     Color foreColor = isDone ? Color.FromArgb(120, 130, 140) :
-                                      isRedAlert ? Color.FromArgb(255, 120, 120) : Color.FromArgb(180, 190, 205);
-                    TextRenderer.DrawText(g, e.SubItem.Text, isRedAlert ? _boldFont : _regularFont, e.Bounds,
+                                      isHigh ? Color.FromArgb(255, 120, 120) :
+                                      isOverdue ? Color.FromArgb(255, 235, 160) : Color.FromArgb(180, 190, 205);
+                    TextRenderer.DrawText(g, e.SubItem.Text, isHigh ? _boldFont : _regularFont, e.Bounds,
                         foreColor, TextFormatFlags.VerticalCenter | TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
                 }
             };

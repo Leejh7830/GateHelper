@@ -970,6 +970,155 @@ namespace GateHelper.DataFlip
             }
         }
 
+        private void DrawAchievementsModal(Graphics g)
+        {
+            using (var dimBrush = new SolidBrush(Color.FromArgb(235, 6, 9, 15)))
+            {
+                g.FillRectangle(dimBrush, this.ClientRectangle);
+            }
+
+            int cardW = Math.Min(780, this.Width - 40);
+            int cardH = Math.Min(560, this.Height - 40);
+            int cardX = (this.Width - cardW) / 2;
+            int cardY = (this.Height - cardH) / 2;
+            var cardRect = new Rectangle(cardX, cardY, cardW, cardH);
+
+            using (var brush = new SolidBrush(Color.FromArgb(18, 24, 34)))
+            using (var pen = new Pen(_colorGold, 2f))
+            {
+                g.FillRoundedRectangle(brush, cardRect, 10);
+                g.DrawRoundedRectangle(pen, cardRect, 10);
+            }
+
+            var achievements = Dashboard.DashboardManager.GetCoreFrontAchievements();
+            int totalCount = achievements.Count;
+            int unlockedCount = 0;
+            int totalAp = 0;
+            int earnedAp = 0;
+
+            foreach (var ach in achievements)
+            {
+                totalAp += ach.Points;
+                if (Dashboard.DashboardManager.IsCoreFrontAchievementUnlocked(ach.Id))
+                {
+                    unlockedCount++;
+                    earnedAp += ach.Points;
+                }
+            }
+
+            float percent = (totalCount > 0) ? ((float)unlockedCount / totalCount * 100f) : 0f;
+
+            using (var titleFont = new Font("Segoe UI", 12.5f, FontStyle.Bold))
+            using (var subFont = new Font("Segoe UI", 8.5f))
+            using (var achTitleFont = new Font("Segoe UI", 9f, FontStyle.Bold))
+            using (var achDescFont = new Font("Segoe UI", 7.5f))
+            using (var badgeFont = new Font("Segoe UI", 7.5f, FontStyle.Bold))
+            {
+                // 타이틀
+                TextRenderer.DrawText(g, "◈ CORE FRONT 작전 도전과제 (Steam Achievements) ◈", titleFont,
+                    new Rectangle(cardX, cardY + 12, cardW, 24), _colorGold, TextFormatFlags.HorizontalCenter);
+
+                // 진행도 요약
+                string summaryText = $"진척도: {unlockedCount} / {totalCount}개 ({percent:F0}%)  •  달성 점수: {earnedAp} / {totalAp} AP  •  티어: {Dashboard.DashboardManager.GetCategoryTiers().Find(x => x.Category == Dashboard.AchievementCategory.CoreFront)?.CurrentTierName}";
+                TextRenderer.DrawText(g, summaryText, subFont,
+                    new Rectangle(cardX, cardY + 36, cardW, 16), Color.FromArgb(180, 210, 240), TextFormatFlags.HorizontalCenter);
+
+                // 미니 네온 진행 바
+                int barX = cardX + 30;
+                int barY = cardY + 56;
+                int barW = cardW - 60;
+                int barH = 5;
+                using (var trackBrush = new SolidBrush(Color.FromArgb(40, 50, 70)))
+                {
+                    g.FillRoundedRectangle(trackBrush, new Rectangle(barX, barY, barW, barH), 2);
+                }
+                int fillW = (int)(barW * (percent / 100f));
+                if (fillW > 0)
+                {
+                    using (var fillBrush = new SolidBrush(_colorGold))
+                    {
+                        g.FillRoundedRectangle(fillBrush, new Rectangle(barX, barY, fillW, barH), 2);
+                    }
+                }
+
+                // 14개 카드 (2열 x 7행)
+                int gridStartY = cardY + 68;
+                int colW = (cardW - 54) / 2;
+                int rowH = 52;
+                int gapY = 6;
+
+                for (int i = 0; i < achievements.Count && i < 14; i++)
+                {
+                    var ach = achievements[i];
+                    bool isUnlocked = Dashboard.DashboardManager.IsCoreFrontAchievementUnlocked(ach.Id);
+
+                    int colIdx = i / 7;
+                    int rowIdx = i % 7;
+                    int itemX = cardX + 22 + colIdx * (colW + 10);
+                    int itemY = gridStartY + rowIdx * (rowH + gapY);
+                    var itemRect = new Rectangle(itemX, itemY, colW, rowH);
+
+                    Color bgCol = isUnlocked ? Color.FromArgb(24, 34, 48) : Color.FromArgb(14, 18, 26);
+                    Color borderCol = isUnlocked ? Color.FromArgb(255, 200, 50) : Color.FromArgb(42, 52, 68);
+                    Color barCol = isUnlocked ? Color.FromArgb(0, 230, 118) : Color.FromArgb(60, 70, 85);
+
+                    using (var itemBg = new SolidBrush(bgCol))
+                    using (var itemPen = new Pen(borderCol, isUnlocked ? 1.2f : 1f))
+                    {
+                        g.FillRoundedRectangle(itemBg, itemRect, 6);
+                        g.DrawRoundedRectangle(itemPen, itemRect, 6);
+                    }
+
+                    // 좌측 액센트 바
+                    using (var aBrush = new SolidBrush(barCol))
+                    {
+                        g.FillRoundedRectangle(aBrush, new Rectangle(itemX + 2, itemY + 4, 3, rowH - 8), 1);
+                    }
+
+                    // 아이콘
+                    string icon = isUnlocked ? ach.IconSymbol : "🔒";
+                    TextRenderer.DrawText(g, icon, titleFont, new Rectangle(itemX + 8, itemY + 12, 28, 28),
+                        isUnlocked ? Color.White : Color.Gray, TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+
+                    // 타이틀 & 설명
+                    Color titleColor = isUnlocked ? _colorGold : Color.FromArgb(170, 175, 185);
+                    Color descColor = isUnlocked ? Color.FromArgb(210, 225, 240) : Color.FromArgb(100, 110, 125);
+
+                    int textLeft = itemX + 38;
+                    int textWidth = colW - 120;
+                    TextRenderer.DrawText(g, ach.Title, achTitleFont, new Rectangle(textLeft, itemY + 8, textWidth, 18),
+                        titleColor, TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
+                    TextRenderer.DrawText(g, ach.Description, achDescFont, new Rectangle(textLeft, itemY + 28, textWidth, 18),
+                        descColor, TextFormatFlags.Left | TextFormatFlags.EndEllipsis);
+
+                    // 우측 뱃지
+                    var badgeRect = new Rectangle(itemX + colW - 74, itemY + 14, 66, 24);
+                    Color badgeBg = isUnlocked ? Color.FromArgb(15, 60, 40) : Color.FromArgb(25, 30, 40);
+                    Color badgeTextCol = isUnlocked ? Color.FromArgb(0, 230, 118) : Color.FromArgb(120, 130, 145);
+                    using (var bBrush = new SolidBrush(badgeBg))
+                    using (var bPen = new Pen(badgeTextCol, 1f))
+                    {
+                        g.FillRoundedRectangle(bBrush, badgeRect, 4);
+                        g.DrawRoundedRectangle(bPen, badgeRect, 4);
+                    }
+                    string badgeText = isUnlocked ? $"✔ +{ach.Points}P" : $"{ach.Points} AP";
+                    TextRenderer.DrawText(g, badgeText, badgeFont, badgeRect, badgeTextCol,
+                        TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+                }
+
+                // 닫기 버튼
+                var closeRect = new Rectangle(cardX + (cardW - 140) / 2, cardY + cardH - 34, 140, 26);
+                using (var cBrush = new SolidBrush(Color.FromArgb(35, 45, 65)))
+                using (var cPen = new Pen(_colorGold, 1.5f))
+                {
+                    g.FillRoundedRectangle(cBrush, closeRect, 5);
+                    g.DrawRoundedRectangle(cPen, closeRect, 5);
+                }
+                TextRenderer.DrawText(g, "확인 (ESC / 닫기)", subFont, closeRect, Color.White,
+                    TextFormatFlags.HorizontalCenter | TextFormatFlags.VerticalCenter);
+            }
+        }
+
         #endregion
 
         #region Map Size Selection Modal

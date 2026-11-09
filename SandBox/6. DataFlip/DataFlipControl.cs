@@ -12,6 +12,7 @@ namespace GateHelper.DataFlip
         private CoreFrontGameState _game;
         private Timer _animTimer;
         private bool _showGuide = false;
+        private bool _showAchievements = false;
 
         // 선택된 액션 (건물 또는 유닛 또는 유저 스킬)
         private BuildingType _selectedBuilding = BuildingType.None;
@@ -63,6 +64,8 @@ namespace GateHelper.DataFlip
         private Rectangle _btnEndTurnRect;
         private Rectangle _btnRestartRect;
         private Rectangle _btnGuideRect;
+        private Rectangle _btnAchievementsBottomRect;
+        private Rectangle _btnAchievementsRect;
 
         // 로그라이크 카드 3개 영역
         private Rectangle[] _cardRects = new Rectangle[3];
@@ -205,6 +208,7 @@ namespace GateHelper.DataFlip
             _btnMapLargeRect = new Rectangle(_btnMapStdRect.Right + 4, mapBtnY, mapBtnW, mapBtnH);
             _btnMapHugeRect = new Rectangle(_btnMapLargeRect.Right + 4, mapBtnY, 52, mapBtnH);
             _btnTurnSpeedRect = new Rectangle(_btnMapHugeRect.Right + 8, mapBtnY, 48, mapBtnH);
+            _btnAchievementsRect = new Rectangle(_btnTurnSpeedRect.Right + 6, mapBtnY, 82, mapBtnH);
 
             // 가변 보드 크기 계산 (맵 사이즈 및 창 크기에 맞춰 자동 최적화)
             int boardMaxW = Math.Max(660, w - 60);
@@ -247,8 +251,10 @@ namespace GateHelper.DataFlip
             int rightX = Math.Max(slotsEndX + 12, _boardRect.Right - actW);
 
             _btnEndTurnRect = new Rectangle(rightX, tabY, actW, 46);
-            _btnRestartRect = new Rectangle(rightX, _btnEndTurnRect.Bottom + 6, (actW - 6) / 2, 26);
-            _btnGuideRect = new Rectangle(_btnRestartRect.Right + 6, _btnEndTurnRect.Bottom + 6, (actW - 6) / 2, 26);
+            int subBtnW = (actW - 8) / 3;
+            _btnRestartRect = new Rectangle(rightX, _btnEndTurnRect.Bottom + 6, subBtnW, 26);
+            _btnGuideRect = new Rectangle(_btnRestartRect.Right + 4, _btnEndTurnRect.Bottom + 6, subBtnW, 26);
+            _btnAchievementsBottomRect = new Rectangle(_btnGuideRect.Right + 4, _btnEndTurnRect.Bottom + 6, actW - (_btnGuideRect.Right + 4 - rightX), 26);
 
             // 로그라이크 카드 3개 영역 (카드 폭 및 높이 확장으로 가독성 극대화)
             int cardW = 204;
@@ -584,8 +590,20 @@ namespace GateHelper.DataFlip
 
             if (_game.IsGameOver)
             {
+                var newly = _game.EvaluateCoreFrontAchievements(_game.Winner == Owner.Player);
+                foreach (var title in newly)
+                {
+                    ToastNotification.Show($"[도전과제 달성!]\n{title}", "🏆 CORE FRONT", ToastIcon.Success);
+                }
                 Invalidate();
                 return;
+            }
+
+            // 실시간 중간 도전과제 달성 확인 (600G 수급, 전진 교두보 등)
+            var midAchievements = _game.EvaluateCoreFrontAchievements(false);
+            foreach (var title in midAchievements)
+            {
+                ToastNotification.Show($"[도전과제 달성!]\n{title}", "🏆 CORE FRONT", ToastIcon.Success);
             }
 
             // 턴 번호 증가 & 플레이어 수입 지급
@@ -741,10 +759,11 @@ namespace GateHelper.DataFlip
             else if (_slotRects[3].Contains(e.Location)) _hoverButtonId = 4;
             else if (_slotRects[4].Contains(e.Location)) _hoverButtonId = 5;
             else if (_slotRects[5].Contains(e.Location) && _currentCategory != BottomCategory.Skills) _hoverButtonId = 6;
-            // 우측 액션 버튼
+            // 우측 액션 버튼 및 헤더 도전과제
             else if (_btnEndTurnRect.Contains(e.Location)) _hoverButtonId = 8;
             else if (_btnRestartRect.Contains(e.Location)) _hoverButtonId = 9;
             else if (_btnGuideRect.Contains(e.Location)) _hoverButtonId = 10;
+            else if (_btnAchievementsRect.Contains(e.Location) || _btnAchievementsBottomRect.Contains(e.Location)) _hoverButtonId = 11;
 
             // 보드 타일 (Col 1~10만 상호작용 가능)
             if (_boardRect.Contains(e.Location))
@@ -905,7 +924,13 @@ namespace GateHelper.DataFlip
                 return;
             }
 
-            // 2. 룰 가이드 닫기
+            // 2. 룰 가이드 및 도전과제 모달 닫기
+            if (_showAchievements)
+            {
+                _showAchievements = false;
+                Invalidate();
+                return;
+            }
             if (_showGuide)
             {
                 _showGuide = false;
@@ -978,6 +1003,23 @@ namespace GateHelper.DataFlip
                 _turnPlaySpeed = (_turnPlaySpeed == 1) ? 2 : (_turnPlaySpeed == 2) ? 4 : 1;
                 AddFloatingText($"진행 배속: {_turnPlaySpeed}x", _btnTurnSpeedRect.X - 10, _btnTurnSpeedRect.Bottom + 6, (_turnPlaySpeed == 4) ? Color.FromArgb(255, 60, 200) : _colorCyan);
                 Invalidate();
+                return;
+            }
+            if (_btnAchievementsRect.Contains(e.Location) || _btnAchievementsBottomRect.Contains(e.Location))
+            {
+                _showAchievements = true;
+                Invalidate();
+                return;
+            }
+            if (_btnGuideRect.Contains(e.Location))
+            {
+                _showGuide = true;
+                Invalidate();
+                return;
+            }
+            if (_btnRestartRect.Contains(e.Location))
+            {
+                PromptMapSelection();
                 return;
             }
 
@@ -1136,7 +1178,7 @@ namespace GateHelper.DataFlip
                 return;
             }
 
-            // 8. 리셋 및 룰
+            // 8. 리셋, 룰 및 도전과제
             if (_btnRestartRect.Contains(e.Location))
             {
                 PromptMapSelection();
@@ -1145,6 +1187,12 @@ namespace GateHelper.DataFlip
             if (_btnGuideRect.Contains(e.Location))
             {
                 _showGuide = true;
+                Invalidate();
+                return;
+            }
+            if (_btnAchievementsRect.Contains(e.Location) || _btnAchievementsBottomRect.Contains(e.Location))
+            {
+                _showAchievements = true;
                 Invalidate();
                 return;
             }
@@ -1523,11 +1571,12 @@ namespace GateHelper.DataFlip
                 return;
             }
 
-            if (_game.IsGameOver || _showGuide || _game.IsCardSelectionActive)
+            if (_game.IsGameOver || _showGuide || _showAchievements || _game.IsCardSelectionActive)
             {
-                if (e.KeyCode == Keys.Escape && _showGuide)
+                if (e.KeyCode == Keys.Escape && (_showGuide || _showAchievements))
                 {
                     _showGuide = false;
+                    _showAchievements = false;
                     Invalidate();
                 }
                 return;
@@ -1653,6 +1702,13 @@ namespace GateHelper.DataFlip
         private void StartReplay()
         {
             if (_game.ReplaySnapshots.Count == 0) return;
+
+            if (Dashboard.DashboardManager.UnlockCoreFrontAchievement("CF_REPLAY_FIRST", out string rTitle, out int rPts))
+            {
+                _game.AddCombatLog($"🏆 [도전과제 달성] {rTitle} (+{rPts} AP)");
+                ToastNotification.Show($"[도전과제 달성!]\n{rTitle} (+{rPts} AP)", "🏆 CORE FRONT", ToastIcon.Success);
+            }
+
             _isReplaying = true;
             _isReplayPaused = false;
             _replayIndex = 0;

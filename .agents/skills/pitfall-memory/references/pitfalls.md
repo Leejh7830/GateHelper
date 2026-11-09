@@ -56,3 +56,17 @@
 - **원인**: GDI+ `Graphics.DrawString`은 맑은 고딕 등 단일 폰트 지정 시 Windows 유니코드 서러게이트 이모지 자동 폰트 링크(Segoe UI Emoji 등) 폴백을 처리하지 못함. 반면 Windows GDI 기반의 `TextRenderer.DrawText`는 OS 레벨의 다중 폰트 링크 및 서러게이트 이모지 폴백을 완벽히 지원함.
 - **해결 공식**: 유니코드 이모지나 특수 기호가 포함된 문자열 렌더링 시에는 `Graphics.DrawString`을 쓰지 말고 반드시 `TextRenderer.DrawText(g, text, font, rect, color, flags)`를 사용할 것.
 
+---
+
+### 9. WinForms 폼 최소화 시 `VisibleChanged` 미발생과 백그라운드 타이머 공회전 (CPU 낭비)
+- **증상**: 폼을 작업표시줄로 최소화(`WindowState == FormWindowState.Minimized`)해도 `VisibleChanged` 이벤트가 트리거되지 않아 배경에서 타이머가 계속 돌아 유휴 CPU가 소모됨.
+- **원인**: WinForms 명세상 최소화는 `Visible = false`가 아니라 창 상태(`WindowState`) 변경일 뿐이므로 `VisibleChanged`가 호출되지 않음.
+- **해결 공식**: `OnResize(EventArgs e)`를 오버라이드하여 `this.WindowState == FormWindowState.Minimized` 여부를 감지하고 타이머를 정지(`timer.Stop()`)하거나 `UpdateTimerState()` 로직에 포함시킬 것.
+
+---
+
+### 10. 차트 렌더링 시 `minVal == maxVal` 데이터 균일 구간 나눗셈 0 (`DivideByZeroException` / `NaN`)
+- **증상**: 리얼타임 차트 등에서 모든 샘플 값이 동일하거나 0일 때 `(val - minVal) / (maxVal - minVal)` 계산에서 분모가 0이 되어 `NaN`이나 무한대(`Infinity`) 좌표가 생성되고 GDI+ `DrawCurve`/`DrawLine`에서 `OverflowException` 또는 렌더링 먹통 발생.
+- **해결 공식**: `float range = Math.Max(0.001f, maxVal - minVal);`와 같이 최소 보정값을 두어 0 나눗셈을 원천 방어할 것.
+
+

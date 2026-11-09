@@ -7,6 +7,60 @@ using System.Windows.Forms;
 
 namespace GateHelper.Dashboard
 {
+    #region [ 0. 대시보드 커스텀 컨트롤 전용 GDI+ 정적 캐시 ]
+    /// <summary>
+    /// 대시보드 커스텀 컨트롤 6종 전용 GDI+ 정적 캐시 (프레임당 GC 할당 0 보장)
+    /// </summary>
+    internal static class DashboardGdiCache
+    {
+        // 폰트 캐시
+        public static readonly Font FontValueLarge = new Font("맑은 고딕", 13.5F, FontStyle.Bold);
+        public static readonly Font FontBannerTitle = new Font("맑은 고딕", 11.5F, FontStyle.Bold);
+        public static readonly Font FontTitleBold = new Font("맑은 고딕", 9.5F, FontStyle.Bold);
+        public static readonly Font FontMainBold = new Font("맑은 고딕", 9.0F, FontStyle.Bold);
+        public static readonly Font FontMainRegular = new Font("맑은 고딕", 9.0F, FontStyle.Regular);
+        public static readonly Font FontSubBold = new Font("맑은 고딕", 8.5F, FontStyle.Bold);
+        public static readonly Font FontSubRegular = new Font("맑은 고딕", 8.5F, FontStyle.Regular);
+        public static readonly Font FontCatBold = new Font("맑은 고딕", 8.0F, FontStyle.Bold);
+        public static readonly Font FontSmallBold = new Font("맑은 고딕", 7.5F, FontStyle.Bold);
+        public static readonly Font FontSmallRegular = new Font("맑은 고딕", 7.5F, FontStyle.Regular);
+        public static readonly Font FontHourRegular = new Font("맑은 고딕", 7.0F, FontStyle.Regular);
+        public static readonly Font FontMicroRegular = new Font("맑은 고딕", 6.0F, FontStyle.Regular);
+
+        // 기본 배경 브러시
+        public static readonly SolidBrush BrushBgCard = new SolidBrush(Color.FromArgb(40, 40, 44));
+        public static readonly SolidBrush BrushBgDark = new SolidBrush(Color.FromArgb(32, 32, 35));
+        public static readonly SolidBrush BrushBgContent = new SolidBrush(Color.FromArgb(37, 37, 40));
+        public static readonly SolidBrush BrushTrendBg = new SolidBrush(Color.FromArgb(32, 32, 36));
+        public static readonly SolidBrush BrushOffSegment = new SolidBrush(Color.FromArgb(60, 60, 65));
+        public static readonly SolidBrush BrushTitleGainsboro = new SolidBrush(Color.Gainsboro);
+        public static readonly SolidBrush BrushWhite = new SolidBrush(Color.White);
+        public static readonly SolidBrush BrushSilver = new SolidBrush(Color.Silver);
+        public static readonly SolidBrush BrushDarkGray = new SolidBrush(Color.DarkGray);
+        public static readonly SolidBrush BrushDimGray = new SolidBrush(Color.DimGray);
+        public static readonly SolidBrush BrushLightGray = new SolidBrush(Color.LightGray);
+        public static readonly SolidBrush BrushCyanText = new SolidBrush(Color.FromArgb(0, 195, 255));
+        public static readonly SolidBrush BrushGoldAmber = new SolidBrush(Color.FromArgb(241, 196, 15));
+        public static readonly SolidBrush BrushTrack50 = new SolidBrush(Color.FromArgb(50, 50, 55));
+        public static readonly SolidBrush BrushCountFail = new SolidBrush(Color.FromArgb(240, 140, 130));
+
+        // 고정 세그먼트 활성 브러시
+        public static readonly SolidBrush BrushSegGreen = new SolidBrush(Color.FromArgb(46, 204, 113));
+        public static readonly SolidBrush BrushSegYellow = new SolidBrush(Color.FromArgb(241, 196, 15));
+        public static readonly SolidBrush BrushSegRed = new SolidBrush(Color.FromArgb(231, 76, 60));
+
+        // 펜 캐시
+        public static readonly Pen PenBorder60 = new Pen(Color.FromArgb(60, 60, 65), 1);
+        public static readonly Pen PenBorder65 = new Pen(Color.FromArgb(65, 65, 70), 1);
+        public static readonly Pen PenBorderCard = new Pen(Color.FromArgb(62, 62, 68), 1);
+        public static readonly Pen PenDivider = new Pen(Color.FromArgb(48, 48, 52), 1);
+        public static readonly Pen PenGridDot = new Pen(Color.FromArgb(48, 48, 54), 1) { DashStyle = DashStyle.Dot };
+        public static readonly Pen PenGoldHour = new Pen(Color.Gold, 1.5f);
+        public static readonly Pen PenTrack13 = new Pen(Color.FromArgb(45, 45, 50), 13);
+        public static readonly Pen PenTrackNoData = new Pen(Color.FromArgb(55, 55, 60), 13);
+    }
+    #endregion
+
     #region [ 1. 세그먼트 게이지 (Segmented RAM Gauge) ]
     /// <summary>
     /// 초록(안전) -> 노랑(주의) -> 빨강(경고) 칸으로 구성된 모던 세그먼트 게이지
@@ -73,25 +127,13 @@ namespace GateHelper.Dashboard
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
             // 배경
-            Color bgCard = Color.FromArgb(40, 40, 44);
-            using (var brush = new SolidBrush(bgCard))
-            {
-                g.FillRectangle(brush, ClientRectangle);
-            }
+            g.FillRectangle(DashboardGdiCache.BrushBgCard, ClientRectangle);
 
             // 상단 타이틀 & 수치
-            using (var titleBrush = new SolidBrush(Color.Gainsboro))
-            using (var titleFont = new Font("맑은 고딕", 9.5F, FontStyle.Bold))
-            {
-                g.DrawString(_title, titleFont, titleBrush, new PointF(10, 8));
-            }
+            g.DrawString(_title, DashboardGdiCache.FontTitleBold, DashboardGdiCache.BrushTitleGainsboro, new PointF(10, 8));
 
-            using (var valBrush = new SolidBrush(Color.White))
-            using (var valFont = new Font("맑은 고딕", 13.5F, FontStyle.Bold))
-            {
-                var valSize = g.MeasureString(_valueText, valFont);
-                g.DrawString(_valueText, valFont, valBrush, new PointF(Width - valSize.Width - 10, 5));
-            }
+            var valSize = g.MeasureString(_valueText, DashboardGdiCache.FontValueLarge);
+            g.DrawString(_valueText, DashboardGdiCache.FontValueLarge, DashboardGdiCache.BrushWhite, new PointF(Width - valSize.Width - 10, 5));
 
             // 세그먼트 바 영역
             int barY = 36;
@@ -112,58 +154,44 @@ namespace GateHelper.Dashboard
 
                 // 세그먼트 색상 결정 (초록 60% -> 노랑 85% -> 빨강 100%)
                 double segRatio = (double)(i + 1) / _totalSegments;
-                Color activeColor;
+                Brush segBrush;
                 if (segRatio <= 0.60)
                 {
-                    activeColor = Color.FromArgb(46, 204, 113); // 네온 그린
+                    segBrush = DashboardGdiCache.BrushSegGreen;
                 }
                 else if (segRatio <= 0.85)
                 {
-                    activeColor = Color.FromArgb(241, 196, 15); // 앰버 옐로우
+                    segBrush = DashboardGdiCache.BrushSegYellow;
                 }
                 else
                 {
-                    activeColor = Color.FromArgb(231, 76, 60);  // 크림슨 레드
+                    segBrush = DashboardGdiCache.BrushSegRed;
                 }
 
                 if (i < activeSegments)
                 {
-                    using (var segBrush = new SolidBrush(activeColor))
-                    {
-                        g.FillRectangle(segBrush, segRect);
-                    }
+                    g.FillRectangle(segBrush, segRect);
                 }
                 else
                 {
                     // 비활성 칸
-                    using (var offBrush = new SolidBrush(Color.FromArgb(60, 60, 65)))
-                    {
-                        g.FillRectangle(offBrush, segRect);
-                    }
+                    g.FillRectangle(DashboardGdiCache.BrushOffSegment, segRect);
                 }
             }
 
-            // 하단 상태 문구
+            // 하단 상태 문구 (동적 상태 색상)
             using (var statusBrush = new SolidBrush(_statusColor))
-            using (var statusFont = new Font("맑은 고딕", 9F, FontStyle.Regular))
             {
-                g.DrawString($"상태: {_statusText}", statusFont, statusBrush, new PointF(10, 68));
+                g.DrawString($"상태: {_statusText}", DashboardGdiCache.FontMainRegular, statusBrush, new PointF(10, 68));
             }
 
             // 하단 최대치 라벨
-            using (var maxBrush = new SolidBrush(Color.DarkGray))
-            using (var maxFont = new Font("맑은 고딕", 9F, FontStyle.Regular))
-            {
-                string maxStr = $"기준 한도: {_maximum:N0} MB";
-                var sz = g.MeasureString(maxStr, maxFont);
-                g.DrawString(maxStr, maxFont, maxBrush, new PointF(Width - sz.Width - 10, 68));
-            }
+            string maxStr = $"기준 한도: {_maximum:N0} MB";
+            var sz = g.MeasureString(maxStr, DashboardGdiCache.FontMainRegular);
+            g.DrawString(maxStr, DashboardGdiCache.FontMainRegular, DashboardGdiCache.BrushDarkGray, new PointF(Width - sz.Width - 10, 68));
 
             // 테두리
-            using (var pen = new Pen(Color.FromArgb(65, 65, 70), 1))
-            {
-                g.DrawRectangle(pen, 0, 0, Width - 1, Height - 1);
-            }
+            g.DrawRectangle(DashboardGdiCache.PenBorder65, 0, 0, Width - 1, Height - 1);
         }
     }
     #endregion
@@ -174,6 +202,11 @@ namespace GateHelper.Dashboard
     /// </summary>
     public class RealtimeTrendChartControl : Control
     {
+        private static readonly Pen PenRamCurve = new Pen(Color.FromArgb(46, 204, 113), 2f) { LineJoin = LineJoin.Round };
+        private static readonly Pen PenCpuCurve = new Pen(Color.FromArgb(0, 210, 255), 2f) { LineJoin = LineJoin.Round };
+        private static readonly SolidBrush BrushRamDot = new SolidBrush(Color.FromArgb(46, 204, 113));
+        private static readonly SolidBrush BrushCpuDot = new SolidBrush(Color.FromArgb(0, 210, 255));
+
         private readonly List<float> _cpuHistory = new List<float>();
         private readonly List<float> _ramHistory = new List<float>();
         private const int MaxSamples = 40;
@@ -219,20 +252,14 @@ namespace GateHelper.Dashboard
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
             // 1. 배경
-            using (var brush = new SolidBrush(Color.FromArgb(32, 32, 36)))
-            {
-                g.FillRectangle(brush, ClientRectangle);
-            }
+            g.FillRectangle(DashboardGdiCache.BrushTrendBg, ClientRectangle);
 
             // 2. 모안 눈금 격자선 (Grid lines)
-            using (var gridPen = new Pen(Color.FromArgb(48, 48, 54), 1) { DashStyle = DashStyle.Dot })
+            int gridSteps = 4;
+            for (int i = 1; i < gridSteps; i++)
             {
-                int gridSteps = 4;
-                for (int i = 1; i < gridSteps; i++)
-                {
-                    int y = Height * i / gridSteps;
-                    g.DrawLine(gridPen, 10, y, Width - 10, y);
-                }
+                int y = Height * i / gridSteps;
+                g.DrawLine(DashboardGdiCache.PenGridDot, 10, y, Width - 10, y);
             }
 
             // 차트 플롯 영역
@@ -246,70 +273,54 @@ namespace GateHelper.Dashboard
             if (plotW <= 0 || plotH <= 0 || _cpuHistory.Count < 2) return;
 
             // 3. RAM 및 CPU 곡선 그리기 (초록 RAM 배경 곡선 + 파랑 CPU 전경 곡선)
-            DrawCurve(g, _ramHistory, 0f, 512f, Color.FromArgb(46, 204, 113), Color.FromArgb(18, 46, 204, 113), padLeft, padTop, plotW, plotH);
-            DrawCurve(g, _cpuHistory, 0f, 30f, Color.FromArgb(0, 210, 255), Color.FromArgb(32, 0, 210, 255), padLeft, padTop, plotW, plotH);
+            DrawCurve(g, _ramHistory, 0f, 512f, PenRamCurve, BrushRamDot, Color.FromArgb(18, 46, 204, 113), padLeft, padTop, plotW, plotH);
+            DrawCurve(g, _cpuHistory, 0f, 30f, PenCpuCurve, BrushCpuDot, Color.FromArgb(32, 0, 210, 255), padLeft, padTop, plotW, plotH);
 
             // 4. 상단 헤더 & 범례 (Legend)
-            using (var titleFont = new Font("맑은 고딕", 9.5F, FontStyle.Bold))
-            using (var numFont = new Font("맑은 고딕", 9F, FontStyle.Bold))
-            {
-                // 타이틀 (간결하고 직관적으로 정돈)
-                g.DrawString("▲ 리소스 트렌드", titleFont, Brushes.White, new PointF(10, 8));
+            g.DrawString("▲ 리소스 트렌드", DashboardGdiCache.FontTitleBold, DashboardGdiCache.BrushWhite, new PointF(10, 8));
 
-                // 지표 텍스트
-                string ramStr = $"RAM: {_currentRamMb:F0} MB";
-                string cpuStr = $"CPU: {_currentCpu:F1}%";
+            // 지표 텍스트
+            string ramStr = $"RAM: {_currentRamMb:F0} MB";
+            string cpuStr = $"CPU: {_currentCpu:F1}%";
 
-                var ramSz = g.MeasureString(ramStr, numFont);
-                var cpuSz = g.MeasureString(cpuStr, numFont);
+            var ramSz = g.MeasureString(ramStr, DashboardGdiCache.FontMainBold);
+            var cpuSz = g.MeasureString(cpuStr, DashboardGdiCache.FontMainBold);
 
-                // 우측 끝에서부터 동적으로 안전 배치하여 절대 겹치지 않도록 처리
-                float ramTextX = Width - ramSz.Width - 10;
-                float ramDotX = ramTextX - 11;
+            // 우측 끝에서부터 동적으로 안전 배치하여 절대 겹치지 않도록 처리
+            float ramTextX = Width - ramSz.Width - 10;
+            float ramDotX = ramTextX - 11;
 
-                float cpuTextX = ramDotX - cpuSz.Width - 14;
-                float cpuDotX = cpuTextX - 11;
+            float cpuTextX = ramDotX - cpuSz.Width - 14;
+            float cpuDotX = cpuTextX - 11;
 
-                // CPU 지표 (시안)
-                using (var cyanBrush = new SolidBrush(Color.FromArgb(0, 220, 255)))
-                {
-                    g.FillEllipse(cyanBrush, cpuDotX, 12, 7, 7);
-                    g.DrawString(cpuStr, numFont, cyanBrush, new PointF(cpuTextX, 8));
-                }
+            // CPU 지표 (시안)
+            g.FillEllipse(BrushCpuDot, cpuDotX, 12, 7, 7);
+            g.DrawString(cpuStr, DashboardGdiCache.FontMainBold, BrushCpuDot, new PointF(cpuTextX, 8));
 
-                // RAM 지표 (그린)
-                using (var greenBrush = new SolidBrush(Color.FromArgb(46, 204, 113)))
-                {
-                    g.FillEllipse(greenBrush, ramDotX, 12, 7, 7);
-                    g.DrawString(ramStr, numFont, greenBrush, new PointF(ramTextX, 8));
-                }
-            }
+            // RAM 지표 (그린)
+            g.FillEllipse(BrushRamDot, ramDotX, 12, 7, 7);
+            g.DrawString(ramStr, DashboardGdiCache.FontMainBold, BrushRamDot, new PointF(ramTextX, 8));
 
             // 하단 축 라벨
-            using (var axisFont = new Font("맑은 고딕", 9F, FontStyle.Regular))
-            {
-                g.DrawString("-40초", axisFont, Brushes.Gray, new PointF(padLeft, Height - 18));
-                g.DrawString("현재 (0초)", axisFont, Brushes.Gray, new PointF(Width - padRight - 55, Height - 18));
-            }
+            g.DrawString("-40초", DashboardGdiCache.FontMainRegular, Brushes.Gray, new PointF(padLeft, Height - 18));
+            g.DrawString("현재 (0초)", DashboardGdiCache.FontMainRegular, Brushes.Gray, new PointF(Width - padRight - 55, Height - 18));
 
             // 외곽선
-            using (var pen = new Pen(Color.FromArgb(65, 65, 70), 1))
-            {
-                g.DrawRectangle(pen, 0, 0, Width - 1, Height - 1);
-            }
+            g.DrawRectangle(DashboardGdiCache.PenBorder65, 0, 0, Width - 1, Height - 1);
         }
 
-        private void DrawCurve(Graphics g, List<float> data, float minVal, float maxVal, Color lineColor, Color fillGradientColor, int x0, int y0, int w, int h)
+        private void DrawCurve(Graphics g, List<float> data, float minVal, float maxVal, Pen linePen, Brush dotBrush, Color fillGradientColor, int x0, int y0, int w, int h)
         {
             if (data.Count < 2) return;
 
             PointF[] points = new PointF[data.Count];
             float stepX = (float)w / (data.Count - 1);
+            float range = Math.Max(0.001f, maxVal - minVal);
 
             for (int i = 0; i < data.Count; i++)
             {
                 float val = data[i];
-                float norm = Math.Max(0f, Math.Min(1f, (val - minVal) / (maxVal - minVal)));
+                float norm = Math.Max(0f, Math.Min(1f, (val - minVal) / range));
                 float y = y0 + h - (norm * h);
                 points[i] = new PointF(x0 + i * stepX, y);
             }
@@ -331,18 +342,11 @@ namespace GateHelper.Dashboard
             }
 
             // 네온 곡선 그리기
-            using (var linePen = new Pen(lineColor, 2f))
-            {
-                linePen.LineJoin = LineJoin.Round;
-                g.DrawLines(linePen, points);
-            }
+            g.DrawLines(linePen, points);
 
             // 마지막 현재 지점 네온 포인트
             var lastPt = points[points.Length - 1];
-            using (var dotBrush = new SolidBrush(lineColor))
-            {
-                g.FillEllipse(dotBrush, lastPt.X - 3.5f, lastPt.Y - 3.5f, 7f, 7f);
-            }
+            g.FillEllipse(dotBrush, lastPt.X - 3.5f, lastPt.Y - 3.5f, 7f, 7f);
         }
     }
     #endregion
@@ -374,6 +378,16 @@ namespace GateHelper.Dashboard
             Color.FromArgb(155, 89, 182),  // 4위: 퍼플
             Color.FromArgb(230, 126, 34),  // 5위: 오렌지
             Color.FromArgb(127, 140, 141)  // 6위+: 슬레이트 그레이
+        };
+
+        private static readonly Pen[] SlicePens = new[]
+        {
+            new Pen(Palette[0], 13) { StartCap = LineCap.Flat, EndCap = LineCap.Flat },
+            new Pen(Palette[1], 13) { StartCap = LineCap.Flat, EndCap = LineCap.Flat },
+            new Pen(Palette[2], 13) { StartCap = LineCap.Flat, EndCap = LineCap.Flat },
+            new Pen(Palette[3], 13) { StartCap = LineCap.Flat, EndCap = LineCap.Flat },
+            new Pen(Palette[4], 13) { StartCap = LineCap.Flat, EndCap = LineCap.Flat },
+            new Pen(Palette[5], 13) { StartCap = LineCap.Flat, EndCap = LineCap.Flat }
         };
 
         public DonutChartControl()
@@ -442,10 +456,7 @@ namespace GateHelper.Dashboard
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
             // 배경
-            using (var brush = new SolidBrush(Color.FromArgb(37, 37, 40)))
-            {
-                g.FillRectangle(brush, ClientRectangle);
-            }
+            g.FillRectangle(DashboardGdiCache.BrushBgContent, ClientRectangle);
 
             int total = _slices.Sum(s => s.Value);
             int ringSize = Math.Min(Width, Height) - 34;
@@ -458,30 +469,21 @@ namespace GateHelper.Dashboard
             if (total == 0)
             {
                 // 데이터 없음 원형 플레이스홀더 (트랙 Pen)
-                using (var pen = new Pen(Color.FromArgb(55, 55, 60), thickness))
-                {
-                    g.DrawEllipse(pen, ringX + thickness / 2, ringY + thickness / 2, ringSize - thickness, ringSize - thickness);
-                }
+                g.DrawEllipse(DashboardGdiCache.PenTrackNoData, ringX + thickness / 2, ringY + thickness / 2, ringSize - thickness, ringSize - thickness);
             }
             else
             {
                 // 트랙 배경 링
-                using (var trackPen = new Pen(Color.FromArgb(45, 45, 50), thickness))
-                {
-                    g.DrawEllipse(trackPen, ringX + thickness / 2, ringY + thickness / 2, ringSize - thickness, ringSize - thickness);
-                }
+                g.DrawEllipse(DashboardGdiCache.PenTrack13, ringX + thickness / 2, ringY + thickness / 2, ringSize - thickness, ringSize - thickness);
 
                 // 슬라이스 그리기 (-90도 상단부터 시계 방향 회전)
                 float startAngle = -90f;
-                foreach (var slice in _slices)
+                for (int i = 0; i < _slices.Count; i++)
                 {
+                    var slice = _slices[i];
                     float sweepAngle = ((float)slice.Value / total) * 360f;
-                    using (var pen = new Pen(slice.Color, thickness))
-                    {
-                        pen.StartCap = LineCap.Flat;
-                        pen.EndCap = LineCap.Flat;
-                        g.DrawArc(pen, ringX + thickness / 2, ringY + thickness / 2, ringSize - thickness, ringSize - thickness, startAngle, sweepAngle);
-                    }
+                    Pen pen = (i < SlicePens.Length) ? SlicePens[i] : SlicePens[SlicePens.Length - 1];
+                    g.DrawArc(pen, ringX + thickness / 2, ringY + thickness / 2, ringSize - thickness, ringSize - thickness, startAngle, sweepAngle);
                     startAngle += sweepAngle;
                 }
             }
@@ -490,67 +492,44 @@ namespace GateHelper.Dashboard
             float cy = ringY + ringSize / 2f;
 
             // 2. 링 내부: 총 접속수 & 설명 텍스트 (오른쪽 차트와 완벽 대칭)
-            using (var numFont = new Font("맑은 고딕", 13.5F, FontStyle.Bold))
-            using (var labelFont = new Font("맑은 고딕", 8.5F, FontStyle.Regular))
-            {
-                var numSz = g.MeasureString(_centerSub, numFont);
-                var labelSz = g.MeasureString(_centerTitle, labelFont);
+            var numSz = g.MeasureString(_centerSub, DashboardGdiCache.FontValueLarge);
+            var labelSz = g.MeasureString(_centerTitle, DashboardGdiCache.FontSubRegular);
 
-                // 중앙 위: 숫자 (예: 15회)
-                using (var brush = new SolidBrush(Color.White))
-                {
-                    g.DrawString(_centerSub, numFont, brush, cx - numSz.Width / 2f, cy - numSz.Height + 2);
-                }
+            // 중앙 위: 숫자 (예: 15회)
+            g.DrawString(_centerSub, DashboardGdiCache.FontValueLarge, DashboardGdiCache.BrushWhite, cx - numSz.Width / 2f, cy - numSz.Height + 2);
 
-                // 중앙 아래: 설명 (예: 총 접속 횟수)
-                using (var brush = new SolidBrush(Color.Silver))
-                {
-                    g.DrawString(_centerTitle, labelFont, brush, cx - labelSz.Width / 2f, cy + 5);
-                }
-            }
+            // 중앙 아래: 설명 (예: 총 접속 횟수)
+            g.DrawString(_centerTitle, DashboardGdiCache.FontSubRegular, DashboardGdiCache.BrushSilver, cx - labelSz.Width / 2f, cy + 5);
 
             // 3. 링 하단: 기능 명칭 & 최다 점유 서버 하이라이트
-            using (var titleFont = new Font("맑은 고딕", 9.5F, FontStyle.Bold))
-            using (var highlightFont = new Font("맑은 고딕", 9F, FontStyle.Bold))
+            string titleStr = _bottomTitle;
+            string highlightStr = _bottomHighlight;
+
+            var titleSz = g.MeasureString(titleStr, DashboardGdiCache.FontTitleBold);
+
+            // 긴 서버명 말줄임 처리
+            string displayHighlight = highlightStr;
+            float maxTextW = Width - 16;
+            if (g.MeasureString(displayHighlight, DashboardGdiCache.FontMainBold).Width > maxTextW)
             {
-                string titleStr = _bottomTitle;
-                string highlightStr = _bottomHighlight;
-
-                var titleSz = g.MeasureString(titleStr, titleFont);
-
-                // 긴 서버명 말줄임 처리
-                string displayHighlight = highlightStr;
-                float maxTextW = Width - 16;
-                if (g.MeasureString(displayHighlight, highlightFont).Width > maxTextW)
+                while (displayHighlight.Length > 8 && g.MeasureString(displayHighlight + "...", DashboardGdiCache.FontMainBold).Width > maxTextW)
                 {
-                    while (displayHighlight.Length > 8 && g.MeasureString(displayHighlight + "...", highlightFont).Width > maxTextW)
-                    {
-                        displayHighlight = displayHighlight.Substring(0, displayHighlight.Length - 1);
-                    }
-                    displayHighlight += "...";
+                    displayHighlight = displayHighlight.Substring(0, displayHighlight.Length - 1);
                 }
-                var hlSz = g.MeasureString(displayHighlight, highlightFont);
-
-                int bottomBaseY = ringY + ringSize + 10;
-
-                // 타이틀 (서버별 접속 분포)
-                using (var brush = new SolidBrush(Color.Gainsboro))
-                {
-                    g.DrawString(titleStr, titleFont, brush, cx - titleSz.Width / 2f, bottomBaseY);
-                }
-
-                // 하이라이트 (1위 색상인 네온 시안)
-                using (var hlBrush = new SolidBrush(Color.FromArgb(0, 195, 255)))
-                {
-                    g.DrawString(displayHighlight, highlightFont, hlBrush, cx - hlSz.Width / 2f, bottomBaseY + 22);
-                }
+                displayHighlight += "...";
             }
+            var hlSz = g.MeasureString(displayHighlight, DashboardGdiCache.FontMainBold);
+
+            int bottomBaseY = ringY + ringSize + 10;
+
+            // 타이틀 (서버별 접속 분포)
+            g.DrawString(titleStr, DashboardGdiCache.FontTitleBold, DashboardGdiCache.BrushTitleGainsboro, cx - titleSz.Width / 2f, bottomBaseY);
+
+            // 하이라이트 (1위 색상인 네온 시안)
+            g.DrawString(displayHighlight, DashboardGdiCache.FontMainBold, DashboardGdiCache.BrushCyanText, cx - hlSz.Width / 2f, bottomBaseY + 22);
 
             // 테두리
-            using (var pen = new Pen(Color.FromArgb(65, 65, 70), 1))
-            {
-                g.DrawRectangle(pen, 0, 0, Width - 1, Height - 1);
-            }
+            g.DrawRectangle(DashboardGdiCache.PenBorder65, 0, 0, Width - 1, Height - 1);
         }
     }
     #endregion
@@ -561,6 +540,10 @@ namespace GateHelper.Dashboard
     /// </summary>
     public class CircularProgressControl : Control
     {
+        private static readonly Pen PenArcGreen = new Pen(Color.FromArgb(46, 204, 113), 13) { StartCap = LineCap.Round, EndCap = LineCap.Round };
+        private static readonly Pen PenArcYellow = new Pen(Color.FromArgb(241, 196, 15), 13) { StartCap = LineCap.Round, EndCap = LineCap.Round };
+        private static readonly Pen PenArcRed = new Pen(Color.FromArgb(231, 76, 60), 13) { StartCap = LineCap.Round, EndCap = LineCap.Round };
+
         private double _value = 0.0;
         private double _maximum = 100.0;
         private int _successCount = 0;
@@ -633,10 +616,7 @@ namespace GateHelper.Dashboard
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
             // 배경
-            using (var brush = new SolidBrush(Color.FromArgb(37, 37, 40)))
-            {
-                g.FillRectangle(brush, ClientRectangle);
-            }
+            g.FillRectangle(DashboardGdiCache.BrushBgContent, ClientRectangle);
 
             int ringSize = Math.Min(Width, Height) - 34;
             if (ringSize > 156) ringSize = 156;
@@ -645,21 +625,14 @@ namespace GateHelper.Dashboard
             int thickness = 13;
 
             // 1. 트랙 배경 링
-            using (var trackPen = new Pen(Color.FromArgb(55, 55, 60), thickness))
-            {
-                g.DrawEllipse(trackPen, ringX + thickness / 2, ringY + thickness / 2, ringSize - thickness, ringSize - thickness);
-            }
+            g.DrawEllipse(DashboardGdiCache.PenTrackNoData, ringX + thickness / 2, ringY + thickness / 2, ringSize - thickness, ringSize - thickness);
 
             // 2. 활성 아크
             float sweep = (float)(_value / _maximum * 360.0);
             if (sweep > 0.5f)
             {
-                using (var arcPen = new Pen(_ringColor, thickness))
-                {
-                    arcPen.StartCap = LineCap.Round;
-                    arcPen.EndCap = LineCap.Round;
-                    g.DrawArc(arcPen, ringX + thickness / 2, ringY + thickness / 2, ringSize - thickness, ringSize - thickness, -90f, sweep);
-                }
+                Pen arcPen = (_value >= 90.0) ? PenArcGreen : ((_value >= 70.0) ? PenArcYellow : PenArcRed);
+                g.DrawArc(arcPen, ringX + thickness / 2, ringY + thickness / 2, ringSize - thickness, ringSize - thickness, -90f, sweep);
             }
 
             float cx = Width / 2f;
@@ -669,56 +642,33 @@ namespace GateHelper.Dashboard
             string percentStr = $"{_value:F1}%";
             string countStr = $"성공 {_successCount}회 · 실패 {_failCount}회";
 
-            using (var numFont = new Font("맑은 고딕", 13.5F, FontStyle.Bold))
-            using (var countFont = new Font("맑은 고딕", 8.5F, FontStyle.Regular))
-            {
-                var numSz = g.MeasureString(percentStr, numFont);
-                var countSz = g.MeasureString(countStr, countFont);
+            var numSz = g.MeasureString(percentStr, DashboardGdiCache.FontValueLarge);
+            var countSz = g.MeasureString(countStr, DashboardGdiCache.FontSubRegular);
 
-                // 중앙 위: 퍼센트 (100.0%)
-                using (var brush = new SolidBrush(Color.White))
-                {
-                    g.DrawString(percentStr, numFont, brush, cx - numSz.Width / 2f, cy - numSz.Height + 2);
-                }
+            // 중앙 위: 퍼센트 (100.0%)
+            g.DrawString(percentStr, DashboardGdiCache.FontValueLarge, DashboardGdiCache.BrushWhite, cx - numSz.Width / 2f, cy - numSz.Height + 2);
 
-                // 중앙 아래: 명확한 카운트 (성공 3회 · 실패 0회)
-                Color countColor = _failCount > 0 ? Color.FromArgb(240, 140, 130) : Color.Silver;
-                using (var brush = new SolidBrush(countColor))
-                {
-                    g.DrawString(countStr, countFont, brush, cx - countSz.Width / 2f, cy + 5);
-                }
-            }
+            // 중앙 아래: 명확한 카운트 (성공 3회 · 실패 0회)
+            Brush countBrush = _failCount > 0 ? DashboardGdiCache.BrushCountFail : DashboardGdiCache.BrushSilver;
+            g.DrawString(countStr, DashboardGdiCache.FontSubRegular, countBrush, cx - countSz.Width / 2f, cy + 5);
 
             // 4. 링 하단: 기능 명칭 & 절약 시간 연동 (후보 A)
-            using (var titleFont = new Font("맑은 고딕", 9.5F, FontStyle.Bold))
-            using (var savedFont = new Font("맑은 고딕", 9F, FontStyle.Bold))
-            {
-                string titleStr = _titleText;
-                string savedStr = $"● 누적 절약: {_savedTimeText}";
+            string titleStr = _titleText;
+            string savedStr = $"● 누적 절약: {_savedTimeText}";
 
-                var titleSz = g.MeasureString(titleStr, titleFont);
-                var savedSz = g.MeasureString(savedStr, savedFont);
+            var titleSz = g.MeasureString(titleStr, DashboardGdiCache.FontTitleBold);
+            var savedSz = g.MeasureString(savedStr, DashboardGdiCache.FontMainBold);
 
-                int bottomBaseY = ringY + ringSize + 10;
+            int bottomBaseY = ringY + ringSize + 10;
 
-                // 타이틀 (GateOne 자동 로그인)
-                using (var brush = new SolidBrush(Color.Gainsboro))
-                {
-                    g.DrawString(titleStr, titleFont, brush, cx - titleSz.Width / 2f, bottomBaseY);
-                }
+            // 타이틀 (GateOne 자동 로그인)
+            g.DrawString(titleStr, DashboardGdiCache.FontTitleBold, DashboardGdiCache.BrushTitleGainsboro, cx - titleSz.Width / 2f, bottomBaseY);
 
-                // 절약 시간 하이라이트 (골드 앰버)
-                using (var savedBrush = new SolidBrush(Color.FromArgb(241, 196, 15)))
-                {
-                    g.DrawString(savedStr, savedFont, savedBrush, cx - savedSz.Width / 2f, bottomBaseY + 22);
-                }
-            }
+            // 절약 시간 하이라이트 (골드 앰버)
+            g.DrawString(savedStr, DashboardGdiCache.FontMainBold, DashboardGdiCache.BrushGoldAmber, cx - savedSz.Width / 2f, bottomBaseY + 22);
 
             // 테두리
-            using (var pen = new Pen(Color.FromArgb(65, 65, 70), 1))
-            {
-                g.DrawRectangle(pen, 0, 0, Width - 1, Height - 1);
-            }
+            g.DrawRectangle(DashboardGdiCache.PenBorder65, 0, 0, Width - 1, Height - 1);
         }
     }
     #endregion
@@ -735,6 +685,36 @@ namespace GateHelper.Dashboard
     /// </summary>
     public class HourlyHeatmapControl : Control
     {
+        private static readonly SolidBrush BrushToggleBgHover = new SolidBrush(Color.FromArgb(52, 54, 62));
+        private static readonly SolidBrush BrushToggleBgNormal = new SolidBrush(Color.FromArgb(42, 43, 49));
+        private static readonly Pen PenToggleBorderHover = new Pen(Color.FromArgb(0, 220, 255), 1f);
+        private static readonly Pen PenToggleBorderNormal = new Pen(Color.FromArgb(70, 72, 80), 1f);
+        private static readonly SolidBrush BrushToggleForeHover = new SolidBrush(Color.FromArgb(0, 240, 255));
+        private static readonly SolidBrush BrushToggleForeNormal = new SolidBrush(Color.FromArgb(175, 185, 200));
+
+        private static readonly SolidBrush BrushGrass0 = new SolidBrush(Color.FromArgb(40, 41, 46));
+        private static readonly SolidBrush BrushGrass1 = new SolidBrush(Color.FromArgb(23, 76, 44));
+        private static readonly SolidBrush BrushGrass2 = new SolidBrush(Color.FromArgb(30, 117, 59));
+        private static readonly SolidBrush BrushGrass3 = new SolidBrush(Color.FromArgb(39, 163, 79));
+        private static readonly SolidBrush BrushGrass4 = new SolidBrush(Color.FromArgb(50, 200, 96));
+
+        private static readonly Pen PenCardToday = new Pen(Color.FromArgb(0, 220, 255), 1.5f);
+        private static readonly Pen PenCardHover = new Pen(Color.FromArgb(140, 160, 180), 1f);
+        private static readonly Pen PenCardNormal = new Pen(Color.FromArgb(58, 60, 66), 1f);
+
+        private static readonly SolidBrush BrushMicroActive = new SolidBrush(Color.FromArgb(46, 204, 113));
+        private static readonly SolidBrush BrushMicroOff = new SolidBrush(Color.FromArgb(30, 31, 35));
+        private static readonly Pen PenMicroActive = new Pen(Color.FromArgb(30, 140, 75), 1f);
+        private static readonly Pen PenMicroOff = new Pen(Color.FromArgb(48, 49, 54), 1f);
+
+        private static readonly SolidBrush BrushBlock0 = new SolidBrush(Color.FromArgb(42, 43, 48));
+        private static readonly SolidBrush BrushBlock1 = new SolidBrush(Color.FromArgb(0, 110, 140));
+        private static readonly SolidBrush BrushBlock2 = new SolidBrush(Color.FromArgb(0, 180, 210));
+        private static readonly SolidBrush BrushBlock3 = new SolidBrush(Color.FromArgb(0, 240, 255));
+
+        private static readonly StringFormat SfCenter = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+        private static readonly StringFormat SfRight = new StringFormat { Alignment = StringAlignment.Far, LineAlignment = StringAlignment.Near };
+
         public RhythmMode CurrentMode { get; set; } = RhythmMode.Weekly7Days;
 
         private List<DailyActivityItem> _weeklyItems = new List<DailyActivityItem>();
@@ -760,6 +740,10 @@ namespace GateHelper.Dashboard
             this.DoubleBuffered = true;
             this.Size = new Size(755, 74);
             this.Font = new Font("맑은 고딕", 8.5F, FontStyle.Regular);
+
+            _tip.InitialDelay = 250;
+            _tip.ReshowDelay = 100;
+            _tip.AutoPopDelay = 6000;
 
             this.MouseMove += HourlyHeatmapControl_MouseMove;
             this.MouseClick += HourlyHeatmapControl_MouseClick;
@@ -899,7 +883,7 @@ namespace GateHelper.Dashboard
                             for (int h = 12; h < 18; h++) aft += item.HourlyCounts[h];
                             for (int h = 18; h < 24; h++) night += item.HourlyCounts[h];
                         }
-                        string tipText = $"{item.Date:yyyy-MM-dd} ({item.Date:ddd}) {(item.IsToday ? "[오늘]" : "")}\n" +
+                        string tipText = $"{item.Date:yyyy-MM-dd} ({item.Date:ddd}){(item.IsToday ? " [오늘]" : "")}\n" +
                                          $"서버 접속 합계: {item.TotalCount:N0}회\n" +
                                          $"● 새벽(00~06): {dawn}회  ● 오전(06~12): {morn}회\n" +
                                          $"● 오후(12~18): {aft}회  ● 야간(18~24): {night}회";
@@ -926,34 +910,22 @@ namespace GateHelper.Dashboard
             g.SmoothingMode = SmoothingMode.AntiAlias;
 
             // 1. 배경
-            using (var bgBrush = new SolidBrush(Color.FromArgb(32, 32, 35)))
-            {
-                g.FillRectangle(bgBrush, ClientRectangle);
-            }
+            g.FillRectangle(DashboardGdiCache.BrushBgDark, ClientRectangle);
 
             // 2. 우측 상단 모드 전환 토글 버튼
             int btnW = 142;
             _toggleBtnRect = new Rectangle(Width - btnW - 12, ToggleBtnY, btnW, ToggleBtnH);
 
-            Color btnBg = _isHoverToggle ? Color.FromArgb(52, 54, 62) : Color.FromArgb(42, 43, 49);
-            Color btnBorder = _isHoverToggle ? Color.FromArgb(0, 220, 255) : Color.FromArgb(70, 72, 80);
-            Color btnFore = _isHoverToggle ? Color.FromArgb(0, 240, 255) : Color.FromArgb(175, 185, 200);
+            Brush btnBrush = _isHoverToggle ? BrushToggleBgHover : BrushToggleBgNormal;
+            Pen pen = _isHoverToggle ? PenToggleBorderHover : PenToggleBorderNormal;
+            Brush foreBrush = _isHoverToggle ? BrushToggleForeHover : BrushToggleForeNormal;
 
-            using (var btnBrush = new SolidBrush(btnBg))
-            using (var pen = new Pen(btnBorder, 1f))
-            using (var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
-            using (var btnFont = new Font("맑은 고딕", 7.5F, FontStyle.Bold))
-            {
-                g.FillRectangle(btnBrush, _toggleBtnRect);
-                g.DrawRectangle(pen, _toggleBtnRect);
-                string toggleText = (CurrentMode == RhythmMode.Weekly7Days)
-                    ? "◈ 오늘 24시간 보기 ❯"
-                    : "◈ 최근 7일 주간 보기 ❯";
-                using (var foreBrush = new SolidBrush(btnFore))
-                {
-                    g.DrawString(toggleText, btnFont, foreBrush, _toggleBtnRect, sf);
-                }
-            }
+            g.FillRectangle(btnBrush, _toggleBtnRect);
+            g.DrawRectangle(pen, _toggleBtnRect);
+            string toggleText = (CurrentMode == RhythmMode.Weekly7Days)
+                ? "◈ 오늘 24시간 보기 ❯"
+                : "◈ 최근 7일 주간 보기 ❯";
+            g.DrawString(toggleText, DashboardGdiCache.FontSmallBold, foreBrush, _toggleBtnRect, SfCenter);
 
             // 3. 모드별 렌더링
             if (CurrentMode == RhythmMode.Weekly7Days)
@@ -966,10 +938,7 @@ namespace GateHelper.Dashboard
             }
 
             // 4. 컨트롤 외곽 테두리
-            using (var borderPen = new Pen(Color.FromArgb(60, 60, 65), 1))
-            {
-                g.DrawRectangle(borderPen, 0, 0, Width - 1, Height - 1);
-            }
+            g.DrawRectangle(DashboardGdiCache.PenBorder60, 0, 0, Width - 1, Height - 1);
         }
 
         private void PaintWeeklyMode(Graphics g)
@@ -979,10 +948,7 @@ namespace GateHelper.Dashboard
                 ? $"◈ 최근 7일 주간 활동 리듬 (주간 접속 {totalWeek:N0}회 · 잠금 해제 {_screenUnlockCount:N0}회)"
                 : $"◈ 최근 7일 주간 활동 리듬 (주간 총 {totalWeek:N0}회 접속)";
 
-            using (var titleFont = new Font("맑은 고딕", 8.5F, FontStyle.Bold))
-            {
-                g.DrawString(title, titleFont, Brushes.LightGray, 14, 5);
-            }
+            g.DrawString(title, DashboardGdiCache.FontSubBold, DashboardGdiCache.BrushLightGray, 14, 5);
 
             int count = Math.Min(7, _weeklyItems.Count);
             if (count == 0) return;
@@ -994,108 +960,81 @@ namespace GateHelper.Dashboard
             int startY = ContentStartY;
             int cardH = CardH;
 
-            using (var dateFont = new Font("맑은 고딕", 7.5F, FontStyle.Bold))
-            using (var countFont = new Font("맑은 고딕", 7.5F, FontStyle.Bold))
-            using (var microFont = new Font("맑은 고딕", 6.0F, FontStyle.Regular))
-            using (var sfRight = new StringFormat { Alignment = StringAlignment.Far, LineAlignment = StringAlignment.Near })
-            using (var sfCenter = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center })
+            for (int i = 0; i < count; i++)
             {
-                for (int i = 0; i < count; i++)
+                var item = _weeklyItems[i];
+                int cx = startX + i * (cardW + gap);
+                var cardRect = new Rectangle(cx, startY, cardW, cardH);
+
+                // 카드 배경색 (잔디 농도)
+                int cnt = item.TotalCount;
+                Brush cardBrush;
+                if (cnt == 0) cardBrush = BrushGrass0;
+                else if (cnt <= 3) cardBrush = BrushGrass1;
+                else if (cnt <= 8) cardBrush = BrushGrass2;
+                else if (cnt <= 15) cardBrush = BrushGrass3;
+                else cardBrush = BrushGrass4;
+
+                g.FillRectangle(cardBrush, cardRect);
+
+                // 카드 테두리
+                Pen borderPen;
+                if (item.IsToday)
                 {
-                    var item = _weeklyItems[i];
-                    int cx = startX + i * (cardW + gap);
-                    var cardRect = new Rectangle(cx, startY, cardW, cardH);
+                    borderPen = PenCardToday;
+                }
+                else if (i == _hoveredIndex)
+                {
+                    borderPen = PenCardHover;
+                }
+                else
+                {
+                    borderPen = PenCardNormal;
+                }
 
-                    // 카드 배경색 (잔디 농도)
-                    int cnt = item.TotalCount;
-                    Color cardBg;
-                    if (cnt == 0) cardBg = Color.FromArgb(40, 41, 46);
-                    else if (cnt <= 3) cardBg = Color.FromArgb(23, 76, 44);
-                    else if (cnt <= 8) cardBg = Color.FromArgb(30, 117, 59);
-                    else if (cnt <= 15) cardBg = Color.FromArgb(39, 163, 79);
-                    else cardBg = Color.FromArgb(50, 200, 96);
+                g.DrawRectangle(borderPen, cardRect);
 
-                    if (i == _hoveredIndex)
+                // 날짜 텍스트 (좌측 상단)
+                Brush dateBrush = item.IsToday ? Brushes.Cyan : Brushes.WhiteSmoke;
+                g.DrawString(item.DateLabel ?? "", DashboardGdiCache.FontSmallBold, dateBrush, cx + 5, startY + 3);
+
+                // 접속 횟수 (우측 상단)
+                string countStr = $"{cnt}회";
+                Brush countBrush;
+                if (cnt == 0) countBrush = Brushes.Gray;
+                else if (item.IsToday) countBrush = Brushes.Gold;
+                else countBrush = Brushes.LightGreen;
+
+                g.DrawString(countStr, DashboardGdiCache.FontSmallBold, countBrush, new RectangleF(cx + 5, startY + 3, cardW - 10, 14), SfRight);
+
+                // 하단 4대 시간대 마이크로 큐브 (새벽, 오전, 오후, 야간)
+                int microW = Math.Max(12, (cardW - 10 - 6) / 4);
+                int microH = 12;
+                int microY = startY + 22;
+                string[] quarterLabels = { "새", "오", "후", "야" };
+
+                for (int q = 0; q < 4; q++)
+                {
+                    int qCnt = 0;
+                    if (item.HourlyCounts != null && item.HourlyCounts.Length == 24)
                     {
-                        cardBg = Color.FromArgb(
-                            Math.Min(255, cardBg.R + 30),
-                            Math.Min(255, cardBg.G + 30),
-                            Math.Min(255, cardBg.B + 30));
-                    }
-
-                    using (var cardBrush = new SolidBrush(cardBg))
-                    {
-                        g.FillRectangle(cardBrush, cardRect);
-                    }
-
-                    // 카드 테두리
-                    Color borderColor;
-                    float borderWidth = 1.0f;
-                    if (item.IsToday)
-                    {
-                        borderColor = Color.FromArgb(0, 220, 255);
-                        borderWidth = 1.5f;
-                    }
-                    else if (i == _hoveredIndex)
-                    {
-                        borderColor = Color.FromArgb(140, 160, 180);
-                    }
-                    else
-                    {
-                        borderColor = Color.FromArgb(58, 60, 66);
-                    }
-
-                    using (var pen = new Pen(borderColor, borderWidth))
-                    {
-                        g.DrawRectangle(pen, cardRect);
-                    }
-
-                    // 날짜 텍스트 (좌측 상단)
-                    Brush dateBrush = item.IsToday ? Brushes.Cyan : Brushes.WhiteSmoke;
-                    g.DrawString(item.DateLabel ?? "", dateFont, dateBrush, cx + 5, startY + 3);
-
-                    // 접속 횟수 (우측 상단)
-                    string countStr = $"{cnt}회";
-                    Brush countBrush;
-                    if (cnt == 0) countBrush = Brushes.Gray;
-                    else if (item.IsToday) countBrush = Brushes.Gold;
-                    else countBrush = Brushes.LightGreen;
-
-                    g.DrawString(countStr, countFont, countBrush, new RectangleF(cx + 5, startY + 3, cardW - 10, 14), sfRight);
-
-                    // 하단 4대 시간대 마이크로 큐브 (새벽, 오전, 오후, 야간)
-                    int microW = Math.Max(12, (cardW - 10 - 6) / 4);
-                    int microH = 12;
-                    int microY = startY + 22;
-                    string[] quarterLabels = { "새", "오", "후", "야" };
-
-                    for (int q = 0; q < 4; q++)
-                    {
-                        int qCnt = 0;
-                        if (item.HourlyCounts != null && item.HourlyCounts.Length == 24)
+                        for (int h = q * 6; h < (q + 1) * 6; h++)
                         {
-                            for (int h = q * 6; h < (q + 1) * 6; h++)
-                            {
-                                qCnt += item.HourlyCounts[h];
-                            }
+                            qCnt += item.HourlyCounts[h];
                         }
-
-                        int qx = cx + 5 + q * (microW + 2);
-                        var qRect = new Rectangle(qx, microY, microW, microH);
-
-                        Color qBg = qCnt > 0 ? Color.FromArgb(46, 204, 113) : Color.FromArgb(30, 31, 35);
-                        Color qBorder = qCnt > 0 ? Color.FromArgb(30, 140, 75) : Color.FromArgb(48, 49, 54);
-
-                        using (var qBrush = new SolidBrush(qBg))
-                        using (var qPen = new Pen(qBorder, 1f))
-                        {
-                            g.FillRectangle(qBrush, qRect);
-                            g.DrawRectangle(qPen, qRect);
-                        }
-
-                        Brush qTextBrush = qCnt > 0 ? Brushes.White : Brushes.DimGray;
-                        g.DrawString(quarterLabels[q], microFont, qTextBrush, qRect, sfCenter);
                     }
+
+                    int qx = cx + 5 + q * (microW + 2);
+                    var qRect = new Rectangle(qx, microY, microW, microH);
+
+                    Brush qBrush = qCnt > 0 ? BrushMicroActive : BrushMicroOff;
+                    Pen qPen = qCnt > 0 ? PenMicroActive : PenMicroOff;
+
+                    g.FillRectangle(qBrush, qRect);
+                    g.DrawRectangle(qPen, qRect);
+
+                    Brush qTextBrush = qCnt > 0 ? Brushes.White : Brushes.DimGray;
+                    g.DrawString(quarterLabels[q], DashboardGdiCache.FontMicroRegular, qTextBrush, qRect, SfCenter);
                 }
             }
         }
@@ -1108,10 +1047,7 @@ namespace GateHelper.Dashboard
                 ? $"◈ 오늘 24시간 타임라인 (오늘 접속 {todayTotal:N0}회 · 잠금 해제 {_screenUnlockCount:N0}회 · 현재 {currentHour:D2}시)"
                 : $"◈ 오늘 24시간 타임라인 (오늘 총 {todayTotal:N0}회 접속 · 현재 {currentHour:D2}시)";
 
-            using (var titleFont = new Font("맑은 고딕", 8.5F, FontStyle.Bold))
-            {
-                g.DrawString(title, titleFont, Brushes.LightGray, 14, 5);
-            }
+            g.DrawString(title, DashboardGdiCache.FontSubBold, DashboardGdiCache.BrushLightGray, 14, 5);
 
             int blockW = (Width - 28) / 24;
             int startX = 14;
@@ -1119,50 +1055,35 @@ namespace GateHelper.Dashboard
             int blockH = BlockH;
             int maxVal = _todayHourly.Max();
 
-            using (var hourFont = new Font("맑은 고딕", 7F, FontStyle.Regular))
-            using (var curPen = new Pen(Color.Gold, 1.5f))
+            for (int h = 0; h < 24; h++)
             {
-                for (int h = 0; h < 24; h++)
+                int bx = startX + (h * blockW);
+                int count = _todayHourly[h];
+
+                Brush blockBrush;
+                if (count == 0)
                 {
-                    int bx = startX + (h * blockW);
-                    int count = _todayHourly[h];
+                    blockBrush = BrushBlock0;
+                }
+                else
+                {
+                    double ratio = (double)count / Math.Max(2, maxVal);
+                    if (ratio <= 0.33) blockBrush = BrushBlock1;
+                    else if (ratio <= 0.66) blockBrush = BrushBlock2;
+                    else blockBrush = BrushBlock3;
+                }
 
-                    Color blockColor;
-                    if (count == 0)
-                    {
-                        blockColor = Color.FromArgb(42, 43, 48);
-                    }
-                    else
-                    {
-                        double ratio = (double)count / Math.Max(2, maxVal);
-                        if (ratio <= 0.33) blockColor = Color.FromArgb(0, 110, 140);
-                        else if (ratio <= 0.66) blockColor = Color.FromArgb(0, 180, 210);
-                        else blockColor = Color.FromArgb(0, 240, 255);
-                    }
+                g.FillRectangle(blockBrush, bx, startY, blockW - 2, blockH);
 
-                    if (h == _hoveredIndex)
-                    {
-                        blockColor = Color.FromArgb(
-                            Math.Min(255, blockColor.R + 40),
-                            Math.Min(255, blockColor.G + 40),
-                            Math.Min(255, blockColor.B + 40));
-                    }
+                if (h == currentHour)
+                {
+                    g.DrawRectangle(DashboardGdiCache.PenGoldHour, bx - 1, startY - 1, blockW - 1, blockH + 1);
+                }
 
-                    using (var bBrush = new SolidBrush(blockColor))
-                    {
-                        g.FillRectangle(bBrush, bx, startY, blockW - 2, blockH);
-                    }
-
-                    if (h == currentHour)
-                    {
-                        g.DrawRectangle(curPen, bx - 1, startY - 1, blockW - 1, blockH + 1);
-                    }
-
-                    if (h % 3 == 0 || h == currentHour)
-                    {
-                        string hStr = $"{h:D2}";
-                        g.DrawString(hStr, hourFont, (h == currentHour ? Brushes.Gold : Brushes.Gray), new PointF(bx - 1, startY + blockH + 2));
-                    }
+                if (h % 3 == 0 || h == currentHour)
+                {
+                    string hStr = $"{h:D2}";
+                    g.DrawString(hStr, DashboardGdiCache.FontHourRegular, (h == currentHour ? Brushes.Gold : Brushes.Gray), new PointF(bx - 1, startY + blockH + 2));
                 }
             }
         }
@@ -1205,10 +1126,7 @@ namespace GateHelper.Dashboard
             g.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
             // 전체 배경
-            using (var bgBrush = new SolidBrush(Color.FromArgb(32, 32, 35)))
-            {
-                g.FillRectangle(bgBrush, 0, 0, Width, Height);
-            }
+            g.FillRectangle(DashboardGdiCache.BrushBgDark, 0, 0, Width, Height);
 
             var tier = _masteryInfo ?? new MasteryTierInfo
             {
@@ -1234,23 +1152,19 @@ namespace GateHelper.Dashboard
             // -----------------------------------------------------------------
             // 좌측: 종합 랭크 이름 + 칭호 설명
             float titleRightX = 250f;
-            using (var titleFont = new Font("맑은 고딕", 11.5F, FontStyle.Bold))
             using (var titleBrush = new SolidBrush(tier.AccentColor))
             {
-                g.DrawString(tier.TierName, titleFont, titleBrush, 14, 7);
-                var titleSz = g.MeasureString(tier.TierName, titleFont);
+                g.DrawString(tier.TierName, DashboardGdiCache.FontBannerTitle, titleBrush, 14, 7);
+                var titleSz = g.MeasureString(tier.TierName, DashboardGdiCache.FontBannerTitle);
                 titleRightX = 14 + titleSz.Width + 10;
             }
 
-            using (var descFont = new Font("맑은 고딕", 8.5F, FontStyle.Regular))
-            {
-                g.DrawString($"({tier.TierTitle})", descFont, Brushes.DarkGray, titleRightX, 11);
+            g.DrawString($"({tier.TierTitle})", DashboardGdiCache.FontSubRegular, DashboardGdiCache.BrushDarkGray, titleRightX, 11);
 
-                // 우측: 점수 및 달성 개수
-                string scoreText = $"진척도: {tier.TotalEarnedPoints} / {tier.MaxPoints} AP ({tier.ProgressPercent:F1}%)  •  도전과제 달성: {tier.UnlockedCount} / {tier.TotalCount}개";
-                var scoreSz = g.MeasureString(scoreText, descFont);
-                g.DrawString(scoreText, descFont, Brushes.Gainsboro, Width - scoreSz.Width - 16, 11);
-            }
+            // 우측: 점수 및 달성 개수
+            string scoreText = $"진척도: {tier.TotalEarnedPoints} / {tier.MaxPoints} AP ({tier.ProgressPercent:F1}%)  •  도전과제 달성: {tier.UnlockedCount} / {tier.TotalCount}개";
+            var scoreSz = g.MeasureString(scoreText, DashboardGdiCache.FontSubRegular);
+            g.DrawString(scoreText, DashboardGdiCache.FontSubRegular, DashboardGdiCache.BrushTitleGainsboro, Width - scoreSz.Width - 16, 11);
 
             // 풀 와이드 네온 게이지 바 (X: 16, Y: 33, W: Width - 32, H: 6)
             int barX = 16;
@@ -1258,10 +1172,7 @@ namespace GateHelper.Dashboard
             int barW = Width - 32;
             int barH = 6;
 
-            using (var trackBrush = new SolidBrush(Color.FromArgb(50, 50, 55)))
-            {
-                g.FillRectangle(trackBrush, barX, barY, barW, barH);
-            }
+            g.FillRectangle(DashboardGdiCache.BrushTrack50, barX, barY, barW, barH);
 
             float fillW = barW * (tier.ProgressPercent / 100f);
             if (fillW > 0)
@@ -1277,10 +1188,7 @@ namespace GateHelper.Dashboard
             }
 
             // 구분선 (1층과 2층 사이)
-            using (var divPen = new Pen(Color.FromArgb(48, 48, 52), 1))
-            {
-                g.DrawLine(divPen, 16, 47, Width - 16, 47);
-            }
+            g.DrawLine(DashboardGdiCache.PenDivider, 16, 47, Width - 16, 47);
 
             // -----------------------------------------------------------------
             // [ 2층: 4대 분야별 레벨 & 칭호 카드 4개 가로 분할 (Y: 53 ~ 107) ]
@@ -1290,60 +1198,52 @@ namespace GateHelper.Dashboard
                 int cardStartX = 16;
                 int cardGap = 8;
                 int totalAvailW = Width - 32;
-                int cardW = (totalAvailW - (cardGap * 3)) / 4; // 약 174px
+                int catCount = Math.Max(1, Math.Min(_categoryTiers.Count, 5));
+                int cardW = (totalAvailW - (cardGap * (catCount - 1))) / catCount;
                 int cardH = 55;
                 int cardY = 52;
 
-                string[] icons = { "🧩", "⚡", "🔍", "⭐" };
+                string[] icons = { "🧩", "⚡", "🔍", "⭐", "🚀" };
 
-                for (int i = 0; i < _categoryTiers.Count && i < 4; i++)
+                for (int i = 0; i < _categoryTiers.Count && i < 5; i++)
                 {
                     var cat = _categoryTiers[i];
                     int cx = cardStartX + (i * (cardW + cardGap));
 
                     // 카드 배경 및 얇은 테두리
-                    using (var cardBg = new SolidBrush(Color.FromArgb(40, 40, 44)))
-                    using (var cardBorder = new Pen(Color.FromArgb(62, 62, 68), 1))
-                    {
-                        g.FillRectangle(cardBg, cx, cardY, cardW, cardH);
-                        g.DrawRectangle(cardBorder, cx, cardY, cardW, cardH);
-                    }
+                    g.FillRectangle(DashboardGdiCache.BrushBgCard, cx, cardY, cardW, cardH);
+                    g.DrawRectangle(DashboardGdiCache.PenBorderCard, cx, cardY, cardW, cardH);
 
-                    // 좌측 세로 2px 티어 컬러 액센트 바
+                    // 좌측 세로 3px 티어 컬러 액센트 바
                     using (var accentBrush = new SolidBrush(cat.TierColor))
                     {
                         g.FillRectangle(accentBrush, cx, cardY, 3, cardH);
                     }
 
                     // 1줄: 카테고리 헤더
-                    using (var catFont = new Font("맑은 고딕", 8F, FontStyle.Bold))
-                    {
-                        g.DrawString($"{icons[i]} {cat.CategoryName}", catFont, Brushes.LightGray, cx + 8, cardY + 5);
-                    }
+                    string icon = (i < icons.Length) ? icons[i] : "🏆";
+                    g.DrawString($"{icon} {cat.CategoryName}", DashboardGdiCache.FontCatBold, DashboardGdiCache.BrushLightGray, cx + 8, cardY + 5);
 
-                    // 2줄: 티어 명칭 (174px 공간이므로 9글자 칭호도 전혀 안 잘림!)
-                    using (var tierFont = new Font("맑은 고딕", 9F, FontStyle.Bold))
+                    // 2줄: 티어 명칭
                     using (var tierBrush = new SolidBrush(cat.TierColor))
                     {
-                        g.DrawString(cat.CurrentTierName, tierFont, tierBrush, cx + 8, cardY + 20);
+                        g.DrawString(cat.CurrentTierName, DashboardGdiCache.FontMainBold, tierBrush, cx + 8, cardY + 20);
                     }
 
                     // 3줄: 진행 실적
-                    using (var countFont = new Font("맑은 고딕", 7.5F, FontStyle.Regular))
-                    {
-                        string countText = cat.Category == AchievementCategory.AiTrend
-                            ? $"찜 등록 {cat.CurrentCount:N0}개"
-                            : $"퍼즐 클리어 {cat.CurrentCount:N0}회";
-                        g.DrawString(countText, countFont, Brushes.DarkGray, cx + 8, cardY + 37);
-                    }
+                    string countText;
+                    if (cat.Category == AchievementCategory.AiTrend)
+                        countText = $"찜 등록 {cat.CurrentCount:N0}개";
+                    else if (cat.Category == AchievementCategory.CoreFront)
+                        countText = $"작전 승리 {cat.CurrentCount:N0}회";
+                    else
+                        countText = $"퍼즐 클리어 {cat.CurrentCount:N0}회";
+                    g.DrawString(countText, DashboardGdiCache.FontSmallRegular, DashboardGdiCache.BrushDarkGray, cx + 8, cardY + 37);
                 }
             }
 
             // 바깥 테두리
-            using (var borderPen = new Pen(Color.FromArgb(60, 60, 65), 1))
-            {
-                g.DrawRectangle(borderPen, 0, 0, Width - 1, Height - 1);
-            }
+            g.DrawRectangle(DashboardGdiCache.PenBorder60, 0, 0, Width - 1, Height - 1);
         }
     }
     #endregion

@@ -51,6 +51,8 @@ namespace GateHelper.Dashboard
         public int MysterySolves { get; set; } = 0;
         public int MysteryAttempts { get; set; } = 0;
         public int AiTrendScraps { get; set; } = 0;
+        public int CoreFrontWins { get; set; } = 0;
+        public List<string> CoreFrontUnlockedAchievements { get; set; } = new List<string>();
 
         // 4. 에러 카운터 및 확인(Acknowledge) 상태 관리
         public int TotalErrorCount { get; set; } = 0;
@@ -122,6 +124,7 @@ namespace GateHelper.Dashboard
         SignalLink,
         MysteryTime,
         AiTrend,
+        CoreFront,
         Special
     }
 

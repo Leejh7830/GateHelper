@@ -14,6 +14,7 @@ namespace GateHelper.Dashboard
     {
         private readonly MaterialSkinManager _materialSkinManager;
         private bool _showOnlyAlerts = false;
+        private Font _gridBoldFont;
 
         public DashboardForm()
         {
@@ -21,10 +22,12 @@ namespace GateHelper.Dashboard
 
             _materialSkinManager = MaterialSkinManager.Instance;
             _materialSkinManager.AddFormToManage(this);
+            _gridBoldFont = new Font("맑은 고딕", 9F, FontStyle.Bold);
         }
 
         private void DashboardForm_Load(object sender, EventArgs e)
         {
+            lblSandboxMain.Font = new Font("맑은 고딕", 11F, FontStyle.Bold);
             ApplyThemeColors();
             SetupCardInteractions();
             UpdateAllViews();
@@ -32,7 +35,7 @@ namespace GateHelper.Dashboard
             // 탭 전환 시 활성 탭 데이터 즉각 자동 동기화 (불필요한 전체 리드로우 방지)
             tabControlMain.SelectedIndexChanged += TabControlMain_SelectedIndexChanged;
 
-            timerRefresh.Start();
+            UpdateTimerState();
         }
 
         private void SetupCardInteractions()
@@ -85,20 +88,33 @@ namespace GateHelper.Dashboard
 
         private void DashboardForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            timerRefresh.Stop();
+            timerRefresh?.Stop();
+            try { _gridBoldFont?.Dispose(); } catch { }
         }
 
         protected override void OnVisibleChanged(EventArgs e)
         {
             base.OnVisibleChanged(e);
-            bool isVis = this.Visible && this.WindowState != FormWindowState.Minimized;
-            if (isVis)
+            UpdateTimerState();
+        }
+
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            UpdateTimerState();
+        }
+
+        private void UpdateTimerState()
+        {
+            if (timerRefresh == null) return;
+            bool shouldRun = this.Visible && this.WindowState != FormWindowState.Minimized;
+            if (shouldRun && !timerRefresh.Enabled)
             {
-                if (timerRefresh != null && !timerRefresh.Enabled) timerRefresh.Start();
+                timerRefresh.Start();
             }
-            else
+            else if (!shouldRun && timerRefresh.Enabled)
             {
-                if (timerRefresh != null && timerRefresh.Enabled) timerRefresh.Stop();
+                timerRefresh.Stop();
             }
         }
 
@@ -264,7 +280,6 @@ namespace GateHelper.Dashboard
 
             // 샌드박스 & 업적
             var mastery = DashboardManager.GetMasteryTierInfo();
-            lblSandboxMain.Font = new Font("맑은 고딕", 11F, FontStyle.Bold);
             lblSandboxMain.Text = mastery.TierName;
             lblSandboxSub.Text = $"AP {mastery.TotalEarnedPoints}점 · 달성 {mastery.UnlockedCount}/{mastery.TotalCount}개";
         }
@@ -387,7 +402,7 @@ namespace GateHelper.Dashboard
                 var row = dgvTopServers.Rows[rowIdx];
                 row.Cells[0].Style.ForeColor = rankColor;
                 row.Cells[0].Style.SelectionForeColor = rankColor;
-                row.Cells[0].Style.Font = new Font(dgvTopServers.Font, FontStyle.Bold);
+                row.Cells[0].Style.Font = _gridBoldFont;
             }
 
             if (dgvTopServers.Rows.Count == 0)
@@ -459,7 +474,7 @@ namespace GateHelper.Dashboard
                 if (ach.IsUnlocked)
                 {
                     row.DefaultCellStyle.ForeColor = unlockedFore;
-                    row.DefaultCellStyle.Font = new Font(dgvAchievements.Font, FontStyle.Bold);
+                    row.DefaultCellStyle.Font = _gridBoldFont;
                 }
                 else
                 {
@@ -528,12 +543,12 @@ namespace GateHelper.Dashboard
                     if (log.Level == "Critical")
                     {
                         row.DefaultCellStyle.ForeColor = Color.IndianRed;
-                        row.DefaultCellStyle.Font = new Font(dgvRecentLogs.Font, FontStyle.Bold);
+                        row.DefaultCellStyle.Font = _gridBoldFont;
                     }
                     else if (log.Level == "Error")
                     {
                         row.DefaultCellStyle.ForeColor = Color.Coral;
-                        row.DefaultCellStyle.Font = new Font(dgvRecentLogs.Font, FontStyle.Bold);
+                        row.DefaultCellStyle.Font = _gridBoldFont;
                     }
                     else if (log.Level == "Warning")
                     {

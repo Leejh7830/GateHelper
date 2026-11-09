@@ -21,6 +21,16 @@ namespace GateHelper.DataFlip
             {
                 card.ApplyAction?.Invoke(this, Owner.Player);
 
+                // 유닛 특수 카드 선택 여부 추적 (순수 군략 도전과제)
+                string cid = card.Id;
+                if (cid == "VANGUARD_CALL" || cid == "AIR_DROP" || cid == "TITAN_PROTOCOL" || cid == "INFANTRY_ASSAULT" ||
+                    cid == "NANO_ARMOR" || cid == "RAILGUN_BATTERY" || cid == "PHALANX_SHIELD" || cid == "STEALTH_CAMOUFLAGE" ||
+                    cid == "COLOSSUS_SIEGE" || cid == "COLOSSUS_MELEE" || cid == "MARTYRDOM_CORE" || cid == "CHAIN_PLASMA" ||
+                    cid == "KINETIC_SLAM" || cid == "CHEONGUNG_TRAJECTORY")
+                {
+                    HasSelectedUnitCard = true;
+                }
+
                 // AI도 랜덤하게 1개 버프 획득 (공정한 게임 밸런스)
                 var aiPool = GenerateRandomCards(3, Owner.Ai);
                 if (aiPool.Count > 0)

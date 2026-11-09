@@ -13,7 +13,7 @@ using System.Threading;
 
 namespace GateHelper.Dashboard
 {
-    internal static class DashboardManager
+    public static class DashboardManager
     {
         private static readonly object _syncLock = new object();
         public static string DashboardDirectory => Path.Combine(Util.MetaFolder, "dashboard");
@@ -221,6 +221,10 @@ namespace GateHelper.Dashboard
             if (Stats.DailyHourlyAccessCounts.Count == 0 && Stats.HourlyAccessCounts != null)
             {
                 Stats.DailyHourlyAccessCounts[todayStr] = (int[])Stats.HourlyAccessCounts.Clone();
+            }
+            if (Stats.CoreFrontUnlockedAchievements == null)
+            {
+                Stats.CoreFrontUnlockedAchievements = new List<string>();
             }
         }
 
@@ -549,7 +553,54 @@ namespace GateHelper.Dashboard
             }
         }
 
-        public static void RecordLogEntry(LogManager.Level level, string caller, string message)
+        public static void RecordCoreFrontWin()
+        {
+            lock (_syncLock)
+            {
+                Stats.CoreFrontWins++;
+                SaveStats();
+                StatsUpdated?.Invoke();
+            }
+        }
+
+        public static bool UnlockCoreFrontAchievement(string id, out string unlockedTitle, out int points)
+        {
+            unlockedTitle = null;
+            points = 0;
+            lock (_syncLock)
+            {
+                if (Stats.CoreFrontUnlockedAchievements == null)
+                    Stats.CoreFrontUnlockedAchievements = new List<string>();
+
+                if (!Stats.CoreFrontUnlockedAchievements.Contains(id))
+                {
+                    Stats.CoreFrontUnlockedAchievements.Add(id);
+                    SaveStats();
+                    StatsUpdated?.Invoke();
+
+                    var item = GetCoreFrontAchievements().Find(x => x.Id == id);
+                    if (item != null)
+                    {
+                        unlockedTitle = item.Title;
+                        points = item.Points;
+                    }
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        public static bool IsCoreFrontAchievementUnlocked(string id)
+        {
+            lock (_syncLock)
+            {
+                if (id == "CF_FIRST_WIN" && Stats.CoreFrontWins >= 1) return true;
+                if (id == "CF_VETERAN" && Stats.CoreFrontWins >= 5) return true;
+                return Stats.CoreFrontUnlockedAchievements != null && Stats.CoreFrontUnlockedAchievements.Contains(id);
+            }
+        }
+
+        internal static void RecordLogEntry(LogManager.Level level, string caller, string message)
         {
             if (level == LogManager.Level.Error)
             {
@@ -1099,6 +1150,9 @@ namespace GateHelper.Dashboard
                 IconSymbol = "🏆"
             });
 
+            // 6. CoreFront (SandBox 6)
+            list.AddRange(GetCoreFrontAchievements());
+
             return list;
         }
 
@@ -1188,7 +1242,218 @@ namespace GateHelper.Dashboard
             result.Add(EvaluateCategoryTier(AchievementCategory.AiTrend, "AI TREND", at,
                 new[] { "미입문", "Lv.1 테크 리더", "Lv.2 큐레이터", "Lv.3 인사이트 헌터", "Lv.4 퓨처리스트" }));
 
+            int cf = Stats.CoreFrontWins;
+            result.Add(EvaluateCategoryTier(AchievementCategory.CoreFront, "CoreFront", cf,
+                new[] { "미입문", "Lv.1 현장 오퍼레이터", "Lv.2 전선 전략가", "Lv.3 연합 사령관", "Lv.4 코어 마스터마인드" }));
+
             return result;
+        }
+
+        public static List<AchievementItem> GetCoreFrontAchievements()
+        {
+            var list = new List<AchievementItem>();
+            int cfWins = Stats.CoreFrontWins;
+            var unlocked = Stats.CoreFrontUnlockedAchievements ?? new List<string>();
+
+            bool IsDone(string id) => unlocked.Contains(id);
+
+            // 1. [작전 개시] (쉬움)
+            list.Add(new AchievementItem
+            {
+                Id = "CF_FIRST_WIN",
+                Category = AchievementCategory.CoreFront,
+                CategoryName = "CoreFront",
+                Title = "작전 개시",
+                Description = "Core Front 첫 번째 작전 승리 달성",
+                Points = 20,
+                RequiredCount = 1,
+                CurrentCount = Math.Min(1, cfWins),
+                IconSymbol = "🚩"
+            });
+
+            // 2. [전선의 사령관] (보통)
+            list.Add(new AchievementItem
+            {
+                Id = "CF_VETERAN",
+                Category = AchievementCategory.CoreFront,
+                CategoryName = "CoreFront",
+                Title = "전선의 사령관",
+                Description = "Core Front 누적 5회 승리 달성",
+                Points = 40,
+                RequiredCount = 5,
+                CurrentCount = cfWins,
+                IconSymbol = "🎖️"
+            });
+
+            // 3. [작전 사후 강평] (쉬움) - 유저 지정
+            list.Add(new AchievementItem
+            {
+                Id = "CF_REPLAY_FIRST",
+                Category = AchievementCategory.CoreFront,
+                CategoryName = "CoreFront",
+                Title = "작전 사후 강평",
+                Description = "게임 종료 후 시네마틱 리플레이 뷰어를 최초 1회 재생",
+                Points = 20,
+                RequiredCount = 1,
+                CurrentCount = IsDone("CF_REPLAY_FIRST") ? 1 : 0,
+                IconSymbol = "🎬"
+            });
+
+            // 4. [보병의 돌격] (어려움) - 유저 지정
+            list.Add(new AchievementItem
+            {
+                Id = "CF_ONLY_INFANTRY",
+                Category = AchievementCategory.CoreFront,
+                CategoryName = "CoreFront",
+                Title = "보병의 돌격",
+                Description = "보병(Vanguard) 외 유닛을 생산하지 않고 승리",
+                Points = 50,
+                RequiredCount = 1,
+                CurrentCount = IsDone("CF_ONLY_INFANTRY") ? 1 : 0,
+                IconSymbol = "👥"
+            });
+
+            // 5. [무정전 작전] (어려움) - 유저 지정
+            list.Add(new AchievementItem
+            {
+                Id = "CF_NO_POWERPLANT",
+                Category = AchievementCategory.CoreFront,
+                CategoryName = "CoreFront",
+                Title = "무정전 작전",
+                Description = "게임 진행 중 발전소를 추가 건설하지 않고 승리",
+                Points = 50,
+                RequiredCount = 1,
+                CurrentCount = IsDone("CF_NO_POWERPLANT") ? 1 : 0,
+                IconSymbol = "⚡"
+            });
+
+            // 6. [공세 일변도] (어려움) - 유저 지정
+            list.Add(new AchievementItem
+            {
+                Id = "CF_NO_TURRET",
+                Category = AchievementCategory.CoreFront,
+                CategoryName = "CoreFront",
+                Title = "공세 일변도",
+                Description = "방어 포탑(Turret)을 건설하지 않고 승리",
+                Points = 50,
+                RequiredCount = 1,
+                CurrentCount = IsDone("CF_NO_TURRET") ? 1 : 0,
+                IconSymbol = "⚔️"
+            });
+
+            // 7. [순수 군략] (어려움) - 유저 지정
+            list.Add(new AchievementItem
+            {
+                Id = "CF_NO_UNIT_CARDS",
+                Category = AchievementCategory.CoreFront,
+                CategoryName = "CoreFront",
+                Title = "순수 군략",
+                Description = "유닛 증원/버프 카드를 선택하지 않고 승리",
+                Points = 45,
+                RequiredCount = 1,
+                CurrentCount = IsDone("CF_NO_UNIT_CARDS") ? 1 : 0,
+                IconSymbol = "📜"
+            });
+
+            // 8. [천문학적 군자금] (매우 어려움) - 유저 지정
+            list.Add(new AchievementItem
+            {
+                Id = "CF_GOLD_600",
+                Category = AchievementCategory.CoreFront,
+                CategoryName = "CoreFront",
+                Title = "천문학적 군자금",
+                Description = "단일 작전에서 누적 총 600G 이상의 크레딧 획득",
+                Points = 60,
+                RequiredCount = 1,
+                CurrentCount = IsDone("CF_GOLD_600") ? 1 : 0,
+                IconSymbol = "💰"
+            });
+
+            // 9. [피말리는 지구전] (어려움) - 유저 지정
+            list.Add(new AchievementItem
+            {
+                Id = "CF_TIME_10MIN",
+                Category = AchievementCategory.CoreFront,
+                CategoryName = "CoreFront",
+                Title = "피말리는 지구전",
+                Description = "작전 소요 시간 10분(600초)을 초과한 사투 끝에 승리",
+                Points = 50,
+                RequiredCount = 1,
+                CurrentCount = IsDone("CF_TIME_10MIN") ? 1 : 0,
+                IconSymbol = "⏱️"
+            });
+
+            // 10. [최전선 교두보] (보통)
+            list.Add(new AchievementItem
+            {
+                Id = "CF_FORWARD_BASE",
+                Category = AchievementCategory.CoreFront,
+                CategoryName = "CoreFront",
+                Title = "최전선 교두보",
+                Description = "아군 전진 공장(Factory)의 전방 교두보에서 유닛 급파(스폰)",
+                Points = 30,
+                RequiredCount = 1,
+                CurrentCount = IsDone("CF_FORWARD_BASE") ? 1 : 0,
+                IconSymbol = "🏭"
+            });
+
+            // 11. [10열 총력전] (보통~어려움)
+            list.Add(new AchievementItem
+            {
+                Id = "CF_HUGE_TOTAL_WAR",
+                Category = AchievementCategory.CoreFront,
+                CategoryName = "CoreFront",
+                Title = "10열 총력전",
+                Description = "초대형 전장(20×10 Huge 맵)에서 승리",
+                Points = 40,
+                RequiredCount = 1,
+                CurrentCount = IsDone("CF_HUGE_TOTAL_WAR") ? 1 : 0,
+                IconSymbol = "🌐"
+            });
+
+            // 12. [난공불락의 코어] (어려움)
+            list.Add(new AchievementItem
+            {
+                Id = "CF_FLAWLESS_CORE",
+                Category = AchievementCategory.CoreFront,
+                CategoryName = "CoreFront",
+                Title = "난공불락의 코어",
+                Description = "아군 코어 피해 없이(25/25 완벽 방어) 승리",
+                Points = 45,
+                RequiredCount = 1,
+                CurrentCount = IsDone("CF_FLAWLESS_CORE") ? 1 : 0,
+                IconSymbol = "🛡️"
+            });
+
+            // 13. [8턴 전격전] (어려움)
+            list.Add(new AchievementItem
+            {
+                Id = "CF_BLITZKRIEG",
+                Category = AchievementCategory.CoreFront,
+                CategoryName = "CoreFront",
+                Title = "8턴 전격전",
+                Description = "8턴 이내에 적 메인프레임 코어를 함락하고 승리",
+                Points = 45,
+                RequiredCount = 1,
+                CurrentCount = IsDone("CF_BLITZKRIEG") ? 1 : 0,
+                IconSymbol = "⚡"
+            });
+
+            // 14. [궤도 폭격 승인] (보통)
+            list.Add(new AchievementItem
+            {
+                Id = "CF_TACTICAL_STRIKE",
+                Category = AchievementCategory.CoreFront,
+                CategoryName = "CoreFront",
+                Title = "궤도 폭격 승인",
+                Description = "전술 스킬 '궤도 폭격'으로 적 건물 또는 서버 랙 완파",
+                Points = 30,
+                RequiredCount = 1,
+                CurrentCount = IsDone("CF_TACTICAL_STRIKE") ? 1 : 0,
+                IconSymbol = "☄️"
+            });
+
+            return list;
         }
 
         private static CategoryTierInfo EvaluateCategoryTier(AchievementCategory cat, string name, int count, string[] rankNames)

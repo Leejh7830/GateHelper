@@ -32,6 +32,16 @@ namespace GateHelper.DataFlip
         public int StatsDamageDealtToAiCore { get; set; } = 0;
         public int StatsTurnsElapsed => TurnNumber;
 
+        // 도전과제 정밀 판별용 런타임 추적 플래그
+        public DateTime MatchStartTime { get; set; } = DateTime.Now;
+        public bool HasSpawnedVanguard { get; set; } = false;
+        public bool HasSpawnedNonVanguard { get; set; } = false;
+        public int PlayerBuiltPowerPlantsDuringGame { get; set; } = 0;
+        public int PlayerBuiltTurrets { get; set; } = 0;
+        public bool HasSelectedUnitCard { get; set; } = false;
+        public bool HasSpawnedFromFactoryBridgehead { get; set; } = false;
+        public bool HasUsedOrbitalStrikeDestroy { get; set; } = false;
+
         // 초경량 턴별 전투 리플레이 스냅샷 기록
         public List<ReplayTurnSnapshot> ReplaySnapshots { get; set; } = new List<ReplayTurnSnapshot>();
 
@@ -373,6 +383,14 @@ namespace GateHelper.DataFlip
             StatsObstaclesDestroyed = 0;
             StatsTotalCreditEarned = 6;
             StatsDamageDealtToAiCore = 0;
+            MatchStartTime = DateTime.Now;
+            HasSpawnedVanguard = false;
+            HasSpawnedNonVanguard = false;
+            PlayerBuiltPowerPlantsDuringGame = 0;
+            PlayerBuiltTurrets = 0;
+            HasSelectedUnitCard = false;
+            HasSpawnedFromFactoryBridgehead = false;
+            HasUsedOrbitalStrikeDestroy = false;
             ReplaySnapshots.Clear();
             CombatLogHistory.Clear();
             PendingAiCombatEvents.Clear();
@@ -910,6 +928,7 @@ namespace GateHelper.DataFlip
                         {
                             if (targetBldg.Owner == Owner.Ai) StatsPlayerBuildingsDestroyed++;
                             Buildings[targetRow, targetCol] = null;
+                            if (caster == Owner.Player) HasUsedOrbitalStrikeDestroy = true;
                         }
                     }
                     else if (isObstacle)
@@ -920,6 +939,7 @@ namespace GateHelper.DataFlip
                         {
                             MapTiles[targetRow, targetCol] = TileType.Plain;
                             StatsObstaclesDestroyed++;
+                            if (caster == Owner.Player) HasUsedOrbitalStrikeDestroy = true;
                             if (caster == Owner.Player)
                             {
                                 PlayerCredit += 2;
@@ -1203,6 +1223,12 @@ namespace GateHelper.DataFlip
                            (type == BuildingType.PhaseGate) ? "가속관문" : "건물";
             AddCombatLog($"🏗️ [{(owner == Owner.Player ? "플레이어" : "AI 전술")}] ({row + 1}행 {col + 1}열) {bName} 건설 완료");
 
+            if (owner == Owner.Player)
+            {
+                if (type == BuildingType.PowerPlant) PlayerBuiltPowerPlantsDuringGame++;
+                else if (type == BuildingType.Turret) PlayerBuiltTurrets++;
+            }
+
             return true;
         }
 
@@ -1292,6 +1318,18 @@ namespace GateHelper.DataFlip
                 TargetCol = col,
                 HasActed = true // 소환된 턴에는 즉시 진격하지 않음
             });
+
+            if (owner == Owner.Player)
+            {
+                if (type == UnitType.Vanguard) HasSpawnedVanguard = true;
+                else HasSpawnedNonVanguard = true;
+
+                bool isBaseCol = (col == 1 || ((CurrentMapSize == MapSizeType.Large || CurrentMapSize == MapSizeType.Huge) && col == 2));
+                if (!isBaseCol)
+                {
+                    HasSpawnedFromFactoryBridgehead = true;
+                }
+            }
 
             return true;
         }
@@ -1383,6 +1421,12 @@ namespace GateHelper.DataFlip
                 TargetCol = col,
                 HasActed = false // 무료 공수 유닛은 즉시 전열 참여 가능
             });
+
+            if (owner == Owner.Player)
+            {
+                if (type == UnitType.Vanguard) HasSpawnedVanguard = true;
+                else HasSpawnedNonVanguard = true;
+            }
 
             return true;
         }
@@ -2108,6 +2152,7 @@ namespace GateHelper.DataFlip
                 Winner = Owner.Player;
                 StatusMessage = "🎉 승리! 적 메인프레임 코어를 완파했습니다!";
                 RecordReplaySnapshot();
+                EvaluateCoreFrontAchievements(true);
             }
             else if (PlayerCoreHp <= 0)
             {
@@ -2282,6 +2327,103 @@ namespace GateHelper.DataFlip
                     }
                 }
             }
+        }
+
+        #endregion
+
+        #region Steam-Style Achievement Evaluation
+
+        public List<string> EvaluateCoreFrontAchievements(bool isVictory)
+        {
+            var newlyUnlocked = new List<string>();
+
+            void TryUnlock(string achId)
+            {
+                if (Dashboard.DashboardManager.UnlockCoreFrontAchievement(achId, out string title, out int pts))
+                {
+                    newlyUnlocked.Add(title);
+                    AddCombatLog($"🏆 [도전과제 달성] {title} (+{pts} AP)");
+                }
+            }
+
+            // 실시간 / 턴 종료 달성 가능한 과제
+            if (StatsTotalCreditEarned >= 600)
+            {
+                TryUnlock("CF_GOLD_600");
+            }
+            if (HasSpawnedFromFactoryBridgehead)
+            {
+                TryUnlock("CF_FORWARD_BASE");
+            }
+            if (HasUsedOrbitalStrikeDestroy)
+            {
+                TryUnlock("CF_TACTICAL_STRIKE");
+            }
+
+            // 승리 시 달성 가능한 과제
+            if (isVictory)
+            {
+                Dashboard.DashboardManager.RecordCoreFrontWin();
+
+                // 1. 작전 개시 (첫 승)
+                TryUnlock("CF_FIRST_WIN");
+
+                // 2. 전선의 사령관 (누적 5승)
+                if (Dashboard.DashboardManager.Stats.CoreFrontWins >= 5)
+                {
+                    TryUnlock("CF_VETERAN");
+                }
+
+                // 4. 보병의 돌격 (보병 최소 1기 직접 생산 + 비보병 생산 없음)
+                if (HasSpawnedVanguard && !HasSpawnedNonVanguard)
+                {
+                    TryUnlock("CF_ONLY_INFANTRY");
+                }
+
+                // 5. 무정전 작전 (진행 중 추가 발전소 0채)
+                if (PlayerBuiltPowerPlantsDuringGame == 0)
+                {
+                    TryUnlock("CF_NO_POWERPLANT");
+                }
+
+                // 6. 공세 일변도 (포탑 0채)
+                if (PlayerBuiltTurrets == 0)
+                {
+                    TryUnlock("CF_NO_TURRET");
+                }
+
+                // 7. 순수 군략 (유닛 특수 카드 선택 없음)
+                if (!HasSelectedUnitCard)
+                {
+                    TryUnlock("CF_NO_UNIT_CARDS");
+                }
+
+                // 9. 피말리는 지구전 (게임 시간 10분 초과)
+                if ((DateTime.Now - MatchStartTime).TotalMinutes >= 10.0)
+                {
+                    TryUnlock("CF_TIME_10MIN");
+                }
+
+                // 11. 10열 총력전 (초대형 맵)
+                if (CurrentMapSize == MapSizeType.Huge)
+                {
+                    TryUnlock("CF_HUGE_TOTAL_WAR");
+                }
+
+                // 12. 난공불락의 코어 (아군 코어 HP 25/25 완벽 방어)
+                if (PlayerCoreHp >= BaseMaxHp)
+                {
+                    TryUnlock("CF_FLAWLESS_CORE");
+                }
+
+                // 13. 8턴 전격전 (8턴 이내 승리)
+                if (TurnNumber <= 8)
+                {
+                    TryUnlock("CF_BLITZKRIEG");
+                }
+            }
+
+            return newlyUnlocked;
         }
 
         #endregion

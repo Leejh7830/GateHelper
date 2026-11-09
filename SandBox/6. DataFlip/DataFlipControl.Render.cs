@@ -76,7 +76,12 @@ namespace GateHelper.DataFlip
                 {
                     DrawGuideModal(g);
                 }
-                // 10. 게임 종료 화면
+                // 10. 도전과제 모달
+                else if (_showAchievements)
+                {
+                    DrawAchievementsModal(g);
+                }
+                // 11. 게임 종료 화면
                 else if (_game.IsGameOver)
                 {
                     DrawGameOverModal(g);
@@ -124,6 +129,9 @@ namespace GateHelper.DataFlip
 
             // [턴 진행 3단 배속 토글] (⚡1x / ⚡2x / ⚡4x)
             DrawTurnSpeedToggle(g, _btnTurnSpeedRect);
+
+            // [🏆 도전과제 버튼] (헤더 구석 원클릭 확인)
+            DrawSmallButton(g, _btnAchievementsRect, "🏆 도전과제", 11);
 
             // 타이틀 줄 우측: 로그라이크 패시브 보너스 뱃지 렌더링 (HUD 바 내부가 아닌 상단 타이틀 줄 우측에 배치하여 겹침 원천 차단!)
             int badgeRight = this.Width - 14;
@@ -1786,6 +1794,7 @@ namespace GateHelper.DataFlip
 
             DrawSmallButton(g, _btnRestartRect, "🔄 리셋", 9);
             DrawSmallButton(g, _btnGuideRect, "❓ 룰", 10);
+            DrawSmallButton(g, _btnAchievementsBottomRect, "🏆 과제", 11);
         }
 
         private void DrawCategoryTab(Graphics g, Rectangle rect, string text, bool isSelected, int btnId, Color accent)
